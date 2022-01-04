@@ -1,0 +1,18 @@
+ingress:
+  main:
+    # -- Enables or disables the ingress
+    enabled: true
+    hosts:
+      -  # -- Host address. Helm template can be passed.
+        host: rss.${SECRET_DOMAIN}
+        ## Configure the paths for the host
+        paths:
+          -  # -- Path.  Helm template can be passed.
+            path: /
+            # -- Ignored if not kubeVersion >= 1.14-0
+            pathType: Prefix
+persistence:
+  config:
+    enabled: true
+env:
+  TTRSS_SELF_URL_PATH: http://rss.${SECRET_DOMAIN}/
