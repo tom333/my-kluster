@@ -9,10 +9,10 @@ argo-cd:
     ingress:
       enabled: true
       hosts:
-        - argocd.${SECRET_DOMAIN}
+        - argocd.{{SECRET_DOMAIN}}
     # certificate:
     #   enabled: true
-    #   domain: argocd.${SECRET_DOMAIN}
+    #   domain: argocd.{{SECRET_DOMAIN}}
     #   issuer:
     #     kind: # ClusterIssuer
     #     name: selfsigned-issuer
