@@ -17,7 +17,7 @@ spec:
         - name: ingress.enabled
           value: 'true'
       valueFiles:
-        - https://raw.githubusercontent.com/tom333/argocd_kluster/main/argocd/argocd-apps/code-server-values.yaml
+        - https://raw.githubusercontent.com/tom333/my_kluster/main/argocd/argocd-apps/code-server-values.yaml
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
