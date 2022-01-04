@@ -9,7 +9,7 @@ argo-cd:
     ingress:
       enabled: true
       hosts:
-        - argocd.{{SECRET_DOMAIN}}
+        - argocd.home.lan
     # certificate:
     #   enabled: true
     #   domain: argocd.{{SECRET_DOMAIN}}

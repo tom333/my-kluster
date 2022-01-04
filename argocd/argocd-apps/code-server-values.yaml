@@ -1,7 +1,7 @@
 ingress:
   enabled: true
   hosts:
-    - host: code.{{SECRET_DOMAIN}}
+    - host: code.home.lan
       paths:
         - path: '/'
           pathType: Prefix
