@@ -12,7 +12,7 @@ argo-cd:
         - argocd.home.lan
     # certificate:
     #   enabled: true
-    #   domain: argocd.{{SECRET_DOMAIN}}
+    #   domain: argocd.home.lan
     #   issuer:
     #     kind: # ClusterIssuer
     #     name: selfsigned-issuer
