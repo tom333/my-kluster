@@ -36,6 +36,9 @@ argo-cd:
         - type: git
           name: repo-perso
           url: https://github.com/tom333/my-kluster.git
+        - type: helm
+          name: bitnami
+          url: https://charts.bitnami.com/bitnami
     additionalApplications:
       - name: argocd
         namespace: argocd
