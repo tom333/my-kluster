@@ -12,7 +12,7 @@ spec:
     path: ''
     repoURL: 'https://apache.github.io/superset'
     targetRevision: 0.5.3
-    chart: spark
+    chart: superset
     helm:
       parameters:
         - name: ingress.enabled
