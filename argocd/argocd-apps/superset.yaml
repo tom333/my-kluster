@@ -14,12 +14,8 @@ spec:
     targetRevision: 0.5.3
     chart: superset
     helm:
-      parameters:
-        - name: ingress.enabled
-          value: 'true'
-        - name: ingress.hosts
-          value:
-            - superset.home.lan
+      valueFiles:
+        - argocd/argocd-apps/superset-values.yaml
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
