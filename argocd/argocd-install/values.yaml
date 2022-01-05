@@ -39,6 +39,9 @@ argo-cd:
         - type: helm
           name: bitnami
           url: https://charts.bitnami.com/bitnami
+        - type: helm
+          name: superset
+          url: https://apache.github.io/superset
     additionalApplications:
       - name: argocd
         namespace: argocd
