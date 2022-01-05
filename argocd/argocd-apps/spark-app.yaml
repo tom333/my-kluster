@@ -15,6 +15,8 @@ spec:
     chart: spark
     helm:
       parameters:
+        - name: ingress.enabled
+          value: true
         - name: ingress.hostname
           value: spark.home.lan
   syncPolicy:
