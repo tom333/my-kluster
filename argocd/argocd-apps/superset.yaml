@@ -18,7 +18,8 @@ spec:
         - name: ingress.enabled
           value: 'true'
         - name: ingress.hosts
-          value: superset.home.lan
+          value:
+            - superset.home.lan
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
