@@ -1,0 +1,21 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: datalab
+  namespace: argocd
+spec:
+  destination:
+    namespace: datalab
+    server: https://kubernetes.default.svc
+  project: datalab-project
+  source:
+    path: 'chart'
+    repoURL: 'https://github.com/druid-io/druid-operator'
+    targetRevision: main
+    chart: druid-operator
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      selfHeal: true
+      prune: true

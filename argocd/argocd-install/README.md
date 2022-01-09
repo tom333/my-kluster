@@ -6,7 +6,7 @@ helm dep update
 kubectl create namespace argocd
 helm install argo-cd . --namespace argocd
 
-# mot passe par défaut = nom du pod
+# mot passe par défaut d'argocd
 kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
 
 helm upgrade -f values.yaml argo-cd . --version argo-cd-1.0.0 --namespace argocd
