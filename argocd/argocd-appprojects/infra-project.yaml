@@ -20,6 +20,8 @@ spec:
     server: https://kubernetes.default.svc
   - namespace: superset
     server: https://kubernetes.default.svc
+  - namespace: wiremind
+    server: https://wiremind.github.io/wiremind-helm-charts
   orphanedResources:
     warn: false
   sourceRepos:

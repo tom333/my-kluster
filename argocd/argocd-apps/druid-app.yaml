@@ -9,10 +9,9 @@ spec:
     server: https://kubernetes.default.svc
   project: datalab-project
   source:
-    path: 'chart'
-    repoURL: 'https://github.com/druid-io/druid-operator'
-    targetRevision: 0.1.1
-    chart: druid-operator
+    path: 'druid'
+    repoURL: 'https://github.com/tom333/my-kluster'
+    targetRevision: main
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
