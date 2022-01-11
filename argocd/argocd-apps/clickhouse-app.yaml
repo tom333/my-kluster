@@ -19,12 +19,11 @@ spec:
         clickhouse:
           ingress:
             enabled: true
-            hosts:
-              - clickhouse.home.lan
+            host: "clickhouse.home.lan"
         tabix:
           ingress:
             enabled: true
-              host: tabix.home.local
+            host: "tabix.home.local"
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
