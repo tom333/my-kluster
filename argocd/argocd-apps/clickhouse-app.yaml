@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: druid
+  name: clickhouse
   namespace: argocd
 spec:
   destination:
@@ -12,7 +12,7 @@ spec:
     path: ''
     repoURL: 'https://liwenhe1993.github.io/charts/'
     targetRevision: 1.0.2
-    chart: spclickhouseark
+    chart: clickhouse
     helm:
       values: |
         timezone: "Pacific/Noumea"
