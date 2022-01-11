@@ -20,6 +20,8 @@ spec:
           ingress:
             enabled: true
             host: "clickhouse.home.lan"
+            tls:
+              enabled: false
         tabix:
           ingress:
             enabled: true
