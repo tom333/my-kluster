@@ -42,6 +42,9 @@ argo-cd:
         - type: helm
           name: superset
           url: https://apache.github.io/superset
+        - type: helm
+          name: liwenhe
+          url: https://liwenhe1993.github.io/charts/
     additionalApplications:
       - name: argocd
         namespace: argocd

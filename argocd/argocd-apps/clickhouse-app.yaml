@@ -1,0 +1,33 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: druid
+  namespace: argocd
+spec:
+  destination:
+    namespace: datalab
+    server: https://kubernetes.default.svc
+  project: datalab-project
+  source:
+    path: ''
+    repoURL: 'https://liwenhe1993.github.io/charts/'
+    targetRevision: 1.0.2
+    chart: spclickhouseark
+    helm:
+      values: |
+        timezone: "Pacific/Noumea"
+        clickhouse:
+          ingress:
+            enabled: true
+            hosts:
+              - clickhouse.home.lan
+        tabix:
+          ingress:
+            enabled: true
+            host: tabix.home.local
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      selfHeal: true
+      prune: true
