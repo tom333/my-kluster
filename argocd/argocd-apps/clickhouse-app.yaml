@@ -24,7 +24,7 @@ spec:
         tabix:
           ingress:
             enabled: true
-            host: tabix.home.local
+              host: tabix.home.local
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
