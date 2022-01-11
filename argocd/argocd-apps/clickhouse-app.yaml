@@ -24,6 +24,8 @@ spec:
           ingress:
             enabled: true
             host: "tabix.home.local"
+            tls:
+              enabled: false
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
