@@ -5,7 +5,7 @@ metadata:
   namespace: argocd
 spec:
   destination:
-    namespace: superset
+    namespace: datalab
     server: https://kubernetes.default.svc
   project: infra-project
   source:
@@ -28,6 +28,9 @@ spec:
           pathType: ImplementationSpecific
           hosts:
             - superset.home.lan
+        bootstrapScript: |
+          #!/bin/bash
+          pip install clickhouse-sqlalchemy
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
