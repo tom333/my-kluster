@@ -20,12 +20,14 @@ spec:
           ingress:
             enabled: true
             host: "clickhouse.home.lan"
+            path: "/"
             tls:
               enabled: false
         tabix:
           ingress:
             enabled: true
             host: "tabix.home.local"
+            path: "/"
             tls:
               enabled: false
   syncPolicy:
