@@ -30,7 +30,12 @@ spec:
             - superset.home.lan
         bootstrapScript: |
           #!/bin/bash
-          pip install clickhouse-sqlalchemy
+          rm -rf /var/lib/apt/lists/* && \
+          pip install \
+            psycopg2-binary==2.9.1 \
+            redis==3.5.3 \
+            clickhouse-sqlalchemy && \
+          if [ ! -f ~/bootstrap ]; then echo "Running Superset with uid {{ .Values.runAsUser }}" > ~/bootstrap; fi#!/bin/bash
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
