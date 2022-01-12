@@ -7,7 +7,7 @@ spec:
   destination:
     namespace: datalab
     server: https://kubernetes.default.svc
-  project: infra-project
+  project: datalab-project
   source:
     path: ''
     repoURL: 'https://apache.github.io/superset'
