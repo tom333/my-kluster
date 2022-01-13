@@ -15,8 +15,10 @@ spec:
     chart: postgresql
     helm:
       parameters:
-        postgresqlPassword: "password"
-        postgresqlDatabase: "my-database"
+        - name: postgresqlPassword
+          value: "password"
+        - name: postgresqlDatabase
+          value: "my-database"
 
   syncPolicy:
     syncOptions:
