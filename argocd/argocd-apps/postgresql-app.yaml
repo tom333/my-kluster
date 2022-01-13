@@ -18,7 +18,7 @@ spec:
         - name: postgresqlPassword
           value: "password"
         - name: postgresqlDatabase
-          value: "my-database"
+          value: "datalake"
 
   syncPolicy:
     syncOptions:
