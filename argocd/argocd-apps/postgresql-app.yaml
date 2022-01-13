@@ -14,8 +14,7 @@ spec:
     targetRevision: 10.16.1
     chart: postgresql
     helm:
-      values:
-        global.postgresql.postgresqlPassword: password
+      values: 'global.postgresql.postgresqlPassword: "password"'
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
