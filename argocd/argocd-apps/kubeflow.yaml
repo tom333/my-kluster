@@ -11,8 +11,8 @@ spec:
   source:
     path: ''
     repoURL: 'https://getindata.github.io/helm-charts/'
-    targetRevision: 1.6.1
-    chart: kubeflow
+    targetRevision: 1.6.2
+    chart: kubeflow-pipelines
     helm:
       parameters:
         - name: platform.managedStorage.enabled
