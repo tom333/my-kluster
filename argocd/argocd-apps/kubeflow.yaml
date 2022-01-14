@@ -1,0 +1,29 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kubeflow
+  namespace: argocd
+spec:
+  destination:
+    namespace: datalab
+    server: https://kubernetes.default.svc
+  project: datalab-project
+  source:
+    path: ''
+    repoURL: 'https://getindata.github.io/helm-charts/'
+    targetRevision: 1.6.2
+    chart: kubeflow
+    helm:
+      parameters:
+        - name: platform.managedStorage.enabled
+          value: "false"
+        - name: platform.cloud
+          value: "gcp"
+        - name: platform.gcp.proxyEnabled
+          value: "false"
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      selfHeal: true
+      prune: true

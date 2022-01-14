@@ -45,6 +45,9 @@ argo-cd:
         - type: helm
           name: liwenhe
           url: https://liwenhe1993.github.io/charts/
+        - type: helm
+          name: getindata
+          url: https://getindata.github.io/helm-charts/
     additionalApplications:
       - name: argocd
         namespace: argocd
