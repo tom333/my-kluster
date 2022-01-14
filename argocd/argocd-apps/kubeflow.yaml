@@ -11,7 +11,7 @@ spec:
   source:
     path: ''
     repoURL: 'https://getindata.github.io/helm-charts/'
-    targetRevision: 1.6.2
+    targetRevision: 1.6.1
     chart: kubeflow
     helm:
       parameters:
