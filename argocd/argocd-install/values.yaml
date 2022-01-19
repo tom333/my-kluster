@@ -48,6 +48,9 @@ argo-cd:
         - type: helm
           name: getindata
           url: https://getindata.github.io/helm-charts/
+        - type: helm
+          name: jupyterhub
+          url: https://jupyterhub.github.io/helm-chart/
     additionalApplications:
       - name: argocd
         namespace: argocd
