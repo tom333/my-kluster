@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: config-app
+  name: config
   namespace: argocd
 spec:
   destination:
@@ -17,5 +17,6 @@ spec:
       - CreateNamespace=false
     automated:
       selfHeal: true
+      allowEmpty: true
       prune: true
 
