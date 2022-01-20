@@ -3,12 +3,7 @@ kind: Ingress
 metadata:
   labels:
     app: jupyterhub
-    argocd.argoproj.io/instance: jupyter
-    chart: jupyterhub-1.2.0
-    component: ingress
-    heritage: Helm
-    release: jupyter
-  name: jupyterhub
+  name: jupyterhub-ingress
   namespace: datalab
 spec:
   rules:
@@ -20,5 +15,5 @@ spec:
                 name: proxy-public
                 port:
                   name: http
-              path: /
-              pathType: Prefix
+            path: /
+            pathType: Prefix
