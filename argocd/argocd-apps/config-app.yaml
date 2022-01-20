@@ -10,7 +10,7 @@ spec:
   project: infra-project
   source:
     path: config/
-    repoURL: https://github.com/tom333/argocd_kluster.git
+    repoURL: https://github.com/tom333/my-kluster.git
     targetRevision: HEAD
   syncPolicy:
     syncOptions:

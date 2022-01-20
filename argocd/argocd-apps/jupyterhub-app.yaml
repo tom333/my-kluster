@@ -13,12 +13,6 @@ spec:
     repoURL: 'https://jupyterhub.github.io/helm-chart/'
     targetRevision: 1.2.0
     chart: jupyterhub
-    helm:
-      values: |
-        ingress:
-          enabled: true
-          hosts:
-            - jupyter.home.lan
   syncPolicy:
     syncOptions:
       - CreateNamespace=true

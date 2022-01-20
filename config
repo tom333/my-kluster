@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  labels:
+    app: jupyterhub
+    argocd.argoproj.io/instance: jupyter
+    chart: jupyterhub-1.2.0
+    component: ingress
+    heritage: Helm
+    release: jupyter
+  name: jupyterhub
+  namespace: datalab
+spec:
+  rules:
+    - host: jupyter.home.lan
+      http:
+        paths:
+          - backend:
+              service:
+                name: proxy-public
+                port:
+                  name: http
+              path: /
