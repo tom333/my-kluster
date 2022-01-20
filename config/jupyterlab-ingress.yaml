@@ -4,7 +4,7 @@ metadata:
   labels:
     app: jupyterhub
   name: jupyterhub-ingress
-  namespace: datalab
+  namespace: jupyter
 spec:
   rules:
     - host: jupyter.home.lan

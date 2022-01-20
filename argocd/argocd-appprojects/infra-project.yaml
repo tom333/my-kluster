@@ -22,6 +22,8 @@ spec:
     server: https://kubernetes.default.svc
   - namespace: datalab
     server: https://kubernetes.default.svc
+  - namespace: jupyter
+    server: https://kubernetes.default.svc
   orphanedResources:
     warn: false
   sourceRepos:

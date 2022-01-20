@@ -5,14 +5,20 @@ metadata:
   namespace: argocd
 spec:
   destination:
-    namespace: datalab
+    namespace: jupyter
     server: https://kubernetes.default.svc
-  project: datalab-project
+  project: jupyter-project
   source:
     path: ''
     repoURL: 'https://jupyterhub.github.io/helm-chart/'
     targetRevision: 1.2.0
     chart: jupyterhub
+    helm:
+      values: |
+        singleuser:
+          defaultUrl: "/lab"
+          extraEnv:
+            JUPYTERHUB_SINGLEUSER_APP: "jupyter_server.serverapp.ServerApp"
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
