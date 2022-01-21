@@ -19,6 +19,8 @@ spec:
           defaultUrl: "/lab"
           extraEnv:
             JUPYTERHUB_SINGLEUSER_APP: "jupyter_server.serverapp.ServerApp"
+          image: jupyter/tensorflow-notebook
+          tag: python-3.8.8
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
