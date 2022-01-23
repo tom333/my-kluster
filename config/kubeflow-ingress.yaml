@@ -14,6 +14,6 @@ spec:
               service:
                 name: kubeflow-dashboard
                 port:
-                  name: http
+                  number: 8082
             path: /
             pathType: Prefix
