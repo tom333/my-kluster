@@ -4,7 +4,7 @@ metadata:
   labels:
     app: kubeflow
   name: kubeflow-ingress
-  namespace: datalab
+  namespace: kubeflow
 spec:
   rules:
     - host: kubeflow.home.lan
@@ -12,7 +12,7 @@ spec:
         paths:
           - backend:
               service:
-                name: ml-pipeline-ui
+                name: kubeflow-dashboard
                 port:
                   name: http
             path: /
