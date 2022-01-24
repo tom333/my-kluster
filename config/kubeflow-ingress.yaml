@@ -12,8 +12,8 @@ spec:
         paths:
           - backend:
               service:
-                name: kubeflow-dashboard
+                name: istio-ingressgateway
                 port:
-                  number: 8082
+                  name: http2
             path: /
             pathType: Prefix
