@@ -1,4 +1,4 @@
-apiVersion: networking.k8s.io/v1
+apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
 metadata:
   labels:
@@ -10,10 +10,8 @@ spec:
     - host: kubeflow.home.lan
       http:
         paths:
-          - backend:
-              service:
-                name: kistio-ingressgateway
-                port:
-                  number: 8080
-            path: /
-            pathType: Prefix
+          - path: /
+            backend:
+              serviceName: kistio-ingressgateway
+              servicePort: 8080
+
