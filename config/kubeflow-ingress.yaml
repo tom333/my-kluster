@@ -1,4 +1,4 @@
-apiVersion: networking.k8s.io/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   labels:
@@ -11,7 +11,10 @@ spec:
       http:
         paths:
           - path: /
+            pathType: Prefix
             backend:
-              serviceName: kistio-ingressgateway
-              servicePort: 8080
+              service:
+                name: kistio-ingressgateway
+                port:
+                  name: http2
 
