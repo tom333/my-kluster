@@ -9,7 +9,7 @@ metadata:
     kubernetes.io/ingress.class: "istio"
 spec:
   rules:
-    - host: kubeflow2.home.lan
+    - host: kubeflow.home.lan
       http:
         paths:
           - path: /
