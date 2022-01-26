@@ -16,5 +16,5 @@ spec:
               service:
                 name: istio-ingressgateway
                 port:
-                  name: http2
+                  number: 80
 
