@@ -5,9 +5,11 @@ metadata:
     app: kubeflow
   name: kubeflow-ingress
   namespace: kubeflow
+  annotations:
+    kubernetes.io/ingress.class: "istio"
 spec:
   rules:
-    - host: kubeflow.home.lan
+    - host: kubeflow2.home.lan
       http:
         paths:
           - path: /
@@ -17,4 +19,3 @@ spec:
                 name: istio-ingressgateway
                 port:
                   number: 80
-
