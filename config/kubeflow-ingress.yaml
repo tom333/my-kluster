@@ -14,7 +14,7 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: kistio-ingressgateway
+                name: istio-ingressgateway
                 port:
                   name: http2
 
