@@ -1,0 +1,36 @@
+---
+
+- hosts: all
+
+  tasks:
+    - name: Update packages list
+      apt: update_cache=yes
+
+    - name: List packages to upgrade (1/2)
+      shell: apt list --upgradable
+      register: updates
+      changed_when: False
+
+    - name: List packages to upgrade (2/2)
+      debug: msg="{{ updates.stdout_lines | count }} packages to upgrade ({{ updates.stdout_lines | join(', ') }})"
+
+    - name: Upgrade packages
+      apt: upgrade=dist
+
+    - name: Check what the new version is
+      shell:  lsb_release -r | awk '{print $2}'
+      changed_when: False
+      register: new_release
+
+    - name: Notify distribution version upgrade
+      debug: msg="Debian has been upgraded from {{ ansible_lsb.release }} to {{ new_release.stdout }}"
+      when: ansible_lsb.release != new_release.stdout
+
+    - name: List services to restart (1/2)
+      shell: checkrestart | grep ^service | awk '{print $2}'
+      register: services
+      changed_when: False
+
+    - name: List services to restart (2/2)
+      debug: msg="{{ services.stdout_lines | count }} services to restart ({{ services.stdout_lines | join (', ') }})"
+      when: services.stdout_lines

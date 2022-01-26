@@ -1,0 +1,24 @@
+[raspberries]
+192.168.2.178 # mopidy
+
+[osmc]
+osmc.local
+
+[raspberries:vars]
+ansible_connection=ssh
+ansible_user=pi
+ansible_ssh_pass=raspberry
+
+[osmc:vars]
+ansible_connection=ssh
+ansible_user=osmc
+ansible_ssh_pass=osmc
+
+[server]
+192.168.2.100
+
+[server:vars]
+ansible_connection=ssh
+ansible_user=moi
+ansible_ssh_pass=emilie
+ansible_sudo_pass=emilie
