@@ -3,6 +3,7 @@ apiVersion: traefik.containo.us/v1alpha1
 kind: IngressRoute
 metadata:
   name: istio-ingressgateway-web
+  namespace: kubeflow
 spec:
   entryPoints:
     - web
@@ -17,6 +18,7 @@ apiVersion: traefik.containo.us/v1alpha1
 kind: IngressRoute
 metadata:
   name: istio-ingressgateway-web-tls
+  namespace: kubeflow
 spec:
   entryPoints:
     - websecure
