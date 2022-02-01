@@ -1,0 +1,30 @@
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: istio-ingressgateway-web
+spec:
+  entryPoints:
+    - web
+  routes:
+  - kind: Rule
+    match: Host(`kubeflow.home.lan`) && PathPrefix(`/`)
+    services:
+    - name: istio-ingressgateway
+      port: 30721
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: istio-ingressgateway-web-tls
+spec:
+  entryPoints:
+    - websecure
+  routes:
+  - kind: Rule
+    match: Host(`kubeflow.home.lan`) && PathPrefix(`/`)
+    services:
+    - name: istio-ingressgateway
+      port: 30721
+  tls:
+    certResolver: le
