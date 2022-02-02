@@ -11,7 +11,7 @@ apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
   name: kubeflow.home.lan
-  namespace: traefik-system
+  namespace: kubeflow
 spec:
   dnsNames:
     - kubeflow.home.lan
