@@ -56,7 +56,7 @@ spec:
               service:
                 name: istio-ingressgateway
                 port:
-                  number: 3032035721
+                  number: 32035
   tls:
     - hosts:
         - kubeflow.home.lan
