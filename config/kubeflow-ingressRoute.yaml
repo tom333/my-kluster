@@ -1,18 +1,24 @@
 ---
-apiVersion: traefik.containo.us/v1alpha1
-kind: IngressRoute
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
 metadata:
-  name: istio-ingressgateway-web
-  namespace: kubeflow
+  name: selfsigned
 spec:
-  entryPoints:
-    - web
-  routes:
-  - kind: Rule
-    match: Host(`kubeflow.home.lan`) && PathPrefix(`/`)
-    services:
-    - name: istio-ingressgateway
-      port: 30721
+  selfSigned: {}
+
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: kubeflow.home.lan
+  namespace: traefik-system
+spec:
+  dnsNames:
+    - kubeflow.home.lan
+  secretName: kubeflow.home.lan
+  issuerRef:
+    name: selfsigned
+    kind: ClusterIssuer
 ---
 apiVersion: traefik.containo.us/v1alpha1
 kind: IngressRoute
@@ -23,10 +29,10 @@ spec:
   entryPoints:
     - websecure
   routes:
-  - kind: Rule
-    match: Host(`kubeflow.home.lan`) && PathPrefix(`/`)
-    services:
-    - name: istio-ingressgateway
-      port: 30721
+    - kind: Rule
+      match: Host(`kubeflow.home.lan`) && PathPrefix(`/`)
+      services:
+        - name: istio-ingressgateway
+          port: 30721
   tls:
-    certResolver: le
+    certResolver: kubeflow.home.lan
