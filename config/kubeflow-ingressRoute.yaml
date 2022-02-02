@@ -24,7 +24,7 @@ spec:
 apiVersion: traefik.containo.us/v1alpha1
 kind: IngressRoute
 metadata:
-  name: istio-ingressgateway-web-tls
+  name: istio-ingressgateway-web
   namespace: istio-system
 spec:
   entryPoints:
