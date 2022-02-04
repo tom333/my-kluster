@@ -49,8 +49,8 @@ argo-cd:
           name: getindata
           url: https://getindata.github.io/helm-charts/
         - type: helm
-          name: jupyterhub
-          url: https://jupyterhub.github.io/helm-chart/
+          name: sealed-secrets
+          url: https://bitnami-labs.github.io/sealed-secrets
     additionalApplications:
       - name: argocd
         namespace: argocd
@@ -62,13 +62,13 @@ argo-cd:
           helm:
             version: v3
             valueFiles:
-            - https://raw.githubusercontent.com/tom333/my-kluster/main/argocd/argocd-install/values.yaml
+              - https://raw.githubusercontent.com/tom333/my-kluster/main/argocd/argocd-install/values.yaml
           path: argocd/argocd-install
           repoURL: https://github.com/tom333/my-kluster.git
           targetRevision: HEAD
         syncPolicy:
           syncOptions:
-          - CreateNamespace=true
+            - CreateNamespace=true
       - name: applications
         namespace: argocd
         destination:
@@ -110,12 +110,12 @@ argo-cd:
         additionalAnnotations: {}
         description: Argocd Project
         sourceRepos:
-        - '*'
+          - "*"
         destinations:
-        - namespace: argocd
-          server: https://kubernetes.default.svc
+          - namespace: argocd
+            server: https://kubernetes.default.svc
         clusterResourceWhitelist:
-        - group: '*'
-          kind: '*'
+          - group: "*"
+            kind: "*"
         orphanedResources:
           warn: false
