@@ -9,8 +9,6 @@ spec:
     repoURL: https://github.com/tom333/my-kluster.git
     targetRevision: main
     path: kubeflow/istio-resources
-    kustomize:
-      version: v4.0.5
   destination:
     server: https://kubernetes.default.svc
     namespace: istio-system
