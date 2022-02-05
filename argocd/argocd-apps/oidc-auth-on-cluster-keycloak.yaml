@@ -8,7 +8,7 @@ spec:
   source:
     repoURL: https://github.com/tom333/my-kluster.git
     targetRevision: main
-    path: distribution/oidc-auth/overlays/keycloak
+    path: kubeflow/oidc-auth/overlays/keycloak
   destination:
     server: https://kubernetes.default.svc
     namespace: auth
