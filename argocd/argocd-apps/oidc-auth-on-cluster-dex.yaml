@@ -8,7 +8,7 @@ spec:
   source:
     repoURL: https://github.com/tom333/my-kluster.git
     targetRevision: main
-    path: distribution/oidc-auth/overlays/dex
+    path: kubeflow/oidc-auth/overlays/dex
   destination:
     server: https://kubernetes.default.svc
     namespace: auth
