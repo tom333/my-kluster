@@ -9,8 +9,6 @@ spec:
     repoURL: https://github.com/tom333/argoflow.git
     targetRevision: main
     path: distribution/oidc-auth/overlays/dex
-    kustomize:
-      version: v4.0.5
   destination:
     server: https://kubernetes.default.svc
     namespace: auth
