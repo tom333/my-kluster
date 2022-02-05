@@ -6,7 +6,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/tom333/argoflow.git
+    repoURL: https://github.com/tom333/my-kluster.git
     targetRevision: main
     path: distribution/oidc-auth/overlays/dex
   destination:
