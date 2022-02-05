@@ -6,9 +6,11 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/tom333/my-kluster.git
+    repoURL: https://github.com/tom333/argoflow.git
     targetRevision: main
-    path: kubeflow/oidc-auth/overlays/keycloak
+    path: distribution/oidc-auth/overlays/dex
+    kustomize:
+      version: v4.0.5
   destination:
     server: https://kubernetes.default.svc
     namespace: auth
