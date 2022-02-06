@@ -1,20 +1,21 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: mlflow
+  name: config
   namespace: argocd
 spec:
   destination:
-    namespace: mlflow
+    namespace: datalab
     server: https://kubernetes.default.svc
-  project: default
+  project: datalab-project
   source:
+    path: kubeflow/
     repoURL: https://github.com/tom333/my-kluster.git
-    targetRevision: main
-    path: kubeflow/mlflow
+    targetRevision: HEAD
   syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
     syncOptions:
       - CreateNamespace=false
+    automated:
+      selfHeal: true
+      allowEmpty: true
+      prune: true
