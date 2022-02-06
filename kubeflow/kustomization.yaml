@@ -4,5 +4,5 @@ kind: Kustomization
 resources:
   - ./common/cert-manager/kubeflow-issuer/base
   - ./common/istio-1-9/istio-crds/base
-  - ./common/istio-1-9/istio-namespace/base/base
+  - ./common/istio-1-9/istio-namespace/base
   - ./common/istio-1-9/istio-install/base
