@@ -14,3 +14,4 @@ resources:
   - ./common/kubeflow-namespace/base
   - ./common/kubeflow-roles/base
   - ./common/istio-1-9/kubeflow-istio-resources/base
+  - ./apps/pipeline/upstream/env/platform-agnostic-multi-user
