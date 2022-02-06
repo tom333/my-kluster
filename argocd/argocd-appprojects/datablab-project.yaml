@@ -10,7 +10,7 @@ spec:
   destinations:
     - namespace: datalab
       server: https://kubernetes.default.svc
-    - namespace: "*"
+    - namespace: "istio-system"
       server: https://kubernetes.default.svc
   sourceRepos:
     - "*"
