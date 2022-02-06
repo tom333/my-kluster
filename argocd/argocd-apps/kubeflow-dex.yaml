@@ -12,6 +12,8 @@ spec:
     path: kubeflow-dex
     repoURL: https://github.com/tom333/my-kluster.git
     targetRevision: HEAD
+    kustomize:
+      version: v3.5.1
   syncPolicy:
     syncOptions:
       - CreateNamespace=false
