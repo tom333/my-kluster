@@ -12,6 +12,8 @@ spec:
     path: kubeflow-knative
     repoURL: https://github.com/tom333/my-kluster.git
     targetRevision: HEAD
+    kustomize:
+      version: v3.10.0
   syncPolicy:
     syncOptions:
       - CreateNamespace=false
