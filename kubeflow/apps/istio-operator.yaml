@@ -2,7 +2,7 @@ apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: istio-operator
-  namespace: argocd
+  namespace: datalab
 spec:
   project: default
   source:
