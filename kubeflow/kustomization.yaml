@@ -20,7 +20,7 @@ resources:
   - ./apps/centraldashboard/upstream/overlays/istio
   - ./apps/admission-webhook/upstream/overlays/cert-manager
   - ./apps/jupyter/notebook-controller/upstream/overlays/kubeflow
-  - ./apps/apps/jupyter/jupyter-web-app/upstream/overlays/istio
+  - ./apps/jupyter/jupyter-web-app/upstream/overlays/istio
   - ./apps/profiles/upstream/overlays/kubeflow
   - ./apps/volumes-web-app/upstream/overlays/istio
   - ./apps/tensorboard/tensorboards-web-app/upstream/overlays/istio
