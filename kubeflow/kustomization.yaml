@@ -2,12 +2,9 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 resources:
-  - ./common/dex/overlays/istio
-  - ./common/oidc-authservice/base
   - ./common/knative/knative-serving/base
   - ./common/kubeflow-namespace/base
   - ./common/kubeflow-roles/base
-  - ./common/istio-1-9/kubeflow-istio-resources/base
   - ./apps/pipeline/upstream/env/platform-agnostic-multi-user
   - ./apps/kfserving/upstream/overlays/kubeflow
   - ./apps/katib/upstream/installs/katib-with-kubeflow

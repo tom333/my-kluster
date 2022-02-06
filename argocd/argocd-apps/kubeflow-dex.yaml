@@ -1,0 +1,21 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kubeflow-dex
+  namespace: argocd
+spec:
+  destination:
+    namespace: auth
+    server: https://kubernetes.default.svc
+  project: datalab-project
+  source:
+    path: kubeflow-dex
+    repoURL: https://github.com/tom333/my-kluster.git
+    targetRevision: HEAD
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=false
+    automated:
+      selfHeal: true
+      allowEmpty: true
+      prune: true
