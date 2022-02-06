@@ -6,4 +6,4 @@ resources:
   - apps/sealed-secrets.yaml
   - apps/istio-operator.yaml
   - apps/istio-resources.yaml
-  - app/istio.yaml
+  - apps/istio.yaml
