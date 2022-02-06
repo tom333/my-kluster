@@ -2,7 +2,7 @@ apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: istio
-  namespace: argocd
+  namespace: datalab
 spec:
   project: default
   source:
@@ -11,7 +11,7 @@ spec:
     path: kubeflow/istio
   destination:
     server: https://kubernetes.default.svc
-    namespace: istio-system
+    namespace: datalab
   syncPolicy:
     automated:
       prune: true
