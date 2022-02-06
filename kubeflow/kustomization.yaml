@@ -11,3 +11,5 @@ resources:
   - ./common/oidc-authservice/base
   - ./common/knative/knative-serving/base
   - ./common/istio-1-9/cluster-local-gateway/base
+  - ./common/kubeflow-namespace/base
+  - ./common/kubeflow-roles/base
