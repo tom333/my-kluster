@@ -9,3 +9,5 @@ resources:
   - ./common/istio-1-9/istio-install/base
   - ./common/dex/overlays/istio
   - ./common/oidc-authservice/base
+  - ./common/knative/knative-serving/base
+  - ./common/istio-1-9/cluster-local-gateway/base
