@@ -2,7 +2,7 @@ apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: istio-operator
-  namespace: datalab
+  namespace: argocd
 spec:
   project: default
   source:
@@ -17,7 +17,7 @@ spec:
           value: 1.10.1 # istio/operator
   destination:
     server: "https://kubernetes.default.svc"
-    namespace: datalab
+    namespace: istio-operator
   syncPolicy:
     automated:
       prune: true
