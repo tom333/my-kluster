@@ -1,0 +1,40 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: ingress-cert
+  namespace: istio-system
+spec:
+  secretName: kubeflow-cert
+  commonName: kubeflow.home.lan
+  dnsNames:
+  - kubeflow.home.lan
+  issuerRef:
+    kind: Issuer
+    name: kubeflow-self-signing-issuer
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: istio-ingressgateway
+  labels:
+    release: istio
+spec:
+  selector:
+    app: istio-ingressgateway
+    istio: ingressgateway
+  servers:
+  # - port:
+  #     number: 80
+  #     name: http
+  #     protocol: HTTP
+  #   hosts:
+  #   - '*'
+  - port:
+      number: 443
+      name: https
+      protocol: HTTPS
+    tls:
+      mode: SIMPLE
+      credentialName: kubeflow-cert
+    hosts:
+    - 'kubeflow.home.lan'
