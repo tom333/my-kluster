@@ -5,10 +5,12 @@ metadata:
   namespace: argocd
 spec:
   clusterResourceWhitelist:
-  - group: '*'
-    kind: '*'
+    - group: "*"
+      kind: "*"
   destinations:
-  - namespace: datalab
-    server: https://kubernetes.default.svc
+    - namespace: datalab
+      server: https://kubernetes.default.svc
+    - namespace: "*"
+      server: https://kubernetes.default.svc
   sourceRepos:
-  - '*'
+    - "*"
