@@ -15,3 +15,16 @@ resources:
   - ./common/kubeflow-roles/base
   - ./common/istio-1-9/kubeflow-istio-resources/base
   - ./apps/pipeline/upstream/env/platform-agnostic-multi-user
+  - ./apps/kfserving/upstream/overlays/kubeflow
+  - ./apps/katib/upstream/installs/katib-with-kubeflow
+  - ./apps/centraldashboard/upstream/overlays/istio
+  - ./apps/admission-webhook/upstream/overlays/cert-manager
+  - ./apps/jupyter/notebook-controller/upstream/overlays/kubeflow
+  - ./apps/apps/jupyter/jupyter-web-app/upstream/overlays/istio
+  - ./apps/profiles/upstream/overlays/kubeflow
+  - ./apps/volumes-web-app/upstream/overlays/istio
+  - ./apps/tensorboard/tensorboards-web-app/upstream/overlays/istio
+  - ./apps/tensorboard/tensorboard-controller/upstream/overlays/kubeflow
+  - ./apps/training-operator/upstream/overlays/kubeflow
+  - ./apps/mpi-job/upstream/overlays/kubeflow
+  - ./common/user-namespace/base
