@@ -17,9 +17,9 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: kubeflow-dashboard-operator
+                name: istio-ingressgateway
                 port:
-                  number: 30666
+                  number: 80
   # tls:
   #   - hosts:
   #       - ingress-demo.example.com
