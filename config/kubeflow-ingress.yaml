@@ -59,4 +59,4 @@ spec:
       match: Host(`kubeflow.home.lan`) && PathPrefix(`/`)
       services:
         - name: istio-ingressgateway
-          port: 32131
+          port: 80
