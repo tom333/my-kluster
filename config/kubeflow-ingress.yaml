@@ -61,4 +61,4 @@ spec:
         - name: istio-ingressgateway
           port: 80
   tls:
-  certResolver: selfsigned
+    secretName: kubeflow.home.lan
