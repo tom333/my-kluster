@@ -60,3 +60,5 @@ spec:
       services:
         - name: istio-ingressgateway
           port: 80
+  tls:
+  certResolver: selfsigned
