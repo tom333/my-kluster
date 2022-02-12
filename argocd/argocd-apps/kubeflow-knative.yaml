@@ -33,4 +33,4 @@ spec:
     - group: rbac.authorization.k8s.io
       kind: ClusterRole
       jqPathExpressions:
-        - .rules[]
+        - .rules
