@@ -26,3 +26,7 @@ spec:
       kind: ClusterRole
       jsonPointers:
         - /rules/
+    - group: rbac.authorization.k8s.io
+      kind: ClusterRole
+      jsonPointers:
+        - /
