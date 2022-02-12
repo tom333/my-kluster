@@ -1,0 +1,20 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ./common/kubeflow-namespace/base
+  - ./common/kubeflow-roles/base
+  - ./apps/pipeline/upstream/env/platform-agnostic-multi-user
+  - ./apps/kfserving/upstream/overlays/kubeflow
+  - ./apps/katib/upstream/installs/katib-with-kubeflow
+  - ./apps/centraldashboard/upstream/overlays/istio
+  - ./apps/admission-webhook/upstream/overlays/cert-manager
+  - ./apps/jupyter/notebook-controller/upstream/overlays/kubeflow
+  - ./apps/jupyter/jupyter-web-app/upstream/overlays/istio
+  - ./apps/profiles/upstream/overlays/kubeflow
+  - ./apps/volumes-web-app/upstream/overlays/istio
+  - ./apps/tensorboard/tensorboards-web-app/upstream/overlays/istio
+  - ./apps/tensorboard/tensorboard-controller/upstream/overlays/kubeflow
+  - ./apps/training-operator/upstream/overlays/kubeflow
+  - ./apps/mpi-job/upstream/overlays/kubeflow
+  - ./common/user-namespace/base
