@@ -24,6 +24,11 @@ spec:
   ignoreDifferences:
     - group: admissionregistration.k8s.io/v1beta1
       kind: MutatingWebhookConfiguration
-      name: cert-manager-webhook
+      name: istio-sidecar-injector
+      jqPathExpressions:
+        - .webhooks[].namespaceSelector.matchExpressions[] | select(.key == "clientConfig")
+    - group: admissionregistration.k8s.io/v1beta1
+      kind: ValidatingWebhookConfiguration
+      name: istiod-istio-system
       jqPathExpressions:
         - .webhooks[].namespaceSelector.matchExpressions[] | select(.key == "clientConfig")
