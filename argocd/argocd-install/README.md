@@ -2,9 +2,6 @@
 helm repo add argo-cd https://argoproj.github.io/argo-helm
 helm dep update
 
-# install
-kubectl create namespace argocd
-helm install argo-cd . --namespace argocd
 
 # mot passe par défaut d'argocd
 kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
