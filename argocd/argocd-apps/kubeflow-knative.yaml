@@ -24,13 +24,5 @@ spec:
   ignoreDifferences:
     - group: rbac.authorization.k8s.io
       kind: ClusterRole
-      jsonPointers:
-        - /rules/
-    - group: rbac.authorization.k8s.io
-      kind: ClusterRole
-      jsonPointers:
-        - /
-    - group: rbac.authorization.k8s.io
-      kind: ClusterRole
       jqPathExpressions:
         - .rules
