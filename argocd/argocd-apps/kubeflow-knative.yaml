@@ -30,3 +30,7 @@ spec:
       kind: ClusterRole
       jsonPointers:
         - /
+    - group: rbac.authorization.k8s.io
+      kind: ClusterRole
+      jqPathExpressions:
+        - .rules[]
