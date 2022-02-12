@@ -1,22 +1,22 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: kubeflow-knative
+  name: kubeflow-dex
   namespace: argocd
 spec:
   destination:
-    namespace: knative-serving
+    namespace: auth
     server: https://kubernetes.default.svc
   project: datalab-project
   source:
-    path: kubeflow-knative
+    path: kubeflow-dex
     repoURL: https://github.com/tom333/my-kluster.git
     targetRevision: HEAD
-    kustomize:
-      version: v3.10.0
+    # kustomize:
+    #   version: v3.10.0
   syncPolicy:
     syncOptions:
-      - CreateNamespace=false
+      - CreateNamespace=true
     automated:
       selfHeal: true
       allowEmpty: true
