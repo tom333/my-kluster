@@ -35,10 +35,14 @@ spec:
       jsonPointers:
         - /webhooks/
     - group: admissionregistration.k8s.io
-      kind: ValidatingWebhookConfiguration/v1beta1
+      kind: ValidatingWebhookConfiguration
       jsonPointers:
-        - /webhooks/1/clientConfig/caBundle/v1beta1
+        - /webhooks/1/clientConfig/caBundle
     - group: admissionregistration.k8s.io
       kind: ValidatingWebhookConfiguration
       jsonPointers:
-        - /webhooks/2/clientConfig/caBundle/v1beta1
+        - /webhooks/2/clientConfig/caBundle
+    - group: admissionregistration.k8s.io
+      kind: ValidatingWebhookConfiguration
+      jqPathExpressions:
+        - ".webhooks"
