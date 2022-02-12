@@ -15,9 +15,9 @@ metadata:
   namespace: kfserving-system
 spec:
   # $(SERVICE_NAME) and $(SERVICE_NAMESPACE) will be substituted by kustomize
-  commonName: $(webhookServiceName).$(kfservingNamespace).svc
+  commonName: $(webhookServiceName).kubeflow.svc
   dnsNames:
-    - $(webhookServiceName).$(kfservingNamespace).svc
+    - $(webhookServiceName).kubeflow.svc
   issuerRef:
     kind: Issuer
     name: selfsigned-issuer
