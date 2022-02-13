@@ -4,7 +4,7 @@ kind: Kustomization
 resources:
   - ./common/kubeflow-namespace/base
   - ./common/kubeflow-roles/base
-  # - ./apps/pipeline/upstream/env/platform-agnostic-emissary
+  - ./apps/pipeline/upstream/env/platform-agnostic-emissary
   # - ./apps/kfserving/upstream/overlays/kubeflow
   # - ./apps/katib/upstream/installs/katib-with-kubeflow
   # - ./apps/centraldashboard/upstream/overlays/istio

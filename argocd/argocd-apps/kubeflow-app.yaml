@@ -21,3 +21,8 @@ spec:
       selfHeal: true
       allowEmpty: true
       prune: true
+  ignoreDifferences:
+    - kind: ClusterRole
+      aggregated: true
+      jsonPointers:
+        - /rules
