@@ -3,4 +3,4 @@ kind: Kustomization
 
 resources:
   - ./env/platform-agnostic-emissary
-  - ./cache-deployer/cluster-scoped
+  - ./cluster-scoped-resources
