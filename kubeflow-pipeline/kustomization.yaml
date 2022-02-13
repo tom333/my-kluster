@@ -4,3 +4,4 @@ kind: Kustomization
 resources:
   - ./env/platform-agnostic-emissary
   - ./cluster-scoped-resources
+  - ./fix.yaml
