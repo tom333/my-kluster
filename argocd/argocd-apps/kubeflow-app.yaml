@@ -13,7 +13,7 @@ spec:
     repoURL: https://github.com/tom333/my-kluster.git
     targetRevision: HEAD
     kustomize:
-      version: v3.10.0
+      version: v3.5.4
   syncPolicy:
     syncOptions:
       - CreateNamespace=false
