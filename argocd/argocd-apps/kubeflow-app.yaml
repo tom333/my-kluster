@@ -22,6 +22,7 @@ spec:
       allowEmpty: true
       prune: true
   ignoreDifferences:
-    - kind: ClusterRole
+    - group: rbac.authorization.k8s.io
+      kind: ClusterRole
       jqPathExpressions:
         - .rules
