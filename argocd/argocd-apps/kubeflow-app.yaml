@@ -23,5 +23,5 @@ spec:
       prune: true
   ignoreDifferences:
     - kind: ClusterRole
-      jsonPointers:
-        - /rules
+      jqPathExpressions:
+        - .rules
