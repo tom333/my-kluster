@@ -12,8 +12,8 @@ spec:
     path: kubeflow/
     repoURL: https://github.com/tom333/my-kluster.git
     targetRevision: HEAD
-    kustomize:
-      version: v3.5.4
+    # kustomize:
+    #   version: v3.5.4
   syncPolicy:
     syncOptions:
       - CreateNamespace=false
