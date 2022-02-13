@@ -23,6 +23,5 @@ spec:
       prune: true
   ignoreDifferences:
     - kind: ClusterRole
-      aggregated: true
       jsonPointers:
         - /rules
