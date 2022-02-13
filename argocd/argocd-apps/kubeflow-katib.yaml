@@ -30,6 +30,10 @@ spec:
       kind: ValidatingWebhookConfiguration
       jqPathExpressions:
         - ".webhooks"
+    - group: admissionregistration.k8s.io
+      kind: MutatingWebhookConfiguration
+      jqPathExpressions:
+        - ".webhooks"
     - group: rbac.authorization.k8s.io
       kind: ClusterRole
       jqPathExpressions:
