@@ -5,7 +5,7 @@ resources:
   - ./common/kubeflow-namespace/base
   - ./common/kubeflow-roles/base
   - ./apps/pipeline/upstream/env/platform-agnostic-emissary
-  # - ./apps/kfserving/upstream/overlays/kubeflow
+  #- ./apps/kfserving/upstream/overlays/kubeflow
   # - ./apps/katib/upstream/installs/katib-with-kubeflow
   # - ./apps/centraldashboard/upstream/overlays/istio
   # - ./apps/admission-webhook/upstream/overlays/cert-manager
@@ -17,4 +17,4 @@ resources:
   # - ./apps/tensorboard/tensorboard-controller/upstream/overlays/kubeflow
   # - ./apps/training-operator/upstream/overlays/kubeflow
   # - ./apps/mpi-job/upstream/overlays/kubeflow
-  # - ./common/user-namespace/base
+  - ./common/user-namespace/base
