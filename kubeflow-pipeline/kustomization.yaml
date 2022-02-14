@@ -6,4 +6,4 @@ resources:
   # - ./cluster-scoped-resources
   # - ./fix.yaml
   - github.com/kubeflow/pipelines/manifests/kustomize/cluster-scoped-resources?ref=1.7.1
-  - github.com/kubeflow/pipelines/manifests/kustomize/env/dev?ref=1.7.1
+  #- github.com/kubeflow/pipelines/manifests/kustomize/env/dev?ref=1.7.1
