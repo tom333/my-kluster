@@ -4,6 +4,7 @@ kind: Kustomization
 resources:
   - ./common/kubeflow-namespace/base
   - ./common/kubeflow-roles/base
+  - ./common/istio-1-11/kubeflow-istio-resources/base
   #- ./apps/kfserving/upstream/overlays/kubeflow
   - ./apps/centraldashboard/upstream/overlays/istio
   - ./apps/admission-webhook/upstream/overlays/cert-manager
