@@ -5,4 +5,4 @@ resources:
   # - ./env/dev
   # - ./cluster-scoped-resources
   # - ./fix.yaml
-  - ./env/platform-agnostic-multi-user-emissary
+  - ./env/platform-agnostic-multi-user
