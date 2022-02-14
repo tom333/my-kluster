@@ -11,4 +11,4 @@ commonLabels:
 images:
 - name: metacontroller/metacontroller
   newName: metacontroller/metacontroller
-  newTag: v0.3.0
+  newTag: v0.4.0
