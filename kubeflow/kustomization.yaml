@@ -6,9 +6,9 @@ resources:
   - ./common/kubeflow-roles/base
   - ./common/kubeflow-istio-resources/base
   #- ./apps/kfserving/upstream/overlays/kubeflow
-  - ./app/centraldashboard/upstream/overlays/istio
-  - ./app/admission-webhook/upstream/overlays/cert-manager
-  - ./app/profiles/upstream/overlays/kubeflow
+  - ./apps/centraldashboard/upstream/overlays/istio
+  - ./apps/admission-webhook/upstream/overlays/cert-manager
+  - ./apps/profiles/upstream/overlays/kubeflow
   # - ./apps/volumes-web-app/upstream/overlays/istio
   # - ./apps/tensorboard/tensorboards-web-app/upstream/overlays/istio
   # - ./apps/tensorboard/tensorboard-controller/upstream/overlays/kubeflow
