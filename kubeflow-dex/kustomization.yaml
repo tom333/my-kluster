@@ -3,3 +3,4 @@ kind: Kustomization
 
 resources:
   - ./overlays/istio
+  - ./oidc-authservice/base
