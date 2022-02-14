@@ -27,7 +27,7 @@ generatorOptions:
 images:
 - name: mysql
   newName: mysql
-  newTag: 8.0.3
+  newTag: 8.0.28
 
 vars:
 - name: MLMD_DB_HOST
