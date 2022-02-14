@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: kubeflow-mysql
+  name: kubeflow-dbs
   namespace: argocd
 spec:
   destination:
@@ -9,7 +9,7 @@ spec:
     server: https://kubernetes.default.svc
   project: datalab-project
   source:
-    path: kubeflow-mysql
+    path: kubeflow-dbs
     repoURL: https://github.com/tom333/my-kluster.git
     targetRevision: HEAD
   syncPolicy:
