@@ -1,0 +1,21 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kubeflow-mysql
+  namespace: argocd
+spec:
+  destination:
+    namespace: kubeflow
+    server: https://kubernetes.default.svc
+  project: datalab-project
+  source:
+    path: kubeflow-mysql
+    repoURL: https://github.com/tom333/my-kluster.git
+    targetRevision: HEAD
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=false
+    automated:
+      selfHeal: true
+      allowEmpty: true
+      prune: true
