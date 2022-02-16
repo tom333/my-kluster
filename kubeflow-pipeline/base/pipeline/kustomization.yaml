@@ -41,7 +41,7 @@ images:
   - name: gcr.io/ml-pipeline/persistenceagent
     newTag: 1.7.1
   - name: gcr.io/ml-pipeline/scheduledworkflow
-    newTag: 1.7.1
+    newTag: 1.8.0
   - name: gcr.io/ml-pipeline/frontend
     newTag: 1.7.1
   - name: gcr.io/ml-pipeline/viewer-crd-controller
