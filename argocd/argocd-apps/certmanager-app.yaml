@@ -9,17 +9,14 @@ spec:
     server: https://kubernetes.default.svc
   project: infra-project
   source:
-    path: ''
-    repoURL: 'https://charts.jetstack.io'
-    targetRevision: v1.6.1
+    path: ""
+    repoURL: "https://charts.jetstack.io"
+    targetRevision: v1.7.1
     chart: cert-manager
     helm:
-      valueFiles:
-        - values.yaml
-      values: 'value1: "value"'
       parameters:
         - name: installCRDs
-          value: 'true'
+          value: "true"
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
