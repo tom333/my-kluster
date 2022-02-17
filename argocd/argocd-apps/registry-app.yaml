@@ -5,7 +5,7 @@ metadata:
   namespace: infra
 spec:
   destination:
-    namespace: datalab
+    namespace: infra
     server: https://kubernetes.default.svc
   project: infra-project
   source:
@@ -22,7 +22,7 @@ spec:
         - name: ingress.enabled
           value: "true"
         - name: ingress.hosts
-          value: ["registry.home.lan"]
+          value: "registry.home.lan"
 
   syncPolicy:
     syncOptions:
