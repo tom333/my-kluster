@@ -52,6 +52,9 @@ argo-cd:
         - type: helm
           name: sealed-secrets
           url: https://bitnami-labs.github.io/sealed-secrets
+        - type: helm
+          name: twuni
+          url: https://helm.twun.io
     additionalApplications:
       - name: argocd
         namespace: argocd
