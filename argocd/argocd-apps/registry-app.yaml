@@ -21,8 +21,8 @@ spec:
           value: "infra"
         - name: ingress.enabled
           value: "true"
-        - name: ingress.hosts
-          value: "['registry.home.lan']"
+        - name: ingress.hosts[0]
+          value: "registry.home.lan"
 
   syncPolicy:
     syncOptions:
