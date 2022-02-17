@@ -1,0 +1,152 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: registry-home-lan
+spec:
+  commonName: registry.home.lan
+  dnsNames:
+    - registry.home.lan
+  issuerRef:
+    name: self-cert-tls
+    kind: Issuer
+  secretName: registry-home-lan
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: registry
+  annotations:
+    ingress.kubernetes.io/ssl-redirect: "true" # redirect port http -> https
+  labels:
+    app: registry
+spec:
+  tls:
+    - hosts:
+        - registry.home.lan
+      secretName: registry-home-lan
+  rules:
+    - host: registry.home.lan
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: privateregistry
+                port:
+                  name: http-web # send traffic to Service/privateregistry's http-web
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: registry
+  labels:
+    app: registry
+spec:
+  ports:
+    - port: 80
+      name: http-web
+      protocol: TCP
+      targetPort: http-web
+  selector:
+    app: registry
+  sessionAffinity: None
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: egistry
+  labels:
+    app: registry
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: registry
+  template:
+    metadata:
+      labels:
+        app: registry
+    spec:
+      containers:
+        - name: registry
+          image: registry:2
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5000
+              name: http-web
+          livenessProbe:
+            initialDelaySeconds: 30
+            timeoutSeconds: 30
+            httpGet:
+              path: /
+              port: http-web
+          readinessProbe:
+            initialDelaySeconds: 30
+            timeoutSeconds: 30
+            httpGet:
+              path: /
+              port: http-web
+          resources:
+            limits:
+              cpu: 300m
+              memory: 300Mi
+            requests:
+              cpu: 100m
+              memory: 100Mi
+          volumeMounts:
+            - name: auth
+              mountPath: /etc/docker/registry/htpasswd
+              subPath: htpasswd
+            - name: auth
+              mountPath: /etc/docker/registry/config.yml
+              subPath: config
+            - name: containers
+              mountPath: /var/lib/registry
+      volumes:
+        - name: containers
+          hostPath:
+            path: /opt/privateregistry
+            type: DirectoryOrCreate
+        - name: auth
+          configMap:
+            name: privateregistry-auth
+            items:
+              - key: htpasswd
+                path: htpasswd
+              - key: config
+                path: config
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: registry-auth
+  labels:
+    app: registry
+data:
+  htpasswd: |
+    user:$2y$05$1Rd3u0JtDNY.7UArtNKIxeUpslM1Z4LKiB2zsVGoSyicCkdo4REi6  # user:password
+  config: |
+    version: 0.1
+    log:
+      fields:
+        service: registry
+    storage:
+      cache:
+        blobdescriptor: inmemory
+      filesystem:
+        rootdirectory: /var/lib/registry
+    http:
+      addr: :5000
+      headers:
+        X-Content-Type-Options: [nosniff]
+      secret: SomeKindOfSecretKeyYouShouldNotReveal  # this can be anything, but it should be set to something
+    auth:
+      htpasswd:
+        realm: basic-realm
+        path: /etc/docker/registry/htpasswd  # this is where the htpasswd will be mounted
+---
+
