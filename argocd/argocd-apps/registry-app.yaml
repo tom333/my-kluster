@@ -23,6 +23,8 @@ spec:
           value: "true"
         - name: ingress.hosts[0]
           value: "registry.home.lan"
+        - name: ingress.className
+          value: ""
 
   syncPolicy:
     syncOptions:
