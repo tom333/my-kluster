@@ -20,7 +20,6 @@ argo-cd:
     #   secretName: argocd-server-tls
 
     config:
-      kustomize.path.v3.2.0: /custom-tools/kustomize_3_2_0
       repositories: |
         - type: helm
           name: stable
@@ -123,6 +122,7 @@ argo-cd:
             kind: "*"
         orphanedResources:
           warn: false
+    kustomize.path.v3.2.0: /custom-tools/kustomize_3_2_0
     initContainers:
       - name: download-tools
         image: alpine:3.8
@@ -133,7 +133,12 @@ argo-cd:
         volumeMounts:
           - mountPath: /custom-tools
             name: custom-tools
-    volumeMounts:
-      - mountPath: /usr/local/bin/kustomize_3.2.0
-        name: custom-tools
-        subPath: kustomize_3.2.0
+    volumes:
+      - name: custom-tools
+        emptyDir: {}
+    containers:
+      - name: argocd-server
+        volumeMounts:
+          - mountPath: /usr/local/bin/kustomize_3.2.0
+            name: custom-tools
+            subPath: kustomize_3.2.0
