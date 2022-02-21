@@ -133,8 +133,7 @@ argo-cd:
         volumeMounts:
           - mountPath: /custom-tools
             name: custom-tools
-    containers:
-      volumeMounts:
-        - mountPath: /usr/local/bin/kustomize_3.2.0
-          name: custom-tools
-          subPath: kustomize_3.2.0
+    volumeMounts:
+      - mountPath: /usr/local/bin/kustomize_3.2.0
+        name: custom-tools
+        subPath: kustomize_3.2.0
