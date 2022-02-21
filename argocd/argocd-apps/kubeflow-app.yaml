@@ -11,6 +11,8 @@ spec:
     path: apps/
     repoURL: https://github.com/tom333/argocd-kubeflow.git
     targetRevision: HEAD
+  kustomize:
+    version: v3.2.0
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
