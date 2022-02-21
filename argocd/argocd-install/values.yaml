@@ -20,7 +20,7 @@ argo-cd:
     #   secretName: argocd-server-tls
 
     config:
-      kustomize.path.v3.2.0: /custom-tools/kustomize_3_2_0
+      kustomize.path.v3.2.0: kustomize_3_2_0
       repositories: |
         - type: helm
           name: stable
