@@ -20,7 +20,7 @@ argo-cd:
     #   secretName: argocd-server-tls
 
     config:
-      kustomize.path.v3.5.4: /custom-tools/kustomize_3_5_4
+      kustomize.path.v3.2.0: /custom-tools/kustomize_3_2_0
       repositories: |
         - type: helm
           name: stable
@@ -123,3 +123,18 @@ argo-cd:
             kind: "*"
         orphanedResources:
           warn: false
+    initContainers:
+      - name: download-tools
+        image: alpine:3.8
+        command: [sh, -c]
+        args:
+          - wget -qO- https://github.com/kubernetes-sigs/kustomize/releases/download/v3.2.0/kustomize_3.2.0_linux_amd64 | tar -xvzf - &&
+            mv kustomize_3.2.0_linux_amd64 /custom-tools/kustomize_3.2.0
+        volumeMounts:
+          - mountPath: /custom-tools
+            name: custom-tools
+    containers:
+      volumeMounts:
+        - mountPath: /usr/local/bin/kustomize_3.2.0
+          name: custom-tools
+          subPath: kustomize_3.2.0
