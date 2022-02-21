@@ -123,6 +123,9 @@ argo-cd:
             kind: "*"
         orphanedResources:
           warn: false
+    volumes:
+      - name: custom-tools
+        emptyDir: {}
     initContainers:
       - name: download-tools
         image: alpine:3.8
@@ -133,12 +136,7 @@ argo-cd:
         volumeMounts:
           - mountPath: /custom-tools
             name: custom-tools
-    volumes:
-      - name: custom-tools
-        emptyDir: {}
-    containers:
-      - name: argocd-server
-        volumeMounts:
-          - mountPath: /usr/local/bin/kustomize_3.2.0
-            name: custom-tools
-            subPath: kustomize_3.2.0
+    volumeMounts:
+      - mountPath: /usr/local/bin/kustomize_3.2.0
+        name: custom-tools
+        subPath: kustomize_3.2.0
