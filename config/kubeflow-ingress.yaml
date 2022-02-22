@@ -4,7 +4,7 @@ metadata:
   labels:
     app: kubeflow
   name: kubeflow-ingress
-  namespace: kubeflow
+  namespace: istio-system
   annotations:
     cert-manager.io/cluster-issuer: "kubeflow-self-signing-issuer"
 spec:
