@@ -5,8 +5,8 @@ metadata:
     app: kubeflow
   name: kubeflow-ingress
   namespace: kubeflow
-  # annotations:
-  #   cert-manager.io/cluster-issuer: "kubeflow-self-signing-issuer"
+  annotations:
+    cert-manager.io/cluster-issuer: "kubeflow-self-signing-issuer"
 spec:
   rules:
     - host: kubeflow.home.lan
@@ -19,23 +19,7 @@ spec:
                 name: istio-ingressgateway
                 port:
                   number: 80
-  # tls:
-  #   - hosts:
-  #       - kubeflow.home.lan
-  #     secretName: kubeflow.home.lan
-# apiVersion: traefik.containo.us/v1alpha1
-# kind: IngressRoute
-# metadata:
-#   name: istio-ingressgateway-web
-#   namespace: istio-system
-# spec:
-#   entryPoints:
-#     - websecure
-#   routes:
-#     - kind: Rule
-#       match: Host(`kubeflow.home.lan`) && PathPrefix(`/`)
-#       services:
-#         - name: istio-ingressgateway
-#           port: 80
-#   tls:
-#     secretName: kubeflow.home.lan
+  tls:
+    - hosts:
+        - kubeflow.home.lan
+      secretName: kubeflow.home.lan
