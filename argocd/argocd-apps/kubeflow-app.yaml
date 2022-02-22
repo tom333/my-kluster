@@ -19,18 +19,19 @@ spec:
       allowEmpty: true
       prune: true
   ignoreDifferences:
-    - kind: MutatingWebhookConfiguration
+    - group: rbac.authorization.k8s.io
+      kind: ClusterRole
       jqPathExpressions:
-        - ".webhooks"
-    - kind: ValidatingWebhookConfiguration
+        - .rules
+    - group: admissionregistration.k8s.io
+      kind: MutatingWebhookConfiguration
       jqPathExpressions:
-        - ".webhooks[]?.clientConfig"
-    - kind: ValidatingWebhookConfiguration
-      jsonPointers:
-        - /webhooks/1/clientConfig/caBundle
-    - kind: ValidatingWebhookConfiguration
-      jsonPointers:
-        - /webhooks/2/clientConfig/caBundle
-    - kind: ValidatingWebhookConfiguration
+        - .webhooks[]?.clientConfig.caBundle
+    - group: admissionregistration.k8s.io
+      kind: ValidatingWebhookConfiguration
       jqPathExpressions:
-        - ".webhooks"
+        - .webhooks[]?.clientConfig.caBundle
+    - group: apiextensions.k8s.io
+      kind: CustomResourceDefinition
+      jqPathExpressions:
+        - .spec.conversion.webhookClientConfig.caBundle
