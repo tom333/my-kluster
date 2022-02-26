@@ -33,7 +33,6 @@ metadata:
   name: star-server
 spec:
   secretName: star-server-tls
-  isCA: false
   usages:
     - server auth
     - client auth
