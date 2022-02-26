@@ -7,19 +7,19 @@ metadata:
   namespace: istio-system
   #   annotations:
   #     cert-manager.io/cluster-issuer: "kubeflow-self-signing-issuer"
-  spec:
-    rules:
-      - host: kubeflow.home.lan
-        http:
-          paths:
-            - path: /
-              pathType: Prefix
-              backend:
-                service:
-                  name: istio-ingressgateway
-                  port:
-                    number: 80
-    tls:
-      - hosts:
-          - kubeflow.home.lan
-        secretName: star-certificate-tls
+spec:
+  rules:
+    - host: kubeflow.home.lan
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: istio-ingressgateway
+                port:
+                  number: 80
+  tls:
+    - hosts:
+        - kubeflow.home.lan
+      secretName: star-certificate-tls
