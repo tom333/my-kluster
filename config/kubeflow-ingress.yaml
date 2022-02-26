@@ -5,9 +5,9 @@ metadata:
     app: kubeflow
   name: kubeflow-ingress
   namespace: istio-system
-  annotations:
-    cert-manager.io/cluster-issuer: "kubeflow-self-signing-issuer"
-spec:
+  #   annotations:
+  #     cert-manager.io/cluster-issuer: "kubeflow-self-signing-issuer"
+  # spec:
   rules:
     - host: kubeflow.home.lan
       http:
@@ -22,4 +22,4 @@ spec:
   tls:
     - hosts:
         - kubeflow.home.lan
-      secretName: kubeflow.home.lan
+      secretName: star-certificate-tls

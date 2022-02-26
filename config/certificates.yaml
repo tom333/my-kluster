@@ -30,9 +30,9 @@ spec:
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  name: star-server
+  name: star-certificate
 spec:
-  secretName: star-server-tls
+  secretName: star-certificate-tls
   usages:
     - server auth
     - client auth
