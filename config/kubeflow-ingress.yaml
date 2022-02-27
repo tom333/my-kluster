@@ -19,7 +19,7 @@ spec:
                 name: istio-ingressgateway
                 port:
                   number: 80
-  tls:
-    - hosts:
-        - kubeflow.home.lan
-      secretName: star-certificate
+  # tls:
+  #   - hosts:
+  #       - kubeflow.home.lan
+  #     secretName: star-certificate
