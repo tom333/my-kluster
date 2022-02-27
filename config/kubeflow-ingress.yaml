@@ -5,8 +5,8 @@ metadata:
     app: kubeflow
   name: kubeflow-ingress
   namespace: istio-system
-  #   annotations:
-  #     cert-manager.io/cluster-issuer: "kubeflow-self-signing-issuer"
+  annotations:
+    cert-manager.io/cluster-issuer: "ca-perso-issuer"
 spec:
   rules:
     - host: kubeflow.home.lan
