@@ -24,6 +24,21 @@ spec:
     - name: KF_PIPELINES_SA_TOKEN_PATH
       value: /var/run/secrets/kubeflow/pipelines/token
 ---
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: bind-ml-pipeline-nb-kubeflow-user-example-com
+  namespace: kubeflow
+spec:
+  selector:
+    matchLabels:
+      app: ml-pipeline
+  rules:
+    - from:
+        - source:
+            principals:
+              ["cluster.local/ns/kubeflow-user-example-com/sa/default-editor"]
+---
 apiVersion: networking.istio.io/v1alpha3
 kind: EnvoyFilter
 metadata:
@@ -50,16 +65,3 @@ spec:
   workloadSelector:
     labels:
       notebook-name: accidents
----
-apiVersion: rbac.istio.io/v1alpha1
-kind: ServiceRoleBinding
-metadata:
-  name: bind-ml-pipeline-nb-kubeflow-user-example-com
-  namespace: kubeflow
-spec:
-  roleRef:
-    kind: ServiceRole
-    name: ml-pipeline-services
-  subjects:
-    - properties:
-        source.principal: cluster.local/ns/kubeflow-user-example-com/sa/default-editor
