@@ -35,4 +35,4 @@ spec:
         - name: api@internal
           kind: TraefikService
   tls:
-    secretName: traefik.home.lan
+    secretName: star-certificate
