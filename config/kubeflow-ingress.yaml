@@ -22,4 +22,4 @@ spec:
   tls:
     - hosts:
         - kubeflow.home.lan
-      secretName: star-certificate-tls
+      secretName: star-certificate
