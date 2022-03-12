@@ -64,4 +64,4 @@ spec:
                 value: user@example.com
   workloadSelector:
     labels:
-      notebook-name: accidents
+      notebook-name: lab
