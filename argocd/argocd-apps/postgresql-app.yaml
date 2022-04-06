@@ -11,7 +11,7 @@ spec:
   source:
     path: ''
     repoURL: 'https://charts.bitnami.com/bitnami'
-    targetRevision: 11.1.16
+    targetRevision: 11.1.17
     chart: postgresql
     helm:
       parameters:
