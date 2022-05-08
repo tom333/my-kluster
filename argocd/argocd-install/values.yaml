@@ -74,6 +74,9 @@ argo-cd:
         - type: helm
           name: twuni
           url: https://helm.twun.io
+        - type: helm
+          name: adwerx
+          url: https://adwerx.github.io/charts/
     additionalApplications:
       - name: argocd
         namespace: argocd
