@@ -16,7 +16,7 @@ spec:
     helm:
       parameters:
         - name: ingress.enabled
-          value: true
+          value: "true"
         - name: ingress.hosts[0]
           value: "awx.home.lan"
 
