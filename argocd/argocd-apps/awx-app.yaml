@@ -23,6 +23,12 @@ spec:
           value: "password"
         - name: secret_key
           value: "c2VjcmV0X2tleQ=="
+        - name: secretKey
+          value: "c2VjcmV0X2tleQ=="
+        - name: defaultAdminUser
+          value: "admin"
+        - name: defaultAdminPassword
+          value: "password"
 
   syncPolicy:
     syncOptions:
