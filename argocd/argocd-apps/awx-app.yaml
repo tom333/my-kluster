@@ -21,6 +21,8 @@ spec:
           value: "awx.home.lan"
         - name: postgresql.postgresqlPassword
           value: "password"
+        - name: secret_key
+          value: "secret_key"
 
   syncPolicy:
     syncOptions:
