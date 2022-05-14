@@ -19,6 +19,8 @@ spec:
           value: "true"
         - name: ingress.hosts[0]
           value: "awx.home.lan"
+        - name: postgresql.postgresqlPassword
+          value: "password"
 
   syncPolicy:
     syncOptions:
