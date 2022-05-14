@@ -22,7 +22,7 @@ spec:
         - name: postgresql.postgresqlPassword
           value: "password"
         - name: secret_key
-          value: "secret_key"
+          value: "c2VjcmV0X2tleQ=="
 
   syncPolicy:
     syncOptions:
