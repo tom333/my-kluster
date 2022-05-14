@@ -12,7 +12,7 @@ spec:
     path: ""
     repoURL: "https://adwerx.github.io/charts/"
     targetRevision: 3.4.3
-    chart: adwerx/awx
+    chart: awx
     helm:
       parameters:
         - name: ingress.enabled
