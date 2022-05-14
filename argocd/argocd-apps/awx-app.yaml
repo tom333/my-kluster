@@ -19,6 +19,8 @@ spec:
           value: "true"
         - name: ingress.hosts[0].host
           value: "awx.home.lan"
+        - name: ingress.hosts[0].paths
+          value: "/"
         - name: postgresql.postgresqlPassword
           value: "password"
         - name: secret_key
