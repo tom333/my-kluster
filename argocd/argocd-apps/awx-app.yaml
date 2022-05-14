@@ -17,7 +17,7 @@ spec:
       parameters:
         - name: ingress.enabled
           value: "true"
-        - name: ingress.hosts[0]
+        - name: ingress.hosts[0].host
           value: "awx.home.lan"
         - name: postgresql.postgresqlPassword
           value: "password"
