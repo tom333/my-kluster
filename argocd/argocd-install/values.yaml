@@ -9,7 +9,7 @@ argo-cd:
         emptyDir: {}
     initContainers:
       - name: download-tools
-        image: alpine:3.15
+        image: alpine:3.16
         command: [sh, -c]
         args:
           - wget https://github.com/kubernetes-sigs/kustomize/releases/download/v3.2.0/kustomize_3.2.0_linux_amd64 &&
@@ -150,7 +150,7 @@ argo-cd:
         emptyDir: {}
     initContainers:
       - name: download-tools
-        image: alpine:3.15
+        image: alpine:3.16
         command: [sh, -c]
         args:
           - wget https://github.com/kubernetes-sigs/kustomize/releases/download/v3.2.0/kustomize_3.2.0_linux_amd64 &&
