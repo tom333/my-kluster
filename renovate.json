@@ -4,5 +4,11 @@
   ],
   "argocd": {
     "fileMatch": ["argocd/argocd-apps/.+\\.yaml$"]
-  }
+  },
+  "packageRules": [
+    {
+      "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
+      "automerge": true
+    }
+  ]
 }
