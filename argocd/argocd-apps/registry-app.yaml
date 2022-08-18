@@ -11,7 +11,7 @@ spec:
   source:
     path: ""
     repoURL: "https://helm.twun.io"
-    targetRevision: 2.1.0
+    targetRevision: 2.2.1
     chart: docker-registry
     helm:
       parameters:
