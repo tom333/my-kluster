@@ -1,0 +1,11 @@
+singleuser:
+  defaultUrl: "/lab"
+  image:
+    name: elyra/elyra
+    # change to a specific release version as appropriate
+    tag: 3.11.0
+    # disable this in a production environment
+    pullPolicy: "Always"
+  storage:
+    dynamic:
+      storageClass: nfs-dynamic
