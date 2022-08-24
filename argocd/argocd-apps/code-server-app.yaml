@@ -5,7 +5,7 @@ metadata:
   namespace: argocd
 spec:
   destination:
-    namespace: datalab
+    namespace: code-server
     server: https://kubernetes.default.svc
   project: code-server-project
   source:
