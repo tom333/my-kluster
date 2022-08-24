@@ -11,5 +11,8 @@ ingress:
             path: /
             # -- Ignored if not kubeVersion >= 1.14-0
             pathType: Prefix
+persistence:
+  config:
+    enabled: true
 env:
   TTRSS_SELF_URL_PATH: "rss.home.lan"
