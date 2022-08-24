@@ -3,3 +3,7 @@ singleuser:
   image:
     name: elyra/elyra
     tag: 3.11.0
+ingress:
+  enabled: true
+  hosts:
+    - host: jupyter.home.lan
