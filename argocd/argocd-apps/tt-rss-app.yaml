@@ -9,16 +9,16 @@ spec:
     server: https://kubernetes.default.svc
   project: tt-rss-project
   source:
-    path: ''
-    repoURL: 'https://k8s-at-home.com/charts/'
-    targetRevision: '4.6.0'
+    path: ""
+    repoURL: "https://k8s-at-home.com/charts/"
+    targetRevision: "5.1.2"
     chart: tt-rss
     helm:
       parameters:
         - name: ingress.main.enabled
-          value: 'true'
+          value: "true"
         - name: postgresql.persistence.enabled
-          value: 'true'
+          value: "true"
       valueFiles:
         - https://raw.githubusercontent.com/tom333/my-kluster/main/argocd/argocd-apps/tt-rss-values.yaml
   syncPolicy:
