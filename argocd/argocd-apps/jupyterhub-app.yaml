@@ -5,9 +5,9 @@ metadata:
   namespace: argocd
 spec:
   destination:
-    namespace: jupyterhub
+    namespace: jupyter
     server: https://kubernetes.default.svc
-  project: jupyterhub-project
+  project: jupyter-project
   source:
     path: ""
     repoURL: "https://jupyterhub.github.io/helm-chart/"
