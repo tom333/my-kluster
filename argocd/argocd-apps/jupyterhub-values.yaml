@@ -5,8 +5,7 @@ singleuser:
     tag: 3.11.0
 ingress:
   enabled: true
-  hosts:
-    - jupyter.home.lan
+  hosts: jupyter.home.lan
 scheduling:
   userScheduler:
     enabled: false
