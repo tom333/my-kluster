@@ -7,3 +7,6 @@ ingress:
   enabled: true
   hosts:
     - jupyter.home.lan
+scheduling:
+  userScheduler:
+    enabled: false
