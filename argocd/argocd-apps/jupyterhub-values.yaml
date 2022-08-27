@@ -6,4 +6,4 @@ singleuser:
 ingress:
   enabled: true
   hosts:
-    - host: jupyter.home.lan
+    - jupyter.home.lan
