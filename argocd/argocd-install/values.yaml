@@ -77,6 +77,9 @@ argo-cd:
         - type: helm
           name: adwerx
           url: https://adwerx.github.io/charts/
+        - type: helm
+          name: ngrok-operator
+          url: https://zufardhiyaulhaq.com/ngrok-operator/charts/releases/
     additionalApplications:
       - name: argocd
         namespace: argocd
