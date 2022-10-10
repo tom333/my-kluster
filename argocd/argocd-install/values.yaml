@@ -28,7 +28,7 @@ argo-cd:
     ingress:
       enabled: true
       hosts:
-        - argocd.home.lan
+        - argocd.local
     # certificate:
     #   enabled: true
     #   domain: argocd.home.lan
