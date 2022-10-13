@@ -28,7 +28,7 @@ argo-cd:
     ingress:
       enabled: true
       hosts:
-        - argocd.home.lan
+        - argocd.local
     # certificate:
     #   enabled: true
     #   domain: argocd.home.lan
@@ -78,8 +78,9 @@ argo-cd:
           name: adwerx
           url: https://adwerx.github.io/charts/
         - type: helm
-          name: ngrok-operator
-          url: https://zufardhiyaulhaq.com/ngrok-operator/charts/releases/
+          name: bitnami-labs
+          url: https://bitnami-labs.github.io/sealed-secrets/
+
     additionalApplications:
       - name: argocd
         namespace: argocd
