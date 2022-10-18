@@ -10,7 +10,7 @@ metadata:
     certmanager.k8s.io/acme-challenge-type: http01
 spec:
   rules:
-    - host: kubeflow.home.lan
+    - host: kubeflow.tgu.ovh
       http:
         paths:
           - path: /
@@ -22,5 +22,5 @@ spec:
                   number: 80
   tls:
     - hosts:
-        - kubeflow.home.lan
+        - kubeflow.tgu.ovh
       secretName: star-certificate
