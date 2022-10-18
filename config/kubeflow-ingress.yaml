@@ -5,6 +5,8 @@ metadata:
     app: kubeflow
   name: kubeflow-ingress
   namespace: istio-system
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-cluster-issuer
 spec:
   rules:
     - host: kubeflow.tgu.ovh
