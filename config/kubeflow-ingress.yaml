@@ -5,9 +5,6 @@ metadata:
     app: kubeflow
   name: kubeflow-ingress
   namespace: istio-system
-  # annotations:
-  #   cert-manager.io/issuer: "ca-perso-issuer"
-  #   certmanager.k8s.io/acme-challenge-type: http01
 spec:
   rules:
     - host: kubeflow.tgu.ovh
@@ -20,7 +17,7 @@ spec:
                 name: istio-ingressgateway
                 port:
                   number: 80
-  # tls:
-  #   - hosts:
-  #       - kubeflow.tgu.ovh
-  #     secretName: star-certificate
+  tls:
+    - hosts:
+        - kubeflow.tgu.ovh
+      secretName: kubeflow-tls-cert

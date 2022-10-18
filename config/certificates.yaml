@@ -1,43 +1,27 @@
 apiVersion: cert-manager.io/v1
-kind: Issuer
+kind: ClusterIssuer
 metadata:
-  name: selfsigned-issuer
+  name: letsencrypt-cluster-issuer
 spec:
-  selfSigned: {}
+  acme:
+    server: https://acme-v02.api.letsencrypt.org/directory
+    email: laboitatom@email.com
+    privateKeySecretRef:
+      name: letsencrypt-cluster-issuer-key
+    solvers:
+      - http01:
+          ingress:
+            class: nginx
 ---
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  name: ca-perso
+  name: kubeflow-cert
+  namespace: istio-system
 spec:
-  secretName: ca-perso-tls
-  commonName: ca-perso.svc.cluster.local
-  usages:
-    - server auth
-    - client auth
-  isCA: true
-  issuerRef:
-    name: selfsigned-issuer
----
-apiVersion: cert-manager.io/v1
-kind: Issuer
-metadata:
-  name: ca-perso-issuer
-spec:
-  ca:
-    secretName: ca-perso-tls
----
-apiVersion: cert-manager.io/v1
-kind: Certificate
-metadata:
-  name: star-certificate
-spec:
-  secretName: star-certificate
-  usages:
-    - server auth
-    - client auth
   dnsNames:
-    - "*.svc.cluster.local"
-    - "*.home.lan"
+    - kubeflow.tgu.ovh
+  secretName: kubeflow-tls-cert
   issuerRef:
-    name: ca-perso-issuer
+    name: letsencrypt-cluster-issuer
+    kind: ClusterIssuer
