@@ -22,6 +22,8 @@ spec:
       server: https://kubernetes.default.svc
     - namespace: "kubeflow"
       server: https://kubernetes.default.svc
+    - namespace: "kserve"
+      server: https://kubernetes.default.svc
 
   sourceRepos:
     - "*"
