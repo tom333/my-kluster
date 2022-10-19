@@ -27,7 +27,7 @@ metadata:
 spec:
   ingressClassName: public
   rules:
-    - host: argocd.local
+    - host: argocd.tgu.ovh
       http:
         paths:
           - path: /
