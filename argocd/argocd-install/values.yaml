@@ -80,7 +80,9 @@ argo-cd:
         - type: helm
           name: bitnami-labs
           url: https://bitnami-labs.github.io/sealed-secrets/
-
+        - type: helm
+          name: v3io-stable
+          url: https://v3io.github.io/helm-charts/stable
     additionalApplications:
       - name: argocd
         namespace: argocd
