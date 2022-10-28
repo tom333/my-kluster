@@ -1,37 +1,11 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: mlrun
-  namespace: argocd
-spec:
-  destination:
-    namespace: datalab
-    server: https://kubernetes.default.svc
-  project: datalab-project
-  source:
-    path: ""
-    repoURL: "https://v3io.github.io/helm-charts/stable"
-    targetRevision: 0.9.3
-    chart: mlrun
-    helm:
-      parameters:
-        - name: ingress.enabled
-          value: "true"
-  syncPolicy:
-    syncOptions:
-      - CreateNamespace=true
-    automated:
-      selfHeal: true
-      prune: true
----
-apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
   name: mlrun-kit
   namespace: argocd
 spec:
   destination:
-    namespace: datalab
+    namespace: mlrun
     server: https://kubernetes.default.svc
   project: datalab-project
   source:
