@@ -59,4 +59,4 @@ spec:
   tls:
     - hosts:
         - jupyter.tgu.ovh
-      secretName: jupyter.tgu.ovh
+      secretName: letsencrypt-prod
