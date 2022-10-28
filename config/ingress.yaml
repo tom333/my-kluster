@@ -43,6 +43,7 @@ metadata:
   name: mlrun-jupyter-public-ingress
   annotations:
     traefik.ingress.kubernetes.io/rewrite-target: /ui
+    cert-manager.io/issuer: "letsencrypt-prod"
 spec:
   rules:
     - host: jupyter.tgu.ovh
@@ -55,3 +56,7 @@ spec:
                 name: mlrun-kit-jupyter
                 port:
                   number: 8888
+  tls:
+    - hosts:
+        - jupyter.tgu.ovh
+      secretName: jupyter.tgu.ovh
