@@ -21,8 +21,6 @@ kind: Ingress
 metadata:
   namespace: mlrun
   name: mlrun-ui-public-ingress
-  annotations:
-    traefik.ingress.kubernetes.io/rewrite-target: /ui
 spec:
   rules:
     - host: mlrun.tgu.ovh
@@ -42,7 +40,6 @@ metadata:
   namespace: mlrun
   name: mlrun-jupyter-public-ingress
   annotations:
-    traefik.ingress.kubernetes.io/rewrite-target: /ui
     cert-manager.io/issuer: letsencrypt-prod
 spec:
   rules:
