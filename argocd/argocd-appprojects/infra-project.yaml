@@ -5,32 +5,32 @@ metadata:
   namespace: argocd
 spec:
   clusterResourceWhitelist:
-  - group: '*'
-    kind: '*'
+    - group: "*"
+      kind: "*"
   destinations:
-  - namespace: infra
-    server: https://kubernetes.default.svc
-  - namespace: cert-manager
-    server: https://kubernetes.default.svc
-  - namespace: kube-system
-    server: https://kubernetes.default.svc
-  - namespace: code-server
-    server: https://kubernetes.default.svc
-  - namespace: spark
-    server: https://kubernetes.default.svc
-  - namespace: superset
-    server: https://kubernetes.default.svc
-  - namespace: datalab
-    server: https://kubernetes.default.svc
-  - namespace: jupyter
-    server: https://kubernetes.default.svc
-  - namespace: kubeflow
-    server: https://kubernetes.default.svc
-  - namespace: istio-system
-    server: https://kubernetes.default.svc
-  - namespace: "*"
-    server: https://kubernetes.default.svc
+    - namespace: infra
+      server: https://kubernetes.default.svc
+    - namespace: cert-manager
+      server: https://kubernetes.default.svc
+    - namespace: kube-system
+      server: https://kubernetes.default.svc
+    - namespace: code-server
+      server: https://kubernetes.default.svc
+    - namespace: spark
+      server: https://kubernetes.default.svc
+    - namespace: superset
+      server: https://kubernetes.default.svc
+    - namespace: datalab
+      server: https://kubernetes.default.svc
+    - namespace: jupyter
+      server: https://kubernetes.default.svc
+    - namespace: kubeflow
+      server: https://kubernetes.default.svc
+    - namespace: istio-system
+      server: https://kubernetes.default.svc
+    - namespace: "*"
+      server: https://kubernetes.default.svc
   orphanedResources:
     warn: false
   sourceRepos:
-  - '*'
+    - "*"
