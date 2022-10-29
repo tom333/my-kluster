@@ -20,7 +20,7 @@ spec:
         - name: prometheus.enabled
           value: "false"
         - name: webhook.timeoutSeconds
-          value: 4
+          value: "4"
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
