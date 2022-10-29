@@ -21,6 +21,8 @@ kind: Ingress
 metadata:
   namespace: mlrun
   name: mlrun-ui-public-ingress
+  annotations:
+    cert-manager.io/issuer: letsencrypt-prod
 spec:
   rules:
     - host: mlrun.tgu.ovh
@@ -33,6 +35,11 @@ spec:
                 name: mlrun-ui
                 port:
                   number: 80
+  tls:
+    - hosts:
+        - mlrun.tgu.ovh
+      secretName: letsencrypt-prod
+
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
