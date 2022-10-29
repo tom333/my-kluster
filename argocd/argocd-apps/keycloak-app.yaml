@@ -16,13 +16,13 @@ spec:
     helm:
       parameters:
         - name: tls.enabled
-          value: true
+          value: "true"
         - name: production
-          value: true
+          value: "true"
         - name: ingress.enabled
-          value: true
+          value: "true"
         - name: ingress.hostname
-          value: keycloak.tgu.ovh
+          value: "keycloak.tgu.ovh"
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
