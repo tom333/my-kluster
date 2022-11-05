@@ -22,9 +22,11 @@ spec:
         - name: ingress.enabled
           value: "true"
         - name: ingress.hosts[0]
-          value: "registry.home.lan"
+          value: "registry.tgu.ovh"
         - name: ingress.className
           value: ""
+        - name: proxy.enabled
+          value: "true"
 
   syncPolicy:
     syncOptions:
