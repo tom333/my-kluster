@@ -1,27 +1,27 @@
 argo-cd:
   namespace: argocd
-  installCRDs: false
+  installCRDs: true
   dex:
     enabled: false
-  repoServer:
-    volumes:
-      - name: custom-tools
-        emptyDir: {}
-    initContainers:
-      - name: download-tools
-        image: alpine:3.16
-        command: [sh, -c]
-        args:
-          - wget https://github.com/kubernetes-sigs/kustomize/releases/download/v3.2.0/kustomize_3.2.0_linux_amd64 &&
-            mv kustomize_3.2.0_linux_amd64 /custom-tools/kustomize_3.2.0 &&
-            chmod +x /custom-tools/kustomize_3.2.0
-        volumeMounts:
-          - mountPath: /custom-tools
-            name: custom-tools
-    volumeMounts:
-      - mountPath: /usr/local/bin/kustomize_3.2.0
-        name: custom-tools
-        subPath: kustomize_3.2.0
+  # repoServer:
+  #   volumes:
+  #     - name: custom-tools
+  #       emptyDir: {}
+  #   initContainers:
+  #     - name: download-tools
+  #       image: alpine:3.16
+  #       command: [sh, -c]
+  #       args:
+  #         - wget https://github.com/kubernetes-sigs/kustomize/releases/download/v3.2.0/kustomize_3.2.0_linux_amd64 &&
+  #           mv kustomize_3.2.0_linux_amd64 /custom-tools/kustomize_3.2.0 &&
+  #           chmod +x /custom-tools/kustomize_3.2.0
+  #       volumeMounts:
+  #         - mountPath: /custom-tools
+  #           name: custom-tools
+  #   volumeMounts:
+  #     - mountPath: /usr/local/bin/kustomize_3.2.0
+  #       name: custom-tools
+  #       subPath: kustomize_3.2.0
   server:
     extraArgs:
       - --insecure
@@ -39,7 +39,7 @@ argo-cd:
     #   secretName: argocd-server-tls
 
     config:
-      kustomize.path.v3.2.0: /usr/local/bin/kustomize_3.2.0
+      # kustomize.path.v3.2.0: /usr/local/bin/kustomize_3.2.0
       repositories: |
         - type: helm
           name: stable
@@ -47,36 +47,9 @@ argo-cd:
         - type: helm
           name: argo-cd
           url: https://argoproj.github.io/argo-helm
-        - type: helm
-          name: jetstack
-          url: https://charts.jetstack.io
-        - type: helm
-          name: TrueCharts
-          url: https://charts.truecharts.org
         - type: git
           name: repo-perso
           url: https://github.com/tom333/my-kluster.git
-        - type: helm
-          name: bitnami
-          url: https://charts.bitnami.com/bitnami
-        - type: helm
-          name: superset
-          url: https://apache.github.io/superset
-        - type: helm
-          name: liwenhe
-          url: https://liwenhe1993.github.io/charts/
-        - type: helm
-          name: getindata
-          url: https://getindata.github.io/helm-charts/
-        - type: helm
-          name: jupyterhub
-          url: https://jupyterhub.github.io/helm-chart/
-        - type: helm
-          name: twuni
-          url: https://helm.twun.io
-        - type: helm
-          name: adwerx
-          url: https://adwerx.github.io/charts/
         - type: helm
           name: bitnami-labs
           url: https://bitnami-labs.github.io/sealed-secrets/
