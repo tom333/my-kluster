@@ -13,6 +13,10 @@ spec:
     repoURL: "https://v3io.github.io/helm-charts/stable"
     targetRevision: 0.4.1
     chart: mlrun-kit
+    helm:
+      parameters:
+        - name: global.registry.url
+          value: "registry-docker-registry.infra.svc.cluster.local"
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
