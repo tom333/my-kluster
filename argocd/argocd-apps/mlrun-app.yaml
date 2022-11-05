@@ -16,7 +16,7 @@ spec:
     helm:
       parameters:
         - name: global.registry.url
-          value: "registry-docker-registry.infra.svc.cluster.local"
+          value: "registry-docker-registry.infra.svc.cluster.local:5000"
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
