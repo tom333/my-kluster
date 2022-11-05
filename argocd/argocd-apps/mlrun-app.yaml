@@ -16,7 +16,7 @@ spec:
     helm:
       parameters:
         - name: global.registry.url
-          value: "10.43.162.4:5000"
+          value: "localhost:32000"
         - name: global.registry.secretName
           value: ""
 
