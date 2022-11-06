@@ -16,7 +16,7 @@ spec:
     helm:
       parameters:
         - name: global.registry.url
-          value: "registry.container-registry.svc.cluster.local:5000"
+          value: "http://registry.container-registry.svc.cluster.local:5000"
         - name: global.registry.secretName
           value: ""
 
