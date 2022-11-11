@@ -23,6 +23,7 @@ metadata:
   name: mlrun-ui-public-ingress
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt
+    nginx.ingress.kubernetes.io/proxy-body-size: "128m"
 spec:
   rules:
     - host: mlrun.tgu.ovh
