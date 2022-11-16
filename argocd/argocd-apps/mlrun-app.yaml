@@ -12,7 +12,7 @@ spec:
     path: ""
     repoURL: "https://mlrun.github.io/ce"
     targetRevision: 0.5.0
-    chart: mlrun-kit
+    chart: mlrun-ce
     helm:
       parameters:
         - name: global.registry.url
