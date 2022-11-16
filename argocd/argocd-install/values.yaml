@@ -56,3 +56,6 @@ argo-cd:
         - type: helm
           name: v3io-stable
           url: https://v3io.github.io/helm-charts/stable
+        - type: helm
+          name: mlrun-ce
+          url: https://mlrun.github.io/ce

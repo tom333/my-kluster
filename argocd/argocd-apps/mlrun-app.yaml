@@ -10,8 +10,8 @@ spec:
   project: datalab-project
   source:
     path: ""
-    repoURL: "https://v3io.github.io/helm-charts/stable"
-    targetRevision: 0.4.1
+    repoURL: "https://mlrun.github.io/ce"
+    targetRevision: 0.5.0
     chart: mlrun-kit
     helm:
       parameters:
