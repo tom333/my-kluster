@@ -5,7 +5,7 @@ metadata:
   namespace: argocd
 spec:
   destination:
-    namespace: mlrun
+    namespace: clearml
     server: https://kubernetes.default.svc
   project: datalab-project
   source:
@@ -27,6 +27,8 @@ spec:
           value: "true"
         - name: ingress.files.hostName
           value: "files.clearml.tgu.ovh"
+        - name: webserver.service.nodePort
+          value: "31080"
 
   syncPolicy:
     syncOptions:
