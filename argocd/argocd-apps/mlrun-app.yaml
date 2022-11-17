@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: mlrun-kit
+  name: mlrun-ce
   namespace: argocd
 spec:
   destination:
