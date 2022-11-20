@@ -26,6 +26,8 @@ spec:
       server: https://kubernetes.default.svc
     - namespace: "mlrun"
       server: https://kubernetes.default.svc
+    - namespace: "clearml"
+      server: https://kubernetes.default.svc
 
   sourceRepos:
     - "*"
