@@ -6,3 +6,5 @@ ingress:
   enabled: true
   hosts:
     - jupyter.tgu.ovh
+cull:
+  enabled: false
