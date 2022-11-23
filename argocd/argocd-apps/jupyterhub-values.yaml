@@ -8,3 +8,5 @@ ingress:
     - jupyter.tgu.ovh
 cull:
   enabled: false
+proxy:
+   type: ClusterIP
