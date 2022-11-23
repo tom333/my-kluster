@@ -7,9 +7,9 @@ ingress:
   enabled: true
   hosts:
     - jupyter.tgu.ovh
-scheduling:
-  userScheduler:
-    enabled: false
+# scheduling:
+#   userScheduler:
+#     enabled: false
 # proxy:
 #   service:
 #     type: ClusterIP
