@@ -2,11 +2,11 @@ singleuser:
   defaultUrl: "/lab"
   image:
     name: elyra/elyra
-    tag: 3.11.0
+    tag: 3.13.0
 ingress:
   enabled: true
   hosts:
-    - jupyter.home.lan
+    - jupyter.tgu.ovh
 scheduling:
   userScheduler:
     enabled: false

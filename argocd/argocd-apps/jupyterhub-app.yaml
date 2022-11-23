@@ -11,7 +11,7 @@ spec:
   source:
     path: ""
     repoURL: "https://jupyterhub.github.io/helm-chart/"
-    targetRevision: "1.2.0"
+    targetRevision: "2.0.0"
     chart: jupyterhub
     helm:
       valueFiles:
