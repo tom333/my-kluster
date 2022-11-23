@@ -2,6 +2,3 @@ proxy:
   ingress:
     enabled: true
     hostname: jupyter.tgu.ovh
-singleuser:
-  image:
-    tag: latest
