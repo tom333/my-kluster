@@ -10,8 +10,8 @@ spec:
   project: jupyter-project
   source:
     path: ""
-    repoURL: "https://jupyterhub.github.io/helm-chart/"
-    targetRevision: "2.0.0"
+    repoURL: "https://charts.bitnami.com/bitnami"
+    targetRevision: "3.0.1"
     chart: jupyterhub
     helm:
       valueFiles:
