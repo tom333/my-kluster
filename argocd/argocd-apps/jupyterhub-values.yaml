@@ -1,4 +1,4 @@
 proxy:
-  ingres:
-    enabled: True
+  ingress:
+    enabled: true
     hostname: jupyter.tgu.ovh
