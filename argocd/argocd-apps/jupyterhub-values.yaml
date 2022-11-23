@@ -1,17 +1,4 @@
-singleuser:
-  defaultUrl: "/lab"
-  image:
-    name: elyra/elyra
-    tag: 3.13.0
-ingress:
-  enabled: true
-  hosts:
-    - jupyter.tgu.ovh
-# scheduling:
-#   userScheduler:
-#     enabled: false
-# proxy:
-#   service:
-#     type: ClusterIP
-debug:
-  enabled: true
+proxy:
+  ingres:
+    enabled: True
+    hostname: jupyter.tgu.ovh
