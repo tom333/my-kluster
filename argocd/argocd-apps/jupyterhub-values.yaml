@@ -10,6 +10,6 @@ ingress:
 scheduling:
   userScheduler:
     enabled: false
-proxy:
-  service:
-    type: ClusterIP
+# proxy:
+#   service:
+#     type: ClusterIP
