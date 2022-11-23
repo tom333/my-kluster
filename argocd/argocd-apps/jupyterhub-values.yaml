@@ -5,4 +5,4 @@ singleUser:
 ingress:
   enabled: true
   hosts:
-    - jupyter.home.lan
+    - jupyter.tgu.ovh
