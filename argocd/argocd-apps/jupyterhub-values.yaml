@@ -10,7 +10,7 @@ cull:
   enabled: false
 proxy:
   service:
-    type: LoadBalancer
+    type: ClusterIP
   https:
     enabled: true
     hosts:
