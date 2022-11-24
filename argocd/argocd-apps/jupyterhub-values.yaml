@@ -1,4 +1,4 @@
-singleUser:
+singleuser:
   image:
     name: elyra/elyra
     tag: 3.13.0
