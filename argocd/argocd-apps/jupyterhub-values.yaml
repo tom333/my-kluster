@@ -9,4 +9,11 @@ ingress:
 cull:
   enabled: false
 proxy:
-   type: ClusterIP
+  service:
+    type: LoadBalancer
+  https:
+    enabled: true
+    hosts:
+      - "jupyter.tgu.ovh"
+    letsencrypt:
+      contactEmail: "laboitatom@gmail.com"
