@@ -1,5 +1,4 @@
-singleuser:
-  defaultUrl: "/lab"
+singleUser:
   image:
     name: elyra/elyra
     tag: 3.13.0
@@ -7,11 +6,14 @@ ingress:
   enabled: true
   hosts:
     - jupyter.tgu.ovh
-# scheduling:
-#   userScheduler:
-#     enabled: false
-# proxy:
-#   service:
-#     type: ClusterIP
-debug:
-  enabled: true
+cull:
+  enabled: false
+proxy:
+  service:
+    type: ClusterIP
+  https:
+    enabled: true
+    hosts:
+      - "jupyter.tgu.ovh"
+    letsencrypt:
+      contactEmail: "laboitatom@gmail.com"
