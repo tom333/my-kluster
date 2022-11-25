@@ -6,6 +6,10 @@ ingress:
   enabled: true
   hosts:
     - jupyter.tgu.ovh
+  tls:
+    - secretName: letsencrypt
+      hosts:
+        - jupyter.tgu.ovh
 cull:
   enabled: false
 proxy:
