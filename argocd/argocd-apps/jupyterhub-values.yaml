@@ -11,11 +11,11 @@ singleuser:
 ingress:
   enabled: true
   annotations:
-    cert-manager.io/issuer: letsencrypt
+    cert-manager.io/cluster-issuer: letsencrypt
   hosts:
     - jupyter.tgu.ovh
   tls:
-    - secretName: letsencrypt
+    - secretName: jupyter
       hosts:
         - jupyter.tgu.ovh
 cull:
