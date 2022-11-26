@@ -6,16 +6,16 @@ singleuser:
   storage:
     dynamic:
       storageClass: nfs-dynamic
-ingress:
-  enabled: false
-  annotations:
-    cert-manager.io/issuer: letsencrypt
-  hosts:
-    - jupyter.tgu.ovh
-  tls:
-    - secretName: letsencrypt
-      hosts:
-        - jupyter.tgu.ovh
+# ingress:
+#   enabled: false
+#   annotations:
+#     cert-manager.io/issuer: letsencrypt
+#   hosts:
+#     - jupyter.tgu.ovh
+#   tls:
+#     - secretName: letsencrypt
+#       hosts:
+#         - jupyter.tgu.ovh
 cull:
   enabled: false
 # proxy:
