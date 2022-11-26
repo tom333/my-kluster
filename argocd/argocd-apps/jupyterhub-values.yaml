@@ -9,7 +9,7 @@ singleuser:
     dynamic:
       storageClass: nfs-dynamic
 ingress:
-  enabled: false
+  enabled: true
   annotations:
     cert-manager.io/issuer: letsencrypt
   hosts:
@@ -20,15 +20,15 @@ ingress:
         - jupyter.tgu.ovh
 cull:
   enabled: false
-# proxy:
-#   service:
-#     type: ClusterIP
-#   https:
-#     enabled: true
-#     hosts:
-#       - "jupyter.tgu.ovh"
-#     letsencrypt:
-#       contactEmail: "laboitatom@gmail.com"
+proxy:
+  service:
+    type: ClusterIP
+  https:
+    enabled: true
+    hosts:
+      - "jupyter.tgu.ovh"
+    letsencrypt:
+      contactEmail: "laboitatom@gmail.com"
 # hub:
 #   config:
 #     GoogleOAuthenticator:
