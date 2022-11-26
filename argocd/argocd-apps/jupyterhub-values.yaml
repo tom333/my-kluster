@@ -5,9 +5,6 @@ singleuser:
   image:
     name: elyra/elyra
     tag: 3.13.0
-  storage:
-    dynamic:
-      storageClass: nfs-dynamic
 ingress:
   enabled: true
   annotations:
