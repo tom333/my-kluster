@@ -23,14 +23,14 @@ proxy:
   #     - "jupyter.tgu.ovh"
   #   letsencrypt:
   #     contactEmail: "laboitatom@gmail.com"
-# hub:
-#   config:
-#     GoogleOAuthenticator:
-#       client_id: 434813270748-gotip87nh52h0ksn104ckg0g84d32670.apps.googleusercontent.com
-#       client_secret: yGOCSPX-uHtqfDAgIlggd3Be2tAZxYJMt_KH
-#       oauth_callback_url: https://jupyter.tgu.ovh/hub/oauth_callback
-#       hosted_domain:
-#         - jupyter.tgu.ovh
-#       login_service: Jupyterlab
-#     JupyterHub:
-#       authenticator_class: google
+hub:
+  config:
+    GoogleOAuthenticator:
+      client_id: 434813270748-gotip87nh52h0ksn104ckg0g84d32670.apps.googleusercontent.com
+      client_secret: yGOCSPX-uHtqfDAgIlggd3Be2tAZxYJMt_KH
+      oauth_callback_url: https://jupyter.tgu.ovh/hub/oauth_callback
+      hosted_domain:
+        - jupyter.tgu.ovh
+      login_service: Jupyterlab
+    JupyterHub:
+      authenticator_class: google
