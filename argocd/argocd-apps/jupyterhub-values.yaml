@@ -15,7 +15,7 @@ ingress:
   hosts:
     - jupyter.tgu.ovh
   tls:
-    - secretName: letsencrypt
+    - secretName: jupyterhub-tls
       hosts:
         - jupyter.tgu.ovh
 cull:
@@ -23,12 +23,12 @@ cull:
 proxy:
   service:
     type: ClusterIP
-  https:
-    enabled: true
-    hosts:
-      - "jupyter.tgu.ovh"
-    letsencrypt:
-      contactEmail: "laboitatom@gmail.com"
+  # https:
+  #   enabled: true
+  #   hosts:
+  #     - "jupyter.tgu.ovh"
+  #   letsencrypt:
+  #     contactEmail: "laboitatom@gmail.com"
 # hub:
 #   config:
 #     GoogleOAuthenticator:
