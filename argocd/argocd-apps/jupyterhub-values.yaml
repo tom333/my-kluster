@@ -15,7 +15,7 @@ ingress:
   hosts:
     - jupyter.tgu.ovh
   tls:
-    - secretName: jupyterhub-tls
+    - secretName: letsencrypt
       hosts:
         - jupyter.tgu.ovh
 cull:
