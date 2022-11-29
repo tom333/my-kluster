@@ -39,6 +39,10 @@ spec:
           value: ""
         - name: extraEnvVars.MLFLOW_S3_ENDPOINT_URL
           value: "minio.datalab.svc.cluster.local:9000"
+        - name: ingress.enabled
+          value: "true"
+        - name: ingress.hosts[0].host
+          value: "mlflow.tgu.ovh"
 
   syncPolicy:
     syncOptions:
