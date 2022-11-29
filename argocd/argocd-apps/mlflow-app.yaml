@@ -43,6 +43,8 @@ spec:
           value: "true"
         - name: ingress.hosts[0].host
           value: "mlflow.tgu.ovh"
+        - name: ingress.hosts[0].paths[0].path
+          value: "/"
 
   syncPolicy:
     syncOptions:
