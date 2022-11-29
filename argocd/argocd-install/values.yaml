@@ -62,3 +62,6 @@ argo-cd:
         - type: helm
           name: bitnami
           url: https://charts.bitnami.com/bitnami
+        - type: helm
+          name: community-charts
+          url: https://community-charts.github.io/helm-charts
