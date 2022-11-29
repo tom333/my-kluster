@@ -1,7 +1,10 @@
 singleuser:
-  image:
-    name: elyra/elyra
-    tag: 3.13.0
+  # image:
+  #   name: elyra/elyra
+  #   tag: 3.13.0
+  defaultUrl: "/lab"
+  extraEnv:
+    JUPYTERHUB_SINGLEUSER_APP: "jupyter_server.serverapp.ServerApp"
 ingress:
   enabled: true
   annotations:
