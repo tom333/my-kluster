@@ -29,6 +29,8 @@ spec:
           value: "files.clearml.tgu.ovh"
         - name: webserver.service.nodePort
           value: "31080"
+        - name: ingress.files.annotations[0]
+          value: "nginx.ingress.kubernetes.io/proxy-body-size: 128m"
 
   syncPolicy:
     syncOptions:
