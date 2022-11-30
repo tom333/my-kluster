@@ -11,7 +11,7 @@ spec:
   source:
     path: ""
     repoURL: "https://allegroai.github.io/clearml-helm-charts"
-    targetRevision: 4.3.0
+    targetRevision: 4.4.0
     chart: clearml
     helm:
       parameters:
