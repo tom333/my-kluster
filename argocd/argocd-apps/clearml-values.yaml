@@ -8,4 +8,5 @@ ingress:
   files:
     enabled: "true"
     hostName: "files.clearml.tgu.ovh"
-    annotations: { "nginx.ingress.kubernetes.io/proxy-body-size": "128m" }
+    annotations:
+      - nginx.ingress.kubernetes.io/proxy-body-size: "128m"
