@@ -13,25 +13,8 @@ spec:
     repoURL: "https://allegroai.github.io/clearml-helm-charts"
     targetRevision: 4.4.0
     chart: clearml
-    helm:
-      parameters:
-        - name: ingress.app.enabled
-          value: "true"
-        - name: ingress.app.hostName
-          value: "app.clearml.tgu.ovh"
-        - name: ingress.api.enabled
-          value: "true"
-        - name: ingress.api.hostName
-          value: "api.clearml.tgu.ovh"
-        - name: ingress.files.enabled
-          value: "true"
-        - name: ingress.files.hostName
-          value: "files.clearml.tgu.ovh"
-        - name: webserver.service.nodePort
-          value: "31080"
-        - name: ingress.files.annotations[0]
-          value: "'nginx.ingress.kubernetes.io/proxy-body-size: 128m'"
-
+    valueFiles:
+      - https://raw.githubusercontent.com/tom333/my-kluster/main/argocd/argocd-apps/clearml-values.yaml
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
