@@ -1,7 +1,7 @@
 agentk8sglue:
-  apiServerUrlReference: http://api.clearml.tgu.ovh
-  fileServerUrlReference: http://file.clearml.tgu.ovh
-  webServerUrlReference: http://app.clearml.tgu.ovh
+  apiServerUrlReference: http://clearml-apiserver.clearml.svc.cluster.local
+  fileServerUrlReference: http://clearml-fileserver.clearml.svc.cluster.localfile.clearml.tgu.ovh
+  webServerUrlReference: http://clearml-webserver.clearml.svc.cluster.local
 
 clearml:
   agentk8sglueKey: ZPPPO5WSOLAPLT6Z5KQR
