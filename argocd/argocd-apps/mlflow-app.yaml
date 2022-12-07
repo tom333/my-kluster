@@ -38,7 +38,7 @@ spec:
         - name: artifactRoot.s3.awsSecretAccessKey
           value: "Passw0rd"
         - name: extraEnvVars.MLFLOW_S3_ENDPOINT_URL
-          value: "minio.datalab.svc.cluster.local:9000"
+          value: "minio.datalab.svc.cluster.local:9001"
         - name: ingress.enabled
           value: "true"
         - name: ingress.hosts[0].host
