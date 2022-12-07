@@ -13,6 +13,9 @@ spec:
     repoURL: "https://charts.bitnami.com/bitnami"
     targetRevision: 11.10.19
     chart: minio
+    helm:
+      valueFiles:
+        - https://raw.githubusercontent.com/tom333/my-kluster/main/argocd/argocd-apps/minio-values.yaml
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
