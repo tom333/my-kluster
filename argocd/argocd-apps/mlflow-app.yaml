@@ -20,7 +20,7 @@ spec:
         - name: backendStore.postgres.enabled
           value: "true"
         - name: backendStore.postgres.host
-          value: "postgres.datalab.svc.cluster.local"
+          value: "postgresql.datalab.svc.cluster.local"
         - name: backendStore.postgres.port
           value: "5432"
         - name: backendStore.postgres.database
