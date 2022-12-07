@@ -1,3 +1,5 @@
+auth:
+  rootPassword: Passw0rd
 ingress:
   enabled: true
   hostname: minio.tgu.ovh
