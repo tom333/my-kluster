@@ -9,15 +9,17 @@ spec:
     server: https://kubernetes.default.svc
   project: datalab-project
   source:
-    path: ''
-    repoURL: 'https://charts.bitnami.com/bitnami'
+    path: ""
+    repoURL: "https://charts.bitnami.com/bitnami"
     targetRevision: 12.1.2
     chart: postgresql
     helm:
       parameters:
-        - name: postgresqlPassword
+        - name: global.postgresql.auth.username
+          value: "mlflow"
+        - name: global.postgresql.auth.password
           value: "password"
-        - name: postgresqlDatabase
+        - name: global.postgresql.auth.database
           value: "mlflow"
 
   syncPolicy:
