@@ -3,3 +3,5 @@ auth:
 ingress:
   enabled: true
   hostname: minio.tgu.ovh
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "128m"
