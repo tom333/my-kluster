@@ -54,8 +54,8 @@ argo-cd:
           name: bitnami-labs
           url: https://bitnami-labs.github.io/sealed-secrets/
         - type: helm
-          name: allegroai
-          url: https://allegroai.github.io/clearml-helm-charts
+          name: bentoml
+          url: https://bentoml.github.io/helm-charts
         - type: helm
           name: mlrun-ce
           url: https://mlrun.github.io/ce
