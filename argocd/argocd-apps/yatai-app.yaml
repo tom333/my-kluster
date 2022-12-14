@@ -1,0 +1,52 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: yatai
+  namespace: argocd
+spec:
+  destination:
+    namespace: datalab
+    server: https://kubernetes.default.svc
+  project: datalab-project
+  source:
+    path: ""
+    repoURL: "https://bentoml.github.io/helm-charts"
+    targetRevision: 1.0.6
+    chart: mlflow
+    helm:
+      parameters:
+        - name: postgres.host
+          value: "postgresql-yatai.datalab.svc.cluster.local"
+        - name: postgresql.port
+          value: "5432"
+        - name: postgresql.database
+          value: "yatai"
+        - name: postgresql.user
+          value: "yatai"
+        - name: postgresql.password
+          value: "password"
+        - name: artifactRoot.s3.enabled
+          value: "true"
+        - name: artifactRoot.s3.bucket
+          value: "yatai"
+        - name: artifactRoot.s3.awsAccessKeyId
+          value: "mlflow"
+        - name: artifactRoot.s3.awsSecretAccessKey
+          value: "Passw0rd"
+        - name: extraEnvVars.MLFLOW_S3_ENDPOINT_URL
+          value: "http://minio.datalab.svc.cluster.local:9000"
+        - name: ingress.enabled
+          value: "true"
+        - name: ingress.hosts[0].host
+          value: "mlflow.tgu.ovh"
+        - name: ingress.hosts[0].paths[0].path
+          value: "/"
+        - name: ingress.hosts[0].paths[0].pathType
+          value: "Prefix"
+
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      selfHeal: true
+      prune: true

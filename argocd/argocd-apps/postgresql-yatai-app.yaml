@@ -1,0 +1,30 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: postgresql-yatai
+  namespace: argocd
+spec:
+  destination:
+    namespace: datalab
+    server: https://kubernetes.default.svc
+  project: datalab-project
+  source:
+    path: ""
+    repoURL: "https://charts.bitnami.com/bitnami"
+    targetRevision: 12.1.3
+    chart: postgresql
+    helm:
+      parameters:
+        - name: global.postgresql.auth.username
+          value: "yatai"
+        - name: global.postgresql.auth.password
+          value: "password"
+        - name: global.postgresql.auth.database
+          value: "yatai"
+
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      selfHeal: true
+      prune: true
