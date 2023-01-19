@@ -19,16 +19,16 @@ spec:
         databaseConnectionCheck: false
         postgres:
           enabled: true
-          host: "postgresql.datalab.svc.cluster.local"
+          host: postgresql.datalab.svc.cluster.local
           port: 5432
-          database: "mlflow"
-          user: "mlflow"
-          password: "password"
+          database: mlflow
+          user: mlflow
+          password: password
         artifactRoot:
           enabled: true
-          bucket: "mlflow"
-          awsAccessKeyId: "mlflow"
-          awsSecretAccessKey: "Passw0rd"
+          bucket: mlflow
+          awsAccessKeyId: mlflow
+          awsSecretAccessKey: Passw0rd
         extraEnvVars:
           MLFLOW_S3_ENDPOINT_URL: http://minio.datalab.svc.cluster.local:9000
         ingress:
