@@ -38,7 +38,7 @@ spec:
         - name: ingress.enabled
           value: "true"
         - name: ingress.hosts[0].host
-          value: "mlflow.tgu.ovh"
+          value: "yatai.tgu.ovh"
         - name: ingress.hosts[0].paths[0].path
           value: "/"
         - name: ingress.hosts[0].paths[0].pathType
