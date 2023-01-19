@@ -14,35 +14,27 @@ spec:
     targetRevision: 1.1.2
     chart: yatai
     helm:
-      parameters:
-        - name: postgres.host
-          value: "postgresql-yatai.datalab.svc.cluster.local"
-        - name: postgresql.port
-          value: "5432"
-        - name: postgresql.database
-          value: "yatai"
-        - name: postgresql.user
-          value: "yatai"
-        - name: postgresql.password
-          value: "password"
-        - name: artifactRoot.s3.enabled
-          value: "true"
-        - name: artifactRoot.s3.bucket
-          value: "yatai"
-        - name: artifactRoot.s3.awsAccessKeyId
-          value: "mlflow"
-        - name: artifactRoot.s3.awsSecretAccessKey
-          value: "Passw0rd"
-        - name: extraEnvVars.MLFLOW_S3_ENDPOINT_URL
-          value: "http://minio.datalab.svc.cluster.local:9000"
-        - name: ingress.enabled
-          value: "true"
-        - name: ingress.hosts[0].host
-          value: "yatai.tgu.ovh"
-        - name: ingress.hosts[0].paths[0].path
-          value: "/"
-        - name: ingress.hosts[0].paths[0].pathType
-          value: "Prefix"
+      valueFiles:
+        - values.yaml
+      valuesLiteral:
+        - name: values.yaml
+          value: |
+            postgres.host: "postgresql-yatai.datalab.svc.cluster.local"
+            postgresql.port: 5432
+            postgresql.database: "yatai"
+            postgresql.user: "yatai"
+            postgresql.password: "password"
+            artifactRoot.s3.enabled: true
+            artifactRoot.s3.bucket: yatai
+            artifactRoot.s3.awsAccessKeyId: mlflow
+            artifactRoot.s3.awsSecretAccessKey: "Passw0rd"
+            extraEnvVars.MLFLOW_S3_ENDPOINT_URL: "http://minio.datalab.svc.cluster.local:9000"
+            ingress:
+              enabled: true
+              hosts:
+              - host: yatai.tgu.ovh
+                paths:
+                - /
 
   syncPolicy:
     syncOptions:
