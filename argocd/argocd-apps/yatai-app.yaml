@@ -14,29 +14,25 @@ spec:
     targetRevision: 1.1.2
     chart: yatai
     helm:
-      valueFiles:
-        - values.yaml
-      valuesLiteral:
-        - name: values.yaml
-          value: |
-            postgresql:
-              host: postgresql-yatai.datalab.svc.cluster.local
-              port: 5432
-              database: yatai
-              user: yatai
-              password: password
-            s3:
-              endpoint: http://minio.datalab.svc.cluster.local:9000
-              bucketName: yatai
-              accessKey: mlflow
-              secretKey: Passw0rd
+      values: |
+        postgresql:
+          host: postgresql-yatai.datalab.svc.cluster.local
+          port: 5432
+          database: yatai
+          user: yatai
+          password: password
+        s3:
+          endpoint: http://minio.datalab.svc.cluster.local:9000
+          bucketName: yatai
+          accessKey: mlflow
+          secretKey: Passw0rd
 
-            ingress:
-              enabled: true
-              hosts:
-              - host: yatai.tgu.ovh
-                paths:
-                - /
+        ingress:
+          enabled: true
+          hosts:
+          - host: yatai.tgu.ovh
+            paths:
+            - /
 
   syncPolicy:
     syncOptions:
