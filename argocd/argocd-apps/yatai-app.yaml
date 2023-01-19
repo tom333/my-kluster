@@ -19,16 +19,18 @@ spec:
       valuesLiteral:
         - name: values.yaml
           value: |
-            postgres.host: "postgresql-yatai.datalab.svc.cluster.local"
-            postgresql.port: 5432
-            postgresql.database: "yatai"
-            postgresql.user: "yatai"
-            postgresql.password: "password"
-            artifactRoot.s3.enabled: true
-            artifactRoot.s3.bucket: yatai
-            artifactRoot.s3.awsAccessKeyId: mlflow
-            artifactRoot.s3.awsSecretAccessKey: "Passw0rd"
-            extraEnvVars.MLFLOW_S3_ENDPOINT_URL: "http://minio.datalab.svc.cluster.local:9000"
+            postgresql:
+              host: postgresql-yatai.datalab.svc.cluster.local
+              port: 5432
+              database: yatai
+              user: yatai
+              password: password
+            s3:
+              endpoint: http://minio.datalab.svc.cluster.local:9000
+              bucketName: yatai
+              accessKey: mlflow
+              secretKey: Passw0rd
+
             ingress:
               enabled: true
               hosts:
