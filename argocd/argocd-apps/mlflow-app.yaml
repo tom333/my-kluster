@@ -35,8 +35,8 @@ spec:
           enabled: true
           hosts:
             - host: mlflow.tgu.ovh
-              path:
-              - /
+              paths:
+                - path: /
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
