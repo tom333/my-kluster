@@ -11,7 +11,7 @@ spec:
   source:
     path: ""
     repoURL: "https://bentoml.github.io/helm-charts"
-    targetRevision: 1.1.2
+    targetRevision: 1.1.3
     chart: yatai
     helm:
       values: |
