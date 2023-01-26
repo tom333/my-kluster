@@ -27,7 +27,7 @@ spec:
           path: /
           pathType: ImplementationSpecific
           hosts:
-            - superset.home.lan
+            - superset.tgu.ovh
         bootstrapScript: |
           #!/bin/bash
           rm -rf /var/lib/apt/lists/* && \
@@ -36,6 +36,7 @@ spec:
             redis==3.5.3 \
             clickhouse-sqlalchemy==0.1.6 \
             clickhouse-driver==0.2.0 && \
+            sqlalchemy-trino &&
           if [ ! -f ~/bootstrap ]; then echo "Running Superset with uid {{ .Values.runAsUser }}" > ~/bootstrap; fi
   syncPolicy:
     syncOptions:
