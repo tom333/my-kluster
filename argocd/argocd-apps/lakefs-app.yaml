@@ -16,7 +16,7 @@ spec:
     helm:
       values: |
         ingress:
-          enabled: false
+          enabled: true
           annotations: {}
           ingressClassName: ""
           defaultBackend: {}
