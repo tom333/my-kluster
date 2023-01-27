@@ -40,7 +40,7 @@ spec:
           if [ ! -f ~/bootstrap ]; then echo "Running Superset with uid {{ .Values.runAsUser }}" > ~/bootstrap; fi
         postgresql:
           image:
-            tag: "12"
+            tag: "11"
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
