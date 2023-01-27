@@ -33,7 +33,7 @@ spec:
           MLFLOW_S3_ENDPOINT_URL: http://minio.datalab.svc.cluster.local:9000
         ingress:
           enabled: false
-          annotations: {}
+          annotations:
             kubernetes.io/tls-acme: "true"
           hosts:
             - host: mlflow.tgu.ovh
