@@ -14,39 +14,36 @@ spec:
     targetRevision: 0.7.19
     chart: mlflow
     helm:
-      parameters:
-        - name: backendStore.databaseMigration
-          value: "true"
-        - name: backendStore.postgres.enabled
-          value: "true"
-        - name: backendStore.postgres.host
-          value: "postgresql.datalab.svc.cluster.local"
-        - name: backendStore.postgres.port
-          value: "5432"
-        - name: backendStore.postgres.database
-          value: "mlflow"
-        - name: backendStore.postgres.user
-          value: "mlflow"
-        - name: backendStore.postgres.password
-          value: "password"
-        - name: artifactRoot.s3.enabled
-          value: "true"
-        - name: artifactRoot.s3.bucket
-          value: "mlflow"
-        - name: artifactRoot.s3.awsAccessKeyId
-          value: "mlflow"
-        - name: artifactRoot.s3.awsSecretAccessKey
-          value: "Passw0rd"
-        - name: extraEnvVars.MLFLOW_S3_ENDPOINT_URL
-          value: "http://minio.datalab.svc.cluster.local:9000"
-        - name: ingress.enabled
-          value: "true"
-        - name: ingress.hosts[0].host
-          value: "mlflow.tgu.ovh"
-        - name: ingress.hosts[0].paths[0].path
-          value: "/"
-        - name: ingress.hosts[0].paths[0].pathType
-          value: "Prefix"
+      values: |
+        backendStore:
+          databaseMigration: true
+          postgres:
+            enabled: true
+            host: "postgresql.datalab.svc.cluster.local"
+            port: 5432
+            database: "mlflow"
+            user: "mlflow"
+            password: "password"
+        artifactRoot:
+          enabled: true
+          bucket: "mlflow"
+          awsAccessKeyId: "admin"
+          awsSecretAccessKey: "Passw0rd"
+        extraEnvVars:
+          MLFLOW_S3_ENDPOINT_URL: http://minio.datalab.svc.cluster.local:9000
+        ingress:
+          enabled: false
+          annotations: {}
+            # kubernetes.io/ingress.class: nginx
+            kubernetes.io/tls-acme: "true"
+          hosts:
+            - host: mlflow.tgu.ovh
+              paths:
+                - path: /
+          tls: []
+            - secretName: mlflow-tls
+              hosts:
+                - mlflow.tgu.ovh
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
