@@ -23,8 +23,7 @@ spec:
           hosts:
             - host: lakefs.tgu.ovh
               paths:
-                - path: /
-                  pathType: Prefix
+                - /
         lakefsConfig: |
           database:
             type: local
