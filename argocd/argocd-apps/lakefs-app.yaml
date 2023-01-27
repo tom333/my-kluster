@@ -24,6 +24,8 @@ spec:
             - host: lakefs.tgu.ovh
               paths: []
         lakefsConfig: |
+          database:
+            type: local
           blockstore:
             type: s3
             s3:
