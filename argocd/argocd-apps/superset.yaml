@@ -38,6 +38,9 @@ spec:
             clickhouse-driver==0.2.0 && \
             sqlalchemy-trino && \
           if [ ! -f ~/bootstrap ]; then echo "Running Superset with uid {{ .Values.runAsUser }}" > ~/bootstrap; fi
+        postgresql:
+          image:
+            tag: "12.1.6"
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
