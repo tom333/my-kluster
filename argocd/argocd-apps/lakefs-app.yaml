@@ -22,7 +22,9 @@ spec:
           defaultBackend: {}
           hosts:
             - host: lakefs.tgu.ovh
-              paths: []
+              paths:
+                - path: /
+                  pathType: Prefix
         lakefsConfig: |
           database:
             type: local
