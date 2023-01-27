@@ -9,8 +9,8 @@ spec:
     server: https://kubernetes.default.svc
   project: datalab-project
   source:
-    path: ''
-    repoURL: 'https://apache.github.io/superset'
+    path: ""
+    repoURL: "https://apache.github.io/superset"
     targetRevision: 0.8.4
     chart: superset
     helm:
@@ -36,7 +36,7 @@ spec:
             redis==3.5.3 \
             clickhouse-sqlalchemy==0.1.6 \
             clickhouse-driver==0.2.0 && \
-            sqlalchemy-trino &&
+            sqlalchemy-trino && \
           if [ ! -f ~/bootstrap ]; then echo "Running Superset with uid {{ .Values.runAsUser }}" > ~/bootstrap; fi
   syncPolicy:
     syncOptions:
