@@ -35,7 +35,7 @@ spec:
             psycopg2-binary==2.9.1 \
             redis==3.5.3 \
             clickhouse-sqlalchemy==0.1.6 \
-            clickhouse-driver==0.2.0 && \
+            clickhouse-driver==0.2.0 \
             sqlalchemy-trino && \
           if [ ! -f ~/bootstrap ]; then echo "Running Superset with uid {{ .Values.runAsUser }}" > ~/bootstrap; fi
         postgresql:
