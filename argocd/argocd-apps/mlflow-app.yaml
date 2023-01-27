@@ -39,6 +39,7 @@ spec:
             - host: mlflow.tgu.ovh
               paths:
                 - path: /
+                  pathType: Prefix
           tls:
             - secretName: mlflow-tls
               hosts:
