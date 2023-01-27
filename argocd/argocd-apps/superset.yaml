@@ -34,7 +34,7 @@ spec:
           pip install \
             psycopg2-binary==2.9.1 \
             redis==3.5.3 \
-            sqlalchemy-trino && \
+            trino[sqlalchemy] && \
           if [ ! -f ~/bootstrap ]; then echo "Running Superset with uid {{ .Values.runAsUser }}" > ~/bootstrap; fi
         postgresql:
           image:
