@@ -11,7 +11,7 @@ spec:
   source:
     path: ""
     repoURL: "https://charts.lakefs.io"
-    targetRevision: 0.8.6
+    targetRevision: 0.8.7
     chart: lakefs
     helm:
       values: |
