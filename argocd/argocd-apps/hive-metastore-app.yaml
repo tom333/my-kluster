@@ -12,7 +12,7 @@ spec:
     path: ""
     repoURL: "https://yutianaiqingtian.github.io/bigdata-platfrom-charts"
     targetRevision: 0.1.8
-    chart: hive-metastore
+    chart: hive
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
