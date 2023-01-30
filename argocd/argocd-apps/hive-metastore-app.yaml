@@ -11,7 +11,7 @@ spec:
   source:
     path: ""
     repoURL: "https://yutianaiqingtian.github.io/bigdata-platfrom-charts"
-    targetRevision: 0.1.4
+    targetRevision: 0.1.8
     chart: hive-metastore
   syncPolicy:
     syncOptions:
