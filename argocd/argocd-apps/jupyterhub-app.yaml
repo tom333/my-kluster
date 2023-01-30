@@ -1,0 +1,63 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: jupyterhub
+  namespace: argocd
+spec:
+  destination:
+    namespace: jupyter
+    server: https://kubernetes.default.svc
+  project: jupyter-project
+  source:
+    path: ""
+    repoURL: "https://jupyterhub.github.io/helm-chart/"
+    targetRevision: "2.0.0"
+    chart: jupyterhub
+    helm:
+      values: |
+        singleuser:
+          image:
+            name: elyra/elyra
+            tag: 3.14.2
+          defaultUrl: "/lab"
+          extraEnv:
+            JUPYTERHUB_SINGLEUSER_APP: "jupyter_server.serverapp.ServerApp"
+        ingress:
+          enabled: true
+          annotations:
+            cert-manager.io/cluster-issuer: letsencrypt
+          hosts:
+            - jupyter.tgu.ovh
+          tls:
+            - secretName: jupyter
+              hosts:
+                - jupyter.tgu.ovh
+        cull:
+          enabled: false
+        proxy:
+          service:
+            type: ClusterIP
+          # https:
+          #   enabled: true
+          #   hosts:
+          #     - "jupyter.tgu.ovh"
+          #   letsencrypt:
+          #     contactEmail: "laboitatom@gmail.com"
+        # hub:
+        #   config:
+        #     GoogleOAuthenticator:
+        #       client_id: 434813270748-gotip87nh52h0ksn104ckg0g84d32670.apps.googleusercontent.com
+        #       client_secret: yGOCSPX-uHtqfDAgIlggd3Be2tAZxYJMt_KH
+        #       oauth_callback_url: https://jupyter.tgu.ovh/hub/oauth_callback
+        #       hosted_domain:
+        #         - jupyter.tgu.ovh
+        #       login_service: Jupyterlab
+        #     JupyterHub:
+        #       authenticator_class: google
+
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      selfHeal: true
+      prune: true
