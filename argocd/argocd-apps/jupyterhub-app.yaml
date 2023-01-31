@@ -28,10 +28,10 @@ spec:
             cert-manager.io/cluster-issuer: letsencrypt
           hosts:
             - jupyter.tgu.ovh
-          tls:
-            - secretName: jupyter
-              hosts:
-                - jupyter.tgu.ovh
+          # tls:
+          #   - secretName: jupyter
+          #     hosts:
+          #       - jupyter.tgu.ovh
         cull:
           enabled: false
         proxy:
