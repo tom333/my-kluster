@@ -10,9 +10,9 @@ spec:
   project: datalab-project
   source:
     path: ""
-    repoURL: "https://yutianaiqingtian.github.io/bigdata-platfrom-charts"
-    targetRevision: 0.1.8
-    chart: hive
+    repoURL: "https://statcan.github.io/charts"
+    targetRevision: 0.1.0
+    chart: hive-metastore
     helm:
       values: |
         conf:
