@@ -38,8 +38,8 @@ spec:
             security.cors.allowed_origins: "http://localhost:3000"
             authentication.mode: "openidconnect"
             keycloak.realm: datalab
-            #keycloak.auth-server-url: http://keycloak-http.datalab.svc.cluster.local/auth
-            keycloak.auth-server-url: http://auth.lab.tgu.ovh/auth
+            keycloak.auth-server-url: http://keycloak-http.datalab.svc.cluster.local/auth
+            #keycloak.auth-server-url: http://auth.lab.tgu.ovh/auth
           regions:
             [
               {
