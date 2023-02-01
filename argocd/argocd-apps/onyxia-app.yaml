@@ -1,0 +1,85 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: onyxia
+  namespace: argocd
+spec:
+  destination:
+    namespace: datalab
+    server: https://kubernetes.default.svc
+  project: datalab-project
+  source:
+    path: ""
+    repoURL: "https://inseefrlab.github.io/helm-charts"
+    targetRevision: 1.3.0
+    chart: hive-metastore
+    helm:
+      values: |
+        ingress:
+          enabled: true
+          annotations:
+            kubernetes.io/ingress.class: nginx
+          hosts:
+            - host: onyxia.tgu.ovh
+        ui:
+          image:
+            # Update on your own therm but update!
+            # https://hub.docker.com/r/inseefrlab/onyxia-api/tags
+            version: 2.1.10
+        api:
+          image:
+            # Same here
+            # https://hub.docker.com/r/inseefrlab/onyxia-api/tags
+            version: latest
+          env:
+            security.cors.allowed_origins: "http://localhost:3000"
+          regions:
+            [
+              {
+                  "id":"demo",
+                  "name":"Demo",
+                  "description":"This is a demo region, feel free to try Onyxia !",
+                  "services":{
+                    "type":"KUBERNETES",
+                    "singleNamespace":true,
+                    "namespacePrefix":"user-",
+                    "usernamePrefix":"oidc-",
+                    "groupNamespacePrefix":"projet-",
+                    "groupPrefix":"oidc-",
+                    "authenticationMode":"admin",
+                    "expose":{
+                        "domain":"lab.$DOMAIN"
+                    },
+                    "monitoring":{
+                        "URLPattern":"todo"
+                    },
+                    "cloudshell":{
+                        "catalogId":"inseefrlab-helm-charts-datascience",
+                        "packageName":"cloudshell"
+                    },
+                    "initScript":"https://inseefrlab.github.io/onyxia/onyxia-init.sh"
+                  },
+                  "data":{
+                    "S3":{
+                        "URL":"todo",
+                        "monitoring":{
+                          "URLPattern":"todo"
+                        }
+                    }
+                  },
+                  "auth":{
+                    "type":"openidconnect"
+                  },
+                  "location":{
+                    "lat":48.8164,
+                    "long":2.3174,
+                    "name":"Montrouge (France)"
+                  }
+              }
+            ]
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      selfHeal: true
+      prune: true
