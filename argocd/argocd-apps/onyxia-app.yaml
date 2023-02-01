@@ -75,8 +75,8 @@ spec:
                         "groupBucketPrefix": "projet-",
                         "bucketClaim": "preferred_username",
                         "defaultDurationSeconds": 86400,
-                        "accessKeyId": "admin"
-                        "secretAccessKey": "UGFzc3cwcmQ="
+                        "accessKeyId": "admin",
+                        "secretAccessKey": "UGFzc3cwcmQ=",
                         "monitoring":{
                           "URLPattern":"todo"
                         }
