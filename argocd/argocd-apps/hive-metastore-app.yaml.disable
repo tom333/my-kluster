@@ -10,8 +10,8 @@ spec:
   project: datalab-project
   source:
     path: ""
-    repoURL: "https://statcan.github.io/charts"
-    targetRevision: 0.1.0
+    repoURL: "https://inseefrlab.github.io/helm-charts-datascience"
+    targetRevision: 1.3.0
     chart: hive-metastore
     helm:
       values: |
