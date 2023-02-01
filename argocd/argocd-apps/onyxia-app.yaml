@@ -11,8 +11,8 @@ spec:
   source:
     path: ""
     repoURL: "https://inseefrlab.github.io/helm-charts"
-    targetRevision: 1.3.0
-    chart: hive-metastore
+    targetRevision: 2.11.11
+    chart: onyxia
     helm:
       values: |
         ingress:
