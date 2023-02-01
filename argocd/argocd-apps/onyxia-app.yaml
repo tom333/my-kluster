@@ -16,7 +16,7 @@ spec:
     helm:
       values: |
         serviceAccount:
-          clusterAdmin: true
+          clusterAdmin: false
         ingress:
           enabled: true
           hosts:
