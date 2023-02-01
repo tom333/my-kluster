@@ -17,8 +17,6 @@ spec:
       values: |
         ingress:
           enabled: true
-          annotations:
-            kubernetes.io/ingress.class: nginx
           hosts:
             - host: onyxia.tgu.ovh
         ui:
