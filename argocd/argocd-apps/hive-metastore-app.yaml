@@ -19,9 +19,9 @@ spec:
           hiveSite:
             hive.metastore.uris: thrift://postgresql-hive.datalab.svc.cluster.local:9083
             javax.jdo.option.ConnectionDriverName: org.postgresql.Driver
-            javax.jdo.option.ConnectionURL: jdbc:postgresql://postgresql-hive.datalab.svc.cluster.local:5432/hive
-            javax.jdo.option.ConnectionUserName: hive
-            javax.jdo.option.ConnectionPassword: hive
+            javax.jdo.option.ConnectionURL: jdbc:postgresql://postgresql-hive.datalab.svc.cluster.local:5432/metastore_db
+            javax.jdo.option.ConnectionUserName: admin
+            javax.jdo.option.ConnectionPassword: admin
 
             fs.defaultFS: s3a://minio.datalab.svc.cluster.local:9000
             fs.s3a.connection.ssl.enabled: false

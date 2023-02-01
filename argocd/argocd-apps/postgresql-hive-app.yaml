@@ -16,11 +16,13 @@ spec:
     helm:
       parameters:
         - name: global.postgresql.auth.username
-          value: "hive"
+          value: "admin"
         - name: global.postgresql.auth.password
-          value: "password"
+          value: "admin"
+        - name: global.postgresql.auth.postgresPassword
+          value: "admin"
         - name: global.postgresql.auth.database
-          value: "hive"
+          value: "metastore_db"
 
   syncPolicy:
     syncOptions:
