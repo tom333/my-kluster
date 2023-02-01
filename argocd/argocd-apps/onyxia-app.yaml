@@ -68,7 +68,15 @@ spec:
                   },
                   "data":{
                     "S3":{
-                        "URL":"todo",
+                        "type": "minio",
+                        "URL":"http://minio.tgu.ovh",
+                        "region": "us-east-1",
+                        "bucketPrefix": "",
+                        "groupBucketPrefix": "projet-",
+                        "bucketClaim": "preferred_username",
+                        "defaultDurationSeconds": 86400,
+                        "accessKeyId": "admin"
+                        "secretAccessKey": "UGFzc3cwcmQ="
                         "monitoring":{
                           "URLPattern":"todo"
                         }
