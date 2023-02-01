@@ -13,7 +13,12 @@ spec:
     repoURL: "https://trinodb.github.io/charts/"
     targetRevision: 0.9.0
     chart: trino
-    
+    helm:
+      values: |
+        server:
+          workers: 1
+        additionalCatalogs
+
   syncPolicy:
     syncOptions:
       - CreateNamespace=true

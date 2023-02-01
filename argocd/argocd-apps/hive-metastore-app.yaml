@@ -13,6 +13,27 @@ spec:
     repoURL: "https://yutianaiqingtian.github.io/bigdata-platfrom-charts"
     targetRevision: 0.1.8
     chart: hive
+    helm:
+      values: |
+        conf:
+          hiveSite:
+            hive.metastore.uris: thrift://postgresql-hive.datalab.svc.cluster.local:9083
+            javax.jdo.option.ConnectionDriverName: org.postgresql.Driver
+            javax.jdo.option.ConnectionURL: jdbc:postgresql://postgresql-hive.datalab.svc.cluster.local:5432/hive
+            javax.jdo.option.ConnectionUserName: hive
+            javax.jdo.option.ConnectionPassword: hive
+
+            fs.defaultFS: s3a://minio.datalab.svc.cluster.local:9000
+            fs.s3a.connection.ssl.enabled: false
+            fs.s3a.impl: org.apache.hadoop.fs.s3a.S3AFileSystem
+            fs.s3a.endpoint: http://minio.datalab.svc.cluster.local
+            fs.s3a.access.key: admin
+            fs.s3a.secret.key: UGFzc3cwcmQ=
+            fs.s3a.path.style.access: true
+
+        hiveMetastoreDb:
+          host: postgresql-hive.datalab.svc.cluster.local
+          port: 5432
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
