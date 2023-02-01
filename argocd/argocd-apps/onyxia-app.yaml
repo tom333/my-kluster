@@ -16,7 +16,7 @@ spec:
     helm:
       values: |
         serviceAccount:
-          clusterAdmin: false
+          clusterAdmin: true
         ingress:
           enabled: true
           hosts:
@@ -26,9 +26,9 @@ spec:
             # Update on your own therm but update!
             # https://hub.docker.com/r/inseefrlab/onyxia-api/tags
             version: 2.1.10
-          # env:
-          #   KEYCLOAK_REALM: datalab
-          #   KEYCLOAK_URL: https://auth.lab.tgu.ovh/auth
+          env:
+            KEYCLOAK_REALM: datalab
+            KEYCLOAK_URL: https://auth.lab.tgu.ovh/auth
         api:
           image:
             # Same here
@@ -36,9 +36,9 @@ spec:
             version: latest
           env:
             security.cors.allowed_origins: "http://localhost:3000"
-            # authentication.mode: openidconnect
-            # keycloak.realm: datalab
-            # keycloak.auth-server-url: https://keycloak-http.datalab.svc.cluster.local/auth
+            authentication.mode: openidconnect
+            keycloak.realm: datalab
+            keycloak.auth-server-url: http://keycloak-http.datalab.svc.cluster.local/auth
           regions:
             [
               {
@@ -47,7 +47,7 @@ spec:
                   "description":"Datalab perso",
                   "services":{
                     "type":"KUBERNETES",
-                    "singleNamespace":true,
+                    "singleNamespace":false,
                     "namespacePrefix":"user-",
                     "usernamePrefix":"oidc-",
                     "groupNamespacePrefix":"projet-",
