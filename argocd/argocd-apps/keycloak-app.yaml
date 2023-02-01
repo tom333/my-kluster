@@ -1,0 +1,91 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: keycloak
+  namespace: argocd
+spec:
+  destination:
+    namespace: keycloak
+    server: https://kubernetes.default.svc
+  project: infra-project
+  source:
+    path: ""
+    repoURL: "https://codecentric.github.io/helm-charts"
+    targetRevision: 12.1.0
+    chart: keycloak
+    helm:
+      values: |
+        image:
+          # We use the legacy variant of the image until codecentric update it's helm chart
+          tag: "18.0.2-legacy"
+        replicas: 1
+        extraInitContainers: |
+          - name: realm-ext-provider
+            image: curlimages/curl
+            imagePullPolicy: IfNotPresent
+            command:
+              - sh
+            args:
+              - -c
+              - |
+                # There is a custom theme published alongside every onyxia-web release
+                # The version of the Keycloak theme and the version of onyxia-web don't need
+                # to match but you should update the theme from time to time.
+                # https://github.com/InseeFrLab/onyxia-web/releases
+                curl -L -f -S -o /extensions/onyxia-web.jar https://github.com/InseeFrLab/onyxia-web/releases/download/v0.56.6/standalone-keycloak-theme.jar
+            volumeMounts:
+              - name: extensions
+                mountPath: /extensions
+        extraVolumeMounts: |
+          - name: extensions
+            mountPath: /opt/jboss/keycloak/standalone/deployments
+        extraVolumes: |
+          - name: extensions
+            emptyDir: {}
+        extraEnv: |
+          - name: KEYCLOAK_USER
+            value: admin
+          - name: KEYCLOAK_PASSWORD
+            value: Passw0rd
+          - name: JGROUPS_DISCOVERY_PROTOCOL
+            value: kubernetes.KUBE_PING
+          - name: KUBERNETES_NAMESPACE
+            valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.namespace
+          - name: KEYCLOAK_STATISTICS
+            value: "true"
+          - name: CACHE_OWNERS_COUNT
+            value: "2"
+          - name: CACHE_OWNERS_AUTH_SESSIONS_COUNT
+            value: "2"
+          - name: PROXY_ADDRESS_FORWARDING
+            value: "true"
+          - name: JAVA_OPTS
+            value: >-
+              -Dkeycloak.profile=preview -XX:+UseContainerSupport -XX:MaxRAMPercentage=50.0 -Djava.net.preferIPv4Stack=true -Djava.awt.headless=true
+        ingress:
+          enabled: true
+          servicePort: http
+          annotations:
+            ##kubernetes.io/ingress.class: nginx
+            ## Resolve HTTP 502 error using ingress-nginx:
+            ## See https://www.ibm.com/support/pages/502-error-ingress-keycloak-response
+            ## nginx.ingress.kubernetes.io/proxy-buffer-size: 128k
+          rules:
+            - host: "auth.lab.tgu.ovh"
+              paths:
+                - path: /
+                  pathType: Prefix
+          tls:
+            - hosts:
+                - auth.lab.tgu.ovh
+        postgresql:
+          postgresqlPassword: Passw0rd
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      selfHeal: true
+      prune: true
