@@ -15,6 +15,8 @@ spec:
     chart: onyxia
     helm:
       values: |
+        serviceAccount:
+          clusterAdmin: true
         ingress:
           enabled: true
           hosts:
@@ -24,6 +26,9 @@ spec:
             # Update on your own therm but update!
             # https://hub.docker.com/r/inseefrlab/onyxia-api/tags
             version: 2.1.10
+          env:
+            KEYCLOAK_REALM: datalab
+            KEYCLOAK_URL: https://auth.lab.tgu.ovh/auth
         api:
           image:
             # Same here
@@ -31,6 +36,9 @@ spec:
             version: latest
           env:
             security.cors.allowed_origins: "http://localhost:3000"
+            authentication.mode: openidconnect
+            keycloak.realm: datalab
+            keycloak.auth-server-url: https://auth.lab.tgu.ovh/auth
           regions:
             [
               {
@@ -39,14 +47,14 @@ spec:
                   "description":"This is a demo region, feel free to try Onyxia !",
                   "services":{
                     "type":"KUBERNETES",
-                    "singleNamespace":true,
+                    "singleNamespace":false,
                     "namespacePrefix":"user-",
                     "usernamePrefix":"oidc-",
                     "groupNamespacePrefix":"projet-",
                     "groupPrefix":"oidc-",
                     "authenticationMode":"admin",
                     "expose":{
-                        "domain":"lab.$DOMAIN"
+                        "domain":"lab.tgu.ovh"
                     },
                     "monitoring":{
                         "URLPattern":"todo"
