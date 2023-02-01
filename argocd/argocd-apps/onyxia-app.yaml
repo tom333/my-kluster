@@ -36,7 +36,7 @@ spec:
             version: latest
           env:
             security.cors.allowed_origins: "http://localhost:3000"
-            authentication.mode: openidconnect
+            authentication.mode: "openidconnect"
             keycloak.realm: datalab
             keycloak.auth-server-url: http://keycloak-http.datalab.svc.cluster.local/auth
           regions:
