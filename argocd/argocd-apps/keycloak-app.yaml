@@ -69,7 +69,6 @@ spec:
           - name: auth-creds
             mountPath: /secrets/auth-creds
             readOnly: true
-
         extraVolumes: |
           - name: auth-creds
             secret:
