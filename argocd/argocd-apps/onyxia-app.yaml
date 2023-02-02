@@ -19,8 +19,14 @@ spec:
           clusterAdmin: true
         ingress:
           enabled: true
+          annotations:
+            cert-manager.io/cluster-issuer: "letsencrypt"
           hosts:
             - host: onyxia.tgu.ovh
+          tls: []
+           - secretName: onyxia-tls
+             hosts:
+               - onyxia.tgu.ovh
         ui:
           image:
             # Update on your own therm but update!
@@ -38,7 +44,6 @@ spec:
             security.cors.allowed_origins: "http://localhost:3000"
             authentication.mode: "openidconnect"
             keycloak.realm: datalab
-            #keycloak.auth-server-url: http://keycloak-http.datalab.svc.cluster.local/auth
             keycloak.auth-server-url: http://auth.lab.tgu.ovh/auth
           regions:
             [
