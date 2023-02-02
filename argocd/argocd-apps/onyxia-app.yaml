@@ -23,7 +23,7 @@ spec:
             cert-manager.io/cluster-issuer: "letsencrypt"
           hosts:
             - host: onyxia.tgu.ovh
-          tls: []
+          tls:
            - secretName: onyxia-tls
              hosts:
                - onyxia.tgu.ovh
