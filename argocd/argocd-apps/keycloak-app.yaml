@@ -36,12 +36,6 @@ spec:
             volumeMounts:
               - name: extensions
                 mountPath: /extensions
-        extraVolumeMounts: |
-          - name: extensions
-            mountPath: /opt/jboss/keycloak/standalone/deployments
-        extraVolumes: |
-          - name: extensions
-            emptyDir: {}
         extraEnv: |
           - name: JGROUPS_DISCOVERY_PROTOCOL
             value: kubernetes.KUBE_PING
@@ -69,10 +63,14 @@ spec:
           - name: auth-creds
             mountPath: /secrets/auth-creds
             readOnly: true
+          - name: extensions
+            mountPath: /opt/jboss/keycloak/standalone/deployments
         extraVolumes: |
           - name: auth-creds
             secret:
               secretName: keycloak-hub-secret
+          - name: extensions
+            emptyDir: {}
         ingress:
           enabled: true
           servicePort: http
