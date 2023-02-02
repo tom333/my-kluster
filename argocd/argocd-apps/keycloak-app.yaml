@@ -78,6 +78,7 @@ spec:
           tls:
             - hosts:
                 - auth.lab.tgu.ovh
+              secretName: keycloak-tls
         postgresql:
           postgresqlPassword: Passw0rd
   syncPolicy:
