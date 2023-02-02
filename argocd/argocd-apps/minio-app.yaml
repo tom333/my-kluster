@@ -33,7 +33,7 @@ spec:
             cert-manager.io/cluster-issuer: "letsencrypt"
         extraEnvVars:
           - name: MINIO_API_CORS_ALLOW_ORIGIN
-            value: *
+            value: '*'
 
   syncPolicy:
     syncOptions:
