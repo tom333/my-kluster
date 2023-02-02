@@ -29,6 +29,8 @@ spec:
           tls: true
           annotations:
             nginx.ingress.kubernetes.io/proxy-body-size: "128m"
+        extraEnvVars:
+            - MINIO_API_CORS_ALLOW_ORIGIN: '*'
 
   syncPolicy:
     syncOptions:
