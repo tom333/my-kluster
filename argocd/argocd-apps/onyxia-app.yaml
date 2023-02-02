@@ -69,7 +69,7 @@ spec:
                   "data":{
                     "S3":{
                         "type": "minio",
-                        "URL":"http://minio.tgu.ovh",
+                        "URL":"http://minio.datalab.svc.cluster.local:9000",
                         "region": "us-east-1",
                         "bucketPrefix": "",
                         "groupBucketPrefix": "projet-",
