@@ -23,14 +23,14 @@ spec:
           tls: true
           annotations:
             nginx.ingress.kubernetes.io/proxy-body-size: "128m"
-            cert-manager.io/cluster-issuer: "letsencrypt"
+            cert-manager.io/cluster-issuer: "letsencrypt-prod"
         apiIngress:
           enabled: true
           hostname: minio-api.tgu.ovh
           tls: true
           annotations:
             nginx.ingress.kubernetes.io/proxy-body-size: "128m"
-            cert-manager.io/cluster-issuer: "letsencrypt"
+            cert-manager.io/cluster-issuer: "letsencrypt-prod"
         extraEnvVars:
           - name: MINIO_API_CORS_ALLOW_ORIGIN
             value: '*'

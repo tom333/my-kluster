@@ -69,7 +69,7 @@ spec:
           enabled: true
           servicePort: http
           annotations:
-            cert-manager.io/cluster-issuer: "letsencrypt"
+            cert-manager.io/cluster-issuer: "letsencrypt-prod"
           rules:
             - host: "auth.lab.tgu.ovh"
               paths:
