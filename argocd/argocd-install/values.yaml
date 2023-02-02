@@ -27,16 +27,13 @@ argo-cd:
       - --insecure
     ingress:
       enabled: true
+      annotations:
+        cert-manager.io/cluster-issuer: "letsencrypt"
       hosts:
         - argocd.tgu.ovh
-    # certificate:
-    #   enabled: true
-    #   domain: argocd.home.lan
-    #   issuer:
-    #     kind: # ClusterIssuer
-    #     name: selfsigned-issuer
-    #   additionalHosts: []
-    #   secretName: argocd-server-tls
+      tls:
+        - secretName: argocd-server-tls
+          hosts: argocd.tgu.ovh
 
     config:
       # kustomize.path.v3.2.0: /usr/local/bin/kustomize_3.2.0
