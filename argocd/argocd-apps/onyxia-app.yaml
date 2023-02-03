@@ -76,7 +76,7 @@ spec:
                   "data":{
                     "S3":{
                         "type": "minio",
-                        "URL":"https://minio-api.tgu.ovh",
+                        "URL":"https://minio.tgu.ovh",
                         "region": "us-east-1",
                         "bucketPrefix": "",
                         "groupBucketPrefix": "projet-",

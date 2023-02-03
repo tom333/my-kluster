@@ -21,14 +21,14 @@ spec:
           existingSecret: minio-secret
         ingress:
           enabled: true
-          hostname: minio.tgu.ovh
+          hostname: minio-console.tgu.ovh
           tls: true
           annotations:
             nginx.ingress.kubernetes.io/proxy-body-size: "128m"
             cert-manager.io/cluster-issuer: "letsencrypt-prod"
         apiIngress:
           enabled: true
-          hostname: minio-api.tgu.ovh
+          hostname: minio.tgu.ovh
           tls: true
           annotations:
             nginx.ingress.kubernetes.io/proxy-body-size: "128m"
@@ -41,9 +41,9 @@ spec:
           - name: MINIO_IDENTITY_OPENID_CLIENT_ID
             value: minio
           - name: MINIO_DOMAIN
-            value: "minio-api.tgu.ovh"
+            value: "minio.tgu.ovh"
           - name: MINIO_IDENTITY_OPENID_REDIRECT_URI
-            value: https://minio.tgu.ovh/oauth_callback
+            value: https://minio-console.tgu.ovh/oauth_callback
           - name: MINIO_IDENTITY_OPENID_SCOPES
             value: openid, profile, email, roles
           - name: MINIO_IDENTITY_OPENID_CLIENT_SECRET
