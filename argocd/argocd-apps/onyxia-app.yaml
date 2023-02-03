@@ -76,14 +76,17 @@ spec:
                   "data":{
                     "S3":{
                         "type": "minio",
-                        "URL":"https://minio.tgu.ovh",
+                        "URL":"https://minio-api.tgu.ovh",
                         "region": "us-east-1",
                         "bucketPrefix": "",
                         "groupBucketPrefix": "projet-",
                         "bucketClaim": "preferred_username",
                         "defaultDurationSeconds": 86400,
-                        "accessKeyId": "admin",
-                        "secretAccessKey": "UGFzc3cwcmQ=",
+                        keycloakParams": {
+                          "URL":"https://auth.lab.tgu.ovh/auth",
+                          "realm":"datalab",
+                          "clientId":"onyxia"
+                        }
                         "monitoring":{
                           "URLPattern":"todo"
                         }
