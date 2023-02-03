@@ -82,7 +82,7 @@ spec:
                         "groupBucketPrefix": "projet-",
                         "bucketClaim": "preferred_username",
                         "defaultDurationSeconds": 86400,
-                        keycloakParams": {
+                        "keycloakParams": {
                           "URL":"https://auth.lab.tgu.ovh/auth",
                           "realm":"datalab",
                           "clientId":"onyxia"
