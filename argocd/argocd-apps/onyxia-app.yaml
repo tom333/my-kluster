@@ -36,6 +36,7 @@ spec:
             version: 2.1.10
           env:
             KEYCLOAK_REALM: datalab
+            KEYCLOAK_CLIENT_ID: onyxia
             KEYCLOAK_URL: https://auth.lab.tgu.ovh/auth
         api:
           image:
@@ -43,10 +44,11 @@ spec:
             # https://hub.docker.com/r/inseefrlab/onyxia-api/tags
             version: latest
           env:
-            security.cors.allowed_origins: "http://localhost:3000"
+            security.cors.allowed_origins: "*"
             authentication.mode: "openidconnect"
             keycloak.realm: datalab
             keycloak.auth-server-url: https://auth.lab.tgu.ovh/auth
+            springdoc.swagger-ui.oauth.clientId: onyxia
           regions:
             [
               {
