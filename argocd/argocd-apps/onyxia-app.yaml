@@ -38,7 +38,7 @@ spec:
           image:
             version: latest
           env:
-            #security.cors.allowed_origins: "*"
+            #security.cors.allowed_origins: "*.tgu.ovh"
             authentication.mode: "openidconnect"
             keycloak.realm: datalab
             keycloak.auth-server-url: https://auth.lab.tgu.ovh/auth
