@@ -86,7 +86,7 @@ spec:
                           "URL":"https://auth.lab.tgu.ovh/auth",
                           "realm":"datalab",
                           "clientId":"onyxia"
-                        }
+                        },
                         "monitoring":{
                           "URLPattern":"todo"
                         }
