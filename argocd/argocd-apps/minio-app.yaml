@@ -36,6 +36,16 @@ spec:
         extraEnvVars:
           - name: MINIO_API_CORS_ALLOW_ORIGIN
             value: "'*'"
+          - name: MINIO_IDENTITY_OPENID_CONFIG_URL
+            value: "https://auth.lab.tgu.ovh/auth/realms/datalab/.well-known/openid-configuration"
+          - name: MINIO_IDENTITY_OPENID_CLIENT_ID
+            value: minio
+          - name: MINIO_DOMAIN
+            value: "minio.tgu.ovh"
+          - name: MINIO_IDENTITY_OPENID_REDIRECT_URI
+            value: https://minio.tgu.ovh/oauth_callback
+          - name: MINIO_IDENTITY_OPENID_SCOPES
+            value: openid, profile, email, roles
 
   syncPolicy:
     syncOptions:
