@@ -30,21 +30,15 @@ spec:
              hosts:
                - onyxia.tgu.ovh
         ui:
-          image:
-            # Update on your own therm but update!
-            # https://hub.docker.com/r/inseefrlab/onyxia-api/tags
-            version: 2.1.10
           env:
             KEYCLOAK_REALM: datalab
             KEYCLOAK_CLIENT_ID: onyxia
             KEYCLOAK_URL: https://auth.lab.tgu.ovh/auth
         api:
           image:
-            # Same here
-            # https://hub.docker.com/r/inseefrlab/onyxia-api/tags
             version: latest
           env:
-            security.cors.allowed_origins: "*"
+            security.cors.allowed_origins: "'*'"
             authentication.mode: "openidconnect"
             keycloak.realm: datalab
             keycloak.auth-server-url: https://auth.lab.tgu.ovh/auth
