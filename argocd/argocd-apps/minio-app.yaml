@@ -18,7 +18,7 @@ spec:
     helm:
       values: |
         auth:
-          rootPassword: UGFzc3cwcmQ=
+          existingSecret: minio-secret
         ingress:
           enabled: true
           hostname: minio.tgu.ovh
