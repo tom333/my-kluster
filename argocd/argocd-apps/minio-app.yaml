@@ -45,9 +45,11 @@ spec:
           - name: MINIO_IDENTITY_OPENID_REDIRECT_URI
             value: https://minio.tgu.ovh/oauth_callback
           - name: MINIO_IDENTITY_OPENID_SCOPES
-            value: openid, profile, email
+            value: openid, profile, email, roles
           - name: MINIO_IDENTITY_OPENID_CLIENT_SECRET
             value: /secrets/auth-creds/keycloak-client-id
+          - name: MINIO_IDENTITY_OPENID_CLIENT_ID
+            value: minio
         extraVolumeMounts: |
           - name: auth-creds
             mountPath: /secrets/auth-creds
