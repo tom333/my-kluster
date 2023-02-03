@@ -31,9 +31,9 @@ spec:
           annotations:
             nginx.ingress.kubernetes.io/proxy-body-size: "128m"
             cert-manager.io/cluster-issuer: "letsencrypt-prod"
-        extraEnvVars:
-          - name: MINIO_API_CORS_ALLOW_ORIGIN
-            value: '*'
+        # extraEnvVars:
+        #   - name: MINIO_API_CORS_ALLOW_ORIGIN
+        #     value: '*'
 
   syncPolicy:
     syncOptions:
