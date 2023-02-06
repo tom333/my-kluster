@@ -81,7 +81,7 @@ spec:
                         "keycloakParams": {
                           "URL":"https://auth.lab.tgu.ovh/auth",
                           "realm":"datalab",
-                          "clientId":"onyxia"
+                          "clientId":"onyxia-minio"
                         },
                         "acceptBucketCreation": true,
                         "monitoring":{
