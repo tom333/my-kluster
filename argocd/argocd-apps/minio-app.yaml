@@ -18,6 +18,7 @@ spec:
     helm:
       values: |
         replicas: 2
+        mode: standalone
         persistence:
           size: 10Gi
         ingress:
