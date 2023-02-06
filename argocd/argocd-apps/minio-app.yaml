@@ -12,52 +12,51 @@ spec:
   project: datalab-project
   source:
     path: ""
-    repoURL: "https://charts.bitnami.com/bitnami"
-    targetRevision: 12.1.3
+    repoURL: "https://charts.min.io/"
+    targetRevision: 5.0.5
     chart: minio
     helm:
       values: |
-        auth:
-          existingSecret: minio-secret
         ingress:
           enabled: true
-          hostname: minio-console.tgu.ovh
-          tls: true
           annotations:
-            nginx.ingress.kubernetes.io/proxy-body-size: "128m"
-            cert-manager.io/cluster-issuer: "letsencrypt-prod"
-        apiIngress:
+            kubernetes.io/ingress.class: nginx
+          rules:
+            - host: "minio.lab.tgu.ovh"
+              paths:
+                - path: /
+                  pathType: Prefix
+          tls:
+            - hosts:
+                - minio.lab.tgu.ovh
+        consoleIngress:
           enabled: true
-          hostname: minio.tgu.ovh
-          tls: true
           annotations:
-            nginx.ingress.kubernetes.io/proxy-body-size: "128m"
-            cert-manager.io/cluster-issuer: "letsencrypt-prod"
-        extraEnvVars:
-          - name: MINIO_API_CORS_ALLOW_ORIGIN
-            value: "'*'"
-          - name: MINIO_IDENTITY_OPENID_CONFIG_URL
-            value: "https://auth.lab.tgu.ovh/auth/realms/datalab/.well-known/openid-configuration"
-          - name: MINIO_IDENTITY_OPENID_CLIENT_ID
-            value: minio
-          - name: MINIO_DOMAIN
-            value: "minio.tgu.ovh"
-          - name: MINIO_IDENTITY_OPENID_REDIRECT_URI
-            value: https://minio-console.tgu.ovh/oauth_callback
-          - name: MINIO_IDENTITY_OPENID_SCOPES
-            value: openid, profile, email, roles
-          - name: MINIO_IDENTITY_OPENID_CLIENT_SECRET
-            value: /secrets/auth-creds/keycloak-client-id
-          - name: MINIO_IDENTITY_OPENID_CLIENT_ID
-            value: minio
-        extraVolumeMounts: |
-          - name: auth-creds
-            mountPath: /secrets/auth-creds
-            readOnly: true
-        extraVolumes: |
-          - name: auth-creds
-            secret:
-              secretName: minio-secret
+            kubernetes.io/ingress.class: nginx
+          rules:
+            - host: "minio-console.lab.tgu.ovh"
+              paths:
+                - path: /
+                  pathType: Prefix
+          tls:
+            - hosts:
+                - minio-console.lab.tgu.ovh
+        oidc:
+          enabled: true
+          configUrl: "https://auth.lab.tgu.ovh/.well-known/openid-configuration"
+          clientId: "minio"
+          clientSecret: ""
+          claimName: "policy"
+          scopes: "openid,profile,email"
+          redirectUri: "https://minio-console.lab.tgu.ovh/oauth_callback"
+        policies:
+          - name: stsonly
+            statements:
+              - resources:
+                  - 'arn:aws:s3:::oidc-${jwt:preferred_username}'
+                  - 'arn:aws:s3:::oidc-${jwt:preferred_username}/*'
+                actions:
+                  - "s3:*"
 
   syncPolicy:
     syncOptions:

@@ -38,7 +38,7 @@ spec:
           image:
             version: latest
           env:
-            #security.cors.allowed_origins: "*.tgu.ovh"
+            security.cors.allowed_origins: "*.tgu.ovh"
             authentication.mode: "openidconnect"
             keycloak.realm: datalab
             keycloak.auth-server-url: https://auth.lab.tgu.ovh/auth
@@ -72,9 +72,9 @@ spec:
                   "data":{
                     "S3":{
                         "type": "minio",
-                        "URL":"https://minio.tgu.ovh",
+                        "URL":"https://minio.lab.tgu.ovh",
                         "region": "us-east-1",
-                        "bucketPrefix": "",
+                        "bucketPrefix": "oidc-",
                         "groupBucketPrefix": "projet-",
                         "bucketClaim": "preferred_username",
                         "defaultDurationSeconds": 86400,
@@ -83,6 +83,7 @@ spec:
                           "realm":"datalab",
                           "clientId":"onyxia"
                         },
+                        "acceptBucketCreation": true,
                         "monitoring":{
                           "URLPattern":"todo"
                         }
