@@ -17,6 +17,9 @@ spec:
     chart: minio
     helm:
       values: |
+        replicas: 2
+        persistence:
+          size: 10Gi
         ingress:
           enabled: true
           annotations:
