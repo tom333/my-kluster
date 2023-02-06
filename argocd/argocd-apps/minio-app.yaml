@@ -48,7 +48,7 @@ spec:
           enabled: true
           configUrl: "https://auth.lab.tgu.ovh/.well-known/openid-configuration"
           clientId: "minio"
-          clientSecret: "5mXzhmPEr4JhvlnkJJLOFPKgMJsqMMS2"
+          clientSecret: ""
           claimName: "policy"
           scopes: "openid,profile,email"
           redirectUri: "https://minio-console.tgu.ovh/oauth_callback"
