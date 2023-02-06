@@ -29,7 +29,8 @@ spec:
           hosts:
               - "minio.tgu.ovh"
           tls:
-            - hosts:
+            - secretName: minio-secret-tls
+              hosts:
                 - minio.tgu.ovh
         consoleIngress:
           enabled: true
@@ -39,7 +40,8 @@ spec:
           hosts:
             - "minio-console.tgu.ovh"
           tls:
-            - hosts:
+            - secretName: minio-console-secret-tls
+              hosts:
                 - minio-console.tgu.ovh
         oidc:
           enabled: true
