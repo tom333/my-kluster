@@ -12,22 +12,21 @@ spec:
   project: datalab-project
   source:
     path: ""
-    repoURL: "https://helm.coder.com"
-    targetRevision: 1.39.1
+    repoURL: "https://helm.coder.com/v2"
+    targetRevision: 0.17.0
     chart: coder
     helm:
       values: |
-        coderd:
-          devurlsHost: "*.lab.tgu.ovh"
-          serviceSpec:
-            type: ClusterIP
-            externalTrafficPolicy: ""
+        coder:
+          - name: CODER_PG_CONNECTION_URL
+            value: postgres://coder:password@postgresql-coder:5432/coder?sslmode=disable
         ingress:
           enable: true
           ingressClassName: traefik
           annotations:
             cert-manager.io/cluster-issuer: "letsencrypt-prod"
           host: "coder.tgu.ovh"
+          wildcardHost: "*.coder.tgu.ovh"
           tls:
             enable: true
             secretName: coder-secret-tls
