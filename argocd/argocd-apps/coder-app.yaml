@@ -19,9 +19,9 @@ spec:
       values: |
         coderd:
           devurlsHost: "*.lab.tgu.ovh"
-          tls:
-            hostSecretName: wildcard-tgu-ovh-mjzvx
-            devurlsHostSecretName: wildcard-tgu-ovh-mjzvx
+          # tls:
+          #   hostSecretName: wildcard-tgu-ovh-mjzvx
+          #   devurlsHostSecretName: wildcard-tgu-ovh-mjzvx
           serviceSpec:
             # The Ingress will route traffic to the internal ClusterIP.
             type: ClusterIP
