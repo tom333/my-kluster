@@ -31,7 +31,7 @@ spec:
             tls:
               enable: true
               secretName: coder-secret-tls
-              wildcardSecretName: coder-secret-tls
+              wildcardSecretName: wildcard-coder-secret-tls
 
   syncPolicy:
     syncOptions:
