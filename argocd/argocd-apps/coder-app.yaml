@@ -18,19 +18,20 @@ spec:
     helm:
       values: |
         coder:
-          - name: CODER_PG_CONNECTION_URL
-            value: postgres://coder:password@postgresql-coder:5432/coder?sslmode=disable
-        ingress:
-          enable: true
-          ingressClassName: traefik
-          annotations:
-            cert-manager.io/cluster-issuer: "letsencrypt-prod"
-          host: "coder.tgu.ovh"
-          wildcardHost: "*.coder.tgu.ovh"
-          tls:
+          env:
+            - name: CODER_PG_CONNECTION_URL
+              value: postgres://coder:password@postgresql-coder:5432/coder?sslmode=disable
+          ingress:
             enable: true
-            secretName: coder-secret-tls
-            wildcardSecretName: coder-secret-tls
+            ingressClassName: traefik
+            annotations:
+              cert-manager.io/cluster-issuer: "letsencrypt-prod"
+            host: "coder.tgu.ovh"
+            wildcardHost: "*.coder.tgu.ovh"
+            tls:
+              enable: true
+              secretName: coder-secret-tls
+              wildcardSecretName: coder-secret-tls
 
   syncPolicy:
     syncOptions:
