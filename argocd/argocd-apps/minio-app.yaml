@@ -56,8 +56,8 @@ spec:
           - name: stsonly
             statements:
               - resources:
-                  - 'arn:minio:iam:::oidc-${jwt:preferred_username}'
-                  - 'arn:minio:iam:::oidc-${jwt:preferred_username}/*'
+                  - 'arn:aws:s3:::oidc-${jwt:preferred_username}'
+                  - 'arn:aws:s3:::oidc-${jwt:preferred_username}/*'
                 actions:
                   - "s3:*"
 
