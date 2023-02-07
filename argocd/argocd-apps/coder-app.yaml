@@ -23,14 +23,18 @@ spec:
           #   hostSecretName: wildcard-tgu-ovh-mjzvx
           #   devurlsHostSecretName: wildcard-tgu-ovh-mjzvx
           serviceSpec:
-            # The Ingress will route traffic to the internal ClusterIP.
             type: ClusterIP
             externalTrafficPolicy: ""
         ingress:
           enabled: true
+          ingressClassName: traefik
           annotations:
             cert-manager.io/cluster-issuer: "letsencrypt-prod"
-          host: coder.tgu.ovh
+          host: "coder.tgu.ovh"
+          tls:
+            enable: true
+            secretName: coder-secret-tls
+            wildcardSecretName: coder-secret-tls
 
   syncPolicy:
     syncOptions:
