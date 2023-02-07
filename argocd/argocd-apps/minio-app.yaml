@@ -47,8 +47,8 @@ spec:
         oidc:
           enabled: true
           configUrl: "https://auth.lab.tgu.ovh/auth/realms/datalab/.well-known/openid-configuration"
-          clientId: "minio"
-          clientSecret: "5mXzhmPEr4JhvlnkJJLOFPKgMJsqMMS2"
+          clientId: "onyxia-minio"
+          clientSecret: ""
           claimName: "policy"
           scopes: "openid,profile,email"
           redirectUri: "https://minio-console.tgu.ovh/oauth_callback"
