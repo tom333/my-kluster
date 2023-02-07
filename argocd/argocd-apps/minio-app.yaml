@@ -46,7 +46,7 @@ spec:
                 - minio-console.tgu.ovh
         oidc:
           enabled: true
-          configUrl: "https://auth.lab.tgu.ovh/.well-known/openid-configuration"
+          configUrl: "https://auth.lab.tgu.ovh/auth/realms/datalab/.well-known/openid-configuration"
           clientId: "minio"
           clientSecret: "5mXzhmPEr4JhvlnkJJLOFPKgMJsqMMS2"
           claimName: "policy"
