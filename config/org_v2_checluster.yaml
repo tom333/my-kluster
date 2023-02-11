@@ -9,4 +9,5 @@ spec:
   devEnvironments: {}
   gitServices: {}
   networking:
-    - domain: che.tgu.ovh
+    domain: 'che.tgu.ovh'
+    tlsSecretName: 'che-secret'
