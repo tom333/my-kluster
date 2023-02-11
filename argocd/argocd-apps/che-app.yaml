@@ -14,7 +14,7 @@ spec:
     path: ""
     repoURL: "https://eclipse-che.github.io/che-operator/charts"
     targetRevision: 7.60.1
-    chart: che
+    chart: eclipse-che
 
   syncPolicy:
     syncOptions:
