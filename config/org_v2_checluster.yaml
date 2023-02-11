@@ -6,7 +6,11 @@ metadata:
 spec:
   components: {}
   containerRegistry: {}
-  devEnvironments: {}
+  devEnvironments:
+      defaultNamespace:
+        template: '<username>-che'
+      storage:
+        pvcStrategy: 'common'
   gitServices: {}
   networking:
     domain: 'che.tgu.ovh'
