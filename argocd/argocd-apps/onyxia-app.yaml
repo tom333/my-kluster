@@ -77,7 +77,7 @@ spec:
                         "bucketPrefix": "oidc-",
                         "groupBucketPrefix": "projet-",
                         "bucketClaim": "preferred_username",
-                        "defaultDurationSeconds": 86400,
+                        "defaultDurationSeconds": 8640000,
                         "keycloakParams": {
                           "URL":"https://auth.lab.tgu.ovh/auth",
                           "realm":"datalab",
