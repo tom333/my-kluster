@@ -25,8 +25,8 @@ metadata:
 spec:
   secretName: wildcard-tgu-ovh-tls
   dnsNames:
-    - "tgu.ovh"
     - "*.tgu.ovh"
+  commonName: "*.tgu.ovh"
   issuerRef:
     name: le-staging
     kind: ClusterIssuer
