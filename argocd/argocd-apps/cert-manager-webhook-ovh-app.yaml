@@ -18,7 +18,7 @@ spec:
     helm:
       values: |
         groupName: acme.tgu.ovh
-        namespace: cert-manager
+        namespace: certmanager-cert-manager
         serviceAccountName: cert-manager
         issuers:
           # Name of this issuer
