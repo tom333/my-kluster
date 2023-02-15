@@ -59,6 +59,7 @@ spec:
                     "authenticationMode":"admin",
                     "expose":{
                         "domain":"lab.tgu.ovh"
+                        "ingressClassName": "traefik"
                     },
                     "monitoring":{
                         "URLPattern":"todo"
@@ -93,9 +94,9 @@ spec:
                     "type":"openidconnect"
                   },
                   "location":{
-                    "lat":48.8164,
-                    "long":2.3174,
-                    "name":"Montrouge (France)"
+                    "lat": -22.2787,
+                    "long":166.4759,
+                    "name":"Nouméa (Nouvelle-Calédonie)"
                   }
               }
             ]
