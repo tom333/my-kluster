@@ -24,6 +24,7 @@ spec:
           - name: le-prod
             create: true
             kind: ClusterIssuer
+            namespace: cert-manager
             cnameStrategy: None
             acmeServerUrl: https://acme-v02.api.letsencrypt.org/directory
             email: laboitatom@gmail.com
@@ -41,7 +42,7 @@ spec:
           - name: le-staging
             create: true
             kind: ClusterIssuer
-            namespace: default
+            namespace: cert-manager
             cnameStrategy: None
             acmeServerUrl: https://acme-staging-v02.api.letsencrypt.org/directory
             email: laboitatom@gmail.com
