@@ -17,6 +17,7 @@ spec:
     chart: cert-manager-webhook-ovh
     helm:
       values: |
+        groupName: acme.tgu.ovh
         issuers:
           # Name of this issuer
           - name: le-prod
