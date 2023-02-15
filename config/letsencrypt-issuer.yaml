@@ -28,7 +28,7 @@ spec:
     - "tgu.ovh"
     - "*.tgu.ovh"
   issuerRef:
-    name: letsencrypt-prod
+    name: le-staging
     kind: ClusterIssuer
 ---
 apiVersion: traefik.containo.us/v1alpha1
