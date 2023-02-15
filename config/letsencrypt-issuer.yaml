@@ -30,6 +30,12 @@ spec:
   issuerRef:
     name: le-staging
     kind: ClusterIssuer
+  acme:
+    config:
+      - dns01:
+          provider: ovh
+        domains:
+          - "*.tgu.ovh"
 ---
 apiVersion: traefik.containo.us/v1alpha1
 kind: TLSStore
