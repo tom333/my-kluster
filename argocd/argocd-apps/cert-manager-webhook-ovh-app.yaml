@@ -18,6 +18,8 @@ spec:
     helm:
       values: |
         groupName: acme.tgu.ovh
+        namespace: cert-manager
+        serviceAccountName: cert-manager
         issuers:
           # Name of this issuer
           - name: le-prod
