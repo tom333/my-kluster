@@ -18,35 +18,15 @@ spec:
     helm:
       values: |
         groupName: acme.tgu.ovh
-        namespace: certmanager-cert-manager
-        serviceAccountName: cert-manager
+        namespace: cert-manager
+        serviceAccountName: certmanager-cert-manager
         issuers:
-          # Name of this issuer
           - name: le-prod
-            # When true this issuer is created.
-            # This is disabled by default
             create: true
-            # Type of issuer. Can either be ClusterIssuer or Issuer.
-            # If issuer is specified, the the namespace is required.
-            # See for more information https://cert-manager.io/docs/concepts/issuer/
             kind: ClusterIssuer
-            # If kind is issuer, then indicate the namespace in which this
-            # issuer should be deployed into.
-            namespace: default
-            # Follow CNAME records or not. 2 options:
-            # - None (default): Don't follow CNAME records
-            # - Follow: Follow CNAME records
-            # See https://cert-manager.io/docs/configuration/acme/dns01/#delegated-domains-for-dns01 for more informations
             cnameStrategy: None
-            # The acme server url. For Let's encrypt, you have 2 options:
-            # - for production (default): https://acme-v02.api.letsencrypt.org/directory
-            # - for staging: https://acme-staging-v02.api.letsencrypt.org/directory
             acmeServerUrl: https://acme-v02.api.letsencrypt.org/directory
-            # email to use when registrering your account with Let's encrypt.
             email: laboitatom@gmail.com
-            # The endpoint name of the OVH API. It must be one of the following:
-            # ovh-eu, ovh-ca, kimsufi-eu, kimsufi-ca, soyoustart-eu, soyoustart-ca, runabove-ca
-            # See https://docs.certifytheweb.com/docs/dns/providers/ovh/ for more information
             ovhEndpointName: ovh-eu
             ovhAuthenticationRef:
               applicationKeyRef:
@@ -58,32 +38,13 @@ spec:
               consumerKeyRef:
                 name: ovh-credentials
                 key: consumerKey
-          # Name of this issuer
           - name: le-staging
-            # When true this issuer is created.
-            # This is disabled by default
             create: true
-            # Type of issuer. Can either be ClusterIssuer or Issuer.
-            # If issuer is specified, the the namespace is required.
-            # See for more information https://cert-manager.io/docs/concepts/issuer/
             kind: ClusterIssuer
-            # If kind is issuer, then indicate the namespace in which this
-            # issuer should be deployed into.
             namespace: default
-            # Follow CNAME records or not. 2 options:
-            # - None (default): Don't follow CNAME records
-            # - Follow: Follow CNAME records
-            # See https://cert-manager.io/docs/configuration/acme/dns01/#delegated-domains-for-dns01 for more informations
             cnameStrategy: None
-            # The acme server url. For Let's encrypt, you have 2 options:
-            # - for production (default): https://acme-v02.api.letsencrypt.org/directory
-            # - for staging: https://acme-staging-v02.api.letsencrypt.org/directory
             acmeServerUrl: https://acme-staging-v02.api.letsencrypt.org/directory
-            # email to use when registrering your account with Let's encrypt.
             email: laboitatom@gmail.com
-            # The endpoint name of the OVH API. It must be one of the following:
-            # ovh-eu, ovh-ca, kimsufi-eu, kimsufi-ca, soyoustart-eu, soyoustart-ca, runabove-ca
-            # See https://docs.certifytheweb.com/docs/dns/providers/ovh/ for more information
             ovhEndpointName: ovh-eu
             ovhAuthenticationRef:
               applicationKeyRef:
