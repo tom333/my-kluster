@@ -29,16 +29,23 @@ spec:
             acmeServerUrl: https://acme-v02.api.letsencrypt.org/directory
             email: laboitatom@gmail.com
             ovhEndpointName: ovh-eu
-            ovhAuthenticationRef:
-              applicationKeyRef:
-                name: ovh-credentials
-                key: applicationKey
-              applicationSecretRef:
-                name: ovh-credentials
-                key: applicationSecret
-              consumerKeyRef:
-                name: ovh-credentials
-                key: consumerKey
+            # ovhAuthenticationRef:
+            #   applicationKeyRef:
+            #     name: ovh-credentials
+            #     key: applicationKey
+            #   applicationSecretRef:
+            #     name: ovh-credentials
+            #     key: applicationSecret
+            #   consumerKeyRef:
+            #     name: ovh-credentials
+            #     key: consumerKey
+            ovhAuthentication:
+              # the OVH application key. Leave emtpy if you are using an existing secret.
+              applicationKey: '66702f51c4feabc4'
+              # the OVH application secret. Leave emtpy if you are using an existing secret.
+              applicationSecret: 'f3dc5ff832d333d1f12d804d218dd8bf'
+              # Your OVH consumer key. Leave emtpy if you are using an existing secret.
+              consumerKey: 3bf7f5e2d60ba0928e407faeeb4fd856'
           - name: le-staging
             create: true
             kind: ClusterIssuer
