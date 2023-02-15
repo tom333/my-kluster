@@ -77,7 +77,7 @@ spec:
             # - for staging: https://acme-staging-v02.api.letsencrypt.org/directory
             acmeServerUrl: https://acme-staging-v02.api.letsencrypt.org/directory
             # email to use when registrering your account with Let's encrypt.
-            email: acme@example.net
+            email: laboitatom@gmail.com
             # The endpoint name of the OVH API. It must be one of the following:
             # ovh-eu, ovh-ca, kimsufi-eu, kimsufi-ca, soyoustart-eu, soyoustart-ca, runabove-ca
             # See https://docs.certifytheweb.com/docs/dns/providers/ovh/ for more information
