@@ -25,17 +25,11 @@ metadata:
 spec:
   secretName: wildcard-tgu-ovh-tls
   dnsNames:
-    - "*.tgu.ovh"
-  commonName: "*.tgu.ovh"
+    - "*.lab.tgu.ovh"
+  commonName: "*.lab.tgu.ovh"
   issuerRef:
     name: le-staging
     kind: ClusterIssuer
-  acme:
-    config:
-      - dns01:
-          provider: ovh
-        domains:
-          - "*.tgu.ovh"
 ---
 apiVersion: traefik.containo.us/v1alpha1
 kind: TLSStore
