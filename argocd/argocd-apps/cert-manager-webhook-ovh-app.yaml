@@ -17,7 +17,7 @@ spec:
     chart: cert-manager-webhook-ovh
     helm:
       values: |
-        groupName: tgu.ovh
+        groupName: acme.tgu.ovh
         namespace: cert-manager
         serviceAccountName: certmanager-cert-manager
         issuers:
