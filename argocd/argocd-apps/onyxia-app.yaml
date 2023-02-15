@@ -58,7 +58,7 @@ spec:
                     "groupPrefix":"oidc-",
                     "authenticationMode":"admin",
                     "expose":{
-                        "domain":"lab.tgu.ovh"
+                        "domain":"lab.tgu.ovh",
                         "ingressClassName": "traefik"
                     },
                     "monitoring":{
