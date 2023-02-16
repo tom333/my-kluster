@@ -22,14 +22,14 @@ spec:
           auth:
             dummy:
               password: Passw0rd
-        # proxy:
-        #   ingress
-        #     enabled: true
-        #     ingressClassName: traefik
-        #     annotations:
-        #       cert-manager.io/cluster-issuer: "letsencrypt"
-        #     hostname: codehub.tgu.ovh
-        #     tls: true
+        proxy:
+          ingress:
+            enabled: true
+            ingressClassName: traefik
+            annotations:
+              cert-manager.io/cluster-issuer: "letsencrypt"
+            hostname: codehub.tgu.ovh
+            tls: true
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
