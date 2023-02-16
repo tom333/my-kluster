@@ -13,21 +13,27 @@ spec:
   source:
     path: ""
     repoURL: "https://prometheus-community.github.io/helm-charts"
-    targetRevision: 19.6.0
-    chart: prometheus
+    targetRevision: 45.1.1
+    chart: kube-prometheus-stack
     helm:
       values: |
-        server:
+        grafana:
           ingress:
             enabled: true
             annotations:
               cert-manager.io/cluster-issuer: "letsencrypt"
             hosts:
-              - prometheus.tgu.ovh
+              - grafana.tgu.ovh
             tls:
-              - secretName: prometheus-tls
+              - secretName: grafana-tls
                 hosts:
-                  - prometheus.tgu.ovh
+                  - grafana.tgu.ovh
+        defaultRules:
+          rules:
+            etcd: false
+        kubeEtcd:
+          enabled: false
+
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
