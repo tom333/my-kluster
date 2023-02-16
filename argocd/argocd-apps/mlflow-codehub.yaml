@@ -27,9 +27,8 @@ spec:
             enabled: true
             ingressClassName: traefik
             annotations:
-              - cert-manager.io/cluster-issuer: "letsencrypt"
-            hosts:
-              - host: codehub.tgu.ovh
+              cert-manager.io/cluster-issuer: "letsencrypt"
+            hostname: codehub.tgu.ovh
             tls: true
   syncPolicy:
     syncOptions:
