@@ -32,9 +32,6 @@ spec:
               cert-manager.io/cluster-issuer: "letsencrypt"
             hostname: codehub.tgu.ovh
             tls: true
-        postgresql:
-          auth:
-            password: password
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
