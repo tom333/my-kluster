@@ -22,9 +22,6 @@ spec:
           auth:
             dummy:
               password: Passw0rd
-          monitoring:
-            serviceMonitor:
-              enabled: false
         proxy:
           ingress:
             enabled: true
@@ -33,9 +30,6 @@ spec:
               cert-manager.io/cluster-issuer: "letsencrypt"
             hostname: codehub.tgu.ovh
             tls: true
-          monitoring:
-            serviceMonitor:
-              enabled: false
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
