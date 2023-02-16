@@ -21,13 +21,13 @@ spec:
         hub:
           auth:
             dummy:
-              password: "Passw0rd"
+              password: Passw0rd
         proxy:
           ingress
             enabled: true
-            ingressClassName: "traefik"
+            ingressClassName: traefik
             annotations:
-              cert-manager.io/cluster-issuer: "letsencrypt"
+              - cert-manager.io/cluster-issuer: "letsencrypt"
             hosts:
               - host: codehub.tgu.ovh
             tls: true
