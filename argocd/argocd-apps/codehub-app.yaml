@@ -22,6 +22,8 @@ spec:
           auth:
             dummy:
               password: Passw0rd
+            gitlab:
+              enabled: false
         proxy:
           ingress:
             enabled: true
