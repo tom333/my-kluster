@@ -27,7 +27,7 @@ spec:
           tls:
             - hosts:
                 - code.tgu.ovh
-              secretName: code-k3s-fch-dev-gnc
+              secretName: code-tls
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
