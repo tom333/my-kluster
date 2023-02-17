@@ -10,7 +10,7 @@ spec:
   project: datalab-project
   source:
     path: ci/helm-chart
-    repoURL: https://github.com/coder/code-server
+    repoURL: https://github.com/coder/code-server.git
     targetRevision: HEAD
     helm:
       values: |
