@@ -28,6 +28,8 @@ spec:
             - containerPort: 4181
               protocol: TCP
           env:
+            - name: LOG_LEVEL
+              value: debug
             - name: DOMAIN
               value: "tgu.ovh"
             - name: DEFAULT_PROVIDER
