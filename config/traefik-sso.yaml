@@ -49,6 +49,11 @@ spec:
                 secretKeyRef:
                   name: github-oauth-config
                   key: client-secret
+            - name: SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: github-oauth-config
+                  key: cookie-secret
 ---
 #
 # Auth Service
