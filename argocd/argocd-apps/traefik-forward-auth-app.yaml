@@ -17,27 +17,28 @@ spec:
     chart: traefik-forward-auth
     helm:
       values: |
-        DOMAIN: tgu.ovh
-        DEFAULT_PROVIDER: generic-oauth
-        INSECURE_COOKIE: false
-        PROVIDERS_GENERIC_OAUTH_AUTH_URL: https://github.com/login/oauth/authorize
-        PROVIDERS_GENERIC_OAUTH_TOKEN_URL: https://github.com/login/oauth/access_token
-        PROVIDERS_GENERIC_OAUTH_USER_URL: https://api.github.com/user
-        PROVIDERS_GENERIC_OAUTH_CLIENT_ID:
-          valueFrom:
-            secretKeyRef:
-              name: github-oauth-config
-              key: client-id
-        PROVIDERS_GENERIC_OAUTH_CLIENT_SECRET:
-          valueFrom:
-            secretKeyRef:
-              name: github-oauth-config
-              key: client-secret
-        SECRET:
-          valueFrom:
-            secretKeyRef:
-              name: github-oauth-config
-              key: cookie-secret
+        env:
+          DOMAIN: tgu.ovh
+          DEFAULT_PROVIDER: generic-oauth
+          INSECURE_COOKIE: false
+          PROVIDERS_GENERIC_OAUTH_AUTH_URL: https://github.com/login/oauth/authorize
+          PROVIDERS_GENERIC_OAUTH_TOKEN_URL: https://github.com/login/oauth/access_token
+          PROVIDERS_GENERIC_OAUTH_USER_URL: https://api.github.com/user
+          PROVIDERS_GENERIC_OAUTH_CLIENT_ID:
+            valueFrom:
+              secretKeyRef:
+                name: github-oauth-config
+                key: client-id
+          PROVIDERS_GENERIC_OAUTH_CLIENT_SECRET:
+            valueFrom:
+              secretKeyRef:
+                name: github-oauth-config
+                key: client-secret
+          SECRET:
+            valueFrom:
+              secretKeyRef:
+                name: github-oauth-config
+                key: cookie-secret
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
