@@ -9,7 +9,7 @@ spec:
   destination:
     namespace: kube-system
     server: https://kubernetes.default.svc
-  project: traefik-forward-auth
+  project: infra-project
   source:
     path: ""
     repoURL: "https://k8s-at-home.com/charts/"
