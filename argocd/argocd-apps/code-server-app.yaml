@@ -5,9 +5,9 @@ metadata:
   namespace: argocd
 spec:
   destination:
-    namespace: code-server
+    namespace: datalab
     server: https://kubernetes.default.svc
-  project: datalab
+  project: datalab-project
   source:
     path: ci/helm-chart
     repoURL: https://github.com/coder/code-server
