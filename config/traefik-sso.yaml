@@ -30,9 +30,11 @@ spec:
           env:
             - name: DOMAIN
               value: "tgu.ovh"
+            - name: DEFAULT_PROVIDER
+              value: "generic-oauth"
             # INSECURE_COOKIE is required unless using https entrypoint
             - name: INSECURE_COOKIE
-              value: "true"
+              value: "false"
             - name: PROVIDERS_GENERIC_OAUTH_AUTH_URL
               value: "https://github.com/login/oauth/authorize"
             - name: PROVIDERS_GENERIC_OAUTH_TOKEN_URL
