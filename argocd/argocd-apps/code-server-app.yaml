@@ -1,0 +1,37 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: code-server
+  namespace: argocd
+spec:
+  destination:
+    namespace: code-server
+    server: https://kubernetes.default.svc
+  project: datalab
+  source:
+    path: ci/helm-chart
+    repoURL: https://github.com/coder/code-server
+    targetRevision: HEAD
+    helm:
+      values: |
+        ingress:
+          enabled: true
+          ingressClassName: traefik
+          hosts:
+            - host: code.tgu.ovh
+              paths:
+                - /
+          annotations:
+            cert-manager.io/cluster-issuer: "letsencrypt-prod"
+            traefik.ingress.kubernetes.io/router.middlewares: traefik-forward-auth
+          tls:
+            - hosts:
+                - code.tgu.ovh
+              secretName: code-k3s-fch-dev-gnc
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      selfHeal: true
+      prune: true
+      allowEmpty: true
