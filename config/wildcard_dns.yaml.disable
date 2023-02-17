@@ -1,0 +1,29 @@
+--- # ---
+
+# application_name: traefik_dns
+# application_key: 5c1e3713835848e8
+# application_secret: 62be7d776a3aaa511a4586257e76a9dc
+
+# ---
+# application_name: cert-manager-webhook-ovh
+# application_key: 66702f51c4feabc4
+# application_secret: f3dc5ff832d333d1f12d804d218dd8bf
+# consumer_key: 3bf7f5e2d60ba0928e407faeeb4fd856
+---
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: wildcard-letsencrypt-issuer
+spec:
+  acme:
+    email: laboitatom@gmail.com
+    server: https://acme-v02.api.letsencrypt.org/directory
+    privateKeySecretRef:
+      name: letsencrypt-issuer-account-key
+    solvers:
+      - selector: {}
+        dns01:
+          ovh:
+            tokenSecretRef:
+              name: lets-encrypt-do-dns
+              key: access-token

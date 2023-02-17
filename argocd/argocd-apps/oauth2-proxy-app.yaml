@@ -1,0 +1,51 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: oauth2-proxy
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: kybe-system
+    server: https://kubernetes.default.svc
+  project: infra-project
+  source:
+    path: ""
+    repoURL: "https://oauth2-proxy.github.io/manifests"
+    targetRevision: 6.9.0
+    chart: oauth2-proxy
+    helm:
+      values: |
+        config:
+          existingSecret: github-oauth-config
+          configFile: |-
+            reverse_proxy = true
+            email_domains = [ "*" ]
+            upstreams = [ "static://202" ]
+            provider = "github"
+            scope = "user:email"
+            github_users = "tom333"
+            cookie_domains = ".tgu.ovh"
+            redirect_url = "https://auth.tgu.ovh/oauth2/callback"
+            whitelist_domains = "*.tgu.ovh"
+        ingress:
+          enabled: true
+          ingressClassName: traefik
+          hosts:
+            - auth.tgu.ovh
+          annotations:
+            cert-manager.io/cluster-issuer: "letsencrypt-prod"
+          tls:
+            - hosts:
+                - auth.tgu.ovh
+              secretName: auth-tls
+        redis:
+          enabled: false
+
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      selfHeal: true
+      prune: true
