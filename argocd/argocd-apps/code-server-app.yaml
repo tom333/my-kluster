@@ -23,7 +23,7 @@ spec:
                 - /
           annotations:
             cert-manager.io/cluster-issuer: "letsencrypt-prod"
-            traefik.ingress.kubernetes.io/router.middlewares: traefik-forward-auth
+            #traefik.ingress.kubernetes.io/router.middlewares: traefik-forward-auth
           tls:
             - hosts:
                 - code.tgu.ovh
