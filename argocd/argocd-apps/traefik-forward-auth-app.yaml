@@ -40,7 +40,8 @@ spec:
               secretKeyRef:
                 name: github-oauth-config
                 key: cookie-secret
-          WHITELIST: valueFrom:
+          WHITELIST:
+            valueFrom:
               secretKeyRef:
                 name: github-oauth-config
                 key: whitelist
