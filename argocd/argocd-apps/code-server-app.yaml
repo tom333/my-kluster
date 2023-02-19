@@ -23,7 +23,8 @@ spec:
                 - /
           annotations:
             cert-manager.io/cluster-issuer: "letsencrypt-prod"
-            traefik.ingress.kubernetes.io/router.middlewares: kube-system-traefik-forward-auth@kubernetescrd
+            #traefik.ingress.kubernetes.io/router.middlewares: kube-system-traefik-forward-auth@kubernetescrd
+            ingress.pomerium.io/policy: '[{"allow":{"and":[{"email":{"is":"laboitatom@gmail.com"}}]}}]' # This can also be a yaml block quote
           tls:
             - hosts:
                 - code.tgu.ovh
