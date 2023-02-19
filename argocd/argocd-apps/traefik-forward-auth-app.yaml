@@ -40,7 +40,10 @@ spec:
               secretKeyRef:
                 name: github-oauth-config
                 key: cookie-secret
-          WHITELIST: laboitatom@gmail.com
+          WHITELIST: valueFrom:
+              secretKeyRef:
+                name: github-oauth-config
+                key: whitelist
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
