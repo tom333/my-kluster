@@ -1,0 +1,107 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: onyxia
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: datalab
+    server: https://kubernetes.default.svc
+  project: datalab-project
+  source:
+    path: ""
+    repoURL: "https://inseefrlab.github.io/helm-charts"
+    targetRevision: 3.7.0
+    chart: onyxia
+    helm:
+      values: |
+        serviceAccount:
+          clusterAdmin: true
+        ingress:
+          enabled: true
+          annotations:
+            cert-manager.io/cluster-issuer: "letsencrypt-prod"
+          hosts:
+            - host: onyxia.tgu.ovh
+          tls:
+           - secretName: onyxia-tls
+             hosts:
+               - onyxia.tgu.ovh
+        ui:
+          env:
+            KEYCLOAK_REALM: datalab
+            KEYCLOAK_CLIENT_ID: onyxia
+            KEYCLOAK_URL: https://auth.lab.tgu.ovh/auth
+        api:
+          image:
+            version: latest
+          env:
+            security.cors.allowed_origins: "*.tgu.ovh"
+            authentication.mode: "openidconnect"
+            keycloak.realm: datalab
+            keycloak.auth-server-url: https://auth.lab.tgu.ovh/auth
+            springdoc.swagger-ui.oauth.clientId: onyxia
+          regions:
+            [
+              {
+                  "id":"my-datalab",
+                  "name":"my-datalab",
+                  "description":"Datalab perso",
+                  "services":{
+                    "type":"KUBERNETES",
+                    "singleNamespace":false,
+                    "namespacePrefix":"user-",
+                    "usernamePrefix":"oidc-",
+                    "groupNamespacePrefix":"projet-",
+                    "groupPrefix":"oidc-",
+                    "authenticationMode":"admin",
+                    "expose":{
+                        "domain":"lab.tgu.ovh"
+                    },
+                    "monitoring":{
+                        "URLPattern":"todo"
+                    },
+                    "cloudshell":{
+                        "catalogId":"inseefrlab-helm-charts-datascience",
+                        "packageName":"cloudshell"
+                    },
+                    "initScript":"https://inseefrlab.github.io/onyxia/onyxia-init.sh"
+                  },
+                  "data":{
+                    "S3":{
+                        "type": "minio",
+                        "URL":"https://minio.tgu.ovh",
+                        "region": "us-east-1",
+                        "bucketPrefix": "oidc-",
+                        "groupBucketPrefix": "projet-",
+                        "bucketClaim": "preferred_username",
+                        "defaultDurationSeconds": 8640000,
+                        "keycloakParams": {
+                          "URL":"https://auth.lab.tgu.ovh/auth",
+                          "realm":"datalab",
+                          "clientId":"onyxia-minio"
+                        },
+                        "acceptBucketCreation": true,
+                        "monitoring":{
+                          "URLPattern":"todo"
+                        }
+                    }
+                  },
+                  "auth":{
+                    "type":"openidconnect"
+                  },
+                  "location":{
+                    "lat":48.8164,
+                    "long":2.3174,
+                    "name":"Montrouge (France)"
+                  }
+              }
+            ]
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      selfHeal: true
+      prune: true
