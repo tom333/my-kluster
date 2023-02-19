@@ -19,6 +19,7 @@ spec:
       values: |
         env:
           DOMAIN: tgu.ovh
+          LOG_LEVEL: trace
           DEFAULT_PROVIDER: generic-oauth
           INSECURE_COOKIE: false
           PROVIDERS_GENERIC_OAUTH_AUTH_URL: https://github.com/login/oauth/authorize
