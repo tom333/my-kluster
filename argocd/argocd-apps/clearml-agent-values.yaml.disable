@@ -1,8 +1,0 @@
-agentk8sglue:
-  apiServerUrlReference: http://clearml-apiserver.clearml.svc.cluster.local:8008
-  fileServerUrlReference: http://clearml-fileserver.clearml.svc.cluster.local:8081
-  webServerUrlReference: http://clearml-webserver.clearml.svc.cluster.local
-
-clearml:
-  agentk8sglueKey: ZPPPO5WSOLAPLT6Z5KQR
-  agentk8sglueSecret: Sk3ycefU8Dp20LHEUj9iLkQci8I2S7JN94HAYbli3vdgzZGp2k
