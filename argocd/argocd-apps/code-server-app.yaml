@@ -30,8 +30,8 @@ spec:
                 - code.tgu.ovh
               secretName: code-tls
           extraArgs:
-            - --auth
-            - none
+            - --no-auth
+
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
