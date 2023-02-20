@@ -16,7 +16,7 @@ spec:
       values: |
         ingress:
           enabled: true
-          ingressClassName: traefik
+          ingressClassName: pomerium
           hosts:
             - host: code.tgu.ovh
               paths:
