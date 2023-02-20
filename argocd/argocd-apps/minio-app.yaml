@@ -44,23 +44,6 @@ spec:
             - secretName: minio-console-secret-tls
               hosts:
                 - minio-console.tgu.ovh
-        oidc:
-          enabled: true
-          configUrl: "https://auth.lab.tgu.ovh/auth/realms/datalab/.well-known/openid-configuration"
-          clientId: "onyxia-minio"
-          clientSecret: ""
-          claimName: "policy"
-          scopes: "openid,profile,email"
-          redirectUri: "https://minio-console.tgu.ovh/oauth_callback"
-        policies:
-          - name: stsonly
-            statements:
-              - resources:
-                  - 'arn:aws:s3:::oidc-${jwt:preferred_username}'
-                  - 'arn:aws:s3:::oidc-${jwt:preferred_username}/*'
-                actions:
-                  - "s3:*"
-
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
