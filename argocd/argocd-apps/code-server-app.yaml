@@ -29,6 +29,9 @@ spec:
             - hosts:
                 - code.tgu.ovh
               secretName: code-tls
+          extraArgs:
+            - --auth
+            - none
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
