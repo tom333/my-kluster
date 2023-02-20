@@ -27,6 +27,10 @@ spec:
           annotations:
             cert-manager.io/cluster-issuer: "letsencrypt-prod"
             kubernetes.io/ingress.allow-http: "false"
+            ingress.pomerium.io/allowed_users: |
+              - laboitatom@gmail.com
+            ingress.pomerium.io/allow_any_authenticated_user: 'true'
+            ingress.pomerium.io/allow_websockets: 'true'
           hosts:
               - "minio.tgu.ovh"
           tls:
@@ -38,6 +42,10 @@ spec:
           annotations:
             cert-manager.io/cluster-issuer: "letsencrypt-prod"
             kubernetes.io/ingress.allow-http: "false"
+            ingress.pomerium.io/allowed_users: |
+              - laboitatom@gmail.com
+            ingress.pomerium.io/allow_any_authenticated_user: 'true'
+            ingress.pomerium.io/allow_websockets: 'true'
           hosts:
             - "minio-console.tgu.ovh"
           tls:
