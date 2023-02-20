@@ -39,7 +39,7 @@ spec:
             value: http://mlflow.datalab.svc.cluster.local:5000
           - name: MLFLOW_S3_ENDPOINT_URL
             value: http:/minio.datalab.svc.cluster.local:9000
-        extraInitContainers: |
+        extraInitContainers:
           - name: customization
             image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
             imagePullPolicy: IfNotPresent
@@ -52,7 +52,7 @@ spec:
               - sh
               - -c
               - |
-                code-server --install-extension ms-python.python Equinusocio.vsc-material-theme
+                code-server --install-extension ms-python.python
                 sudo apt update -y && sudo apt install -y python python3-distutils python3-pip python3-virtualenv make build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev wget curl llvm libncursesw5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev
                 curl -sSL https://install.python-poetry.org | python3 -
                 echo 'PATH="/home/coder/.local/bin:$PATH"' > ~/.bashrc
