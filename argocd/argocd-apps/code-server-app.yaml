@@ -26,7 +26,7 @@ spec:
             ingress.pomerium.io/allowed_users: |
               - laboitatom@gmail.com
             ingress.pomerium.io/allow_any_authenticated_user: 'true'
-            ingress.pomerium.io/allow_websockets: true
+            ingress.pomerium.io/allow_websockets: 'true'
           tls:
             - hosts:
                 - code.tgu.ovh
