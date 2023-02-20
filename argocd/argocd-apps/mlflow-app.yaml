@@ -27,12 +27,15 @@ spec:
             user: "mlflow"
             password: "password"
         artifactRoot:
-          enabled: true
-          bucket: "mlflow"
-          awsAccessKeyId: "admin"
-          awsSecretAccessKey: "UGFzc3cwcmQ="
+          s3:
+            enabled: true
+            bucket: "mlflow"
+            awsAccessKeyId: "FrXcrskBH4ISfNPw"
+            awsSecretAccessKey: "9YN1bkuerkDY6k2vDHvrp9TEAisJ1wSC"
         extraEnvVars:
           MLFLOW_S3_ENDPOINT_URL: http://minio.datalab.svc.cluster.local:9000
+          AWS_ACCESS_KEY_ID
+          AWS_SECRET_ACCESS_KEY
         ingress:
           enabled: true
           annotations:
