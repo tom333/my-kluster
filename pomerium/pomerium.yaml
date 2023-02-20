@@ -1,0 +1,12 @@
+apiVersion: ingress.pomerium.io/v1
+kind: Pomerium
+metadata:
+  annotations:
+  name: global
+spec:
+  authenticate:
+    url: https://authenticate.tgu.ovh
+  identityProvider:
+    provider: github
+    secret: pomerium/github-oauth-config
+  secrets: pomerium/bootstrap
