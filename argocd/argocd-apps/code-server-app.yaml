@@ -24,7 +24,7 @@ spec:
           annotations:
             cert-manager.io/cluster-issuer: "letsencrypt-prod"
             ingress.pomerium.io/allowed_users: |
-              - laboitatmo@gmail.com
+              - laboitatom@gmail.com
           tls:
             - hosts:
                 - code.tgu.ovh
