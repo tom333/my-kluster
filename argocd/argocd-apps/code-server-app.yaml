@@ -14,6 +14,9 @@ spec:
     targetRevision: HEAD
     helm:
       values: |
+        image:
+          repository: tom333/coder
+          tag: 'latest'
         ingress:
           enabled: true
           ingressClassName: pomerium
