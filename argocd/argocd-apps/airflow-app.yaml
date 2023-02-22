@@ -27,7 +27,7 @@ spec:
             - name: airflow.tgu.ovh
               tls:
                 enabled: true
-                secretName airflow-tls
+                secretName: airflow-tls
           createUserJob:
             useHelmHooks: false
             applyCustomEnv: false
