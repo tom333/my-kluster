@@ -41,7 +41,7 @@ spec:
           - name: MLFLOW_TRACKING_URI
             value: http://mlflow.datalab.svc.cluster.local:5000
           - name: MLFLOW_S3_ENDPOINT_URL
-            value: http:/minio.datalab.svc.cluster.local:9000
+            value: http://minio.datalab.svc.cluster.local:9000
         # extraInitContainers:
         #   - name: customization
         #     image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
