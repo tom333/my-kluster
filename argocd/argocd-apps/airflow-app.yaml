@@ -32,15 +32,15 @@ spec:
           tls:
             enabled: true
             secretName: airflow-tls
-        createUserJob:
-          useHelmHooks: false
-          applyCustomEnv: false
-        migrateDatabaseJob:
-          useHelmHooks: false
-          applyCustomEnv: false
-        migrateDatabaseJob:
-          jobAnnotations:
-              "argocd.argoproj.io/hook": Sync
+        # createUserJob:
+        #   useHelmHooks: false
+        #   applyCustomEnv: false
+        # migrateDatabaseJob:
+        #   useHelmHooks: false
+        #   applyCustomEnv: false
+        # migrateDatabaseJob:
+        #   jobAnnotations:
+        #       "argocd.argoproj.io/hook": Sync
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
