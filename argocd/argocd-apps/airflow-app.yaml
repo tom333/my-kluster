@@ -15,6 +15,7 @@ spec:
     helm:
       values: |
         clusterDomain: airflow.tgu.ovh
+        executor: KubernetesExecutor
         ingress:
           enabled: true
           annotations:
