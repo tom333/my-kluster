@@ -14,7 +14,9 @@ spec:
     chart: airflow
     helm:
       values: |
-        #executor: KubernetesExecutor
+        auth:
+          username: user
+          password: PasswOrd
         ingress:
           enabled: true
           annotations:
