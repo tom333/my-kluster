@@ -24,12 +24,7 @@ spec:
             ingress.pomerium.io/allow_any_authenticated_user: 'true'
             ingress.pomerium.io/allow_websockets: 'true'
           ingressClassName: "pomerium"
-          host: airflow.tgu.ovh
-          hosts:
-            - name: airflow.tgu.ovh
-              tls:
-                enabled: true
-                secretName: airflow-tls
+          hostname: airflow.tgu.ovh
           tls: true
   syncPolicy:
     syncOptions:
