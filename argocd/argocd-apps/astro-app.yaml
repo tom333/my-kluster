@@ -10,7 +10,7 @@ spec:
   project: datalab-project
   source:
     repoURL: "https://helm.astronomer.io"
-    targetRevision: 0.31.1
+    targetRevision: 0.31.2
     chart: astronomer
     helm:
       values: |
