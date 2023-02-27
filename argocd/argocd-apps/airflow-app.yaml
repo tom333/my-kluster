@@ -31,6 +31,8 @@ spec:
         postgresql:
           auth:
             password: bitnami_airflow
+        diagnosticMode:
+          enabled: true
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
