@@ -9,8 +9,8 @@ spec:
     server: https://kubernetes.default.svc
   project: datalab-project
   source:
-    repoURL: "https://charts.bitnami.com/bitnami"
-    targetRevision: 14.0.12
+    repoURL: "https://airflow.apache.org/"
+    targetRevision: 1.8.0
     chart: airflow
     helm:
       values: |
@@ -18,21 +18,24 @@ spec:
           username: user
           password: PasswOrd
         ingress:
-          enabled: true
-          annotations:
-            cert-manager.io/cluster-issuer: "letsencrypt-prod"
-            ingress.pomerium.io/allowed_users: |
-              - laboitatom@gmail.com
-            ingress.pomerium.io/allow_any_authenticated_user: 'true'
-            ingress.pomerium.io/allow_websockets: 'true'
-          ingressClassName: "pomerium"
-          hostname: airflow.tgu.ovh
-          tls: true
-        postgresql:
-          auth:
-            password: bitnami_airflow
-        diagnosticMode:
-          enabled: true
+          web:
+            enabled: true
+            annotations:
+              cert-manager.io/cluster-issuer: "letsencrypt-prod"
+              ingress.pomerium.io/allowed_users: |
+                - laboitatom@gmail.com
+              ingress.pomerium.io/allow_any_authenticated_user: 'true'
+              ingress.pomerium.io/allow_websockets: 'true'
+            ingressClassName: "pomerium"
+            host: airflow.tgu.ovh
+            hosts:
+              - name: airflow.tgu.ovh
+                tls:
+                  enabled: true
+                  secretName: airflow-web-tls
+            tls:
+              enabled: true
+              secretName: airflow-web-tls
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
