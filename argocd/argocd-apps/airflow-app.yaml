@@ -28,6 +28,9 @@ spec:
           ingressClassName: "pomerium"
           hostname: airflow.tgu.ovh
           tls: true
+        postgresql:
+          auth:
+            password: bitnami_airflow
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
