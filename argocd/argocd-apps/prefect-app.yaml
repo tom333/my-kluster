@@ -16,7 +16,6 @@ spec:
       values: |
         server:
           publicApiUrl: prefect.tgu.ovh
-
         ingress:
           enabled: true
           annotations:
@@ -28,20 +27,11 @@ spec:
           className: "pomerium"
           host:
             hostname: prefect.tgu.ovh
-            tls:
-              enabled: true
-              secretName: airflow-web-tls
-          tls:
-            enabled: true
-            secretName: airflow-web-tls
-        createUserJob:
-          useHelmHooks: false
-          applyCustomEnv: false
-        migrateDatabaseJob:
-          useHelmHooks: false
-          applyCustomEnv: false
-          jobAnnotations:
-            "argocd.argoproj.io/hook": Sync
+          tls: true
+        postgresql:
+          auth:
+            password: "Passw0rd"
+
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
