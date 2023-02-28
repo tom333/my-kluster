@@ -14,9 +14,10 @@ spec:
     chart: prefect-agent
     helm:
       values: |
-        apiConfig: "server"
-        serverApiConfig:
-          apiUrl: prefect-server.datalab.svc.cluster.local:4200/api
+        agent:
+          apiConfig: "server"
+          serverApiConfig:
+            apiUrl: prefect-server.datalab.svc.cluster.local:4200/api
 
   syncPolicy:
     syncOptions:
