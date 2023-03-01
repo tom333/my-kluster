@@ -14,6 +14,8 @@ spec:
     chart: prefect-server
     helm:
       values: |
+        server:
+          publicApiUrl: https://prefect.tgu.ovh/api
         ingress:
           enabled: true
           annotations:
