@@ -16,6 +16,8 @@ spec:
       values: |
         server:
           publicApiUrl: prefect.tgu.ovh
+          image:
+            debug: true
         ingress:
           enabled: true
           annotations:
