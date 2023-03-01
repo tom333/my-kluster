@@ -17,7 +17,7 @@ spec:
         agent:
           apiConfig: "server"
           serverApiConfig:
-            apiUrl: prefect-server.datalab.svc.cluster.local:4200/api
+            apiUrl: http://prefect-server.datalab.svc.cluster.local:4200/api
 
   syncPolicy:
     syncOptions:
