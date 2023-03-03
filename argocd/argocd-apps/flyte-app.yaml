@@ -14,26 +14,19 @@ spec:
     chart: flyte
     helm:
       values: |
-        configuration:
-          database:
-            username: flyte
-            password: "password"
-            host: postgresql-flyte.datalab.svc.cluster.local
-            port: 5432
-            dbname: flyte
-          # storage:
-          #   metadataContainer: "flyte-container"
-          #   userDataContainer: "flyte-container"
-          #   provider: s3
-          #   providerConfig:
-          #     s3:
-          #       region: "us-east-1"
-          #       endpoint: "http://minio.datalab.svc.cluster.local:9000"
-          #       authType: "accesskey"
-          #       secretKey: "mlflow-env-secret"
+        # storage:
+        #   metadataContainer: "flyte-container"
+        #   userDataContainer: "flyte-container"
+        #   provider: s3
+        #   providerConfig:
+        #     s3:
+        #       region: "us-east-1"
+        #       endpoint: "http://minio.datalab.svc.cluster.local:9000"
+        #       authType: "accesskey"
+        #       secretKey: "mlflow-env-secret"
         common:
           ingress:
-            enabled: true
+            enabled: false
             annotations:
               cert-manager.io/cluster-issuer: "letsencrypt-prod"
               ingress.pomerium.io/allowed_users: |
@@ -44,6 +37,8 @@ spec:
             tls:
               enabled: true
         minio:
+          enabled: false
+        contour:
           enabled: false
 
   syncPolicy:
