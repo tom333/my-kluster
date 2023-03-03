@@ -31,15 +31,20 @@ spec:
           #       endpoint: "http://minio.datalab.svc.cluster.local:9000"
           #       authType: "accesskey"
           #       secretKey: "mlflow-env-secret"
-        ingress:
-          create: true
-          commonAnnotations:
-            cert-manager.io/cluster-issuer: "letsencrypt-prod"
-            ingress.pomerium.io/allowed_users: |
-              - laboitatom@gmail.com
-            ingress.pomerium.io/allow_any_authenticated_user: 'true'
-            ingress.pomerium.io/allow_websockets: 'true'
-          host: "flyte.tgu.ovh"
+        common:
+          ingress:
+            enabled: true
+            annotations:
+              cert-manager.io/cluster-issuer: "letsencrypt-prod"
+              ingress.pomerium.io/allowed_users: |
+                - laboitatom@gmail.com
+              ingress.pomerium.io/allow_any_authenticated_user: 'true'
+              ingress.pomerium.io/allow_websockets: 'true'
+            host: "flyte.tgu.ovh"
+            tls:
+              enabled: true
+        minio:
+          enabled: false
 
   syncPolicy:
     syncOptions:
