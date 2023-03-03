@@ -27,7 +27,7 @@ spec:
         flyte:
           common:
             ingress:
-              enabled: false
+              enabled: true
               annotations:
                 cert-manager.io/cluster-issuer: "letsencrypt-prod"
                 ingress.pomerium.io/allowed_users: |
