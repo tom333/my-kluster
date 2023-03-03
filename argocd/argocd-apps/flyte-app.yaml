@@ -26,21 +26,20 @@ spec:
             userDataContainer: "flyte-container"
             provider: s3
             providerConfig:
-              # s3 Provider configuration for S3 object store
               s3:
                 region: "us-east-1"
                 endpoint: "http://minio.datalab.svc.cluster.local:9000"
                 authType: "accesskey"
                 secretKey: "mlflow-env-secret"
-          ingress:
-            create: true:
-            httpAnnotations:
-              cert-manager.io/cluster-issuer: "letsencrypt-prod"
-              ingress.pomerium.io/allowed_users: |
-                - laboitatom@gmail.com
-              ingress.pomerium.io/allow_any_authenticated_user: 'true'
-              ingress.pomerium.io/allow_websockets: 'true'
-            host: "flyte.tgu.ovh"
+        ingress:
+          create: true:
+          httpAnnotations:
+            cert-manager.io/cluster-issuer: "letsencrypt-prod"
+            ingress.pomerium.io/allowed_users: |
+              - laboitatom@gmail.com
+            ingress.pomerium.io/allow_any_authenticated_user: 'true'
+            ingress.pomerium.io/allow_websockets: 'true'
+          host: "flyte.tgu.ovh"
 
   syncPolicy:
     syncOptions:
