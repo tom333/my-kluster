@@ -32,7 +32,13 @@ spec:
                 authType: "accesskey"
                 secretKey: "mlflow-env-secret"
         ingress:
-          create: true:
+          create: true
+          commonAnnotations:
+            cert-manager.io/cluster-issuer: "letsencrypt-prod"
+            ingress.pomerium.io/allowed_users: |
+              - laboitatom@gmail.com
+            ingress.pomerium.io/allow_any_authenticated_user: 'true'
+            ingress.pomerium.io/allow_websockets: 'true'
           host: "flyte.tgu.ovh"
 
   syncPolicy:
