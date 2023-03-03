@@ -1,0 +1,50 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: flyte
+  namespace: argocd
+spec:
+  destination:
+    namespace: datalab
+    server: https://kubernetes.default.svc
+  project: datalab-project
+  source:
+    repoURL: "https://flyteorg.github.io/flyte"
+    targetRevision: 1.3.0
+    chart: flyte
+    helm:
+      values: |
+        configuration:
+          database:
+            username: flyte
+            password: "password"
+            host: postgresql-flyte.datalab.svc.cluster.local
+            port: 5432
+            dbname: flyte
+          storage:
+            metadataContainer: "flyte-container"
+            userDataContainer: "flyte-container"
+            provider: s3
+            providerConfig:
+              # s3 Provider configuration for S3 object store
+              s3:
+                region: "us-east-1"
+                endpoint: "http://minio.datalab.svc.cluster.local:9000"
+                authType: "accesskey"
+                secretKey: "mlflow-env-secret"
+          ingress:
+            create: true:
+            httpAnnotations:
+              cert-manager.io/cluster-issuer: "letsencrypt-prod"
+              ingress.pomerium.io/allowed_users: |
+                - laboitatom@gmail.com
+              ingress.pomerium.io/allow_any_authenticated_user: 'true'
+              ingress.pomerium.io/allow_websockets: 'true'
+            host: "flyte.tgu.ovh"
+
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      selfHeal: true
+      prune: true
