@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: ariflow
+  name: airflow
   namespace: argocd
 spec:
   destination:
@@ -28,6 +28,7 @@ spec:
           enabled: true
           ingressClassName: pomerium
           hostname: airflow.tgu.ovh
+          path: /*
           annotations:
             cert-manager.io/cluster-issuer: "letsencrypt-prod"
             ingress.pomerium.io/allowed_users: |
