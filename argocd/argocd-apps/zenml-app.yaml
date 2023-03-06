@@ -12,7 +12,6 @@ spec:
     repoURL: "https://github.com/zenml-io/zenml"
     path: src/zenml/zen_server/deploy/helm/
     targetRevision:  0.34.0
-    chart: zenml
     helm:
       values: |
         zenml:
