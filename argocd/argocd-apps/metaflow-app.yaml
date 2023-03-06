@@ -30,9 +30,9 @@ spec:
               ingress.pomerium.io/allow_any_authenticated_user: 'true'
               ingress.pomerium.io/allow_websockets: 'true'
             tls: 
-              hosts: 
-                - metaflow.tgu.ovh
-              secret-name: metaflow-tls
+              - hosts: 
+                  - metaflow.tgu.ovh
+                secret-name: metaflow-tls
 
   syncPolicy:
     syncOptions:
