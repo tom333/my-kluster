@@ -32,7 +32,7 @@ spec:
             tls: 
               - hosts: 
                   - metaflow.tgu.ovh
-                secret-name: metaflow-tls
+                secretName: metaflow-tls
 
   syncPolicy:
     syncOptions:
