@@ -55,7 +55,7 @@ spec:
               - sh
               - -c
               - |
-                code-server --install-extension ms-python.python
+                code-server --install-extension ms-python.python GitHub.vscode-pull-request-github ms-kubernetes-tools.vscode-kubernetes-tools
             volumeMounts:
               - name: data
                 mountPath: /home/coder
