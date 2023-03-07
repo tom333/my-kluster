@@ -30,6 +30,7 @@ spec:
               - laboitatom@gmail.com
             ingress.pomerium.io/allow_any_authenticated_user: 'true'
             ingress.pomerium.io/allow_websockets: 'true'
+            ingress.pomerium.io/allow_public_unauthenticated_access: 'true'
           tls:
             - hosts:
                 - code.tgu.ovh
