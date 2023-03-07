@@ -56,9 +56,9 @@ spec:
               - -c
               - |
                 code-server --install-extension ms-python.python
-    volumeMounts:
-      - name: data
-        mountPath: /home/coder
+            volumeMounts:
+              - name: data
+                mountPath: /home/coder
 
   syncPolicy:
     syncOptions:
