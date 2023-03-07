@@ -3,6 +3,8 @@ kind: Application
 metadata:
   name: code-server
   namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
 spec:
   destination:
     namespace: datalab
@@ -17,6 +19,7 @@ spec:
         image:
           repository: tom333/coder
           tag: 'latest'
+          pullPolicy: Always
         ingress:
           enabled: true
           ingressClassName: pomerium
