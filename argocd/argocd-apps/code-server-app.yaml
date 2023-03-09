@@ -3,8 +3,7 @@ kind: Application
 metadata:
   name: code-server
   namespace: argocd
-  finalizers:
-    - resources-finalizer.argocd.argoproj.io
+
 spec:
   destination:
     namespace: datalab
