@@ -47,7 +47,7 @@ spec:
           - name: DISABLE_TELEMETRY
             value: true
           - name: DOCKER_HOST
-            value: "tcp://localhost:2375"
+            value: tcp://localhost:2375
         extraContainers: |
           - name: docker-dind
             image: docker:19.03-dind
