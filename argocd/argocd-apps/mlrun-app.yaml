@@ -42,7 +42,7 @@ spec:
                   - path: /
                     pathType: Prefix
             tls:
-              - secretName: mlflow-tls
+              - secretName: mlrun-tls
                 hosts:
                   - jupyter.mlrun.tgu.ovh
 
