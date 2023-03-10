@@ -32,7 +32,7 @@ spec:
         jupyterNotebook:
           ingress:
             enabled: false
-            annotations:  
+            annotations:
               cert-manager.io/cluster-issuer: "letsencrypt-prod"
               ingress.pomerium.io/allowed_users: |
                 - laboitatom@gmail.com
@@ -47,7 +47,8 @@ spec:
               - secretName: mlrun-tls
                 hosts:
                   - jupyter.mlrun.tgu.ovh
-
+        kube-prometheus-stack:
+          enabled: false
 
   syncPolicy:
     syncOptions:
