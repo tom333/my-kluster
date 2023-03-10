@@ -12,9 +12,9 @@ spec:
   project: datalab-project
   source:
     path: ""
-    repoURL: "https://v3io.github.io/helm-charts/stable"
+    repoURL: "https://mlrun.github.io/ce"
     targetRevision: 0.5.1
-    chart: mlrun-kit
+    chart: mlrun-ce
     helm:
       parameters:
         - name: global.registry.url
