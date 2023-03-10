@@ -1,0 +1,55 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: mlrun-ce
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: datalab
+    server: https://kubernetes.default.svc
+  project: datalab-project
+  source:
+    path: ""
+    repoURL: "https://mlrun.github.io/ce"
+    targetRevision: 0.5.1
+    chart: mlrun-ce
+    helm:
+      parameters:
+        - name: global.registry.url
+          value: "index.docker.io/tom333"
+        - name: global.registry.secretName
+          value: "registry-credentials"
+      values: |
+        global:
+          externalHostAddress: mlrun.tgu.ovh
+          registry:
+            url: index.docker.io/tom333
+            secretName: registry-credentials
+        jupyterNotebook:
+          ingress:
+            enabled: false
+            annotations:  
+              cert-manager.io/cluster-issuer: "letsencrypt-prod"
+              ingress.pomerium.io/allowed_users: |
+                - laboitatom@gmail.com
+              ingress.pomerium.io/allow_any_authenticated_user: 'true'
+              ingress.pomerium.io/allow_websockets: 'true'
+            hosts:
+              - host: jupyter.mlrun.tgu.ovh
+                paths:
+                  - path: /
+                    pathType: Prefix
+            tls:
+              - secretName: mlrun-tls
+                hosts:
+                  - jupyter.mlrun.tgu.ovh
+
+
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      selfHeal: true
+      prune: true
