@@ -12,9 +12,9 @@ spec:
   project: datalab-project
   source:
     path: ""
-    repoURL: "https://mlrun.github.io/ce"
+    repoURL: "https://v3io.github.io/helm-charts/stable"
     targetRevision: 0.5.1
-    chart: mlrun-ce
+    chart: mlrun-kit
     helm:
       parameters:
         - name: global.registry.url
@@ -28,7 +28,7 @@ spec:
             url: index.docker.io/tom333
             secretName: registry-credentials
         minio:
-          replicas: 1
+          replicas: 2
         jupyterNotebook:
           ingress:
             enabled: false
