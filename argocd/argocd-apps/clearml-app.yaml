@@ -5,7 +5,7 @@ metadata:
   namespace: argocd
 spec:
   destination:
-    namespace: clearml
+    namespace: datalab
     server: https://kubernetes.default.svc
   project: datalab-project
   source:

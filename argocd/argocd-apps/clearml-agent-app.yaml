@@ -1,11 +1,11 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: clearml
+  name: clearml-agent
   namespace: argocd
 spec:
   destination:
-    namespace: clearml
+    namespace: datalab
     server: https://kubernetes.default.svc
   project: datalab-project
   source:
@@ -16,8 +16,9 @@ spec:
     helm:
       values: |
         agentk8sglue:
-          apiServerUrlReference : 
-            
+          apiServerUrlReference : clearml-apiserver.datalab.svc.cluster.local
+          fileServerUrlReference: clearml-fileserver.datalab.svc.cluster.local
+          webServerUrlReference: clearml-webserver.datalab.svc.cluster.local
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
