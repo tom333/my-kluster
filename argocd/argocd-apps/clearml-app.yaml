@@ -15,8 +15,8 @@ spec:
     chart: clearml
     helm:
       values: |
-        ingress:
-          app:
+        webserver:
+          ingress:
             enabled: "true"
             hostName: "app.clearml.tgu.ovh"
             tlsSecretName: app-clearml-tls
@@ -26,7 +26,8 @@ spec:
                 - laboitatom@gmail.com
               ingress.pomerium.io/allow_any_authenticated_user: 'true'
               ingress.pomerium.io/allow_websockets: 'true'
-          api:
+        apiserver:
+          ingress:
             enabled: "true"
             hostName: "api.clearml.tgu.ovh"
             tlsSecretName: api-clearml-tls
@@ -36,7 +37,8 @@ spec:
                 - laboitatom@gmail.com
               ingress.pomerium.io/allow_any_authenticated_user: 'true'
               ingress.pomerium.io/allow_websockets: 'true'
-          files:
+        fileserver:
+          ingress:
             enabled: "true"
             hostName: "files.clearml.tgu.ovh"
             tlsSecretName: files-clearml-tls
