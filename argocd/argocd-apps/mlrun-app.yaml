@@ -29,7 +29,7 @@ spec:
             secretName: registry-credentials
         jupyterNotebook:
           ingress:
-            enabled: true
+            enabled: false
             annotations:  
               cert-manager.io/cluster-issuer: "letsencrypt-prod"
               ingress.pomerium.io/allowed_users: |
