@@ -21,7 +21,6 @@ spec:
           cert-manager.io/cluster-issuer: "letsencrypt-prod"
           ingress.pomerium.io/allowed_users: |
             - laboitatom@gmail.com
-          ingress.pomerium.io/allow_any_authenticated_user: 'true'
           ingress.pomerium.io/allow_websockets: 'true'
         hosts:
           - host: skooner.tgu.ovh
