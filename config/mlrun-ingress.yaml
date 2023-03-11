@@ -7,7 +7,6 @@ metadata:
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
     ingress.pomerium.io/allowed_users: |
       - laboitatom@gmail.com
-    ingress.pomerium.io/allow_any_authenticated_user: 'true'
     ingress.pomerium.io/allow_websockets: 'true'
 spec:
   rules:
@@ -29,41 +28,12 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: jupyter-ui-ingress
-  namespace: mlrun
-  annotations:
-    cert-manager.io/cluster-issuer: "letsencrypt-prod"
-    ingress.pomerium.io/allowed_users: |
-      - laboitatom@gmail.com
-    ingress.pomerium.io/allow_any_authenticated_user: 'true'
-    ingress.pomerium.io/allow_websockets: 'true'
-spec:
-  rules:
-    - host: jupyter.tgu.ovh
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: mlrun-jupyter
-                port:
-                  number: 8888
-  tls:
-    - hosts:
-        - jupyter.tgu.ovh
-      secretName: jupyter-tls-cert
----
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
   name: nuclio-ingress
   namespace: mlrun
   annotations:
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
     ingress.pomerium.io/allowed_users: |
       - laboitatom@gmail.com
-    ingress.pomerium.io/allow_any_authenticated_user: 'true'
     ingress.pomerium.io/allow_websockets: 'true'
 spec:
   rules:
@@ -91,7 +61,6 @@ metadata:
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
     ingress.pomerium.io/allowed_users: |
       - laboitatom@gmail.com
-    ingress.pomerium.io/allow_any_authenticated_user: 'true'
     ingress.pomerium.io/allow_websockets: 'true'
 spec:
   rules:
@@ -119,7 +88,6 @@ metadata:
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
     ingress.pomerium.io/allowed_users: |
       - laboitatom@gmail.com
-    ingress.pomerium.io/allow_any_authenticated_user: 'true'
     ingress.pomerium.io/allow_websockets: 'true'
 spec:
   rules:
