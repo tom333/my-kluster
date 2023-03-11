@@ -27,8 +27,6 @@ spec:
           registry:
             url: index.docker.io/tom333
             secretName: registry-credentials
-        minio:
-          replicas: 2
         jupyterNotebook:
           ingress:
             enabled: false
