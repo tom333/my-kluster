@@ -27,6 +27,9 @@ spec:
           registry:
             url: index.docker.io/tom333
             secretName: registry-credentials
+        mlrun:
+            ce:
+              mode: light
         jupyterNotebook:
           ingress:
             enabled: false
