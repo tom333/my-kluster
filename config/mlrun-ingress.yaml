@@ -67,7 +67,7 @@ metadata:
     ingress.pomerium.io/allow_websockets: 'true'
 spec:
   rules:
-    - host: muclio.tgu.ovh
+    - host: nuclio.tgu.ovh
       http:
         paths:
           - path: /
@@ -79,7 +79,7 @@ spec:
                   number: 8070
   tls:
     - hosts:
-        - mlrun.tgu.ovh
+        - nuclio.tgu.ovh
       secretName: mlrun-tls-cert
 ---
 apiVersion: networking.k8s.io/v1
