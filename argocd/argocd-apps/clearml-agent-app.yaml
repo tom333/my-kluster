@@ -14,7 +14,7 @@ spec:
     path: ""
     repoURL: "https://allegroai.github.io/clearml-helm-charts"
     targetRevision: 3.7.0
-    chart: clearml
+    chart: clearml-agent
     helm:
       values: |
         agentk8sglue:
