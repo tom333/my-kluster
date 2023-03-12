@@ -18,6 +18,8 @@ spec:
     helm:
       values: |
         webserver:
+          service:
+            type: ClusterIP
           ingress:
             enabled: "true"
             hostName: "app.clearml.tgu.ovh"
@@ -28,6 +30,8 @@ spec:
                 - laboitatom@gmail.com
               ingress.pomerium.io/allow_websockets: 'true'
         apiserver:
+          service:
+            type: ClusterIP
           ingress:
             enabled: "true"
             hostName: "api.clearml.tgu.ovh"
@@ -38,6 +42,8 @@ spec:
                 - laboitatom@gmail.com
               ingress.pomerium.io/allow_websockets: 'true'
         fileserver:
+          service:
+            type: ClusterIP
           ingress:
             enabled: "true"
             hostName: "files.clearml.tgu.ovh"
