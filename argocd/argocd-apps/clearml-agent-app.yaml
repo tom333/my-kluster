@@ -17,6 +17,9 @@ spec:
     chart: clearml-agent
     helm:
       values: |
+        clearml:
+          agentk8sglueKey: BJ0R89334KG6PYD8G693
+          agentk8sglueSecret: GJASTFeIfghAyQmF1Hp4p9yQq6pc3UtmVZZYFbLtV7E9MllDNa
         agentk8sglue:
           apiServerUrlReference : clearml-apiserver.datalab.svc.cluster.local:8008
           fileServerUrlReference: clearml-fileserver.datalab.svc.cluster.local:8081
