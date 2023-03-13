@@ -26,10 +26,10 @@ spec:
             ingress.pomerium.io/allowed_users: |
               - laboitatom@gmail.com
             ingress.pomerium.io/allow_websockets: 'true'
-          path: /
           pathType: ImplementationSpecific
           hosts:
-            - redash.tgu.ovh
+            - host: redash.tgu.ovh
+              path: /
           tls:
             - secretName: redash-tls
               hosts:
