@@ -30,13 +30,15 @@ spec:
           hosts:
             - host: redash.tgu.ovh
               paths:
-                - path: /
+                - /
           tls:
             - secretName: redash-tls
               hosts:
                 - redash.tgu.ovh
         postgresql:
           postgresqlPassword: password
+        redis:
+          password:  password
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
