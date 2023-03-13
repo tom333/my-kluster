@@ -16,6 +16,9 @@ spec:
     chart: redash
     helm:
       values: |
+        redash:
+          secretKey: secretKey
+          cookieSecret: cookieSecret
         ingress:
           enabled: true
           annotations: 
@@ -31,6 +34,8 @@ spec:
             - secretName: redash-tls
               hosts:
                 - redash.tgu.ovh
+        postgresql:
+          postgresqlPassword: password
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
