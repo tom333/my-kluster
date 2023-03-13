@@ -36,7 +36,8 @@ spec:
               hosts:
                 - redash.tgu.ovh
         postgresql:
-          postgresqlPassword: password
+          enabled: false
+        externalPostgreSQL: postgresql://redash:password@postgresql-redash.datalab.svc.cluster.local:5432/redash
         redis:
           password:  password
   syncPolicy:
