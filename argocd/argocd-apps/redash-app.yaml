@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: superset
+  name: redash
   namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
@@ -11,9 +11,10 @@ spec:
     server: https://kubernetes.default.svc
   project: datalab-project
   source:
-    repoURL: "https://getredash.github.io/contrib-helm-chart/"
-    targetRevision: 3.0.0
-    chart: redash
+    path: ""
+    repoURL: "https://apache.github.io/superset"
+    targetRevision: 0.8.7
+    chart: superset
     helm:
       values: |
         ingress:
@@ -26,11 +27,22 @@ spec:
           path: /
           pathType: ImplementationSpecific
           hosts:
-            - redash.tgu.ovh
+            - superset.tgu.ovh
           tls:
             - secretName: superset-tls
               hosts:
-                - redash.tgu.ovh
+                - superset.tgu.ovh
+        bootstrapScript: |
+          #!/bin/bash
+          rm -rf /var/lib/apt/lists/* && \
+          pip install \
+            psycopg2-binary==2.9.1 \
+            redis==3.5.3 \
+            shillelagh && \
+          if [ ! -f ~/bootstrap ]; then echo "Running Superset with uid {{ .Values.runAsUser }}" > ~/bootstrap; fi
+        postgresql:
+          image:
+            tag: "11"
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
