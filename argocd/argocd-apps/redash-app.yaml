@@ -29,7 +29,8 @@ spec:
           pathType: ImplementationSpecific
           hosts:
             - host: redash.tgu.ovh
-              path: /
+              paths:
+                - path: /
           tls:
             - secretName: redash-tls
               hosts:
