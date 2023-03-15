@@ -48,22 +48,22 @@ spec:
             value: "true"
           - name: DOCKER_HOST
             value: "tcp://localhost:2375"
-        # extraContainers: |
-        #   - name: docker-dind
-        #     image: docker:19.03-dind
-        #     imagePullPolicy: IfNotPresent
-        #     resources:
-        #       requests:
-        #         cpu: 250m
-        #         memory: 256M
-        #     securityContext:
-        #       privileged: true
-        #       procMount: Default
-        #     env:
-        #       - name: DOCKER_TLS_CERTDIR
-        #         value: ""
-        #       - name: DOCKER_DRIVER
-        #         value: "overlay2"
+        extraContainers: |
+          - name: docker-dind
+            image: docker:19.03-dind
+            imagePullPolicy: IfNotPresent
+            resources:
+              requests:
+                cpu: 250m
+                memory: 256M
+            securityContext:
+              privileged: true
+              procMount: Default
+            env:
+              - name: DOCKER_TLS_CERTDIR
+                value: ""
+              - name: DOCKER_DRIVER
+                value: "overlay2"
         # extraInitContainers: |
         #   - name: customization
         #     image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
