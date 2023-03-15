@@ -45,7 +45,7 @@ spec:
           - name: MLFLOW_S3_ENDPOINT_URL
             value: http://minio.datalab.svc.cluster.local:9000
           - name: DISABLE_TELEMETRY
-            value: true
+            value: "true"
           - name: DOCKER_HOST
             value: "tcp://localhost:2375"
         # extraContainers: |
