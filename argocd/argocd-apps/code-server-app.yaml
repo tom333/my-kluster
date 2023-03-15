@@ -39,48 +39,48 @@ spec:
         extraArgs:
           - --auth
           - none
-        extraVars:
-          - name: MLFLOW_TRACKING_URI
-            value: http://mlflow.datalab.svc.cluster.local:5000
-          - name: MLFLOW_S3_ENDPOINT_URL
-            value: http://minio.datalab.svc.cluster.local:9000
-          - name: DISABLE_TELEMETRY
-            value: true
-          - name: DOCKER_HOST
-            value: tcp://localhost:2375
-        extraContainers: |
-          - name: docker-dind
-            image: docker:19.03-dind
-            imagePullPolicy: IfNotPresent
-            resources:
-              requests:
-                cpu: 250m
-                memory: 256M
-            securityContext:
-              privileged: true
-              procMount: Default
-            env:
-              - name: DOCKER_TLS_CERTDIR
-                value: ""
-              - name: DOCKER_DRIVER
-                value: "overlay2"
-        extraInitContainers: |
-          - name: customization
-            image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
-            imagePullPolicy: IfNotPresent
-            env:
-              - name: SERVICE_URL
-                value: "https://open-vsx.org/vscode/gallery"
-              - name: ITEM_URL
-                value: "https://open-vsx.org/vscode/item"
-            command:
-              - sh
-              - -c
-              - |
-                code-server --install-extension ms-python.python GitHub.vscode-pull-request-github ms-kubernetes-tools.vscode-kubernetes-tools
-            volumeMounts:
-              - name: data
-                mountPath: /home/coder
+        # extraVars:
+        #   - name: MLFLOW_TRACKING_URI
+        #     value: http://mlflow.datalab.svc.cluster.local:5000
+        #   - name: MLFLOW_S3_ENDPOINT_URL
+        #     value: http://minio.datalab.svc.cluster.local:9000
+        #   - name: DISABLE_TELEMETRY
+        #     value: true
+        #   - name: DOCKER_HOST
+        #     value: tcp://localhost:2375
+        # extraContainers: |
+        #   - name: docker-dind
+        #     image: docker:19.03-dind
+        #     imagePullPolicy: IfNotPresent
+        #     resources:
+        #       requests:
+        #         cpu: 250m
+        #         memory: 256M
+        #     securityContext:
+        #       privileged: true
+        #       procMount: Default
+        #     env:
+        #       - name: DOCKER_TLS_CERTDIR
+        #         value: ""
+        #       - name: DOCKER_DRIVER
+        #         value: "overlay2"
+        # extraInitContainers: |
+        #   - name: customization
+        #     image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+        #     imagePullPolicy: IfNotPresent
+        #     env:
+        #       - name: SERVICE_URL
+        #         value: "https://open-vsx.org/vscode/gallery"
+        #       - name: ITEM_URL
+        #         value: "https://open-vsx.org/vscode/item"
+        #     command:
+        #       - sh
+        #       - -c
+        #       - |
+        #         code-server --install-extension ms-python.python GitHub.vscode-pull-request-github ms-kubernetes-tools.vscode-kubernetes-tools
+        #     volumeMounts:
+        #       - name: data
+        #         mountPath: /home/coder
 
   syncPolicy:
     syncOptions:
