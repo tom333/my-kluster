@@ -64,23 +64,23 @@ spec:
                 value: ""
               - name: DOCKER_DRIVER
                 value: "overlay2"
-        # extraInitContainers: |
-        #   - name: customization
-        #     image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
-        #     imagePullPolicy: IfNotPresent
-        #     env:
-        #       - name: SERVICE_URL
-        #         value: "https://open-vsx.org/vscode/gallery"
-        #       - name: ITEM_URL
-        #         value: "https://open-vsx.org/vscode/item"
-        #     command:
-        #       - sh
-        #       - -c
-        #       - |
-        #         code-server --install-extension ms-python.python GitHub.vscode-pull-request-github ms-kubernetes-tools.vscode-kubernetes-tools
-        #     volumeMounts:
-        #       - name: data
-        #         mountPath: /home/coder
+        extraInitContainers: |
+          - name: customization
+            image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+            imagePullPolicy: IfNotPresent
+            env:
+              - name: SERVICE_URL
+                value: "https://open-vsx.org/vscode/gallery"
+              - name: ITEM_URL
+                value: "https://open-vsx.org/vscode/item"
+            command:
+              - sh
+              - -c
+              - |
+                code-server --install-extension ms-python.python GitHub.vscode-pull-request-github ms-kubernetes-tools.vscode-kubernetes-tools
+            volumeMounts:
+              - name: data
+                mountPath: /home/coder
 
   syncPolicy:
     syncOptions:
