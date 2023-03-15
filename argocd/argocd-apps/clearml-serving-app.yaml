@@ -25,14 +25,15 @@ spec:
           webHost: http://clearml-webserver.datalab.svc.cluster.local:8080
           defaultBaseServeUrl: https://serve.clearml.tgu.ovh
         clearml_serving_triton:
-          ingress: true
-          hostName: serving-grpc.clearml.tgu.ovh
-          tlsSecretName: "clearml-serving-tls"
-          annotations:
-            cert-manager.io/cluster-issuer: "letsencrypt-prod"
-            ingress.pomerium.io/allowed_users: |
-              - laboitatom@gmail.com
-            ingress.pomerium.io/allow_websockets: 'true'
+          ingress:
+            enabled: true
+            hostName: serving-grpc.clearml.tgu.ovh
+            tlsSecretName: "clearml-serving-tls"
+            annotations:
+              cert-manager.io/cluster-issuer: "letsencrypt-prod"
+              ingress.pomerium.io/allowed_users: |
+                - laboitatom@gmail.com
+              ingress.pomerium.io/allow_websockets: 'true'
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
