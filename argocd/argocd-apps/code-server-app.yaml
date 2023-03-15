@@ -59,11 +59,6 @@ spec:
             securityContext:
               privileged: true
               procMount: Default
-            env:
-            - name: DOCKER_TLS_CERTDIR
-              value: ""
-            - name: DOCKER_DRIVER
-              value: "overlay2"
         extraInitContainers: |
           - name: customization
             image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
