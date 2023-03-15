@@ -39,15 +39,15 @@ spec:
         extraArgs:
           - --auth
           - none
-        # extraVars:
-        #   - name: MLFLOW_TRACKING_URI
-        #     value: http://mlflow.datalab.svc.cluster.local:5000
-        #   - name: MLFLOW_S3_ENDPOINT_URL
-        #     value: http://minio.datalab.svc.cluster.local:9000
-        #   - name: DISABLE_TELEMETRY
-        #     value: true
-        #   - name: DOCKER_HOST
-        #     value: tcp://localhost:2375
+        extraVars:
+          - name: MLFLOW_TRACKING_URI
+            value: http://mlflow.datalab.svc.cluster.local:5000
+          - name: MLFLOW_S3_ENDPOINT_URL
+            value: http://minio.datalab.svc.cluster.local:9000
+          - name: DISABLE_TELEMETRY
+            value: true
+          - name: DOCKER_HOST
+            value: "tcp://localhost:2375"
         # extraContainers: |
         #   - name: docker-dind
         #     image: docker:19.03-dind
