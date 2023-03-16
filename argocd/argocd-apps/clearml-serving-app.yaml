@@ -24,6 +24,7 @@ spec:
           filesHost: http://clearml-fileserver.datalab.svc.cluster.local:8081
           webHost: http://clearml-webserver.datalab.svc.cluster.local:8080
           defaultBaseServeUrl: https://serve.clearml.tgu.ovh
+          servingTaskId: 3e50df4d52047219a26a392fe4511c5
         clearml_serving_triton:
           ingress:
             enabled: true
