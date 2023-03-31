@@ -53,7 +53,9 @@ spec:
               ingress.pomerium.io/allowed_users: |
                 - laboitatom@gmail.com
               ingress.pomerium.io/allow_websockets: 'true'
-            
+        mongodb:
+          replicaCount: 0
+
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
