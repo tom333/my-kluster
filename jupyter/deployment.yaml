@@ -3,7 +3,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: jupyterlab
-  namespace: mlrun
+  namespace: datalab
   labels:
     name: jupyterlab
 spec:
