@@ -3,7 +3,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: jupyter-ui-ingress
-  namespace: mlrun
+  namespace: datalab
   annotations:
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
     ingress.pomerium.io/allowed_users: |
