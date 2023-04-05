@@ -41,7 +41,7 @@ spec:
               ingress.pomerium.io/allowed_users: |
                 - laboitatom@gmail.com
               ingress.pomerium.io/allow_websockets: 'true'
-              ingress.pomerium.io/cors_preflight: 'true'
+              ingress.pomerium.io/allow_public_unauthenticated_access: 'true'
         fileserver:
           service:
             type: ClusterIP
