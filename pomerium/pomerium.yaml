@@ -24,4 +24,4 @@ spec:
     secret: pomerium/github-oauth-config
   secrets: pomerium/bootstrap
   certificates:
-    - pomerium-proxy-tls
+    - pomerium/pomerium-proxy-tls
