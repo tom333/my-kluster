@@ -8,7 +8,7 @@ spec:
     server: https://kubernetes.default.svc
   project: datalab-project
   source:
-    path: apps/
+    path: kubeflow
     repoURL: https://github.com/tom333/argocd-kubeflow.git
     targetRevision: HEAD
   syncPolicy:
