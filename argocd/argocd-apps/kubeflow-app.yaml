@@ -6,7 +6,7 @@ spec:
   destination:
     namespace: kubeflow
     server: https://kubernetes.default.svc
-  project: infra-project
+  project: datalab-project
   source:
     path: apps/
     repoURL: https://github.com/tom333/argocd-kubeflow.git
