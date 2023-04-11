@@ -14,6 +14,10 @@ spec:
     repoURL: "https://nvidia.github.io/k8s-device-plugin"
     targetRevision: 0.14.0
     chart: nvidia-device-plugin
+    helm:
+      parameters:
+        - name: gfd.enabled
+          value: "true"
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
