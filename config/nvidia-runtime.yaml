@@ -8,7 +8,7 @@ apiVersion: v1
 kind: Pod
 metadata:
   name: nbody-gpu-benchmark
-  namespace: default
+  namespace: kube-system
 spec:
   restartPolicy: OnFailure
   runtimeClassName: nvidia
@@ -24,12 +24,12 @@ spec:
       value: all
     - name: NVIDIA_DRIVER_CAPABILITIES
       value: all
----
-apiVersion: helm.cattle.io/v1
-kind: HelmChart
-metadata:
-  name: nvidia-device-plugin
-  namespace: kube-system
-spec:
-  chart: nvidia-device-plugin
-  repo: https://nvidia.github.io/k8s-device-plugin
+# ---
+# apiVersion: helm.cattle.io/v1
+# kind: HelmChart
+# metadata:
+#   name: nvidia-device-plugin
+#   namespace: kube-system
+# spec:
+#   chart: nvidia-device-plugin
+#   repo: https://nvidia.github.io/k8s-device-plugin
