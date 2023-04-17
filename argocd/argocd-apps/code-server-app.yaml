@@ -22,16 +22,16 @@ spec:
           pullPolicy: Always
         ingress:
           enabled: true
-          ingressClassName: pomerium
+          # ingressClassName: pomerium
           hosts:
             - host: code.tgu.ovh
               paths:
                 - /
           annotations:
             cert-manager.io/cluster-issuer: "letsencrypt-prod"
-            ingress.pomerium.io/allowed_users: |
-              - laboitatom@gmail.com
-            ingress.pomerium.io/allow_websockets: 'true'
+            # ingress.pomerium.io/allowed_users: |
+            #   - laboitatom@gmail.com
+            # ingress.pomerium.io/allow_websockets: 'true'
           tls:
             - hosts:
                 - code.tgu.ovh
