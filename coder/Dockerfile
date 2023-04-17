@@ -6,11 +6,11 @@ RUN mkdir -p /home/coder/.local/bin
 RUN curl -sS https://bootstrap.pypa.io/get-pip.py | python3
 RUN python3 -m pip install poetry virtualenv virtualenvwrapper
 RUN curl https://pyenv.run | bash
-RUN touch ~/.bashrc
-RUN echo 'PATH="/home/coder/.local/bin:$PATH"' >> ~/.bashrc
-RUN echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.bashrc
-RUN echo 'command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.bashrc
-RUN echo 'eval "$(pyenv init -)"' >> ~/.bashrc
+RUN touch /home/coder/.bashrc
+RUN echo 'PATH="/home/coder/.local/bin:$PATH"' >> /home/coder/.bashrc
+RUN echo 'export PYENV_ROOT="$HOME/.pyenv"' >> /home/coder/.bashrc
+RUN echo 'command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"' >> /home/coder/.bashrc
+RUN echo 'eval "$(pyenv init -)"' >> /home/coder/.bashrc
 
 RUN curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
 RUN chmod +x ./kubectl
