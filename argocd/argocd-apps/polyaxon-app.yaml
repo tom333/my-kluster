@@ -25,11 +25,7 @@ spec:
               hosts:
                 - polyaxon.tgu.ovh
           annotations:
-            cert-manager.io/cluster-issuer: "letsencrypt-prod"
-            ingress.pomerium.io/allowed_users: |
-              - laboitatom@gmail.com
-            ingress.pomerium.io/allow_websockets: 'true'
-        
+            cert-manager.io/cluster-issuer: "letsencrypt-prod"       
 
   syncPolicy:
     syncOptions:
