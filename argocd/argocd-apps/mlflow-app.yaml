@@ -30,8 +30,8 @@ spec:
           s3:
             enabled: true
             bucket: "mlflow"
-            awsAccessKeyId: "FrXcrskBH4ISfNPw"
-            awsSecretAccessKey: "9YN1bkuerkDY6k2vDHvrp9TEAisJ1wSC"
+            awsAccessKeyId: "Kv4mOzT93HN3XFpz"
+            awsSecretAccessKey: "zlImZqRcN6PHzRt0uQu24SKiw6wIN5F2"
         extraEnvVars:
           MLFLOW_S3_ENDPOINT_URL: http://minio.datalab.svc.cluster.local:9000
         ingress:
