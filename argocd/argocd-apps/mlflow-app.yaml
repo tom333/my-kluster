@@ -30,18 +30,15 @@ spec:
           s3:
             enabled: true
             bucket: "mlflow"
-            awsAccessKeyId: "Kv4mOzT93HN3XFpz"
-            awsSecretAccessKey: "zlImZqRcN6PHzRt0uQu24SKiw6wIN5F2"
+            awsAccessKeyId: "mlflow"
+            awsSecretAccessKey: "mlflowpassword"
         extraEnvVars:
           MLFLOW_S3_ENDPOINT_URL: http://minio.datalab.svc.cluster.local:9000
         ingress:
           enabled: true
           annotations:
             cert-manager.io/cluster-issuer: "letsencrypt-prod"
-            ingress.pomerium.io/allowed_users: |
-              - laboitatom@gmail.com
-            ingress.pomerium.io/allow_any_authenticated_user: 'true'
-            ingress.pomerium.io/allow_websockets: 'true'
+            nginx.ingress.kubernetes.io/proxy-body-size: 512m
           hosts:
             - host: mlflow.tgu.ovh
               paths:
