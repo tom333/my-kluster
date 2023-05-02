@@ -18,8 +18,8 @@ spec:
       values: |
         ingress:
           create: true
-          type: "nginx-ssl"
-          hasAuth: true
+          type: "nginx"
+          hasAuth: false
           domain: "hue.tgu.ovh"
           annotations:
             cert-manager.io/cluster-issuer: "letsencrypt-prod"
