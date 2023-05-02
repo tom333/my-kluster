@@ -31,6 +31,9 @@ spec:
             whitelist_domains = "*.tgu.ovh"
         ingress:
           enabled: true
+          path: /oauth2
+          pathType: Prefix
+          className: nginx
           annotations:
             cert-manager.io/cluster-issuer: "letsencrypt-prod"       
           hosts:
