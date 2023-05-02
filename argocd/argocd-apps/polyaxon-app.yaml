@@ -13,7 +13,7 @@ spec:
   source:
     path: ""
     repoURL: "https://charts.polyaxon.com"
-    targetRevision: 1.20.0
+    targetRevision: 2.0.0-rc13
     chart: polyaxon
     helm:
       values: |
