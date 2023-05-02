@@ -7,13 +7,13 @@ metadata:
     - resources-finalizer.argocd.argoproj.io
 spec:
   destination:
-    namespace: oauth2-proxy
+    namespace: kube-system
     server: https://kubernetes.default.svc
   project: infra-project
   source:
     repoURL: "https://oauth2-proxy.github.io/manifests"
-    targetRevision: 6.10.1
-    chart: kube-system
+    targetRevision: 6.12.0
+    chart: oauth2-proxy
     helm:
       values: |
         config:
