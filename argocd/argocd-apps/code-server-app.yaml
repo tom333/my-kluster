@@ -29,9 +29,8 @@ spec:
                 - /
           annotations:
             cert-manager.io/cluster-issuer: "letsencrypt-prod"
-            # ingress.pomerium.io/allowed_users: |
-            #   - laboitatom@gmail.com
-            # ingress.pomerium.io/allow_websockets: 'true'
+            nginx.ingress.kubernetes.io/auth-url: "https://auth.tgu.ovh/oauth2/auth"
+            nginx.ingress.kubernetes.io/auth-signin: "https://auth.tgu.ovh/oauth2/start?rd=$escaped_request_uri"
           tls:
             - hosts:
                 - code.tgu.ovh
