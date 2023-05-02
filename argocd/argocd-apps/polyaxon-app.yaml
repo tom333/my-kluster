@@ -11,9 +11,8 @@ spec:
     server: https://kubernetes.default.svc
   project: datalab-project
   source:
-    path: ""
     repoURL: "https://charts.polyaxon.com"
-    targetRevision: 2.0.0-rc13
+    targetRevision: 1.20.0
     chart: polyaxon
     helm:
       values: |
