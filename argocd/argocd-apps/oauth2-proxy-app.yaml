@@ -35,6 +35,10 @@ spec:
             cert-manager.io/cluster-issuer: "letsencrypt-prod"       
           hosts:
             - auth.tgu.ovh
+           tls:
+            - secretName: oauth2-proxy-tls
+              hosts:
+                - auth.tgu.ovh
         redis:
           enabled: false
         metrics:
