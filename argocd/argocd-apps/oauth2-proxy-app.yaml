@@ -12,7 +12,7 @@ spec:
   project: infra-project
   source:
     repoURL: "https://oauth2-proxy.github.io/manifests"
-    targetRevision: 6.12.0
+    targetRevision: 6.10.1
     chart: kube-system
     helm:
       values: |
