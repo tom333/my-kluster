@@ -16,6 +16,10 @@ spec:
     chart: polyaxon
     helm:
       values: |
+        namespace: datalab
+        gateway:
+          service:
+            type: ClusterIP
         ingress:
           enabled: true
           hostName: polyaxon.tgu.ovh
