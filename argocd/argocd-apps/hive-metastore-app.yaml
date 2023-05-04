@@ -27,7 +27,7 @@ spec:
           tls:
             - secretName: hive-tls
               hosts: 
-                - hive.tgu.ovh
+                - host: hive.tgu.ovh
         schematool:
           enabled: true
         hiveSiteXml: |
