@@ -19,7 +19,8 @@ spec:
         ingress:
           enabled: true
           hosts:
-            - hive.tgu.ovh
+            - host: hive.tgu.ovh
+              path: /
           annotations:
             cert-manager.io/cluster-issuer: "letsencrypt-prod"
             nginx.ingress.kubernetes.io/auth-url: "https://auth.tgu.ovh/oauth2/auth"
@@ -27,9 +28,7 @@ spec:
           tls:
             - secretName: hive-tls
               hosts: 
-                host: 
-                  - hive.tgu.ovh
-                    path: "/"
+                - hive.tgu.ovh
         schematool:
           enabled: true
         hiveSiteXml: |
