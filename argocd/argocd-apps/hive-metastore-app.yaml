@@ -1,0 +1,97 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: hue
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: datalab
+    server: https://kubernetes.default.svc
+  project: datalab-project
+  source:
+    repoURL: "https://slamdev.github.io/helm-charts"
+    targetRevision: 0.0.5
+    chart: hive-metastore
+    helm:
+      values: |
+        ingress:
+          enabled: true
+          hosts:
+            - hive.tgu.ovh
+          annotations:
+            cert-manager.io/cluster-issuer: "letsencrypt-prod"
+            nginx.ingress.kubernetes.io/auth-url: "https://auth.tgu.ovh/oauth2/auth"
+            nginx.ingress.kubernetes.io/auth-signin: "https://auth.tgu.ovh/oauth2/start?rd=https://hive.tgu.ovh"
+          tls:
+            - secretName: hive-tls
+              hosts:
+                - hive.tgu.ovh
+        schematool:
+          enabled: true
+        hiveSiteXml: |
+          <configuration>
+            <property>
+                <name>fs.s3a.connection.ssl.enabled</name>
+            <value>false</value>
+            </property>
+           <property>
+                <name>fs.s3a.endpoint</name>
+                <value>http://minio.datalab.svc.cluster.local:9000</value>
+            </property>
+            <property>
+                <name>fs.s3a.fast.upload</name>
+                <value>true</value>
+            </property>
+            <property>
+                <name>fs.s3a.access.key</name>
+                <value>80lmMi5vQAZApi2y</value>
+            </property>
+            <property>
+                <name>fs.s3a.secret.key</name>
+                <value>G1LHiSQydMqQpgrKbd3Xn3x9xotOKH2j</value>
+            </property>
+            <property>
+                <name>metastore.task.threads.always</name>
+                <value>org.apache.hadoop.hive.metastore.events.EventCleanerTask</value>
+            </property>
+            <property>
+                <name>metastore.expression.proxy</name>
+                <value>org.apache.hadoop.hive.metastore.DefaultPartitionExpressionProxy</value>
+            </property>
+            <property>
+                <name>javax.jdo.option.ConnectionURL</name>
+                <value>jdbc:postgresql://postgresql-hive.datalab.svc.cluster.local:5432/metadata?allowPublicKeyRetrieval=true&amp;useSSL=false&amp;serverTimezone=UTC</value>
+            </property>
+            <property>
+                <name>javax.jdo.option.ConnectionDriverName</name>
+                <value>org.postgresql.Driver</value>
+            </property>
+            <property>
+                <name>javax.jdo.option.ConnectionUserName</name>
+                <value>hive</value>
+            </property>
+            <property>
+                <name>javax.jdo.option.ConnectionPassword</name>
+                <value>password</value>
+            </property>
+            <property>
+                <name>metastore.warehouse.dir</name>
+                <value>s3a://warehouse</value>
+            </property>
+            <property>
+                <name>metastore.thrift.port</name>
+                <value>9083</value>
+            </property>
+          </configuration>
+        schematool:
+          enabled: true
+
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=false
+    automated:
+      selfHeal: true
+      allowEmpty: true
+      prune: true
