@@ -26,7 +26,8 @@ spec:
             nginx.ingress.kubernetes.io/auth-signin: "https://auth.tgu.ovh/oauth2/start?rd=https://hive.tgu.ovh"
           tls:
             - secretName: hive-tls
-              host: hive.tgu.ovh
+              hosts: 
+                - hive.tgu.ovh
         schematool:
           enabled: true
         hiveSiteXml: |
