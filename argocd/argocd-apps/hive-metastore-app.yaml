@@ -20,7 +20,8 @@ spec:
           enabled: true
           hosts:
             - host: hive.tgu.ovh
-              path: /
+              paths:
+                - /
           annotations:
             cert-manager.io/cluster-issuer: "letsencrypt-prod"
             nginx.ingress.kubernetes.io/auth-url: "https://auth.tgu.ovh/oauth2/auth"
