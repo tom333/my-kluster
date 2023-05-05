@@ -63,7 +63,7 @@ spec:
             </property>
             <property>
                 <name>javax.jdo.option.ConnectionURL</name>
-                <value>jdbc:postgresql://postgresql-hive.datalab.svc.cluster.local:5432/metadata?allowPublicKeyRetrieval=true&amp;useSSL=false&amp;serverTimezone=UTC</value>
+                <value>jdbc:postgresql://postgresql-hive.datalab.svc.cluster.local:5432/metadata</value>
             </property>
             <property>
                 <name>javax.jdo.option.ConnectionDriverName</name>

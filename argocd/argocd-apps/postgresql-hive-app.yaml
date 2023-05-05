@@ -11,7 +11,6 @@ spec:
     server: https://kubernetes.default.svc
   project: datalab-project
   source:
-    path: ""
     repoURL: "https://charts.bitnami.com/bitnami"
     targetRevision: 12.4.2
     chart: postgresql
