@@ -23,7 +23,7 @@ spec:
               password: password
               database: metastore
           primary:
-            configuration:
+            pgHbaConfiguration: |-
               password_encryption = md5
 
   syncPolicy:
