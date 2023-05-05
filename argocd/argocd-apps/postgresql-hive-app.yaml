@@ -15,13 +15,16 @@ spec:
     targetRevision: 12.4.2
     chart: postgresql
     helm:
-      parameters:
-        - name: global.postgresql.auth.username
-          value: "hive"
-        - name: global.postgresql.auth.password
-          value: "password"
-        - name: global.postgresql.auth.database
-          value: "metastore"
+      values: |
+        global:
+          postgresql:
+            auth:
+              username: hive
+              password: password
+              database: metastore
+          primary:
+            configuration:
+              password_encryption = md5
 
   syncPolicy:
     syncOptions:
