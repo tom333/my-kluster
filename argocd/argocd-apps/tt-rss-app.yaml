@@ -17,7 +17,7 @@ spec:
     helm:
       values: |
         env: 
-          TTRSS_SELF_URL_PATH: rss.tgu.ovh
+          TTRSS_SELF_URL_PATH: https://rss.tgu.ovh
         ingress:
           main:
             enabled: true
