@@ -33,6 +33,7 @@ spec:
             tls:
               - hosts:
                   - rss.tgu.ovh
+                secretName: tt-rss-secret-tls
         postgresql:
           persistence:
             enabled: true
