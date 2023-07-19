@@ -13,7 +13,7 @@ spec:
   source:
     path: ""
     repoURL: "https://allegroai.github.io/clearml-helm-charts"
-    targetRevision: 7.2.2
+    targetRevision: 7.2.3
     chart: clearml
     helm:
       values: |
