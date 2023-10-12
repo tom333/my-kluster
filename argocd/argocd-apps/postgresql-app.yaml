@@ -13,7 +13,7 @@ spec:
   source:
     path: ""
     repoURL: "https://charts.bitnami.com/bitnami"
-    targetRevision: 13.1.2
+    targetRevision: 13.1.4
     chart: postgresql
     helm:
       parameters:
