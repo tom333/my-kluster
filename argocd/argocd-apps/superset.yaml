@@ -13,7 +13,7 @@ spec:
   source:
     path: ""
     repoURL: "https://apache.github.io/superset"
-    targetRevision: 0.10.10
+    targetRevision: 0.10.11
     chart: superset
     helm:
       values: |
