@@ -12,7 +12,7 @@ spec:
   project: datalab-project
   source:
     repoURL: "https://charts.polyaxon.com"
-    targetRevision: 1.20.0
+    targetRevision: 2.0.0
     chart: polyaxon
     helm:
       values: |
