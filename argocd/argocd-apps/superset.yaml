@@ -32,14 +32,6 @@ spec:
             - secretName: superset-tls
               hosts:
                 - superset.tgu.ovh
-        bootstrapScript: |
-          #!/bin/bash
-          rm -rf /var/lib/apt/lists/* && \
-          pip install \
-            psycopg2-binary==2.9.1 \
-            redis==3.5.3 \
-            shillelagh[gsheetsapi] && \
-          if [ ! -f ~/bootstrap ]; then echo "Running Superset with uid {{ .Values.runAsUser }}" > ~/bootstrap; fi
         postgresql:
           image:
             tag: "11"
