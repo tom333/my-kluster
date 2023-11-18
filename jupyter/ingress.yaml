@@ -9,6 +9,7 @@ metadata:
     ingress.pomerium.io/allowed_users: |
       - laboitatom@gmail.com
     ingress.pomerium.io/allow_websockets: 'true'
+    nginx.ingress.kubernetes.io/proxy-body-size: 100m
 spec:
   rules:
     - host: jupyter.tgu.ovh
