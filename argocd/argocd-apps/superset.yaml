@@ -35,9 +35,9 @@ spec:
         postgresql:
           image:
             tag: "11"
-        # configOverrides:
-        #   secret: |
-        #     SECRET_KEY = 'JojBoOGWGAT7al1LDHtvvwRPxcrH62cinea62nO7ZXPPcLYAoOiTaPOW'
+        configOverrides:
+          secret: |
+            SECRET_KEY = 'JojBoOGWGAT7al1LDHtvvwRPxcrH62cinea62nO7ZXPPcLYAoOiTaPOW'
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
