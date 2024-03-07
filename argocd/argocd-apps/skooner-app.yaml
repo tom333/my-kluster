@@ -12,7 +12,9 @@ spec:
   project: infra-project
   source:
     source:
-    path: ./kubernetes-skooner.yaml
+      directory:
+        include: kubernetes-skooner.yaml
+    path: /
     repoURL: https://github.com/skooner-k8s/skooner.git
     targetRevision: HEAD
   syncPolicy:
