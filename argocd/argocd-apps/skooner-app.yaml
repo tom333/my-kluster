@@ -12,7 +12,7 @@ spec:
   project: infra-project
   source:
     source:
-    path: kubernetes-skooner.yaml
+    path: ./kubernetes-skooner.yaml
     repoURL: https://github.com/skooner-k8s/skooner.git
     targetRevision: HEAD
   syncPolicy:
@@ -22,42 +22,3 @@ spec:
       selfHeal: true
       allowEmpty: true
       prune: true
-
-
-
-
-
-
-
-
-
-
-
-
-    repoURL: https://raw.githubusercontent.com/skooner-k8s/skooner/master/kubernetes-skooner.yaml
-    targetRevision: 0.0.6
-    chart: skooner
-    helm:
-      values: | 
-        ingress:
-          enabled: true
-          annotations:  
-            cert-manager.io/cluster-issuer: "letsencrypt-prod"
-            nginx.ingress.kubernetes.io/auth-url: "https://auth.tgu.ovh/oauth2/auth"
-            nginx.ingress.kubernetes.io/auth-signin: "https://auth.tgu.ovh/oauth2/start?rd=https://skooner.tgu.ovh"
-          hosts:
-            - host: skooner.tgu.ovh
-              paths:
-                - path: /
-                  pathType: Prefix
-          tls:
-            - secretName: skooner-tls
-              hosts:
-                - skooner.tgu.ovh
-  syncPolicy:
-    syncOptions:
-      - CreateNamespace=true
-    automated:
-      selfHeal: true
-      prune: true
-      allowEmpty: true
