@@ -19,6 +19,8 @@ spec:
       values: |
         chromadb:
           auth.enabled: false
+        service:
+          type: ClusterIP
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
