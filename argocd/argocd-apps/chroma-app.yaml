@@ -13,8 +13,8 @@ spec:
   source:
     path: ""
     repoURL: "https://amikos-tech.github.io/chromadb-chart/"
-    targetRevision: 0.1.20
-    chart: chroma
+    targetRevision: 0.1.19
+    chart: chromadb
     helm:
       values: |
         chromadb:
