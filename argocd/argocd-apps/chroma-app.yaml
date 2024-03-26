@@ -20,8 +20,10 @@ spec:
         chromadb:
           auth:
             enabled: false
+          allowReset: true
         service:
           type: ClusterIP
+          ALLOW_RESET=TRUE
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
