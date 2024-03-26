@@ -18,7 +18,8 @@ spec:
     helm:
       values: |
         chromadb:
-          auth.enabled: false
+          auth:
+            enabled: false
         service:
           type: ClusterIP
   syncPolicy:
