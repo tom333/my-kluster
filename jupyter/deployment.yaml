@@ -32,6 +32,9 @@ spec:
             requests:
               memory: 500Mi
               cpu: 250m
+          env: 
+            - name: JUPYTER_TOKEN
+              value: ''
       restartPolicy: Always
       volumes:
       - name: jupyterlab-data
