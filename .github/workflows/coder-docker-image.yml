@@ -3,6 +3,8 @@ name: Custom code-server image
 on:
   push:
     branches: ["main"]
+    paths:
+      - coder/**
   pull_request:
     branches: ["main"]
 
