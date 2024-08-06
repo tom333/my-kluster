@@ -13,7 +13,7 @@ spec:
   source:
     path: ""
     repoURL: https://qdrant.to/helm
-    targetRevision: 0.9.4
+    targetRevision: 0.10.1
     chart: qdrant
     helm:
       values: |
