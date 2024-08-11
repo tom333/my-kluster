@@ -27,14 +27,21 @@ argo-cd:
       - --insecure
     ingress:
       enabled: true
+      ingressClassName: nginx
       annotations:
-        cert-manager.io/cluster-issuer: "letsencrypt-prod"
-      hosts:
+        nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+        nginx.ingress.kubernetes.io/ssl-passthrough: "true"
+      tls: true
+      extraTls:
+      - hosts:
         - argocd.tgu.ovh
-      tls:
-        - secretName: argocd-server-tls
-          hosts:
-            - argocd.tgu.ovh
+        # Based on the ingress controller used secret might be optional
+        secretName: argocd-tls
+  global:
+    domain: argocd.tgu.ovh
+
+certificate:
+  enabled: true
 
     config:
       # kustomize.path.v3.2.0: /usr/local/bin/kustomize_3.2.0
