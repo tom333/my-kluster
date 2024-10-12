@@ -1,10 +1,10 @@
 applications:
-  - name: argocd
-    namespace: argocd
+  argocd:
+    namespace: default
     additionalAnnotations:
       "helm.sh/resource-policy": keep
     destination:
-      namespace: argocd
+      namespace: default
       server: https://kubernetes.default.svc
     project: argocd
     source:
@@ -18,12 +18,12 @@ applications:
     syncPolicy:
       syncOptions:
         - CreateNamespace=true
-  - name: applications
-    namespace: argocd
+  applications:
+    namespace: default
     additionalAnnotations:
       "helm.sh/resource-policy": keep
     destination:
-      namespace: argocd
+      namespace: default
       server: https://kubernetes.default.svc
     project: argocd
     source:
@@ -37,12 +37,12 @@ applications:
       automated:
         selfHeal: true
         prune: true
-  - name: projects
-    namespace: argocd
+  projects:
+    namespace: default
     additionalAnnotations:
       "helm.sh/resource-policy": keep
     destination:
-      namespace: argocd
+      namespace: default
       server: https://kubernetes.default.svc
     project: argocd
     source:
@@ -57,15 +57,15 @@ applications:
         selfHeal: true
         prune: true
 projects:
-  - name: argocd
-    namespace: argocd
+  argocd:
+    namespace: default
     additionalLabels: {}
     additionalAnnotations: {}
     description: Argocd Project
     sourceRepos:
       - "*"
     destinations:
-      - namespace: argocd
+      - namespace: default
         server: https://kubernetes.default.svc
     clusterResourceWhitelist:
       - group: "*"
