@@ -1,10 +1,9 @@
 FROM codercom/code-server:4.91.1
 
 RUN sudo apt update -y && sudo apt install -y python3-distutils python-is-python3 make build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev wget curl llvm libncursesw5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev
-RUN sudo apt purge python3-pip python3-virtualenv
+
 RUN mkdir -p /home/coder/.local/bin
-RUN curl -sS https://bootstrap.pypa.io/get-pip.py | python3
-RUN python3 -m pip install poetry virtualenv virtualenvwrapper
+RUN sudo apt install -y python3-pip python3-virtualenv
 RUN curl https://pyenv.run | bash
 RUN touch /home/coder/.bashrc
 RUN echo 'PATH="/home/coder/.local/bin:$PATH"' >> /home/coder/.bashrc
