@@ -7,6 +7,8 @@ on:
       - coder/**
   pull_request:
     branches: ["main"]
+    paths:
+      - coder/**
 
 jobs:
   build:
