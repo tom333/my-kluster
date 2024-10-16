@@ -12,7 +12,7 @@ spec:
   project: datalab-project
   source:
     repoURL: "https://getredash.github.io/contrib-helm-chart/"
-    targetRevision: 3.0.0
+    targetRevision: 3.0.1
     chart: redash
     helm:
       values: |
