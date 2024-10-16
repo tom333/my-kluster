@@ -36,6 +36,8 @@ spec:
                 - redash.tgu.ovh
         redis:
           password:  password
+        postgresql: 
+          - postgresqlPassword: password
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
