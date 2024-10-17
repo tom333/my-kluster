@@ -13,8 +13,7 @@ spec:
   source:
     path: mycv/
     repoURL: https://github.com/tom333/cv.git
-    targetRevision: 0.1.0
-    chart: mycv
+    targetRevision: main
   syncPolicy:
     syncOptions:
       - CreateNamespace=false
