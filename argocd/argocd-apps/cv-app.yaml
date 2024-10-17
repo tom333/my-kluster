@@ -11,9 +11,10 @@ spec:
     server: https://kubernetes.default.svc
   project: datalab-project
   source:
-    path: manifests/
+    path: mycv/
     repoURL: https://github.com/tom333/cv.git
     targetRevision: HEAD
+    chart: mycv
   syncPolicy:
     syncOptions:
       - CreateNamespace=false
