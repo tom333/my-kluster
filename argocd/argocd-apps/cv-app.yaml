@@ -2,12 +2,12 @@ apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: cv
-  namespace: default
+  namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
   destination:
-    namespace: datalab
+    namespace: cv
     server: https://kubernetes.default.svc
   project: datalab-project
   source:
