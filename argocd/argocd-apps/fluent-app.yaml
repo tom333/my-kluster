@@ -26,9 +26,9 @@ spec:
           hosts:
             - host: fluentd.tgu.ovh
             - port: 9880
-          tls: []
-          - secretName: fluentd-tls
-            hosts:
+          tls:
+            - secretName: fluentd-tls
+              hosts:
               - fluentd.tgu.ovh
 
   syncPolicy:
