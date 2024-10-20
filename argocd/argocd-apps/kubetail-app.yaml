@@ -1,0 +1,45 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: qdrant
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: kube-system
+    server: https://kubernetes.default.svc
+  project: infra-project
+  source:
+    path: ""
+    repoURL: https://kubetail-org.github.io/helm-charts/
+    targetRevision: 0.7.4
+    chart: kubetail
+    helm: 
+      values: | 
+        server: 
+          ingress:
+            enabled: true
+            annotations: {}
+            rules: 
+              - host: kubetail.tgu.ovh
+                http:
+                  paths:
+                  - path: /
+                    pathType: Prefix
+                    backend:
+                      service:
+                        name: kubetail
+                        port:
+                          number: 4000
+            tls: 
+              - secretName: kubetail-tls
+                hosts:
+                  - kubetail.tgu.ovh
+
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      selfHeal: true
+      prune: true
