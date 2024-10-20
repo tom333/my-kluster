@@ -17,25 +17,26 @@ spec:
     chart: kubetail
     helm: 
       values: | 
-        server: 
-          ingress:
-            enabled: true
-            annotations: {}
-            rules: 
-              - host: kubetail.tgu.ovh
-                http:
-                  paths:
-                  - path: /
-                    pathType: Prefix
-                    backend:
-                      service:
-                        name: kubetail
-                        port:
-                          number: 4000
-            tls: 
-              - secretName: kubetail-tls
-                hosts:
-                  - kubetail.tgu.ovh
+        kubetail: 
+          server: 
+            ingress:
+              enabled: true
+              annotations: {}
+              rules: 
+                - host: kubetail.tgu.ovh
+                  http:
+                    paths:
+                    - path: /
+                      pathType: Prefix
+                      backend:
+                        service:
+                          name: kubetail-server
+                          port:
+                            number: 4000
+              tls: 
+                - secretName: kubetail-tls
+                  hosts:
+                    - kubetail.tgu.ovh
 
   syncPolicy:
     syncOptions:
