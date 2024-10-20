@@ -25,15 +25,8 @@ spec:
           ingressClassName: nginx
           hosts:
             - host: code.tgu.ovh
-              http:
-                paths:
-                - path: /
-                  pathType: Prefix
-                  backend:
-                    service:
-                      name: fluent-fluentd
-                      port:
-                        number: 24231
+              paths:
+                - /
           annotations:
             cert-manager.io/cluster-issuer: "letsencrypt-prod"
             nginx.ingress.kubernetes.io/auth-url: "https://auth.tgu.ovh/oauth2/auth"
