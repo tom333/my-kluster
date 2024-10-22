@@ -20,13 +20,13 @@ argo-cd:
       enabled: true
       ingressClassName: nginx
       annotations:
+        cert-manager.io/cluster-issuer: "letsencrypt-prod"
         nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
         nginx.ingress.kubernetes.io/ssl-passthrough: "true"
       tls: true
       extraTls:
       - hosts:
         - argocd.tgu.ovh
-        # Based on the ingress controller used secret might be optional
         secretName: argocd-tls
   certificate:
     enabled: true
