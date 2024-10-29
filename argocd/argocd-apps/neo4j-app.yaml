@@ -11,9 +11,9 @@ spec:
     server: https://kubernetes.default.svc
   project: datalab-project
   source:
-    repoURL: "https://charts.bitnami.com/bitnami"
+    repoURL: https://charts.bitnami.com/bitnami
     targetRevision: 0.1.15
-    chart: bitnami/neo4j
+    chart: neo4j
     helm:
       values: |
         neo4j:
