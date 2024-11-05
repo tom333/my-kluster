@@ -17,6 +17,10 @@ spec:
     helm:
       values: |
         controller:
+          service:
+            type: NodePort
+          kind: daemonset
+          hostNetwork: true
           setAsDefaultIngress: true
           ingressClass:
               setAsDefaultIngress: true
