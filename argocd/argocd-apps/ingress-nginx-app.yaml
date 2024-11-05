@@ -16,11 +16,22 @@ spec:
     chart: ingress-nginx
     helm:
       values: |
+        fullnameOverride: ingress-nginx
         controller:
-          service:
-            type: NodePort
-          kind: daemonset
+          kind: DaemonSet
           hostNetwork: true
+          hostPort:
+            enabled: true
+          service:
+            enabled: false
+          publishService:
+            enabled: false
+          metrics:
+            enabled: true
+            serviceMonitor:
+              enabled: false
+          config:
+            use-forwarded-headers: "true"
           setAsDefaultIngress: true
           ingressClass:
               setAsDefaultIngress: true
