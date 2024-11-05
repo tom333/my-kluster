@@ -32,7 +32,8 @@ spec:
           enabled: false
       config:
         use-forwarded-headers: "true"
-        
+      ingressClass:
+           setAsDefaultIngress: true
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
