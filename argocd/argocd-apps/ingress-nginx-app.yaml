@@ -12,8 +12,8 @@ spec:
   project: infra-project
   source:
     repoURL: https://kubernetes.github.io/ingress-nginx
-    targetRevision: v4.11.2
-    chart: v4.11.2
+    targetRevision: v4.11.3
+    chart: ingress-nginx
     helm:
       values: |
         fullnameOverride: ingress-nginx
