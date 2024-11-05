@@ -18,6 +18,7 @@ spec:
       values: |
         fullnameOverride: ingress-nginx
         controller:
+          setAsDefaultIngress: true
           kind: DaemonSet
           hostNetwork: true
           hostPort:
