@@ -17,23 +17,23 @@ spec:
     helm:
       values: |
         fullnameOverride: ingress-nginx
-    controller:
-      kind: DaemonSet
-      hostNetwork: true
-      hostPort:
-        enabled: true
-      service:
-        enabled: false
-      publishService:
-        enabled: false
-      metrics:
-        enabled: true
-        serviceMonitor:
-          enabled: false
-      config:
-        use-forwarded-headers: "true"
-      ingressClass:
-           setAsDefaultIngress: true
+        controller:
+          kind: DaemonSet
+          hostNetwork: true
+          hostPort:
+            enabled: true
+          service:
+            enabled: false
+          publishService:
+            enabled: false
+          metrics:
+            enabled: true
+            serviceMonitor:
+              enabled: false
+          config:
+            use-forwarded-headers: "true"
+          ingressClass:
+              setAsDefaultIngress: true
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
