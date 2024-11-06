@@ -33,7 +33,7 @@ spec:
           enabled: true
           path: /oauth2
           pathType: Prefix
-          className: traefik
+          className: nginx
           annotations:
             cert-manager.io/cluster-issuer: "letsencrypt-prod"       
           hosts:
