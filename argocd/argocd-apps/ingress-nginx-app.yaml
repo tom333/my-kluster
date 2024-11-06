@@ -19,9 +19,16 @@ spec:
         fullnameOverride: ingress-nginx
         controller:
           hostNetwork: true
-          setAsDefaultIngress: true
-          ingressClass:
-              setAsDefaultIngress: true
+          hostPort:
+            enabled: true
+          service:
+            enabled: false
+          publishService:
+            enabled: false
+          metrics:
+            enabled: true
+            serviceMonitor:
+              enabled: false
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
