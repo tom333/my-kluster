@@ -18,21 +18,9 @@ spec:
       values: |
         fullnameOverride: ingress-nginx
         controller:
-          kind: DaemonSet
-          hostNetwork: true
-          hostPort:
-            enabled: true
           service:
             enabled: true
             loadBalancerIP: "192.168.1.250"
-          publishService:
-            enabled: false
-          metrics:
-            enabled: true
-            serviceMonitor:
-              enabled: false
-          config:
-            use-forwarded-headers: "true"
           setAsDefaultIngress: true
           ingressClass:
               setAsDefaultIngress: true
