@@ -23,7 +23,8 @@ spec:
           hostPort:
             enabled: true
           service:
-            enabled: false
+            enabled: true
+            loadBalancerIP: "192.168.1.250"
           publishService:
             enabled: false
           metrics:
