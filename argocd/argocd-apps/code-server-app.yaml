@@ -22,7 +22,6 @@ spec:
           pullPolicy: Always
         ingress:
           enabled: true
-          ingressClassName: nginx
           hosts:
             - host: code.tgu.ovh
               paths:
