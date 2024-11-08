@@ -16,9 +16,6 @@ spec:
     chart: redash
     helm:
       values: |
-        redash:
-          secretKey: secretKey
-          cookieSecret: cookieSecret
         ingress:
           enabled: true
           annotations: 
@@ -32,12 +29,16 @@ spec:
             - secretName: redash-tls
               hosts:
                 - redash.tgu.ovh
-        redis:
-          auth:
-            password:  password
+        redash:
+          cookieSecret: 0KlZAHnr6R1jSazwZfKLyz5V116g2RBNI0NR3y7liUA=
+          secretKey: Dmgq7ojSBHa6CSkdEXzviRD/M7vYS6uTAVj3FockS1g=
         postgresql:
           auth:
-            password: password
+            password: fwObyh6iDnpN9fxFTb4Uj5dlYc7HXDKlrJvFkFeRfr4=
+        redis:
+          auth:
+            password: NOuYkkCoFT89kETj/W9ccW6k59QtsFgigaQxyhE+OTI=
+
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
