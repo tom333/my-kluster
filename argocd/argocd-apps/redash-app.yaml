@@ -37,7 +37,7 @@ spec:
             password: fwObyh6iDnpN9fxFTb4Uj5dlYc7HXDKlrJvFkFeRfr4=
         redis:
           auth:
-            password: NOuYkkCoFT89kETj/W9ccW6k59QtsFgigaQxyhE+OTI=
+            password: "NOuYkkCoFT89kETj/W9ccW6k59QtsFgigaQxyhE+OTI="
 
   syncPolicy:
     syncOptions:
