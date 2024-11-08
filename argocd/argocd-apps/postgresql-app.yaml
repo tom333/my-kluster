@@ -18,11 +18,11 @@ spec:
     helm:
       parameters:
         - name: global.postgresql.auth.username
-          value: "mlflow"
+          value: "data"
         - name: global.postgresql.auth.password
           value: "password"
         - name: global.postgresql.auth.database
-          value: "mlflow"
+          value: "data"
 
   syncPolicy:
     syncOptions:

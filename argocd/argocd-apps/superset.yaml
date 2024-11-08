@@ -17,13 +17,15 @@ spec:
     chart: superset
     helm:
       values: |
+        bootstrapScript: |
+          #!/bin/bash
+          pip install psycopg2 \
+            sqlalchemy-bigquery &&\
+          if [ ! -f ~/bootstrap ]; then echo "Running Superset with uid {{ .Values.runAsUser }}" > ~/bootstrap; fi
         ingress:
           enabled: true
           annotations: 
             cert-manager.io/cluster-issuer: "letsencrypt-prod"
-            ingress.pomerium.io/allowed_users: |
-              - laboitatom@gmail.com
-            ingress.pomerium.io/allow_websockets: 'true'
           path: /
           pathType: ImplementationSpecific
           hosts:
@@ -32,9 +34,6 @@ spec:
             - secretName: superset-tls
               hosts:
                 - superset.tgu.ovh
-        postgresql:
-          image:
-            tag: "11"
         configOverrides:
           secret: |
             SECRET_KEY = 'JojBoOGWGAT7al1LDHtvvwRPxcrH62cinea62nO7ZXPPcLYAoOiTaPOW'
