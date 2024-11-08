@@ -35,6 +35,8 @@ spec:
               hosts:
                 - superset.tgu.ovh
         configOverrides:
+          my_override: |
+            PUBLIC_ROLE_LIKE = "Gamma"
           secret: |
             SECRET_KEY = 'JojBoOGWGAT7al1LDHtvvwRPxcrH62cinea62nO7ZXPPcLYAoOiTaPOW'
   syncPolicy:
