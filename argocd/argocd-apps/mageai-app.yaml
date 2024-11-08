@@ -42,7 +42,7 @@ spec:
   source:
     path: ""
     repoURL: https://mage-ai.github.io/helm-charts
-    targetRevision: 0.2.6
+    targetRevision: 0.0.1
     chart: mageai-ingress
     helm: 
       values: | 
