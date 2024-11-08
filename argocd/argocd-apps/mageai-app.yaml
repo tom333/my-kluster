@@ -18,7 +18,12 @@ spec:
     helm: 
       values: | 
         persistence:
-          enabled: false    
+          enabled: false  
+        image:
+          repository: mageai/mageai
+          pullPolicy: Always
+          # Overrides the image tag whose default is the chart appVersion.
+          tag: latest  
 
   syncPolicy:
     syncOptions:
