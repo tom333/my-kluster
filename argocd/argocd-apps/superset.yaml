@@ -37,6 +37,9 @@ spec:
         configOverrides:
           my_override: |
             PUBLIC_ROLE_LIKE = "Gamma"
+            FEATURE_FLAGS = {
+                "DASHBOARD_RBAC": True
+            }
           secret: |
             SECRET_KEY = 'JojBoOGWGAT7al1LDHtvvwRPxcrH62cinea62nO7ZXPPcLYAoOiTaPOW'
   syncPolicy:
