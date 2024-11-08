@@ -63,7 +63,7 @@ spec:
                     service:
                       name: mageai
                       port: 6789
-          tls: []
+          tls: 
             - secretName: mage-tls
               hosts:
                 - mageai.tgu.ovh
