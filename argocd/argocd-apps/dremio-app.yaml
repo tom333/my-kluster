@@ -14,12 +14,17 @@ spec:
     targetRevision: 0.1.13
     helm:
       values: |
+        dremio:
+          distStorageType: minio
+          tls:
+            enabled: true   
+        minio:
+          enabled: true
         ingress:
           enabled: true
           hostname: dremio.tgu.ovh
           annotations: 
             cert-manager.io/cluster-issuer: "letsencrypt-prod"
-          pathType: ImplementationSpecific
           hosts:
             - host: dremio.tgu.ovh
               paths:
