@@ -36,7 +36,7 @@ spec:
           auth:
             password: fwObyh6iDnpN9fxFTb4Uj5dlYc7HXDKlrJvFkFeRfr4=
         redis:
-          enabled: false
+          enabled: true
           auth:
             password: DVDqmITJ6JG1hiB97PkKa9XNXUziqho3xGNiPZ6R8pA=
 
