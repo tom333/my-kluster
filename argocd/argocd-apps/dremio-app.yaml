@@ -18,6 +18,8 @@ spec:
           distStorageType: minio
           tls:
             enabled: false   
+        service:
+          type: ClusterIP
         minio:
           enabled: true
         ingress:
