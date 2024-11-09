@@ -35,8 +35,7 @@ spec:
             cert-manager.io/cluster-issuer: "letsencrypt-prod"
           tls: true
           secret: dremio-tls
-        redis:
-          enabled: false
+
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
