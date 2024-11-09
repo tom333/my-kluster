@@ -17,7 +17,7 @@ spec:
         dremio:
           distStorageType: minio
           tls:
-            enabled: true   
+            enabled: false   
         minio:
           enabled: true
         ingress:
