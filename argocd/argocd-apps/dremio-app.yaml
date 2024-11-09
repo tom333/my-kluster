@@ -27,10 +27,6 @@ spec:
           hostname: dremio.tgu.ovh
           annotations: 
             cert-manager.io/cluster-issuer: "letsencrypt-prod"
-          hosts:
-            - host: dremio.tgu.ovh
-              paths:
-                - /
           tls: true
           secret: dremio-tls
   syncPolicy:
