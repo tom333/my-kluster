@@ -24,7 +24,7 @@ spec:
           pullPolicy: Always
           tag: latest  
         config:
-          USER_CODE_PATH=/home/src/default_repo
+          USER_CODE_PATH: /home/src/default_repo
 
   syncPolicy:
     syncOptions:
