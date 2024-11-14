@@ -22,8 +22,9 @@ spec:
         image:
           repository: mageai/mageai
           pullPolicy: Always
-          # Overrides the image tag whose default is the chart appVersion.
           tag: latest  
+        config:
+          USER_CODE_PATH: /home/src/default_repo
 
   syncPolicy:
     syncOptions:
