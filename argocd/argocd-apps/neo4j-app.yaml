@@ -53,6 +53,7 @@ spec:
     helm:
       values: |
         reversProxy:
+          serviceName: neo4j-admin
           ingress:
             enabled: true
             host: neo4j.tgu.ovh

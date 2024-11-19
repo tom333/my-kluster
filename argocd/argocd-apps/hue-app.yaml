@@ -18,7 +18,7 @@ spec:
       values: |
         ingress:
           create: true
-          type: "nginx"
+          type: "nginx-ssl"
           hasAuth: false
           domain: "hue.tgu.ovh"
           annotations:
