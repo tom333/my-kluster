@@ -64,9 +64,9 @@ spec:
             tls: 
               enabled: true
               config: 
-                secretName: neo4j-tls
-                hosts:
-                  - neo4j.tgu.ovh
+                - secretName: neo4j-tls
+                  hosts:
+                    - neo4j.tgu.ovh
         
   syncPolicy:
     syncOptions:
