@@ -52,7 +52,7 @@ spec:
     chart: neo4j-reverse-proxy
     helm:
       values: |
-        reversProxy:
+        reverseProxy:
           serviceName: neo4j-admin
           ingress:
             enabled: true
