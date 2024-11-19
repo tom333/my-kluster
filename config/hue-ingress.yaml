@@ -1,0 +1,24 @@
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+  name: hue
+  namespace: datalab
+spec:
+  rules:
+    - host: hue.tgu.ovh
+      http:
+        paths:
+          - backend:
+              service:
+                name: hue-balancer
+                port:
+                  number: 80
+            path: /
+            pathType: ImplementationSpecific
+  tls:
+    - hosts:
+        - hue.tgu.ovh
+      secretName: hue.tgu.ovh-tls

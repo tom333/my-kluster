@@ -17,7 +17,7 @@ spec:
     helm:
       values: |
         ingress:
-          create: true
+          create: false
           type: "nginx-ssl"
           hasAuth: false
           domain: "hue.tgu.ovh"
