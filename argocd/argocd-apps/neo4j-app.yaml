@@ -19,6 +19,12 @@ spec:
         neo4j:
           name: neo4j
           password: "password"
+        volumes:
+          data:
+            mode: defaultStorageClass
+            defaultStorageClass:
+              requests:
+                storage: 2Gi
         
   syncPolicy:
     syncOptions:
