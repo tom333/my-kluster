@@ -31,6 +31,10 @@ spec:
             cors_enabled=false
             cors_allow_credentials=false
             cors_allowed_origins=*
+          [[[postgresql]]]
+            name = AnnuaireEntreprise
+            interface=sqlalchemy
+            options='{"url": "postgresql+psycopg2://data:password@postgresql.datalab.svc.cluster.local:5432/data"}'
   syncPolicy:
     syncOptions:
       - CreateNamespace=false
