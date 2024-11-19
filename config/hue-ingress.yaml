@@ -13,9 +13,9 @@ spec:
         paths:
           - backend:
               service:
-                name: hue-balancer
+                name: hue
                 port:
-                  number: 80
+                  number: 8888
             path: /
             pathType: ImplementationSpecific
   tls:
