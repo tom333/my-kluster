@@ -28,6 +28,9 @@ spec:
         matomoUsername: user
         matomoPassword: password
         matomoEmail: laboitatom@gmail.com
+        mariadb:
+          auth:
+            rootPassword: secretpassword
 
   syncPolicy:
     syncOptions:
