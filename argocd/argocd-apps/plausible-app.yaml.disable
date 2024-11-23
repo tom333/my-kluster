@@ -11,14 +11,12 @@ spec:
     server: https://kubernetes.default.svc
   project: datalab-project
   source:
-    repoURL: https://helm-charts.sinextra.dev
-    chart: plausible
-    targetRevision: 0.1.4
+    repoURL: https://imio.github.io/helm-charts
+    chart: plausible-analytics
+    targetRevision: 0.3.3
     helm:
       values: |
-        env:
-          DATBASE_URL: "postgres://plausible:plausible@@postgresql.cv.svc.cluster.local/plausible
-          CLICKHOUSE_DATABASE_URL: "http://plausible:plausible@clickhouse.datalab.svc.cluster.local:8123/clickhouse"
+        baseURL: https://plausible.tgu.ovh
         ingress:
           enabled: true
           annotations:
