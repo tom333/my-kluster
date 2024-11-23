@@ -29,8 +29,8 @@ spec:
            - secretName: chart-example-tls
              hosts:
                - plausible.tgu.ovh
-
-
+        databaseURL: "postgres://postgres:postgres@plausible-postgresql:5432/plausible_db"
+        clickhouseDatabaseURL: "http://clickhouse:password@plausible-clickhouse:8123/plausible_events_db"
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
