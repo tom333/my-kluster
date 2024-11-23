@@ -15,7 +15,7 @@ spec:
     helm:
       values: |
         shards: 1
-        replicaCount: 2
+        replicaCount: 1
         ingress:
           enabled: true
           hostname: clickhouse.tgu.ovh
@@ -28,6 +28,9 @@ spec:
                 - /
           tls: true
           secret: clickhouse-tls
+        auth:
+          username: plausible
+          password: plausible
   syncPolicy:
     syncOptions:
       - CreateNamespace=true

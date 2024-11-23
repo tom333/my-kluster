@@ -16,6 +16,9 @@ spec:
     targetRevision: 0.1.4
     helm:
       values: |
+        env:
+          DATBASE_URL: "postgres://plausible:plausible@@postgresql.cv.svc.cluster.local/plausible
+          CLICKHOUSE_DATABASE_URL: "http://plausible:plausible@clickhouse.datalab.svc.cluster.local:8123/clickhouse"
         ingress:
           enabled: true
           annotations:
