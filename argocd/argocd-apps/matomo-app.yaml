@@ -14,7 +14,6 @@ spec:
     targetRevision: 9.0.0
     helm:
       values: |
-        
         ingress:
           enabled: true
           hostname: matomo.tgu.ovh
