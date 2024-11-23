@@ -27,6 +27,13 @@ spec:
             nginx.ingress.kubernetes.io/auth-signin: "https://auth.tgu.ovh/oauth2/start?rd=https://plausible.tgu.ovh"  
           hosts:
             - host: plausible.tgu.ovh
+              paths:
+                - path: /
+                  pathType: ImplementationSpecific
+                  backend:
+                    service:
+                      name: plausible-plausible-analytics
+                      port: 80
           tls: 
            - secretName: cplausible-tls
              hosts:
