@@ -1,0 +1,34 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: matomo
+  namespace: argocd
+spec:
+  destination:
+    namespace: cv
+    server: https://kubernetes.default.svc
+  project: datalab-project
+  source:
+    repoURL: https://charts.bitnami.com/bitnami
+    chart: matomo
+    targetRevision: 9.0.0
+    helm:
+      values: |
+        
+        ingress:
+          enabled: true
+          hostname: matomo.tgu.ovh
+          annotations: 
+            cert-manager.io/cluster-issuer: "letsencrypt-prod"
+            nginx.ingress.kubernetes.io/auth-url: "https://auth.tgu.ovh/oauth2/auth"
+            nginx.ingress.kubernetes.io/auth-signin: "https://auth.tgu.ovh/oauth2/start?rd=https://matomo.tgu.ovh"  
+          tls: true
+          secret: matomo-tls
+
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      selfHeal: true
+      prune: true
+      allowEmpty: true
