@@ -28,12 +28,14 @@ spec:
           hosts:
             - host: plausible.tgu.ovh
               paths:
-                - path: /
-                  pathType: ImplementationSpecific
-                  backend:
+                - backend:
                     service:
                       name: plausible-plausible-analytics
-                      port: 80
+                      port:
+                        number: 80
+                  path: /
+                  pathType: ImplementationSpecific
+                  
           tls: 
            - secretName: cplausible-tls
              hosts:
