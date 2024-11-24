@@ -24,6 +24,7 @@ spec:
             nginx.ingress.kubernetes.io/auth-url: "https://auth.tgu.ovh/oauth2/auth"
             nginx.ingress.kubernetes.io/auth-signin: "https://auth.tgu.ovh/oauth2/start?rd=https://plausible.tgu.ovh"
             nginx.ingress.kubernetes.io/enable-cors: "true"
+            nginx.ingress.kubernetes.io/cors-allow-origin: "https://cv.tgu.ovh"
           hosts:
             - plausible.tgu.ovh
           tls:
