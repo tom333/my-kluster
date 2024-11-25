@@ -31,6 +31,7 @@ spec:
         mariadb:
           auth:
             rootPassword: secretpassword
+            password: password
 
   syncPolicy:
     syncOptions:

@@ -1,13 +1,13 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: postgresql-redash
+  name: postgresql-plausible
   namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
   destination:
-    namespace: datalab
+    namespace: cv
     server: https://kubernetes.default.svc
   project: datalab-project
   source:
@@ -18,11 +18,11 @@ spec:
     helm:
       parameters:
         - name: global.postgresql.auth.username
-          value: "redash"
+          value: "plausible"
         - name: global.postgresql.auth.password
           value: "password"
         - name: global.postgresql.auth.database
-          value: "redash"
+          value: "plausible"
 
   syncPolicy:
     syncOptions:
