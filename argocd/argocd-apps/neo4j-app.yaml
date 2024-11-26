@@ -21,7 +21,7 @@ spec:
           password: "password"
         volumes:
           data:
-            mode: defaultStorageClass
+            mode: "dynamic"
             defaultStorageClass:
               requests:
                 storage: 2Gi
