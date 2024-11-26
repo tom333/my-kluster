@@ -53,7 +53,6 @@ spec:
       values: |
         reverseProxy:
           serviceName: neo4j-admin
-          domain: neo4j.tgu.ovh
           ingress:
             enabled: true
             host: neo4j.tgu.ovh
