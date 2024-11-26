@@ -22,8 +22,8 @@ spec:
         volumes:
           data:
             mode: "dynamic"
-            defaultStorageClass:
-              requests:
+            dynamic:
+                defaultStorageClass: microk8s-hostpath              
                 storage: 2Gi
         
   syncPolicy:
