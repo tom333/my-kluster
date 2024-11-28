@@ -27,6 +27,8 @@ spec:
           secret: neo4j-tls
         service:
           type: ClusterIP
+        auth:
+          password: password
         
   syncPolicy:
     syncOptions:
