@@ -17,10 +17,11 @@ spec:
     helm:
       values: |
         neo4j:
-          name: neo4j
           password: password
-          spec:
-            type: ClusterIP
+        service:
+          neo4j:
+            spec:
+              type: ClusterIP
         volumes:
           data:
             mode: defaultStorageClass
