@@ -17,6 +17,7 @@ spec:
     helm:
       values: |
         neo4j:
+          name: neo4j
           password: password
         service:
           neo4j:
