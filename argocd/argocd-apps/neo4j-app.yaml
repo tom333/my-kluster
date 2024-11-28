@@ -11,22 +11,20 @@ spec:
     server: https://kubernetes.default.svc
   project: datalab-project
   source:
-    repoURL: https://helm.neo4j.com/neo4j
-    targetRevision: 5.25.1
+    repoURL: https://charts.bitnami.com/bitnami
+    targetRevision: 0.1.16
     chart: neo4j
     helm:
       values: |
-        neo4j:
-          name: neo4j
-          password: "password"
-          spec:
-            type: ClusterIP
-        volumes:
-          data:
-            mode: defaultStorageClass
-            defaultStorageClass:
-              requests:
-                storage: 2Gi
+        ingress:
+          enabled: true
+          hostname: neo4j.tgu.ovh
+          annotations: 
+            cert-manager.io/cluster-issuer: "letsencrypt-prod"
+            nginx.ingress.kubernetes.io/auth-url: "https://auth.tgu.ovh/oauth2/auth"
+            nginx.ingress.kubernetes.io/auth-signin: "https://auth.tgu.ovh/oauth2/start?rd=https://neo4j.tgu.ovh"  
+          tls: true
+          secret: neo4j-tls
         
   syncPolicy:
     syncOptions:
