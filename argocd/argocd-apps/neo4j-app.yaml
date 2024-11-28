@@ -19,8 +19,8 @@ spec:
         neo4j:
           name: neo4j
           password: password
-          # spec:
-          #   type: ClusterIP
+          spec:
+            type: ClusterIP
         volumes:
           data:
             mode: defaultStorageClass
