@@ -26,9 +26,9 @@ spec:
         volumes:
           data:
             mode: defaultStorageClass
-            # defaultStorageClass:
-            #   requests:
-            #     storage: 2Gi
+            defaultStorageClass:
+              requests:
+                storage: 2Gi
         
   syncPolicy:
     syncOptions:
