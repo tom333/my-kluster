@@ -19,12 +19,12 @@ spec:
         neo4j:
           name: neo4j
           password: "password"
-        volumes:
-          data:
-            mode: "dynamic"
-            dynamic:
-                defaultStorageClass: microk8s-hostpath              
-                storage: 2Gi
+        # volumes:
+        #   data:
+        #     mode: "dynamic"
+        #     dynamic:
+        #         defaultStorageClass: microk8s-hostpath              
+        #         storage: 2Gi
         
   syncPolicy:
     syncOptions:
