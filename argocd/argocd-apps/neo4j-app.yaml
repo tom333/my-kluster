@@ -23,6 +23,8 @@ spec:
           neo4j:
             spec:
               type: ClusterIP
+        env:
+          NEO4J_PLUGINS: '["apoc"]'
         volumes:
           data:
             mode: defaultStorageClass
