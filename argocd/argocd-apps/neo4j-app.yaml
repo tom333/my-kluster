@@ -25,6 +25,11 @@ spec:
               type: ClusterIP
         env:
           NEO4J_PLUGINS: '["apoc"]'
+        config:
+          server.directories.plugins: "/var/lib/neo4j/labs"
+          dbms.security.procedures.unrestricted: "apoc.*"
+          server.config.strict_validation.enabled: "false"
+          dbms.security.procedures.allowlist: "apoc.*"
         volumes:
           data:
             mode: defaultStorageClass
