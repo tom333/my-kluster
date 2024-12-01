@@ -1,0 +1,38 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: umami
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: cv
+    server: https://kubernetes.default.svc
+  project: datalab-project
+  source:
+    repoURL: https://charts.christianhuth.de
+    chart: umami
+    targetRevision: 3.3.3
+    helm:
+      values: |
+        baseURL: https://umami.tgu.ovh
+        ingress:
+          enabled: true
+          annotations:
+            cert-manager.io/cluster-issuer: "letsencrypt-prod"
+            nginx.ingress.kubernetes.io/enable-cors: "true"
+            nginx.ingress.kubernetes.io/cors-allow-origin: "https://cv.tgu.ovh, https://auth.tgu.ovh"
+          hosts:
+            - umami.tgu.ovh
+          tls:
+           - secretName: chart-example-tls
+             hosts:
+               - umami.tgu.ovh
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      selfHeal: true
+      prune: true
+      allowEmpty: true
