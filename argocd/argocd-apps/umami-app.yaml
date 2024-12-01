@@ -23,7 +23,11 @@ spec:
             cert-manager.io/cluster-issuer: "letsencrypt-prod"
             nginx.ingress.kubernetes.io/enable-cors: "true"
             nginx.ingress.kubernetes.io/cors-allow-origin: "https://cv.tgu.ovh, https://auth.tgu.ovh"
-          hosts: umami.tgu.ovh
+          hosts: 
+            - host: umami.tgu.ovh
+              paths:
+                - path: /
+                  pathType: ImplementationSpecific
           tls:
            - secretName: chart-example-tls
              hosts:
