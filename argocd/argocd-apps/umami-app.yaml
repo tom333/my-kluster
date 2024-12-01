@@ -16,7 +16,11 @@ spec:
     targetRevision: 3.3.3
     helm:
       values: |
-        baseURL: https://umami.tgu.ovh
+        umami: 
+            appSecret:
+              secret: umami-app-secret
+            cloudMode: ""
+            removeDisableLoginEnv: true
         ingress:
           enabled: true
           annotations:
