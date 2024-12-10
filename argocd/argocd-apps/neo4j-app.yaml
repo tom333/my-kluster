@@ -58,7 +58,7 @@ spec:
   project: datalab-project
   source:
     repoURL: https://helm.neo4j.com/neo4j
-    targetRevision: 5.25.1
+    targetRevision: 5.26.0
     chart: neo4j-reverse-proxy
     helm:
       values: |
