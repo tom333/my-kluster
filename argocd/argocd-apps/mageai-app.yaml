@@ -13,7 +13,7 @@ spec:
   source:
     path: ""
     repoURL: https://mage-ai.github.io/helm-charts
-    targetRevision: 0.2.8
+    targetRevision: 0.2.9
     chart: mageai
     helm: 
       values: | 
