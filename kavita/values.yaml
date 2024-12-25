@@ -104,10 +104,10 @@ autoscaling:
   # targetMemoryUtilizationPercentage: 80
 
 # Additional volumes on the output Deployment definition.
-volumes: []
-#   - name: manga
-#   - name: book
-#   - name: data
+volumes:
+  - name: manga
+  - name: book
+  - name: data
 # # - name: foo
 #   secret:
 #     secretName: mysecret
