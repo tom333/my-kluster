@@ -11,30 +11,29 @@ spec:
     server: https://kubernetes.default.svc
   project: datalab-project
   source:
-    repoURL: https://charts.truecharts.org
-    chart: kavita
-    targetRevision: 11.2.3
+    path: kavita/
+    repoURL: https://github.com/tom333/my-kluster.git
+    targetRevision: main
     helm:
       values: |
         ingress:
-          main:
-            enabled: false
-            annotations:
-              cert-manager.io/cluster-issuer: "letsencrypt-prod"
-            targetSelector:
-              main: main
-            hosts:
-              - host: kavita.tgu.ovh
-                paths:
-                  - path: /
-                    pathType: Prefix
-                    overrideService:
-                      name: main
-                      port: 80
-            tls:
-              - hosts:
-                  - kabita.tgu.ovh
-                secretName: kavita-tls
+          enabled: false
+          annotations:
+            cert-manager.io/cluster-issuer: "letsencrypt-prod"
+          targetSelector:
+            main: main
+          hosts:
+            - host: kavita.tgu.ovh
+              paths:
+                - path: /
+                  pathType: Prefix
+                  overrideService:
+                    name: kavita
+                    port: 5000
+          tls:
+            - hosts:
+                - kabita.tgu.ovh
+              secretName: kavita-tls
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
