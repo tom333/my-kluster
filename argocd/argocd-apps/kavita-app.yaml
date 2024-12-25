@@ -17,11 +17,9 @@ spec:
     helm:
       values: |
         ingress:
-          enabled: false
+          enabled: true
           annotations:
             cert-manager.io/cluster-issuer: "letsencrypt-prod"
-          targetSelector:
-            main: main
           hosts:
             - host: kavita.tgu.ovh
               paths:
