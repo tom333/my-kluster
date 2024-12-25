@@ -12,7 +12,7 @@ spec:
   project: infra-project
   source:
     repoURL: "https://oauth2-proxy.github.io/manifests"
-    targetRevision: 7.8.0
+    targetRevision: 7.8.3
     chart: oauth2-proxy
     helm:
       values: |
@@ -25,7 +25,7 @@ spec:
             upstreams = [ "static://202" ]
             provider = "github"
             scope = "user:email read:org"
-            github_users = "tom333"
+            github_users = "tom333,tguyader"
             cookie_domains = ".tgu.ovh"
             redirect_url = "https://auth.tgu.ovh/oauth2/callback"
             whitelist_domains = "*.tgu.ovh"
