@@ -106,8 +106,11 @@ autoscaling:
 # Additional volumes on the output Deployment definition.
 volumes:
   - name: manga
+    size: "2Gi"
   - name: book
+    size: "2Gi"
   - name: data
+    size: "0.5Gi"
 # # - name: foo
 #   secret:
 #     secretName: mysecret
