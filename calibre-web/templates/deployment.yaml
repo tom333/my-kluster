@@ -48,10 +48,15 @@ spec:
             {{- toYaml .Values.resources | nindent 12 }}
           {{- with .Values.volumeMounts }}
           volumeMounts:
+            - name: data-volume
+              mountPath: /data
             {{- toYaml . | nindent 12 }}
           {{- end }}
       {{- with .Values.volumes }}
       volumes:
+        - name: data-volume
+          persistentVolumeClaim:
+            claimName: data
         {{- toYaml . | nindent 8 }}
       {{- end }}
       {{- with .Values.nodeSelector }}

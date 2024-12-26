@@ -104,10 +104,10 @@ autoscaling:
   # targetMemoryUtilizationPercentage: 80
 
 # Additional volumes on the output Deployment definition.
-volumes:
-  - name: data
-    size: "3Gi"
-    mountPath: /data
+volumes: []
+  # - name: data
+  #   size: "3Gi"
+  #   mountPath: /data
 # # - name: foo
 #   secret:
 #     secretName: mysecret
