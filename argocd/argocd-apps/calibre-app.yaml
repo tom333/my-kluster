@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: kavita
+  name: calibre
   namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
@@ -11,7 +11,7 @@ spec:
     server: https://kubernetes.default.svc
   project: datalab-project
   source:
-    path: kavita/
+    path: calibre-web/
     repoURL: https://github.com/tom333/my-kluster.git
     targetRevision: main
     helm:
