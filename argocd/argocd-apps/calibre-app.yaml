@@ -21,17 +21,17 @@ spec:
           annotations:
             cert-manager.io/cluster-issuer: "letsencrypt-prod"
           hosts:
-            - host: kavita.tgu.ovh
+            - host: calibre.tgu.ovh
               paths:
                 - path: /
                   pathType: Prefix
                   overrideService:
-                    name: kavita
-                    port: 5000
+                    name: calibre-web
+                    port: 8083
           tls:
             - hosts:
-                - kabita.tgu.ovh
-              secretName: kavita-tls
+                - calibre.tgu.ovh
+              secretName: calibre-tls
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
