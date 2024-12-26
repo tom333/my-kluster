@@ -104,7 +104,10 @@ autoscaling:
   # targetMemoryUtilizationPercentage: 80
 
 # Additional volumes on the output Deployment definition.
-volumes: []
+volumes: 
+  - name: data-volume
+    persistentVolumeClaim:
+      claimName: data
   # - name: data
   #   size: "3Gi"
   #   mountPath: /data
@@ -114,9 +117,9 @@ volumes: []
 #     optional: false
 
 # Additional volumeMounts on the output Deployment definition.
-# volumeMounts: 
-#   - name: data
-#     mountPath: /data
+volumeMounts: 
+  - name: data-volume
+    mountPath: /data
 # - name: foo
 #   mountPath: "/etc/foo"
 #   readOnly: true
