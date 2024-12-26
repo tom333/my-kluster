@@ -105,12 +105,8 @@ autoscaling:
 
 # Additional volumes on the output Deployment definition.
 volumes:
-  - name: manga
-    size: "2Gi"
-  - name: book
-    size: "2Gi"
   - name: data
-    size: "0.5Gi"
+    size: "3Gi"
 # # - name: foo
 #   secret:
 #     secretName: mysecret
@@ -118,12 +114,8 @@ volumes:
 
 # Additional volumeMounts on the output Deployment definition.
 volumeMounts: 
-  - name: manga
-    mountPath: /manga
-  - name: book
-    mountPath: /book
   - name: data
-    mountPath: /kavita/config
+    mountPath: /data
 # - name: foo
 #   mountPath: "/etc/foo"
 #   readOnly: true
