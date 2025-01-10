@@ -13,7 +13,7 @@ spec:
   source:
     repoURL: https://charts.christianhuth.de
     chart: umami
-    targetRevision: 3.3.3
+    targetRevision: 3.3.4
     helm:
       values: |
         umami: 
