@@ -13,7 +13,7 @@ spec:
   source:
     path: ""
     repoURL: https://qdrant.to/helm
-    targetRevision: 1.13.0
+    targetRevision: 1.13.1
     chart: qdrant
 
   syncPolicy:
