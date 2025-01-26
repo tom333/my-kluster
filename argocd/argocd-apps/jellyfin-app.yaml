@@ -1,0 +1,86 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: jellyfin
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: kube-system
+    server: https://kubernetes.default.svc
+  project: datalab-project
+  source:
+    path: ""
+    repoURL: https://jellyfin.github.io/jellyfin-helm
+    targetRevision: 2.1.0
+    chart: jellyfin
+    helm: 
+      values: | 
+        ingress:
+          enabled: true
+          className: nginx
+          annotations: 
+            cert-manager.io/cluster-issuer: "letsencrypt-prod"
+          hosts:
+            - host: jellyfin.tgu.ovh
+              paths:
+                - path: /
+                  pathType: ImplementationSpecific
+          tls:
+            - secretName: jellyfin-tls
+              hosts:
+                - jellyfin.tgu.ovh
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      selfHeal: true
+      prune: true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: jellyfin-ingress
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: kube-system
+    server: https://kubernetes.default.svc
+  project: datalab-project
+  source:
+    path: ""
+    repoURL: https://mage-ai.github.io/helm-charts
+    targetRevision: 0.0.1
+    chart: jellyfin-ingress
+    helm: 
+      values: | 
+        ingress:
+          name: jellyfin
+          enabled: true
+          className: ""
+          annotations: 
+            cert-manager.io/cluster-issuer: "letsencrypt-prod"
+            nginx.ingress.kubernetes.io/auth-url: "https://auth.tgu.ovh/oauth2/auth"
+            nginx.ingress.kubernetes.io/auth-signin: "https://auth.tgu.ovh/oauth2/start?rd=https://jellyfin.tgu.ovh"
+          hosts:
+            - host: jellyfin.tgu.ovh
+              paths:
+                - path: /
+                  pathType: ImplementationSpecific
+                  backend:
+                    service:
+                      name: jellyfin
+                      port: 6789
+          tls: 
+            - secretName: mage-tls
+              hosts:
+                - jellyfin.tgu.ovh
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      selfHeal: true
+      prune: true
