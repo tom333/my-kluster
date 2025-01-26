@@ -7,9 +7,9 @@ metadata:
     - resources-finalizer.argocd.argoproj.io
 spec:
   destination:
-    namespace: kube-system
+    namespace: selfhosted
     server: https://kubernetes.default.svc
-  project: jellyfin
+  project: datalab-project
   source:
     path: ""
     repoURL: https://pmoscode-helm.github.io/emby/
