@@ -31,6 +31,8 @@ spec:
             - secretName: jellyfin-tls
               hosts:
                 - jellyfin.tgu.ovh
+        jellyfin:
+          enableDLNA: true
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
