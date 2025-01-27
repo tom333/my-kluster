@@ -38,10 +38,9 @@ spec:
             nfs:
               server: 192.168.2.103
               path: /public
-        # volumeMounts: 
-        #   - name: nas
-        #     mountPath: "/media/nas"
-        #     readOnly: true
+        volumeMounts: 
+          - name: nas
+            mountPath: /media/nas
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
