@@ -37,7 +37,7 @@ spec:
           - name: nas
             nfs:
               server: 192.168.2.103
-              path: /Public
+              path: /public
         volumeMounts: 
           - name: nas
             mountPath: "/media/nas"
