@@ -21,7 +21,7 @@ spec:
         fsGroup: 0
       containers:
         - name: jupyterlab
-          image: elyra/elyra:latest
+          image: jupyter/minimal-notebook:latest # elyra/elyra:latest
           imagePullPolicy: IfNotPresent
           ports:
           - containerPort: 8888
