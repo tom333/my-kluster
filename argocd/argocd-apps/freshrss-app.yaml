@@ -1,0 +1,32 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: freshrss
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: freshrss
+    server: https://kubernetes.default.svc
+  project: freshrss-project
+  source:
+    repoURL: https://rubxkube.github.io/charts/
+    targetRevision: 1.2.11
+    chart: freshrss
+    helm:
+      values: |
+        ingress:
+          enabled: true
+          hostName: freshrss.tgu.ovh
+          tls:
+            enabled: true
+            secretName: freshrss-tls-secret
+          entrypoint: websecure
+        
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      selfHeal: true
+      prune: true
