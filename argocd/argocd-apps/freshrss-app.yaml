@@ -11,21 +11,29 @@ spec:
     server: https://kubernetes.default.svc
   project: selfhost-project
   source:
-    repoURL: https://rubxkube.github.io/charts/
+    repoURL: oci://tccr.io/truecharts
     targetRevision: 1.2.11
     chart: freshrss
     helm:
       values: |
-        common: 
-          ingress:
+        ingress:
+          main:
             enabled: true
-            hostName: freshrss.tgu.ovh
+            ingressClassName: ""
+            targetSelector:
+              main: main
+            hosts:
+              - host: freshrss.tgu.ovh
+                paths:
+                  - path: /
+                    pathType: Prefix
+                    overrideService:
+                      name: main
+                      port: 80
             tls:
-              enabled: true
-              secretName: freshrss-tls-secret
-            entrypoint: websecure
-            ingressClassName: nginx
-            isIngressRoute: false
+              - hosts:
+                  - freshrss.tgu.ovh
+                secretName: freshrss-tls
         
   syncPolicy:
     syncOptions:
