@@ -25,6 +25,7 @@ spec:
               secretName: freshrss-tls-secret
             entrypoint: websecure
             ingressClassName: nginx
+            isIngressRoute: false
         
   syncPolicy:
     syncOptions:
