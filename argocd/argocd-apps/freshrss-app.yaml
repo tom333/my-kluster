@@ -11,7 +11,7 @@ spec:
     server: https://kubernetes.default.svc
   project: selfhost-project
   source:
-    repoURL: https://tccr.io/truecharts
+    repoURL: tccr.io/truecharts
     targetRevision: 1.2.11
     chart: freshrss
     helm:
