@@ -7,9 +7,9 @@ metadata:
     - resources-finalizer.argocd.argoproj.io
 spec:
   destination:
-    namespace: freshrss
+    namespace: selfhost
     server: https://kubernetes.default.svc
-  project: tt-rss-project
+  project: selfhost-project
   source:
     repoURL: https://rubxkube.github.io/charts/
     targetRevision: 1.2.11
