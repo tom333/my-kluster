@@ -4,6 +4,8 @@ kind: Ingress
 metadata:
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.org/proxy-connect-timeout: "120s" 
+    nginx.org/proxy-read-timeout: "120s"
   name: freshrss
   namespace: selfhost
 spec:
