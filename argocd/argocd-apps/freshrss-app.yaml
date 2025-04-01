@@ -9,7 +9,7 @@ spec:
   destination:
     namespace: freshrss
     server: https://kubernetes.default.svc
-  project: rss-project
+  project: tt-rss-project
   source:
     repoURL: https://rubxkube.github.io/charts/
     targetRevision: 1.2.11
