@@ -19,7 +19,7 @@ spec:
         ingress:
           main:
             enabled: true
-            ingressClassName: ""
+            ingressClassName: nginx
             targetSelector:
               main: main
             hosts:
