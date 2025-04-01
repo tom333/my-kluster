@@ -16,13 +16,14 @@ spec:
     chart: freshrss
     helm:
       values: |
-        ingress:
-          enabled: true
-          hostName: freshrss.tgu.ovh
-          tls:
+        common: 
+          ingress:
             enabled: true
-            secretName: freshrss-tls-secret
-          entrypoint: websecure
+            hostName: freshrss.tgu.ovh
+            tls:
+              enabled: true
+              secretName: freshrss-tls-secret
+            entrypoint: websecure
         
   syncPolicy:
     syncOptions:
