@@ -11,32 +11,19 @@ spec:
     server: https://kubernetes.default.svc
   project: infra-project
   source:
-    path: ""
-    repoURL: "https://codecentric.github.io/helm-charts"
-    targetRevision: 18.10.0
+    repoURL: registry-1.docker.io/bitnamicharts/keycloak
+    targetRevision: 24.6.1
     chart: keycloak
     helm:
       values: |
-        # image:
-        #   # We use the legacy variant of the image until codecentric update it's helm chart
-        #   tag: "18.0.2-legacy"
         replicas: 1
         ingress:
           enabled: true
-          servicePort: http
-          annotations:
+          hostname: auth.tgu.ovh
+          annotations: 
             cert-manager.io/cluster-issuer: "letsencrypt-prod"
-          rules:
-            - host: "auth.tgu.ovh"
-              paths:
-                - path: /
-                  pathType: Prefix
-          tls:
-            - hosts:
-                - auth.tgu.ovh
-              secretName: keycloak-tls
-        postgresql:
-          postgresqlPassword: Passw0rd
+          tls: true
+          secret: keycloak-tls
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
