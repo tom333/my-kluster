@@ -1,0 +1,52 @@
+kind: Application
+metadata:
+  name: authentik
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: datalab
+    server: https://kubernetes.default.svc
+  project: infra-project
+  source:
+    repoURL: https://charts.authentik.io
+    targetRevision: 2025.2.4
+    chart: authentik
+    helm:
+      values: |
+        authentik:
+          secret_key: "PleaseGenerateASecureKey"
+          # This sends anonymous usage-data, stack traces on errors and
+          # performance data to sentry.io, and is fully opt-in
+          error_reporting:
+              enabled: false
+          postgresql:
+              password: "ThisIsNotASecurePassword"
+
+        server:
+            ingress:
+                ingressClassName: nginx
+                enabled: true
+                annotations: 
+                    cert-manager.io/cluster-issuer: "letsencrypt-prod"    
+                hosts:
+                    - authentik.tgu.ovh
+                tls: 
+                  - secretName: authentik-tls
+                    hosts:
+                      - authentik.tgu.ovh
+
+        postgresql:
+            enabled: true
+            auth:
+                password: "ThisIsNotASecurePassword"
+        redis:
+            enabled: false
+
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      selfHeal: true
+      prune: true
