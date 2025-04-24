@@ -11,7 +11,7 @@ spec:
     server: https://kubernetes.default.svc
   project: infra-project
   source:
-    repoURL: https://charts.authentik.io
+    repoURL: https://charts.goauthentik.io
     targetRevision: 2025.2.4
     chart: authentik
     helm:
