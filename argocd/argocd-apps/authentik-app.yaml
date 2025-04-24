@@ -41,7 +41,7 @@ spec:
             auth:
                 password: "ThisIsNotASecurePassword"
         redis:
-            enabled: false
+            enabled: true
 
   syncPolicy:
     syncOptions:
