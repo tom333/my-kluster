@@ -1,3 +1,4 @@
+apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: authentik
@@ -23,7 +24,6 @@ spec:
               enabled: false
           postgresql:
               password: "ThisIsNotASecurePassword"
-
         server:
             ingress:
                 ingressClassName: nginx
@@ -36,7 +36,6 @@ spec:
                   - secretName: authentik-tls
                     hosts:
                       - authentik.tgu.ovh
-
         postgresql:
             enabled: true
             auth:
