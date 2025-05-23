@@ -11,7 +11,6 @@ spec:
     server: https://kubernetes.default.svc
   project: datalab-project
   source:
-    path: ""
     repoURL: https://qdrant.to/helm
     targetRevision: 1.14.0
     chart: qdrant
