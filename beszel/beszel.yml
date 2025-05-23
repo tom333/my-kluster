@@ -16,9 +16,6 @@ spec:
       labels:
         name: beszel-hub
     spec:
-      securityContext:
-        runAsUser: 0
-        fsGroup: 0
       containers:
         - name: beszel-hub
           image: henrygd/beszel
@@ -27,13 +24,12 @@ spec:
           - containerPort: 8090
       restartPolicy: Always
 ---
-
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
-  name: beszel
+  name: beszel-hub
   namespace: beszel
 spec:
   rules:
