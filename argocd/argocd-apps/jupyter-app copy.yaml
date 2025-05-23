@@ -1,0 +1,23 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: beszel
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: beszel
+    server: https://kubernetes.default.svc
+  project: infra-project
+  source:
+    path: beszel
+    repoURL: https://github.com/tom333/my-kluster.git
+    targetRevision: HEAD
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=false
+    automated:
+      selfHeal: true
+      allowEmpty: true
+      prune: true

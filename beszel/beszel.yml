@@ -1,0 +1,94 @@
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: beszel-hub
+  namespace: beszel
+  labels:
+    name: beszel-hub
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: beszel-hub
+  template:
+    metadata:
+      labels:
+        name: beszel-hub
+    spec:
+      securityContext:
+        runAsUser: 0
+        fsGroup: 0
+      containers:
+        - name: beszel-hub
+          image: henrygd/beszel
+          imagePullPolicy: IfNotPresent
+          ports:
+          - containerPort: 8090
+      restartPolicy: Always
+---
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+  name: beszel
+  namespace: beszel
+spec:
+  rules:
+    - host: beszel.tgu.ovh
+      http:
+        paths:
+          - backend:
+              service:
+                name: beszel-hub
+                port:
+                  number: 8090
+            path: /
+            pathType: ImplementationSpecific
+  tls:
+    - hosts:
+        - beszel.tgu.ovh
+      secretName: beszel.tgu.ovh-tls
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: beszel-agent
+  namespace: beszel
+spec:
+  selector:
+    matchLabels:
+      app: beszel-agent
+  template:
+    metadata:
+      labels:
+        app: beszel-agent
+    spec:
+      hostNetwork: true
+      containers:
+        - env:
+            - name: LISTEN
+              value: '45876'
+            - name: KEY
+              value: 'YOUR-KEY-HERE'
+          image: henrygd/beszel-agent:latest
+          imagePullPolicy: Always
+          name: beszel-agent
+          ports:
+            - containerPort: 45876
+              hostPort: 45876
+      restartPolicy: Always
+      tolerations:
+        - effect: NoSchedule
+          key: node-role.kubernetes.io/master
+          operator: Exists
+        - effect: NoSchedule
+          key: node-role.kubernetes.io/control-plane
+          operator: Exists
+  updateStrategy:
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 100%
+    type: RollingUpdate
