@@ -68,7 +68,7 @@ spec:
             - name: LISTEN
               value: '45876'
             - name: KEY
-              value: 'YOUR-KEY-HERE'
+              value: 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGicPj+TcHTd/YMHqIeGyAiWc0XF9ZYL2YbVv4VJYVY3'
           image: henrygd/beszel-agent:latest
           imagePullPolicy: Always
           name: beszel-agent
