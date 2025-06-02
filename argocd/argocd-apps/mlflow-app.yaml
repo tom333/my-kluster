@@ -11,45 +11,26 @@ spec:
     server: https://kubernetes.default.svc
   project: datalab-project
   source:
-    path: ""
-    repoURL: "https://community-charts.github.io/helm-charts"
-    targetRevision: 0.17.2
+    repoURL: registry-1.docker.io/bitnamicharts
+    targetRevision: 3.0.7
     chart: mlflow
     helm:
       values: |
-        backendStore:
-          databaseMigration: true
-          postgres:
+        run:
+          persistence:
             enabled: true
-            host: "postgresql.datalab.svc.cluster.local"
-            port: 5432
-            database: "mlflow"
-            user: "mlflow"
-            password: "password"
-        artifactRoot:
-          s3:
+        tracking:
+          ingress:
             enabled: true
-            bucket: "mlflow"
-            awsAccessKeyId: "mlflow"
-            awsSecretAccessKey: "mlflowpassword"
-        extraEnvVars:
-          MLFLOW_S3_ENDPOINT_URL: http://minio.datalab.svc.cluster.local:9000
-        ingress:
-          enabled: true
-          annotations:
-            cert-manager.io/cluster-issuer: "letsencrypt-prod"
-            nginx.ingress.kubernetes.io/proxy-body-size: 512m
-            nginx.ingress.kubernetes.io/auth-url: "https://auth.tgu.ovh/oauth2/auth"
-            nginx.ingress.kubernetes.io/auth-signin: "https://auth.tgu.ovh/oauth2/start?rd=https://mlflow.tgu.ovh"
-          hosts:
-            - host: mlflow.tgu.ovh
-              paths:
-                - path: /
-                  pathType: Prefix
-          tls:
-            - secretName: mlflow-tls
-              hosts:
-                - mlflow.tgu.ovh
+            annotations:
+              cert-manager.io/cluster-issuer: "letsencrypt-prod"
+              nginx.ingress.kubernetes.io/proxy-body-size: 512m
+              nginx.ingress.kubernetes.io/auth-url: "https://auth.tgu.ovh/oauth2/auth"
+              nginx.ingress.kubernetes.io/auth-signin: "https://auth.tgu.ovh/oauth2/start?rd=https://mlflow.tgu.ovh"
+            hostname: mlflow.tgu.ovh
+            tls: true
+            secrets:
+              - name: mlflow-tls
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
