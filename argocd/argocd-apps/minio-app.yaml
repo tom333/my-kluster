@@ -12,7 +12,7 @@ spec:
   project: datalab-project
   source:
     path: ""
-    repoURL: "https://charts.min.io/"
+    repoURL: "https://helm.min.io/"
     targetRevision: 8.0.10
     chart: minio
     helm:
