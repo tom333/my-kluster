@@ -13,11 +13,11 @@ spec:
   source:
     path: ""
     repoURL: "https://charts.min.io/"
-    targetRevision: 5.3.0
+    targetRevision: 8.0.10
     chart: minio
     helm:
       values: |
-        replicas: 2
+        replicas: 1
         mode: standalone
         persistence:
           size: 10Gi
@@ -27,10 +27,8 @@ spec:
           annotations:
             cert-manager.io/cluster-issuer: "letsencrypt-prod"
             kubernetes.io/ingress.allow-http: "false"
-            ingress.pomerium.io/allowed_users: |
-              - laboitatom@gmail.com
-            ingress.pomerium.io/allow_any_authenticated_user: 'true'
-            ingress.pomerium.io/allow_websockets: 'true'
+            nginx.ingress.kubernetes.io/auth-url: "https://auth.tgu.ovh/oauth2/auth"
+            nginx.ingress.kubernetes.io/auth-signin: "https://auth.tgu.ovh/oauth2/start?rd=https://minio.tgu.ovh"
           hosts:
               - "minio.tgu.ovh"
           tls:
@@ -42,10 +40,8 @@ spec:
           annotations:
             cert-manager.io/cluster-issuer: "letsencrypt-prod"
             kubernetes.io/ingress.allow-http: "false"
-            ingress.pomerium.io/allowed_users: |
-              - laboitatom@gmail.com
-            ingress.pomerium.io/allow_any_authenticated_user: 'true'
-            ingress.pomerium.io/allow_websockets: 'true'
+            nginx.ingress.kubernetes.io/auth-url: "https://auth.tgu.ovh/oauth2/auth"
+            nginx.ingress.kubernetes.io/auth-signin: "https://auth.tgu.ovh/oauth2/start?rd=https://minio-console.tgu.ovh"
           hosts:
             - "minio-console.tgu.ovh"
           tls:
