@@ -12,16 +12,16 @@ spec:
   project: datalab-project
   source:
     repoURL: https://charts.bitnami.com/bitnami
-    targetRevision: 16.7.4
+    targetRevision: 16.7.8
     chart: postgresql
     helm:
       parameters:
         - name: global.postgresql.auth.username
-          value: "data"
+          value: "mlflow"
         - name: global.postgresql.auth.password
           value: "password"
         - name: global.postgresql.auth.database
-          value: "data"
+          value: "mlflow"
 
   syncPolicy:
     syncOptions:
