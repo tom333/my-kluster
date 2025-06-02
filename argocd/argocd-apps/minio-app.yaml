@@ -11,8 +11,7 @@ spec:
     server: https://kubernetes.default.svc
   project: datalab-project
   source:
-    path: ""
-    repoURL: https://charts.bitnami.com/bitnami"
+    repoURL: https://charts.bitnami.com/bitnami
     targetRevision: 16.0.10
     chart: minio
     helm:
