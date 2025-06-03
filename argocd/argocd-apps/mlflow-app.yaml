@@ -21,7 +21,7 @@ spec:
             enabled: true
         tracking:
           service:
-            type: clusterip
+            type: ClusterIP
           ingress:
             enabled: true
             annotations:
