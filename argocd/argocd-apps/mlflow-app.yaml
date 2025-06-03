@@ -33,7 +33,7 @@ spec:
             tls: true
         postgresql:
           auth:
-            password: password
+            password: passwordmlflowdatabase
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
