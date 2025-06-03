@@ -20,6 +20,8 @@ spec:
           persistence:
             enabled: true
         tracking:
+          service:
+            type: clusterip
           ingress:
             enabled: true
             annotations:
