@@ -22,8 +22,9 @@ spec:
             hosts:
               - host: metaflow.tgu.ovh
             tls:
-              - hosts: metaflow.tgu.ovh
-                secretName: metaflow-tls-secret
+            - hosts: 
+                - metaflow.tgu.ovh
+              secretName: metaflow-tls-secret
           uiBackend:
             metaflowDatastoreSysRootS3: s3://metaflow-bucket/metaflow
             metaflowS3EndpointURL: http://minio.scv.datalab.local.cluster
