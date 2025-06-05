@@ -11,10 +11,9 @@ spec:
     server: https://kubernetes.default.svc
   project: datalab-project
   source:
-    path: charts/metaflow
-    repoURL: https://github.com/outerbounds/metaflow-tools/
+    path: charts/metaflow/
+    repoURL: https://github.com/outerbounds/metaflow-tools.git
     targetRevision: main
-    chart: metaflow
     helm:
       values: |
         metaflow-ui:
