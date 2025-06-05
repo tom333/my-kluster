@@ -17,8 +17,17 @@ spec:
     helm:
       values: |
         metaflow-ui:
-          hosts:
-            - host: metaflow.tgu.ovh
+          ingress:
+            annotations: {}            
+            hosts:
+              - host: metaflow.tgu.ovh
+            tls:
+              hosts:
+                - host: metaflow.tgu.ovh
+                  secretName: metaflow-tls-secret
+          uiBackend:
+            metaflowDatastoreSysRootS3: s3://metaflow-bucket/metaflow
+            metaflowS3EndpointURL: http://minio.scv.datalab.local.cluster
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
