@@ -18,7 +18,8 @@ spec:
       values: |
         metaflow-ui:
           ingress:
-            annotations: {}            
+            annotations: 
+              cert-manager.io/cluster-issuer: letsencrypt-prod        
             hosts:
               - host: metaflow.tgu.ovh
             tls:
@@ -27,7 +28,7 @@ spec:
               secretName: metaflow-tls-secret
           uiBackend:
             metaflowDatastoreSysRootS3: s3://metaflow-bucket/metaflow
-            metaflowS3EndpointURL: http://minio.scv.datalab.local.cluster
+            metaflowS3EndpointURL: http://minio.datalab.svc.cluster.local:9000
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
