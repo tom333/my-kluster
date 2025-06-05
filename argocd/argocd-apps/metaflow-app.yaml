@@ -20,7 +20,7 @@ spec:
           ingress:
             annotations: {}            
             hosts:
-              - host: metaflow.tgu.ovh
+              - metaflow.tgu.ovh
             tls:
               hosts:
                 - host: metaflow.tgu.ovh
