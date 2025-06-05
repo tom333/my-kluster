@@ -13,7 +13,7 @@ spec:
   source:
     path: charts/metaflow/
     repoURL: https://github.com/outerbounds/metaflow-tools.git
-    targetRevision: main
+    targetRevision: master
     helm:
       values: |
         metaflow-ui:
