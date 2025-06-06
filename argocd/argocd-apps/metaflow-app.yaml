@@ -1,0 +1,33 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: metaflow
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: datalab
+    server: https://kubernetes.default.svc
+  project: datalab-project
+  source:
+    path: charts/metaflow/
+    repoURL: https://github.com/InseeFrLab/helm-charts-automation.git
+    targetRevision: master
+    helm:
+      values: |
+        ingress:
+          enabled: true
+          tls: true
+          annotations: 
+            cert-manager.io/cluster-issuer: letsencrypt-prod 
+          hostname: metaflow.tgu.ovh
+          secretName: metaflow-tls-secret
+          hosts:
+            - metaflow.tgu.ovh
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      selfHeal: true
+      prune: true
