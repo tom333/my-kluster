@@ -29,9 +29,6 @@ spec:
           uiBackend:
             metaflowDatastoreSysRootS3: s3://metaflow-bucket/metaflow
             metaflowS3EndpointURL: http://minio.datalab.svc.cluster.local:9000
-            env:
-              - name: METAFLOW_SERVICE
-                value: http://metaflow-metaflow-ui.datalab.svc.cluster.local:8083/api/
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
