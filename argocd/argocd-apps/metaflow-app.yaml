@@ -18,13 +18,10 @@ spec:
       values: |
         ingress:
           enabled: true
-          tls: true
           annotations: 
             cert-manager.io/cluster-issuer: letsencrypt-prod 
           hostname: metaflow.tgu.ovh
-            - secretName: metaflow-tls-secret
-              hosts:
-                - metaflow.tgu.ovh
+          tls: true
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
