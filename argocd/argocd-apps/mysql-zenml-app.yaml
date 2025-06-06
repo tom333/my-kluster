@@ -20,27 +20,28 @@ spec:
           database: zenml
           username: zenml
           password: zenml
-        livenessProbe:
-            enabled: true
-            initialDelaySeconds: 300
-            periodSeconds: 10
-            timeoutSeconds: 1
-            failureThreshold: 45
-            successThreshold: 1
-        readinessProbe:
-            enabled: true
-            initialDelaySeconds: 300
-            periodSeconds: 10
-            timeoutSeconds: 1
-            failureThreshold: 45
-            successThreshold: 1
-        startupProbe:
-            enabled: true
-            initialDelaySeconds: 300
-            periodSeconds: 10
-            timeoutSeconds: 1
-            failureThreshold: 45
-            successThreshold: 1
+        primary:
+          livenessProbe:
+              enabled: true
+              initialDelaySeconds: 300
+              periodSeconds: 10
+              timeoutSeconds: 1
+              failureThreshold: 45
+              successThreshold: 1
+          readinessProbe:
+              enabled: true
+              initialDelaySeconds: 300
+              periodSeconds: 10
+              timeoutSeconds: 1
+              failureThreshold: 45
+              successThreshold: 1
+          startupProbe:
+              enabled: true
+              initialDelaySeconds: 300
+              periodSeconds: 10
+              timeoutSeconds: 1
+              failureThreshold: 45
+              successThreshold: 1
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
