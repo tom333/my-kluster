@@ -20,6 +20,10 @@ spec:
           database: zenml
           username: zenml
           password: zenml
+        primary:
+          startupProbe:
+            enabled: true
+            failureThreshold: 30
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
