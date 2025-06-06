@@ -17,7 +17,6 @@ spec:
     helm:
       values: | 
         auth:
-          rootPassword: password
           database: zenml
           username: zenml
           password: zenml
