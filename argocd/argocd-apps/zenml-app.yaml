@@ -17,6 +17,8 @@ spec:
     helm:
       values: |
         zenml:
+          database:
+            url: "mysql://zenml:zenml@mysql-zenml.datalab.svc.cluster.local:3306/zenml"
           auth:
             authType: NO_AUTH
           ingress:
