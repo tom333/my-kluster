@@ -22,9 +22,9 @@ spec:
           annotations: 
             cert-manager.io/cluster-issuer: letsencrypt-prod 
           hostname: metaflow.tgu.ovh
-          secretName: metaflow-tls-secret
-          hosts:
-            - metaflow.tgu.ovh
+            - secretName: metaflow-tls-secret
+              hosts:
+                - metaflow.tgu.ovh
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
