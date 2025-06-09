@@ -18,7 +18,7 @@ spec:
       values: |
         zenml:
           database:
-            url: "mysql://zenml:zenml@mysql-zenml.datalab.svc.cluster.local:3306/zenml"
+            url: "mysql://zenml:zenml@mariadb.datalab.svc.cluster.local:3306/zenml"
           auth:
             authType: NO_AUTH
           ingress:
