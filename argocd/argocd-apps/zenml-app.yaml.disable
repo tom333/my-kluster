@@ -28,9 +28,7 @@ spec:
             host: metaflow.tgu.ovh
             tls:
               enabled: true
-          uiBackend:
-            metaflowDatastoreSysRootS3: s3://metaflow-bucket/metaflow
-            metaflowS3EndpointURL: http://minio.datalab.svc.cluster.local:9000
+
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
