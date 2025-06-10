@@ -1,0 +1,35 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: freshrss
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: selfhost
+    server: https://kubernetes.default.svc
+  project: selfhost-project
+  source:
+    repoURL: https://flyteorg.github.io/flyte
+    targetRevision: v0.1.10
+    chart: flyte
+    helm:
+      values: |
+        flyte:
+          common:
+            ingress:
+              host: flyte.tgu.ovh
+              enabled: true
+              annotations: 
+                cert-manager.io/cluster-issuer: "letsencrypt-prod"
+                nginx.ingress.kubernetes.io/app-root: /console
+              tls:
+                enabled: true
+        
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      selfHeal: true
+      prune: true
