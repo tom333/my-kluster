@@ -11,7 +11,7 @@ spec:
     server: https://kubernetes.default.svc
   project: selfhost-project
   source:
-    repoURL: https://flyteorg.github.io/flyte
+    repoURL: https://flyteorg.github.io
     targetRevision: v0.1.10
     chart: flyte
     helm:
