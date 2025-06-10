@@ -18,7 +18,7 @@ spec:
     helm: 
       values: | 
         kubetail: 
-          server: 
+          dashboard: 
             ingress:
               enabled: true
               annotations: 
