@@ -12,7 +12,7 @@ spec:
   project: infra-project
   source:
     repoURL: "https://oauth2-proxy.github.io/manifests"
-    targetRevision: 7.12.17
+    targetRevision: 7.12.18
     chart: oauth2-proxy
     helm:
       values: |
