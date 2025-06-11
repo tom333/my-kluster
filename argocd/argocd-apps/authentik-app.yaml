@@ -12,7 +12,7 @@ spec:
   project: infra-project
   source:
     repoURL: https://charts.goauthentik.io
-    targetRevision: 2025.4.1
+    targetRevision: 2025.6.1
     chart: authentik
     helm:
       values: |
