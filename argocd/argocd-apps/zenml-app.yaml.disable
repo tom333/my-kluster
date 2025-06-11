@@ -28,6 +28,7 @@ spec:
             host: metaflow.tgu.ovh
             tls:
               enabled: true
+          deploymentType: local
 
   syncPolicy:
     syncOptions:
