@@ -33,8 +33,8 @@ spec:
               enabled: false
           session:
             cookies: 
-              domain: tgu.ovh
-              subdomain: authelia
+              - domain: tgu.ovh
+                subdomain: authelia
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
