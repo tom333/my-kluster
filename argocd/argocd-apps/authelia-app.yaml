@@ -25,6 +25,16 @@ spec:
           hostOverride:
             - host: 'authelia.tgu.ovh'
               path: '/'
+        configMap:
+          storage:
+            local:
+              enabled: true
+            postgres:
+              enabled: false
+          session:
+            cookies: 
+              domain: tgu.ovh
+              subdomain: authelia
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
