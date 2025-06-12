@@ -39,7 +39,7 @@ spec:
             file:
               enabled: true
           notifier: 
-            filesystem
+            filesystem:
               enabled: true
   syncPolicy:
     syncOptions:
