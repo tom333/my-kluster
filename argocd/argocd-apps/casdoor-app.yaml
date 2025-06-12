@@ -29,7 +29,8 @@ spec:
             - secretName: casdoor-tls
               hosts:
                 - casdoor.tgu.ovh
-        
+        database:
+          driver: sqlite
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
