@@ -30,7 +30,7 @@ spec:
               hosts:
                 - casdoor.tgu.ovh
         database:
-          driver: postgresql
+          driver: postgres
           user: casdoor
           password: casdoor
           host: casdoor.datalab.svc.cluster.local
