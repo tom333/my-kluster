@@ -35,6 +35,7 @@ spec:
             cookies: 
               - domain: tgu.ovh
                 subdomain: authelia
+          authentication_backend.file.enabled: true
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
