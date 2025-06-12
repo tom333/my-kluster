@@ -11,8 +11,8 @@ spec:
     server: https://kubernetes.default.svc
   project: datalab-project
   source:
-    repoURL: registry-1.docker.io/casbin/casdoor-helm-charts
-    chart: casdoor
+    repoURL: registry-1.docker.io/casbin
+    chart: casdoor-helm-charts
     targetRevision: v1.702.0
     helm:
       values: |
