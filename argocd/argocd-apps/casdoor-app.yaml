@@ -1,0 +1,35 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: casdoor
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: datalab
+    server: https://kubernetes.default.svc
+  project: datalab-project
+  source:
+    repoURL: registry-1.docker.io/casbin/casdoor-helm-charts
+    chart: casdoor
+    targetRevision: v1.702.0
+    helm:
+      values: |
+        ingress:
+          enabled: true
+          annotations:
+            cert-manager.io/cluster-issuer: letsencrypt-prod
+          hosts:
+            - host: casdoor.tgu.ovh
+          tls: 
+            - secretName: casdoor-tls
+              hosts:
+                - casdoor.tgu.ovh
+        
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      selfHeal: true
+      prune: true
