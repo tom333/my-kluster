@@ -22,6 +22,9 @@ spec:
             cert-manager.io/cluster-issuer: letsencrypt-prod
           hosts:
             - host: casdoor.tgu.ovh
+              paths:
+              - path: /
+                pathType: ImplementationSpecific
           tls: 
             - secretName: casdoor-tls
               hosts:
