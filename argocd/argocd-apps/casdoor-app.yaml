@@ -13,7 +13,7 @@ spec:
   source:
     repoURL: registry-1.docker.io/casbin
     chart: casdoor-helm-charts
-    targetRevision: v1.702.0
+    targetRevision: v1.934.0
     helm:
       values: |
         ingress:
