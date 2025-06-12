@@ -30,7 +30,11 @@ spec:
               hosts:
                 - casdoor.tgu.ovh
         database:
-          driver: sqlite
+          driver: postgresql
+          user: casdoor
+          password: casdoor
+          host: casdoor.datalab.svc.cluster.local
+            
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
