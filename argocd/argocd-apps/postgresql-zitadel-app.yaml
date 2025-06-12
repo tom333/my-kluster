@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: postgresql-casdoor
+  name: postgresql-zitadel
   namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
@@ -17,11 +17,11 @@ spec:
     helm:
       parameters:
         - name: global.postgresql.auth.username
-          value: "casdoor"
+          value: "zitadel"
         - name: global.postgresql.auth.password
-          value: "casdoor"
+          value: "zitadel"
         - name: global.postgresql.auth.database
-          value: "casdoor"
+          value: "zitadel"
 
   syncPolicy:
     syncOptions:
