@@ -25,7 +25,7 @@ spec:
               Enabled: true
             Database:
               Postgres:
-                Host: zitadel.datalab.svc.cluster.local
+                Host: postgresql-zitadel.datalab.svc.cluster.local
                 Port: 5432
                 Database: zitadel
                 MaxOpenConns: 20
