@@ -19,12 +19,6 @@ spec:
         primary:
           pgHbaConfiguration: |
             host all all all trust
-        global:
-          postgresql:
-            auth:
-              username: zitadel
-              password: zitadel
-              database: zitadel
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
