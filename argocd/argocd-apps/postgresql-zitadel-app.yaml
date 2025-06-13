@@ -15,14 +15,16 @@ spec:
     targetRevision: 16.7.11
     chart: postgresql
     helm:
-      parameters:
-        - name: global.postgresql.auth.username
-          value: "zitadel"
-        - name: global.postgresql.auth.password
-          value: "zitadel"
-        - name: global.postgresql.auth.database
-          value: "zitadel"
-
+      values: |
+        primary:
+          pgHbaConfiguration: |
+            host all all all trust
+        global:
+          postgresql:
+            auth:
+              username: zitadel
+              password: zitadel
+              database: zitadel
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
