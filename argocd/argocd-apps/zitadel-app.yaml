@@ -34,10 +34,12 @@ spec:
                 MaxConnIdleTime: 5m
                 User:
                   Username: zitadel
+                  Password: zitadel
                   SSL:
                     Mode: disable
                 Admin:
                   Username: zitadel
+                  Password: zitadel
                   SSL:
                     Mode: disable
         ingress:
