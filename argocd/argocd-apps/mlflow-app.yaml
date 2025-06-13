@@ -39,6 +39,8 @@ spec:
         postgresql:
           auth:
             password: superlongPassw0rd
+        minio:
+          enabled: false
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
