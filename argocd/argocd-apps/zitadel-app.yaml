@@ -22,7 +22,7 @@ spec:
             ExternalSecure: false
             ExternalDomain: zitadel.tgu.ovh
             TLS:
-              Enabled: true
+              Enabled: false
             Database:
               Postgres:
                 Host: postgresql-zitadel.datalab.svc.cluster.local
