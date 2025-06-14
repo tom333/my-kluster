@@ -20,7 +20,7 @@ spec:
           database:
             url: "mysql://zenml:zenml@mariadb.datalab.svc.cluster.local:3306/zenml"
           auth:
-            authType: NO_AUTH
+            authType: HTTP_BASIC
           ingress:
             enabled: true
             annotations: 
