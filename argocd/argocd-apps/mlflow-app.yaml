@@ -48,9 +48,9 @@ spec:
               - path: /
                 pathType: ImplementationSpecific
           tls:
-             secretName: mlflow-tls
-             hosts:
-               - mlflow.tgu.ovh
+            - secretName: mlflow-tls
+              hosts:
+                - mlflow.tgu.ovh
         auth:
           enabled: false
         
