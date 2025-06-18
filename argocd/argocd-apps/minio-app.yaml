@@ -21,18 +21,19 @@ spec:
         persistence:
           size: 10Gi
         existingSecret: minio-secret
-        apiIngress:
+        console:
           enabled: true
-          annotations:
-            cert-manager.io/cluster-issuer: "letsencrypt-prod"
-          hostname: minio.tgu.ovh
-          tls: true
+          ingress:
+            enabled: true
+            annotations:
+              cert-manager.io/cluster-issuer: "letsencrypt-prod"
+            hostname: minio-console.tgu.ovh
+            tls: true
         ingress:
           enabled: true
           annotations:
             cert-manager.io/cluster-issuer: "letsencrypt-prod"
-            kubernetes.io/ingress.allow-http: "false"
-          hostname: minio-console.tgu.ovh
+          hostname: minio.tgu.ovh
           tls: true
   syncPolicy:
     syncOptions:
