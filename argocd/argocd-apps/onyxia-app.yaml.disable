@@ -11,8 +11,7 @@ spec:
     server: https://kubernetes.default.svc
   project: datalab-project
   source:
-    path: ""
-    repoURL: "https://inseefrlab.github.io/helm-charts"
+    repoURL: https://inseefrlab.github.io/onyxia
     targetRevision: 3.8.1
     chart: onyxia
     helm:
