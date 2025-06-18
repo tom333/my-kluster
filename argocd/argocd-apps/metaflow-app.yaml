@@ -14,14 +14,14 @@ spec:
     path: charts/metaflow/
     repoURL: https://github.com/InseeFrLab/helm-charts-automation.git
     targetRevision: master
-    helm:
-      values: |
-        ingress:
-          enabled: false
-          annotations: 
-            cert-manager.io/cluster-issuer: letsencrypt-prod 
-          hostname: metaflow.tgu.ovh
-          tls: false
+    # helm:
+    #   values: |
+    #     ingress:
+    #       enabled: false
+    #       annotations: 
+    #         cert-manager.io/cluster-issuer: letsencrypt-prod 
+    #       hostname: metaflow.tgu.ovh
+    #       tls: false
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
