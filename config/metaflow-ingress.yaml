@@ -1,0 +1,46 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/whitelist-source-range: 0.0.0.0/0
+  generation: 1
+  name: metaflow-backend
+  namespace: datalab
+  
+spec:
+  ingressClassName: public
+  rules:
+    - host: metaflow.tgu.ovh
+      http:
+        paths:
+          - backend:
+              service:
+                name: metaflow-backend
+                port:
+                  number: 8083
+            path: /api
+            pathType: Prefix
+          - backend:
+              service:
+                name: metaflow-static
+                port:
+                  number: 3000
+            path: /
+            pathType: Prefix
+          - backend:
+              service:
+                name: metaflow-static
+                port:
+                  number: 3000
+            path: /static
+            pathType: Prefix
+  tls:
+    - hosts:
+        - hmetaflow.tgu.ovh
+      secretName: metaflow-secret-tls
+
+status:
+  loadBalancer:
+    ingress:
+      - ip: 127.0.0.1

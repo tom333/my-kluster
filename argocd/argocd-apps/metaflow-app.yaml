@@ -17,7 +17,7 @@ spec:
     helm:
       values: |
         ingress:
-          enabled: true
+          enabled: false
           annotations: 
             cert-manager.io/cluster-issuer: letsencrypt-prod 
           hostname: metaflow.tgu.ovh
