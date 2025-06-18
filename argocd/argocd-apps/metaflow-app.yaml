@@ -19,9 +19,9 @@ spec:
         ingress:
           enabled: false
         s3:
-          secretAccessKey: nId+Adeh9kK6pE8zrmz5VIJGS16uhE1OrlrCeKQr
+          secretAccessKey: 0UieenujOylQstz8MvGZRuwJN2HeOjR3T4UbSkLj
           defaultRegion: us-east-1
-          endpoint: minio.lab.sspcloud.fr
+          endpoint: minio.datalab.svc.cluster.local:9000
           accessKeyId: 3TOG7F1225UA0SCBCXEF
           enabled: true
           sessionToken: eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3NLZXkiOiIzVE9HN0YxMjI1VUEwU0NCQ1hFRiIsImFsbG93ZWQtb3JpZ2lucyI6WyIqIl0sImF1ZCI6WyJtaW5pby1kYXRhbm9kZSIsIm9ueXhpYSIsImFjY291bnQiXSwiYXV0aF90aW1lIjoxNzUwMjE4MDcyLCJhenAiOiJvbnl4aWEiLCJlbWFpbCI6InRob21hcy5ndXlhZGVyQGdvdXYubmMiLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwiZXhwIjoxNzUwODIyODkwLCJmYW1pbHlfbmFtZSI6Ikd1eWFkZXIiLCJnaXZlbl9uYW1lIjoiVGhvbWFzIiwiZ3JvdXBzIjpbIlVTRVJfT05ZWElBIl0sImlhdCI6MTc1MDIxODA5MCwiaXNzIjoiaHR0cHM6Ly9hdXRoLmxhYi5zc3BjbG91ZC5mci9hdXRoL3JlYWxtcy9zc3BjbG91ZCIsImp0aSI6Im9ucnRydDoyZjFhMmU2ZC02NmI2LTRiYmEtYTI5OS1hYTNhYmE3Mzc1ZjMiLCJuYW1lIjoiVGhvbWFzIEd1eWFkZXIiLCJwb2xpY3kiOiJzdHNvbmx5IiwicHJlZmVycmVkX3VzZXJuYW1lIjoidGhvbWFzZ3V5YWRlciIsInJlYWxtX2FjY2VzcyI6eyJyb2xlcyI6WyJvZmZsaW5lX2FjY2VzcyIsInVtYV9hdXRob3JpemF0aW9uIiwiZGVmYXVsdC1yb2xlcy1zc3BjbG91ZCJdfSwicmVzb3VyY2VfYWNjZXNzIjp7ImFjY291bnQiOnsicm9sZXMiOlsibWFuYWdlLWFjY291bnQiLCJtYW5hZ2UtYWNjb3VudC1saW5rcyIsInZpZXctcHJvZmlsZSJdfX0sInJvbGVzIjpbIm9mZmxpbmVfYWNjZXNzIiwidW1hX2F1dGhvcml6YXRpb24iLCJkZWZhdWx0LXJvbGVzLXNzcGNsb3VkIl0sInNjb3BlIjoib3BlbmlkIHByb2ZpbGUgZ3JvdXBzIGVtYWlsIiwic2lkIjoiNGIzYTMxYTEtNzFmMC00ZDJjLWIyODgtZTk1NmRjMzAyNjIxIiwic3ViIjoiZDI3OTAwNmEtM2YxYS00YjU3LThkMTQtYzdkZDI1N2ZlMzBhIiwidHlwIjoiQmVhcmVyIn0.DZHazkcQ5UIATiRahPj-DlWwwVaknqiFW-UXguxdJtxnnIrtdV1Yptli49Ho_UhSpZmUDi2Sp-k23E8rBdKVhQ
