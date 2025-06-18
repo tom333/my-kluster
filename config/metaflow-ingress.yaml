@@ -5,7 +5,7 @@ metadata:
     cert-manager.io/cluster-issuer: letsencrypt-prod
     nginx.ingress.kubernetes.io/whitelist-source-range: 0.0.0.0/0
   generation: 1
-  name: metaflow-backend
+  name: metaflow-ingress
   namespace: datalab
   
 spec:
