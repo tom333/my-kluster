@@ -11,8 +11,8 @@ spec:
     server: https://kubernetes.default.svc
   project: datalab-project
   source:
-    repoURL: registry-1.docker.io/bitnamicharts
-    targetRevision: 17.0.4
+    repoURL: https://charts.min.io
+    targetRevision: 5.4.0
     chart: minio
     helm:
       values: |
@@ -20,21 +20,29 @@ spec:
         mode: standalone
         persistence:
           size: 10Gi
-        existingSecret: minio-secret
-        console:
-          enabled: true
-          ingress:
-            enabled: true
-            annotations:
-              cert-manager.io/cluster-issuer: "letsencrypt-prod"
-            hostname: minio-console.tgu.ovh
-            tls: true
         ingress:
           enabled: true
           annotations:
             cert-manager.io/cluster-issuer: "letsencrypt-prod"
-          hostname: minio.tgu.ovh
-          tls: true
+          path: /
+          hosts:
+            - minio.tgu.ovh
+          tls:
+            - hosts:
+                - minio.tgu.ovh
+        consoleIngress:
+          enabled: true
+          annotations:
+            cert-manager.io/cluster-issuer: "letsencrypt-prod"
+          paths: /
+          hosts:
+            - minio-console.tgu.ovh
+          tls:
+            - hosts:
+                - minio-console.tgu.ovh
+        environment:
+          MINIO_BROWSER_REDIRECT_URL: https://minio-console.tgu.ovh
+        
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
