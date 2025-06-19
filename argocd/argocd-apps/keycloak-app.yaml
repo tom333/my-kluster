@@ -42,26 +42,26 @@ spec:
           - name: ONYXIA_RESOURCES_ALLOWED_ORIGINS
             value: "https://datalab.tgu.ovh, http://localhost, http://127.0.0.1"
 
-        # initContainers:
-        #   - name: realm-ext-provider
-        #     image: curlimages/curl
-        #     imagePullPolicy: IfNotPresent
-        #     command:
-        #       - sh
-        #     args:
-        #       - -c
-        #       - |
-        #         # NOTE: Here we deploy on Keycloak 24, when updating to Keycloak 26 use this link instead: https://github.com/InseeFrLab/onyxia/releases/download/v10.21.1/keycloak-theme.jar
-        #         # The Onyxia Keycloak theme is published alongside the Onyxia releases as a artifacts: https://github.com/InseeFrLab/onyxia/releases
+        initContainers:
+          - name: realm-ext-provider
+            image: curlimages/curl
+            imagePullPolicy: IfNotPresent
+            command:
+              - sh
+            args:
+              - -c
+              - |
+                # NOTE: Here we deploy on Keycloak 24, when updating to Keycloak 26 use this link instead: https://github.com/InseeFrLab/onyxia/releases/download/v10.21.1/keycloak-theme.jar
+                # The Onyxia Keycloak theme is published alongside the Onyxia releases as a artifacts: https://github.com/InseeFrLab/onyxia/releases
 
-        #         curl -L -f -S -o /extensions/theme-onyxia-web.jar https://github.com/InseeFrLab/onyxia/releases/download/v10.21.1/keycloak-theme.jar
-        #     volumeMounts:
-        #       - name: extensions
-        #         mountPath: /extensions
+                curl -L -f -S -o /extensions/theme-onyxia-web.jar https://github.com/InseeFrLab/onyxia/releases/download/v10.21.1/keycloak-theme.jar
+            volumeMounts:
+              - name: extensions
+                mountPath: /extensions
 
-        # extraVolumeMounts:
-        #   - name: extensions
-        #     mountPath: /opt/bitnami/keycloak/providers
+        extraVolumeMounts:
+          - name: extensions
+            mountPath: /opt/bitnami/keycloak/providers
 
         # extraVolumes:
         #   - name: extensions
