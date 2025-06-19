@@ -7,7 +7,7 @@ metadata:
     - resources-finalizer.argocd.argoproj.io
 spec:
   destination:
-    namespace: onyxia
+    namespace: datalab
     server: https://kubernetes.default.svc
   project: datalab-project
   source:
@@ -16,34 +16,7 @@ spec:
     chart: minio
     helm:
       values: |
-        replicas: 1
-        mode: standalone
-        persistence:
-          size: 10Gi
-        ingress:
-          enabled: true
-          annotations:
-            cert-manager.io/cluster-issuer: "letsencrypt-prod"
-          path: /
-          hosts:
-            - minio.tgu.ovh
-          tls:
-            - secretName: minio-tls
-              hosts:
-                - minio.tgu.ovh
-        consoleIngress:
-          enabled: true
-          annotations:
-            cert-manager.io/cluster-issuer: "letsencrypt-prod"
-          paths: /
-          hosts:
-            - minio-console.tgu.ovh
-          tls:
-            - secretName: minio-console-tls
-              hosts:
-                - minio-console.tgu.ovh
-        environment:
-          MINIO_BROWSER_REDIRECT_URL: https://minio-console.tgu.ovh
+        
         
   syncPolicy:
     syncOptions:
