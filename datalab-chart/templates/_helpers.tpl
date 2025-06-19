@@ -32,7 +32,7 @@ Create chart name and version as used by the chart label.
 
 {{/*
 Common labels
-*/
+*/}}
 {{- define "datalab.labels" -}}
 helm.sh/chart: {{ include "datalab.chart" . }}
 {{ include "datalab.selectorLabels" . }}
@@ -44,7 +44,7 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 
 {{/*
 Selector labels
-*/
+*/}}
 {{- define "datalab.selectorLabels" -}}
 app.kubernetes.io/name: {{ include "datalab.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
