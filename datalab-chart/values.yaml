@@ -100,7 +100,7 @@ metaflow:
       port: 5432
       name: metaflow
       user: postgres
-      secretName: postgresql
+      secretName: lab-postgresql
     resources:
       limits:
         cpu: 500m
