@@ -41,9 +41,9 @@ spec:
           # https://github.com/InseeFrLab/onyxia-api?tab=readme-ov-file#configuration
           env:
             #security.cors.allowed_origins: "*"
-            # authentication.mode: "openidconnect"
-            oidc.issuer-uri: "https://auth.lab.tgu.ovh/auth/realms/datalab"
-            oidc.clientID: "onyxia"
+            authentication.mode: "none"
+            # oidc.issuer-uri: "https://auth.lab.tgu.ovh/auth/realms/datalab"
+            # oidc.clientID: "onyxia"
             # oidc.audience: "onyxia"
             #oidc.extra-query-params: "kc_idp_hint=google&foo=bar"
             #springdoc.swagger-ui.oauth.clientId: onyxia
