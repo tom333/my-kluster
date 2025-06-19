@@ -73,7 +73,7 @@ postgresql:
       auth:
         database: metaflow
         username: postgres
-        existingSecret: ""
+        password: password
   primary:
     extendedConfiguration: |-
       max_connections = 100
@@ -100,7 +100,7 @@ metaflow:
       port: 5432
       name: metaflow
       user: postgres
-      secretName: lab-postgresql
+      password: password
     resources:
       limits:
         cpu: 500m
