@@ -1,0 +1,15 @@
+apiVersion: v2
+name: datalab
+version: 1.0.0
+dependencies:
+  - name: mlflow
+    version: 1.1.0
+    repository: https://community-charts.github.io/helm-charts
+  - name: minio
+    version: 5.0.15
+    repository: https://charts.min.io/
+  - name: metaflow
+    version: 1.0.2
+    repository: https://inseefrlab.github.io/helm-charts-automation
+    
+    

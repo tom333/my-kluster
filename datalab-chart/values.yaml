@@ -1,0 +1,80 @@
+minio:
+  replicas: 1
+  mode: standalone
+  persistence:
+    size: 10Gi
+  ingress:
+    enabled: true
+    annotations:
+      cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    path: /
+    hosts:
+      - minio.tgu.ovh
+    tls:
+      - secretName: minio-tls
+        hosts:
+          - minio.tgu.ovh
+  consoleIngress:
+    enabled: true
+    annotations:
+      cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    paths: /
+    hosts:
+      - minio-console.tgu.ovh
+    tls:
+      - secretName: minio-console-tls
+        hosts:
+          - minio-console.tgu.ovh
+  environment:
+    MINIO_BROWSER_REDIRECT_URL: https://minio-console.tgu.ovh
+mlflow: 
+  strategy:
+    type: Recreate
+
+  extraVolumes:
+    - name: mlflow-volume
+      persistentVolumeClaim:
+        claimName: mlflow-pvc
+
+  extraVolumeMounts:
+    - name: mlflow-volume
+      mountPath: /mlflow/data
+
+  backendStore:
+    defaultSqlitePath: "/mlflow/data/mlflow.db"
+
+  artifactRoot:
+    proxiedArtifactStorage: true
+    defaultArtifactsDestination: "/mlflow/data/mlartifacts"
+
+  ingress:
+    enabled: true
+    annotations:
+      cert-manager.io/cluster-issuer: "letsencrypt-prod"
+      nginx.ingress.kubernetes.io/proxy-body-size: 512m
+      # nginx.ingress.kubernetes.io/auth-url: "https://auth.tgu.ovh/oauth2/auth"
+      # nginx.ingress.kubernetes.io/auth-signin: "https://auth.tgu.ovh/oauth2/start?rd=https://mlflow.tgu.ovh"
+    hosts:
+      - host: mlflow.tgu.ovh
+        paths:
+        - path: /
+          pathType: ImplementationSpecific
+    tls:
+      - secretName: mlflow-tls
+        hosts:
+          - mlflow.tgu.ovh
+  auth:
+    enabled: false
+metaflow: 
+  ingress:
+    enabled: false
+  s3:
+    secretAccessKey: 0UieenujOylQstz8MvGZRuwJN2HeOjR3T4UbSkLj
+    defaultRegion: us-east-1
+    endpoint: minio.datalab.svc.cluster.local:9000
+    accessKeyId: 3TOG7F1225UA0SCBCXEF
+    enabled: true
+    sessionToken: eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3NLZXkiOiIzVE9HN0YxMjI1VUEwU0NCQ1hFRiIsImFsbG93ZWQtb3JpZ2lucyI6WyIqIl0sImF1ZCI6WyJtaW5pby1kYXRhbm9kZSIsIm9ueXhpYSIsImFjY291bnQiXSwiYXV0aF90aW1lIjoxNzUwMjE4MDcyLCJhenAiOiJvbnl4aWEiLCJlbWFpbCI6InRob21hcy5ndXlhZGVyQGdvdXYubmMiLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwiZXhwIjoxNzUwODIyODkwLCJmYW1pbHlfbmFtZSI6Ikd1eWFkZXIiLCJnaXZlbl9uYW1lIjoiVGhvbWFzIiwiZ3JvdXBzIjpbIlVTRVJfT05ZWElBIl0sImlhdCI6MTc1MDIxODA5MCwiaXNzIjoiaHR0cHM6Ly9hdXRoLmxhYi5zc3BjbG91ZC5mci9hdXRoL3JlYWxtcy9zc3BjbG91ZCIsImp0aSI6Im9ucnRydDoyZjFhMmU2ZC02NmI2LTRiYmEtYTI5OS1hYTNhYmE3Mzc1ZjMiLCJuYW1lIjoiVGhvbWFzIEd1eWFkZXIiLCJwb2xpY3kiOiJzdHNvbmx5IiwicHJlZmVycmVkX3VzZXJuYW1lIjoidGhvbWFzZ3V5YWRlciIsInJlYWxtX2FjY2VzcyI6eyJyb2xlcyI6WyJvZmZsaW5lX2FjY2VzcyIsInVtYV9hdXRob3JpemF0aW9uIiwiZGVmYXVsdC1yb2xlcy1zc3BjbG91ZCJdfSwicmVzb3VyY2VfYWNjZXNzIjp7ImFjY291bnQiOnsicm9sZXMiOlsibWFuYWdlLWFjY291bnQiLCJtYW5hZ2UtYWNjb3VudC1saW5rcyIsInZpZXctcHJvZmlsZSJdfX0sInJvbGVzIjpbIm9mZmxpbmVfYWNjZXNzIiwidW1hX2F1dGhvcml6YXRpb24iLCJkZWZhdWx0LXJvbGVzLXNzcGNsb3VkIl0sInNjb3BlIjoib3BlbmlkIHByb2ZpbGUgZ3JvdXBzIGVtYWlsIiwic2lkIjoiNGIzYTMxYTEtNzFmMC00ZDJjLWIyODgtZTk1NmRjMzAyNjIxIiwic3ViIjoiZDI3OTAwNmEtM2YxYS00YjU3LThkMTQtYzdkZDI1N2ZlMzBhIiwidHlwIjoiQmVhcmVyIn0.DZHazkcQ5UIATiRahPj-DlWwwVaknqiFW-UXguxdJtxnnIrtdV1Yptli49Ho_UhSpZmUDi2Sp-k23E8rBdKVhQ
+  service:
+    # namespace: user-thomasguyader
+    METAFLOW_DATASTORE_SYSROOT_S3: s3://metaflow
