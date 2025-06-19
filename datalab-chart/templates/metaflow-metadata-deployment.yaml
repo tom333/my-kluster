@@ -34,7 +34,7 @@ spec:
           valueFrom:
             secretKeyRef:
               name: {{ .Values.metaflow.metadataService.db.secretName }}
-              key: password
+              key: postgres-password
         - name: MF_METADATA_DB_NAME
           value: {{ .Values.metaflow.metadataService.db.name }}
         resources:
