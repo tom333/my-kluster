@@ -41,7 +41,7 @@ spec:
         extraEnvVars: 
           - name: ONYXIA_RESOURCES_ALLOWED_ORIGINS
             value: "https://datalab.tgu.ovh, http://localhost, http://127.0.0.1"
-
+        resourcesPreset: "micro"
         initContainers:
           - name: realm-ext-provider
             image: curlimages/curl
