@@ -113,7 +113,7 @@ metaflow:
   ui:
     image:
       repository: public.ecr.aws/outerbounds/metaflow_ui
-      tag: latest
+      tag: v1.3.3
     serviceUrl: https://{{ .Values.metaflow.ingress.host }}
     internalServiceUrl: http://{{ include "datalab.fullname" . }}-metaflow-backend:8083
     resources:
