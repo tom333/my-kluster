@@ -29,7 +29,7 @@ spec:
         - name: MF_METADATA_DB_HOST
           value: {{ .Values.metaflow.metadataService.db.host }}
         - name: MF_METADATA_DB_USER
-          value: {{ .Values.postgresql.auth.user }}
+          value: {{ .Values.postgresql.auth.username }}
         - name: MF_METADATA_DB_PSWD
           value: {{ .Values.postgresql.auth.password }}
         - name: MF_METADATA_DB_NAME
