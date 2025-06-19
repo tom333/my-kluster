@@ -23,17 +23,24 @@ spec:
             pathType: Prefix
           - backend:
               service:
-                name: metaflow-static
+                name: lab-metaflow-static
                 port:
                   number: 3000
             path: /
             pathType: Prefix
           - backend:
               service:
-                name: metaflow-static
+                name: lab-metaflow-static
                 port:
                   number: 3000
             path: /static
+            pathType: Prefix
+          - backend:
+              service:
+                name: lab-metaflow-metadata-service
+                port:
+                  number: 8080
+            path: /service
             pathType: Prefix
   tls:
     - hosts:
