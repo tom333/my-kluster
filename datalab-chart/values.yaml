@@ -129,9 +129,10 @@ metaflow:
     enabled: true
     className: public
     host: metaflow.tgu.ovh
-    annotations:
-      cert-manager.io/cluster-issuer: letsencrypt-prod
-      nginx.ingress.kubernetes.io/whitelist-source-range: 0.0.0.0/0
+    annotations: {}
+    # Uncomment and modify these annotations as needed
+    #  cert-manager.io/cluster-issuer: letsencrypt-prod
+    #  nginx.ingress.kubernetes.io/whitelist-source-range: 0.0.0.0/0
     tls:
       - secretName: metaflow-secret-tls
         hosts:
