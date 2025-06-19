@@ -68,12 +68,10 @@ mlflow:
 # PostgreSQL Configuration
 postgresql:
   enabled: true
-  global:
-    postgresql:
-      auth:
-        database: metaflow
-        username: postgres
-        password: password
+  auth:
+    database: metaflow
+    username: postgres
+    password: password
   primary:
     extendedConfiguration: |-
       max_connections = 100
