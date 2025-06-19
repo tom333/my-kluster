@@ -63,9 +63,9 @@ spec:
           - name: extensions
             mountPath: /opt/bitnami/keycloak/providers
 
-        # extraVolumes:
-        #   - name: extensions
-        #     emptyDir: {}
+        extraVolumes:
+          - name: extensions
+            emptyDir: {}
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
