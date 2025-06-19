@@ -96,7 +96,7 @@ metaflow:
       repository: netflixoss/metaflow_metadata_service
       tag: latest
     db:
-      host: postgresql
+      host: lab-postgresql.datalab.svc.cluster.local
       port: 5432
       name: metaflow
       user: postgres
@@ -129,9 +129,8 @@ metaflow:
     enabled: true
     className: public
     host: metaflow.tgu.ovh
-    annotations: {}
-    # Uncomment and modify these annotations as needed
-    #  cert-manager.io/cluster-issuer: letsencrypt-prod
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-prod
     #  nginx.ingress.kubernetes.io/whitelist-source-range: 0.0.0.0/0
     tls:
       - secretName: metaflow-secret-tls
