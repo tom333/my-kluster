@@ -16,7 +16,7 @@ spec:
         paths:
           - backend:
               service:
-                name: metaflow-backend
+                name: lab-metaflow-backend
                 port:
                   number: 8083
             path: /api
