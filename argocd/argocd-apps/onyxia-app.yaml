@@ -85,6 +85,27 @@ spec:
               }
             }
           ]
+          livenessProbe:
+            enabled: true
+            path: /public/healthcheck
+            failureThreshold: 3
+            periodSeconds: 30
+            successThreshold: 1
+            timeoutSeconds: 1
+          readinessProbe:
+            enabled: true
+            path: /public/healthcheck
+            failureThreshold: 3
+            periodSeconds: 30
+            successThreshold: 1
+            timeoutSeconds: 1
+          startupProbe:
+            enabled: false
+            path: /public/healthcheck
+            failureThreshold: 3
+            periodSeconds: 30
+            successThreshold: 1
+            timeoutSeconds: 1
 
         
   syncPolicy:
