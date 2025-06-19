@@ -29,10 +29,10 @@ spec:
         - name: MF_METADATA_DB_HOST
           value: {{ .Values.metaflow.metadataService.db.host }}
         - name: MF_METADATA_DB_USER
-          value: {{ .Values.metaflow.metadataService.db.user }}
+          value: {{ .Values.postgresql.auth.user }}
         - name: MF_METADATA_DB_PSWD
-          value: {{ .Values.metaflow.metadataService.db.password }}
+          value: {{ .Values.postgresql.auth.password }}
         - name: MF_METADATA_DB_NAME
-          value: {{ .Values.metaflow.metadataService.db.name }}
+          value: {{ .Values.postgresql.auth.database }}
         resources:
           {{- toYaml .Values.metaflow.metadataService.resources | nindent 10 }}
