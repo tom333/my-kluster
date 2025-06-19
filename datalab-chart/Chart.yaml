@@ -11,5 +11,7 @@ dependencies:
   - name: metaflow
     version: 1.0.2
     repository: https://inseefrlab.github.io/helm-charts-automation
-    
-    
+  - name: postgresql
+    version: 13.2.8
+    repository: https://charts.bitnami.com/bitnami
+    condition: postgresql.enabled

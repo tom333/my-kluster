@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "datalab.fullname" . }}-metaflow-metadata
+  labels:
+    {{- include "datalab.labels" . | nindent 4 }}
+    app.kubernetes.io/component: metaflow-metadata
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "datalab.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: metaflow-metadata
+  template:
+    metadata:
+      labels:
+        {{- include "datalab.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: metaflow-metadata
+    spec:
+      containers:
+      - name: metaflow-metadata-service
+        image: {{ .Values.metaflow.metadataService.image.repository }}:{{ .Values.metaflow.metadataService.image.tag | default "latest" }}
+        ports:
+        - containerPort: 8080
+          name: http
+        env:
+        - name: MF_METADATA_DB_PORT
+          value: {{ .Values.metaflow.metadataService.db.port | quote }}
+        - name: MF_METADATA_DB_HOST
+          value: {{ .Values.metaflow.metadataService.db.host }}
+        - name: MF_METADATA_DB_USER
+          value: {{ .Values.metaflow.metadataService.db.user }}
+        - name: MF_METADATA_DB_PSWD
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.metaflow.metadataService.db.secretName }}
+              key: password
+        - name: MF_METADATA_DB_NAME
+          value: {{ .Values.metaflow.metadataService.db.name }}
+        resources:
+          {{- toYaml .Values.metaflow.metadataService.resources | nindent 10 }}
