@@ -20,6 +20,7 @@ spec:
       containers:
       - name: metaflow-metadata-service
         image: {{ .Values.metaflow.metadataService.image.repository }}:{{ .Values.metaflow.metadataService.image.tag | default "latest" }}
+        command: ["/opt/latest/bin/python3", "-m", "services.ui_backend_service.ui_server" ]
         ports:
         - name: http
           containerPort: 8083
