@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "datalab.fullname" . }}-metaflow-backend
+  labels:
+    {{- include "datalab.labels" . | nindent 4 }}
+    app.kubernetes.io/component: metaflow-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "datalab.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: metaflow-backend
+  template:
+    metadata:
+      labels:
+        {{- include "datalab.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: metaflow-backend
+    spec:
+      containers:
+      - name: metaflow-backend-service
+        image: {{ .Values.metaflow.metadataService.image.repository }}:{{ .Values.metaflow.metadataService.image.tag | default "latest" }}
+        command: ["/opt/latest/bin/python3", "-m", "services.ui_backend_service.ui_server" ]
+        ports:
+        - name: http
+          containerPort: 8083
+          protocol: TCP
+        livenessProbe:
+          httpGet:
+            path: /ping
+            port: http
+        readinessProbe:
+          httpGet:
+            path: /ping
+            port: http
+        env:
+        - name: UI_ENABLED
+          value: "1"
+        - name: PATH_PREFIX
+          value: "/api"
+        - name: METAFLOW_SERVICE_URL
+          value: "http://localhost:8083/api/metadata"
+        - name: METAFLOW_DEFAULT_DATASTORE
+          value: "s3"
+        - name: METAFLOW_DEFAULT_METADATA
+          value: "service"
+        - name: MF_METADATA_DB_PORT
+          value: {{ .Values.metaflow.metadataService.db.port | quote }}
+        - name: MF_METADATA_DB_HOST
+          value: {{ .Values.metaflow.metadataService.db.host }}
+        - name: MF_METADATA_DB_USER
+          value: {{ .Values.postgresql.global.postgresql.auth.username }}
+        - name: MF_METADATA_DB_PSWD
+          value: {{ .Values.postgresql.global.postgresql.auth.password }}
+        - name: MF_METADATA_DB_NAME
+          value: {{ .Values.postgresql.global.postgresql.auth.database }}
+        resources:
+          {{- toYaml .Values.metaflow.metadataService.resources | nindent 10 }}
