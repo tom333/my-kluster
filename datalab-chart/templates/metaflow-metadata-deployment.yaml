@@ -21,8 +21,9 @@ spec:
       - name: metaflow-metadata-service
         image: {{ .Values.metaflow.metadataService.image.repository }}:{{ .Values.metaflow.metadataService.image.tag | default "latest" }}
         ports:
-        - containerPort: 8080
-          name: http
+        - name: http
+          containerPort: 8083
+          protocol: TCP
         env:
         - name: MF_METADATA_DB_PORT
           value: {{ .Values.metaflow.metadataService.db.port | quote }}
