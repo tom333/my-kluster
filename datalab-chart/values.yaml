@@ -137,7 +137,8 @@ metaflow:
   # S3 Configuration
   s3:
     enabled: true
-    bucket: s3://metaflow
+    bucket_sysroot: s3://metaflow/metaflow
+    bucket_root: s3://metaflow/data
     accessKeyId: STEFqvyfCgIGtd1uB7Ho
     secretAccessKey: rnWldZiezsOwfG7Qbxhhq1cauAwIQimBNPRVLhMb
     defaultRegion: us-east-1
