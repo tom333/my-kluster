@@ -72,6 +72,8 @@ postgresql:
     database: metaflow
     username: metaflow
     password: password
+  passwordUpdateJob:
+    enabled: true
   primary:
     extendedConfiguration: |-
       max_connections = 100
