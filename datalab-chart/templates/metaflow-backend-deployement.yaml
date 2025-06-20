@@ -47,16 +47,16 @@ spec:
         - name: METAFLOW_DEFAULT_DATASTORE
           value: "s3"
         - name: METAFLOW_DATASTORE_SYSROOT_S3
-          value: {{ .Values.s3.bucket | quote }}
+          value: {{ .Values.metaflow.s3.bucket | quote }}
         - name: AWS_SECRET_ACCESS_KEY
-          value: "{{ .Values.s3.secretAccessKey }}"
+          value: "{{ .Values.metaflow.s3.secretAccessKey }}"
         - name: AWS_ACCESS_KEY_IDD
-          value: "{{ .Values.s3.accessKeyId }}"
+          value: "{{ .Values.metaflow.s3.accessKeyId }}"
         - name: AWS_S3_ENDPOINT
-          value: "{{ .Values.s3.endpoint }}"
+          value: "{{ .Values.metaflow.s3.endpoint }}"
         - name: AWS_S3_DEFAULT_REGION
-          value: "{{ .Values.s3.defaultRegion}}"
+          value: "{{ .Values.metaflow.s3.defaultRegion}}"
         - name: AWS_SESSION_TOKEN
-          value: "{{ .Values.s3.sessionToken }}"
+          value: "{{ .Values.metaflow.s3.sessionToken }}"
         resources:
           {{- toYaml .Values.metaflow.metadataService.resources | nindent 10 }}
