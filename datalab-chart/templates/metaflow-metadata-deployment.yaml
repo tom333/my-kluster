@@ -23,7 +23,7 @@ spec:
         command: ["/opt/latest/bin/python3", "-m", "services.ui_backend_service.ui_server" ]
         ports:
         - name: http
-          containerPort: 8083
+          containerPort: 8080
           protocol: TCP
         env:
         - name: MF_METADATA_DB_PORT
