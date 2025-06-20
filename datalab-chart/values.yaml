@@ -98,9 +98,6 @@ metaflow:
     db:
       host: lab-postgresql.datalab.svc.cluster.local
       port: 5432
-      name: metaflow
-      user: postgres
-      password: password
     resources:
       limits:
         cpu: 500m
