@@ -31,7 +31,7 @@ spec:
               service:
                 name: {{ include "datalab.fullname" . }}-metaflow-metadata
                 port:
-                  number: 8080
+                  number: 8083
           - path: /
             pathType: Prefix
             backend:
