@@ -142,7 +142,7 @@ metaflow:
     accessKeyId: STEFqvyfCgIGtd1uB7Ho
     secretAccessKey: rnWldZiezsOwfG7Qbxhhq1cauAwIQimBNPRVLhMb
     defaultRegion: us-east-1
-    endpoint: lab-minio.datalab.svc.cluster.local:9000
+    endpoint: http://lab-minio.datalab.svc.cluster.local:9000
   service:
     # namespace: user-thomasguyader
     METAFLOW_DATASTORE_SYSROOT_S3: s3://metaflow
