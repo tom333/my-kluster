@@ -25,14 +25,6 @@ spec:
         - name: http
           containerPort: 8083
           protocol: TCP
-        livenessProbe:
-          httpGet:
-            path: /ping
-            port: http
-        readinessProbe:
-          httpGet:
-            path: /ping
-            port: http
         env:
         - name: UI_ENABLED
           value: "1"
