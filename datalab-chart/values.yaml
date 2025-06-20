@@ -70,7 +70,7 @@ postgresql:
   enabled: true
   auth:
     database: metaflow
-    username: postgres
+    username: metaflow
     password: password
   primary:
     extendedConfiguration: |-
