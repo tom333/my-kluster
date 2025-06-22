@@ -29,10 +29,23 @@ spec:
             secretName: registry-credentials
         kube-prometheus-stack:
           enabled: false
-
-        # mlrun:
-        #     ce:
-        #       mode: light
+        ui:
+          ingress:
+            enabled: true
+            annotations:
+              cert-manager.io/cluster-issuer: "letsencrypt-prod"
+            hosts:
+              - host: mlrun.tgu.ovh
+                paths:
+                  - path: /
+                    pathType: Prefix
+            tls:
+              - secretName: mlrun-tls
+                hosts:
+                  - mlrun.tgu.ovh
+        mlrun:
+            ce:
+              mode: light
         jupyterNotebook:
           enabled: true
           ingress:
@@ -45,11 +58,9 @@ spec:
                   - path: /
                     pathType: Prefix
             tls:
-              - secretName: mlrun-tls
+              - secretName: mlrun-jupiter-tls
                 hosts:
                   - jupyter.mlrun.tgu.ovh
-        # kube-prometheus-stack:
-        #   enabled: false
 
   syncPolicy:
     syncOptions:
