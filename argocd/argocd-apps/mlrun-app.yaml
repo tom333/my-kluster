@@ -46,8 +46,16 @@ spec:
         mlrun:
             ce:
               mode: light
+        minio:
+          enabled: false
+        spark-operator:
+          enabled: false
+        tdengine:
+          enabled: false
+        kafka:
+          enabled: false
         jupyterNotebook:
-          enabled: true
+          enabled: false
           ingress:
             enabled: true
             annotations:
