@@ -27,28 +27,27 @@ spec:
           registry:
             url: index.docker.io/tom333
             secretName: registry-credentials
+        kube-prometheus-stack:
+          enabled: false
+
         # mlrun:
         #     ce:
         #       mode: light
-        # jupyterNotebook:
-        #   enabled: false
-        #   ingress:
-        #     enabled: false
-        #     annotations:
-        #       cert-manager.io/cluster-issuer: "letsencrypt-prod"
-        #       ingress.pomerium.io/allowed_users: |
-        #         - laboitatom@gmail.com
-        #       ingress.pomerium.io/allow_any_authenticated_user: 'true'
-        #       ingress.pomerium.io/allow_websockets: 'true'
-        #     hosts:
-        #       - host: jupyter.mlrun.tgu.ovh
-        #         paths:
-        #           - path: /
-        #             pathType: Prefix
-        #     tls:
-        #       - secretName: mlrun-tls
-        #         hosts:
-        #           - jupyter.mlrun.tgu.ovh
+        jupyterNotebook:
+          enabled: true
+          ingress:
+            enabled: true
+            annotations:
+              cert-manager.io/cluster-issuer: "letsencrypt-prod"
+            hosts:
+              - host: jupyter.mlrun.tgu.ovh
+                paths:
+                  - path: /
+                    pathType: Prefix
+            tls:
+              - secretName: mlrun-tls
+                hosts:
+                  - jupyter.mlrun.tgu.ovh
         # kube-prometheus-stack:
         #   enabled: false
 
