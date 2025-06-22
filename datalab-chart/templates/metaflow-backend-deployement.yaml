@@ -48,7 +48,7 @@ spec:
           value: "s3"
         - name: METAFLOW_DATASTORE_SYSROOT_S3
           value: {{ .Values.metaflow.s3.bucket_sysroot | quote }}
-        - name:   METAFLOW_DATATOOLS_S3ROOT
+        - name: METAFLOW_DATATOOLS_S3ROOT
           value: {{ .Values.metaflow.s3.bucket_root | quote }}
         
         - name: AWS_SECRET_ACCESS_KEY

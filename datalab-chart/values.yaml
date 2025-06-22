@@ -139,8 +139,8 @@ metaflow:
     enabled: true
     bucket_sysroot: s3://metaflow/metaflow
     bucket_root: s3://metaflow/data
-    accessKeyId: STEFqvyfCgIGtd1uB7Ho
-    secretAccessKey: rnWldZiezsOwfG7Qbxhhq1cauAwIQimBNPRVLhMb
+    accessKeyId: k4gVMJRpiLgSAcwtJQrl
+    secretAccessKey: bjszgUx0E6uYIeKhMiDVibEwXwzALs05at2H1UzY
     defaultRegion: us-east-1
     endpoint: http://lab-minio.datalab.svc.cluster.local:9000
   service:
