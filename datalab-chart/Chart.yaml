@@ -8,7 +8,6 @@ dependencies:
   - name: minio
     version: 5.4.0
     repository: https://charts.min.io/
-  - name: postgresql
-    version: 16.7.13
-    repository: https://charts.bitnami.com/bitnami
-    condition: postgresql.enabled
+  - name: mariadb
+    version: 20.5.9
+    repository: registry-1.docker.io/bitnamicharts/mariadb
