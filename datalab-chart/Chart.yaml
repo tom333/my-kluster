@@ -10,4 +10,4 @@ dependencies:
     repository: https://charts.min.io/
   - name: mariadb
     version: 20.5.9
-    repository: registry-1.docker.io/bitnamicharts
+    repository: oci://registry-1.docker.io/bitnamicharts
