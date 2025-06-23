@@ -68,9 +68,8 @@ mlflow:
 mariadb:
   auth:
     user: "zenml"
-    password: "zenml"
     database: "zenml"
-    rootPassword: "password"
+    existingSecret: mariadb-auth-secret
 zenml:
   database:
     url: "mysql://zenml:zenml@lab-mariadb.datalab.svc.cluster.local:3306/zenml"
