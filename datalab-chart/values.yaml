@@ -70,6 +70,7 @@ mariadb:
     user: "zenml"
     password: "zenml"
     database: "zenml"
+    rootPassword: "password"
 zenml:
   database:
     url: "mysql://zenml:zenml@lab-mariadb.datalab.svc.cluster.local:3306/zenml"
