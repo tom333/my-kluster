@@ -1,0 +1,27 @@
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/auth-url: "https://auth.tgu.ovh/oauth2/auth"
+    nginx.ingress.kubernetes.io/auth-signin: "https://auth.tgu.ovh/oauth2/start?rd=https://dashboard.tgu.ovh"   
+
+  name: dashboard
+  namespace: kube-system
+spec:
+  rules:
+    - host: dashboard.tgu.ovh
+      http:
+        paths:
+          - backend:
+              service:
+                name: kubernetes-dashboard
+                port:
+                  number: 443
+            path: /
+            pathType: ImplementationSpecific
+  tls:
+    - hosts:
+        - dashboard.tgu.ovh
+      secretName: dashboard.tgu.ovh-tls
