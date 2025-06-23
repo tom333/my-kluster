@@ -13,4 +13,4 @@ dependencies:
     repository: oci://registry-1.docker.io/bitnamicharts
   - name: zenml
     version: 0.84.0
-    repository: https://public.ecr.aws/zenml
+    repository: oci://public.ecr.aws/zenml
