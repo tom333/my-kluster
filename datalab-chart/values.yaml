@@ -87,6 +87,8 @@ zenml:
     tls:
       enabled: true
   deploymentType: local
+  debug: false
+  analyticsOptIn: false          
 mysql:
   auth:
     user: "zenml"
