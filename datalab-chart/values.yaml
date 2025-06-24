@@ -65,19 +65,19 @@ mlflow:
           - mlflow.tgu.ovh
   auth:
     enabled: false
-# mariadb:
-#   auth:
-#     user: "zenml"
-#     database: "zenml"
-#     existingSecret: mariadb-auth-secret
-# zenml:
-#   database:
-#     url: "mysql://zenml:zenml@lab-mariadb.datalab.svc.cluster.local:3306/zenml"
-#   ingress:
-#     enabled: true
-#     annotations: 
-#       cert-manager.io/cluster-issuer: letsencrypt-prod        
-#     host: zenml.tgu.ovh
-#     tls:
-#       enabled: true
-#   deploymentType: local
+mariadb:
+  auth:
+    user: "zenml"
+    database: "zenml"
+    existingSecret: mariadb-auth-secret
+zenml:
+  database:
+    url: "mysql://zenml:zenml@lab-mariadb.datalab.svc.cluster.local:3306/zenml"
+  ingress:
+    enabled: true
+    annotations: 
+      cert-manager.io/cluster-issuer: letsencrypt-prod        
+    host: zenml.tgu.ovh
+    tls:
+      enabled: true
+  deploymentType: local
