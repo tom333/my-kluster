@@ -11,9 +11,9 @@ dependencies:
   # - name: mariadb
   #   version: 20.5.9
   #   repository: oci://registry-1.docker.io/bitnamicharts
-  # - name: mysql
-  #   version: 13.0.2
-  #   repository: oci://registry-1.docker.io/bitnamicharts
+  - name: mariadb
+    version: 4.4.0
+    repository: https://groundhog2k.github.io/helm-charts/
   # - name: zenml
   #   version: 0.83.1
   #   repository: oci://public.ecr.aws/zenml
