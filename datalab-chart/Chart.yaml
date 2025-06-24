@@ -11,6 +11,9 @@ dependencies:
   - name: mariadb
     version: 20.5.9
     repository: oci://registry-1.docker.io/bitnamicharts
+  - name: mariadb
+    version: 20.5.9
+    repository: oci://registry-1.docker.io/bitnamicharts
   # - name: zenml
   #   version: 0.83.1
   #   repository: oci://public.ecr.aws/zenml
