@@ -86,6 +86,7 @@ zenml:
     host: zenml.tgu.ovh
     tls:
       enabled: true
+      secretName: zenml-tls-certs
   deploymentType: local
   debug: false
   analyticsOptIn: false          
