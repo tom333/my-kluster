@@ -8,12 +8,12 @@ dependencies:
   - name: minio
     version: 5.4.0
     repository: https://charts.min.io/
-  - name: mariadb
-    version: 20.5.9
-    repository: oci://registry-1.docker.io/bitnamicharts
-  - name: mysql
-    version: 13.0.2
-    repository: oci://registry-1.docker.io/bitnamicharts
+  # - name: mariadb
+  #   version: 20.5.9
+  #   repository: oci://registry-1.docker.io/bitnamicharts
+  # - name: mysql
+  #   version: 13.0.2
+  #   repository: oci://registry-1.docker.io/bitnamicharts
   # - name: zenml
   #   version: 0.83.1
   #   repository: oci://public.ecr.aws/zenml
