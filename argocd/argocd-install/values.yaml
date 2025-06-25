@@ -25,6 +25,9 @@ argo-cd:
         - hosts:
           - argocd.tgu.ovh
           secretName: argocd-tls
+    env: 
+      - name: ARGOCD_EXEC_TIMEOUT
+        value: 10m
   certificate:
     enabled: true
   global:
