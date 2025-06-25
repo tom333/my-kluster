@@ -11,9 +11,10 @@ spec:
     server: https://kubernetes.default.svc
   project: datalab-project
   source:
-    repoURL: public.ecr.aws/zenml
+    path: helm
+    repoURL: https://github.com/tom333/zenml
     chart: zenml
-    targetRevision: 0.83.0
+    targetRevision: feature/helm_externalize_probe
     helm:
       values: |
         zenml:
@@ -27,6 +28,22 @@ spec:
             tls:
               enabled: true
           deploymentType: local
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 150
+            periodSeconds: 150
+            timeoutSeconds: 10
+            failureThreshold: 5
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: http
+            initialDelaySeconds: 45
+            periodSeconds: 15
+            timeoutSeconds: 10
+            failureThreshold: 5
 
   syncPolicy:
     syncOptions:
