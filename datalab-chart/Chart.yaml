@@ -11,6 +11,6 @@ dependencies:
   - name: mariadb
     version: 4.4.0
     repository: https://groundhog2k.github.io/helm-charts/
-  # - name: zenml
-  #   version: 0.83.1
-  #   repository: oci://public.ecr.aws/zenml
+  - name: zenml
+    version: 0.83.1
+    repository: oci://public.ecr.aws/zenml
