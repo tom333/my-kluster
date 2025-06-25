@@ -11,7 +11,7 @@ spec:
     server: https://kubernetes.default.svc
   project: datalab-project
   source:
-    path: datalab-chart/
+    path: zenml/
     repoURL: https://github.com/tom333/my-kluster.git
     targetRevision: HEAD
     kustomize:

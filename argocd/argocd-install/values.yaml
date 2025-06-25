@@ -34,6 +34,6 @@ argo-cd:
     domain: argocd.tgu.ovh
   configs:
     cm:
-      kustomize.buildOptions: "--enable-helm"
+      kustomize.buildOptions: "--enable-helm --load-restrictor=LoadRestrictionsNone"
 
 
