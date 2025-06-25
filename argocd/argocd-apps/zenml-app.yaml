@@ -12,7 +12,7 @@ spec:
   project: datalab-project
   source:
     path: helm/
-    repoURL: https://github.com/tom333/zenml
+    repoURL: https://github.com/tom333/zenml.git
     chart: zenml
     targetRevision: 17e45a2366025e4023c458e9de7357ab1176faf5
     helm:
