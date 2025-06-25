@@ -3,7 +3,7 @@ kind: Kustomization
 
 helmCharts:
 - name: datalab
-  releaseName: datalab
+  namespace: datalab
   repo: https://tom333.github.io/my-charts
   version: 1.0.0
   
