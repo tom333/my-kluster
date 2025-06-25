@@ -17,6 +17,19 @@ spec:
     helm:
       values: |
         var: test
+    kustomize:
+      patches:
+        - target:
+            kind: Deployment
+            name: lab-zenml
+          patch: |-
+            - op: replace
+              path: /spec/template/spec/containers/0/livenessProbe/initialDelaySeconds
+              value: 60
+            - op: replace
+              path: /spec/template/spec/containers/0/livenessProbe/periodSeconds
+              value: 60
+
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
