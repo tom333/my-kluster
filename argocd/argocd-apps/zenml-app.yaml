@@ -13,7 +13,6 @@ spec:
   source:
     path: helm/
     repoURL: https://github.com/tom333/zenml.git
-    chart: zenml
     targetRevision: feature/helm_externalize_probe
     helm:
       values: |
