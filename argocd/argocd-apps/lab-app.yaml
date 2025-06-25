@@ -14,9 +14,6 @@ spec:
     path: datalab-chart/
     repoURL: https://github.com/tom333/my-kluster.git
     targetRevision: HEAD
-    helm:
-      values: |
-        var: test
     kustomize:
       patches:
         - target:
