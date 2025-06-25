@@ -3,7 +3,7 @@ name: datalab
 version: 1.0.0
 dependencies:
   - name: mlflow
-    version: 1.2.0
+    version: 1.3.0
     repository: https://community-charts.github.io/helm-charts
   - name: minio
     version: 5.4.0
