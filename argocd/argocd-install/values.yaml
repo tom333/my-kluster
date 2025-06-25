@@ -32,4 +32,8 @@ argo-cd:
     enabled: true
   global:
     domain: argocd.tgu.ovh
+  configs:
+    cm:
+      kustomize.buildOptions: "--enable-helm"
+
 
