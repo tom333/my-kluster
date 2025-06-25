@@ -12,7 +12,7 @@ spec:
   project: datalab-project
   source:
     path: helm/
-    repoURL: https://github.com/tom333/zenml.git
+    repoURL: git@github.com:tom333/zenml.git
     targetRevision: feature/helm_externalize_probe
     helm:
       values: |
