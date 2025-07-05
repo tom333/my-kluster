@@ -12,16 +12,14 @@ spec:
   project: datalab-project
   source:
     repoURL: https://charts.bitnami.com/bitnami
-    targetRevision: 17.5.0
+    targetRevision: 16.7.15
     chart: postgresql
     helm:
-      parameters:
-        - name: global.postgresql.auth.username
-          value: "data"
-        - name: global.postgresql.auth.password
-          value: "data"
-        - name: global.postgresql.auth.database
-          value: "data"
+      values : |
+        auth:
+          user: data
+          password: data
+          database: data
 
   syncPolicy:
     syncOptions:
