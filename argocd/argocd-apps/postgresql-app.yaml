@@ -16,10 +16,11 @@ spec:
     chart: postgresql
     helm:
       values : |
-        auth:
-          username: data
-          password: data
-          database: data
+        global:
+          auth:
+            username: data
+            password: data
+            database: data
 
   syncPolicy:
     syncOptions:
