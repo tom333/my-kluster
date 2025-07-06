@@ -17,10 +17,11 @@ spec:
     helm:
       values : |
         global:
-          auth:
-            username: data
-            password: data
-            database: data
+          postgresql:
+            auth:
+              username: data
+              password: data
+              database: data
 
   syncPolicy:
     syncOptions:
