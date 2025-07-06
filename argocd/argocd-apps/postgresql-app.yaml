@@ -19,9 +19,9 @@ spec:
         global:
           postgresql:
             auth:
-              username: data
-              password: data
-              database: data
+              username: "data"
+              password: "data"
+              database: "data"
 
   syncPolicy:
     syncOptions:
