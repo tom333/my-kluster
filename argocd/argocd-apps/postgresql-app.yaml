@@ -15,13 +15,13 @@ spec:
     targetRevision: 16.7.15
     chart: postgresql
     helm:
-      values : |
-        global:
-          postgresql:
-            auth:
-              username: "data"
-              password: "data"
-              database: "data"
+      parameters:
+        - name: global.postgresql.auth.username
+          value: "data"
+        - name: global.postgresql.auth.password
+          value: "data"
+        - name: global.postgresql.auth.database
+          value: "data"
 
   syncPolicy:
     syncOptions:
