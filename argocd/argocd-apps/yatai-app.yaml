@@ -1,0 +1,35 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: yatai
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: yatai
+    server: https://kubernetes.default.svc
+  project: datalab-project
+  source:
+    repoURL: https://bentoml.github.io/helm-charts
+    targetRevision: 1.1.13
+    chart: yatai
+    helm:
+      values: |
+        ingress:
+          enabled: true
+          annotations:
+            cert-manager.io/cluster-issuer: "letsencrypt-prod"
+          hosts:
+            - yatai.tgu.ovh
+          tls:
+            - secretName: zenml-tls-certs
+              hosts:  
+                - yatai.tgu.ovh
+
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      selfHeal: true
+      prune: true
