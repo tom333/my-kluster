@@ -26,6 +26,13 @@ spec:
             - secretName: zenml-tls-certs
               hosts:  
                 - yatai.tgu.ovh
+        postgresql:
+          host: postgresql-yatai.yatai.svc.cluster.local
+          port: 5432
+          user: yatai
+          database: yatai
+          sslmode: disable
+          password: yatai
 
   syncPolicy:
     syncOptions:
