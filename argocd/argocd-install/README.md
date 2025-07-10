@@ -8,4 +8,5 @@ helm dep update
 
 kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
 
-helm upgrade -f values.yaml argocd . --version argo-cd-1.0.0 --namespace argocd
+helm upgrade -f values.yaml argocd . --namespace argocd
+ --version argo-cd-1.0.0 
