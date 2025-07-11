@@ -22,10 +22,10 @@ spec:
           patch: |-
             - op: replace
               path: /spec/template/spec/containers/0/livenessProbe/initialDelaySeconds
-              value: 60
+              value: 90
             - op: replace
               path: /spec/template/spec/containers/0/livenessProbe/periodSeconds
-              value: 60
+              value: 90
 
   syncPolicy:
     syncOptions:
