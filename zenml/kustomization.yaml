@@ -6,5 +6,5 @@ helmCharts:
   namespace: datalab
   releaseName: lab
   repo: https://tom333.github.io/my-charts
-  version: 1.0.10
+  version: 1.0.11
   
