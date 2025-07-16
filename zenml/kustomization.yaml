@@ -9,3 +9,4 @@ helmCharts:
   version: 1.0.13
   valuesInline:
     mlflow.postgresql.auth.password: bn_mlflow  
+    mlflow.postgresql.auth.postgresPassword: bn_mlflow  
