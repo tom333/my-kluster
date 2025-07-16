@@ -3,10 +3,10 @@ kind: Kustomization
 
 helmCharts:
 - name: datalab
-  namespace: datalab
+  namespace: ia-lab
   releaseName: lab
   repo: https://tom333.github.io/my-charts
-  version: 1.0.13
+  version: 1.0.14
   valuesInline:
     mlflow.postgresql.auth.password: bn_mlflow  
     mlflow.postgresql.auth.postgresPassword: bn_mlflow  
