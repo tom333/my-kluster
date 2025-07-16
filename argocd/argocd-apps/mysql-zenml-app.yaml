@@ -12,7 +12,7 @@ spec:
   project: datalab-project
   source:
     repoURL: registry-1.docker.io/bitnamicharts
-    targetRevision: 13.0.3
+    targetRevision: 13.0.4
     chart: mysql
     helm:
       values: | 
