@@ -33,6 +33,13 @@ spec:
           database: yatai
           sslmode: disable
           password: yatai
+        s3:
+          endpoint: https://minio.tgu.ovh
+          bucket: bentoml
+          accessKeyExistingSecretName: minio-root-secret
+          aceessKeyExistingSecretKey: rootUser
+          secretKeyExistingSecretName: minio-root-secret
+          secretKeyExistingSecretKey: rootPassword
 
   syncPolicy:
     syncOptions:
