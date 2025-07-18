@@ -39,7 +39,7 @@ spec:
           endpoint: https://minio.tgu.ovh
           bucket: bentoml
           accessKeyExistingSecretName: minio-root-secret
-          aceessKeyExistingSecretKey: rootUser
+          accessKeyExistingSecretKey: rootUser
           secretKeyExistingSecretName: minio-root-secret
           secretKeyExistingSecretKey: rootPassword
 
