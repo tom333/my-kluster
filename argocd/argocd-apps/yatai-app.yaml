@@ -22,6 +22,8 @@ spec:
             cert-manager.io/cluster-issuer: "letsencrypt-prod"
           hosts:
             - host: yatai.tgu.ovh
+              Paths:
+                - /
           tls:
             - secretName: zenml-tls-certs
               hosts:  
