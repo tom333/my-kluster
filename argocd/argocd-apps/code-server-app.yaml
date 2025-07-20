@@ -7,13 +7,13 @@ metadata:
     - resources-finalizer.argocd.argoproj.io
 spec:
   destination:
-    namespace: datalab
+    namespace: coder
     server: https://kubernetes.default.svc
   project: datalab-project
   source:
     path: ci/helm-chart
     repoURL: https://github.com/coder/code-server.git
-    targetRevision: v4.93.1
+    targetRevision: v4.102.1
     helm:
       values: |
         image:
