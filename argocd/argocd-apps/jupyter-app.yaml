@@ -13,7 +13,7 @@ spec:
   source:
     repoURL: https://tom333.github.io/my-charts
     chart: jupyter
-    targetRevision: 0.1.0
+    targetRevision: 0.1.1
     helm:
       values: |
         ingress:
