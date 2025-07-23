@@ -11,9 +11,24 @@ spec:
     server: https://kubernetes.default.svc
   project: datalab-project
   source:
-    path: jupyter/
-    repoURL: https://github.com/tom333/my-kluster.git
-    targetRevision: HEAD
+    repoURL: https://tom333.github.io/my-charts
+    targetRevision: 0.0.1
+    helm:
+      values: |
+        ingress:
+          annotations:
+            cert-manager.io/cluster-issuer: "letsencrypt-prod"
+            nginx.ingress.kubernetes.io/proxy-body-size: 100m
+          hosts:
+          - host: jupyter.tgu.ovh
+            paths:
+              - path: /
+                pathType: Prefix
+          tls: 
+           - secretName: jupyter-tls-cert
+             hosts:
+               - jupyter.tgu.ovh
+
   syncPolicy:
     syncOptions:
       - CreateNamespace=false
