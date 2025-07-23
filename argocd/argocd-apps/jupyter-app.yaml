@@ -12,7 +12,8 @@ spec:
   project: datalab-project
   source:
     repoURL: https://tom333.github.io/my-charts
-    targetRevision: 0.0.1
+    chart: jupyter
+    targetRevision: 0.1.0
     helm:
       values: |
         ingress:
