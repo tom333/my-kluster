@@ -13,4 +13,5 @@ helmCharts:
     mlflow.tracking.service.type: ClusterIP
     mlflow.tracking.resourcesPreset: large
     mlflow.tracking.args: --timeout 240
+    mlflow.tracking.extraArgs: --timeout 240
     mlflow.run.resourcesPreset: large
