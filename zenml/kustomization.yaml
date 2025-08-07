@@ -11,7 +11,7 @@ helmCharts:
     mlflow.postgresql.auth.password: bn_mlflow  
     mlflow.postgresql.auth.postgresPassword: bn_mlflow  
     mlflow.tracking.service.type: ClusterIP
-    mlflow.tracking.resourcesPreset: xlarge
+    mlflow.tracking.resourcesPreset: 2xlarge
     mlflow.tracking.args: --timeout 240
     mlflow.tracking.extraArgs: --timeout 240
-    mlflow.run.resourcesPreset: xlarge
+    mlflow.run.resourcesPreset: 2xlarge
