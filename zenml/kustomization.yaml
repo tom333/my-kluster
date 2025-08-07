@@ -6,13 +6,12 @@ helmCharts:
   namespace: ia-lab
   releaseName: lab
   repo: https://tom333.github.io/my-charts
-  version: 1.0.24
+  version: 1.0.25
   valuesInline:
     mlflow.postgresql.auth.password: bn_mlflow  
     mlflow.postgresql.auth.postgresPassword: bn_mlflow  
     mlflow.tracking.service.type: ClusterIP
     mlflow.tracking.resourcesPreset: 2xlarge
-    mlflow.tracking.args: --timeout 240
-    mlflow.tracking.extraArgs: --timeout 240
+    mlflow.tracking.extraArgs: '--timeout 240'
     mlflow.run.resourcesPreset: 2xlarge
     mlflow.tracking.containerSecurityContext.runAsNonRoot: false
