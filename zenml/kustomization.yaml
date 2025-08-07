@@ -15,3 +15,4 @@ helmCharts:
     mlflow.tracking.args: --timeout 240
     mlflow.tracking.extraArgs: --timeout 240
     mlflow.run.resourcesPreset: 2xlarge
+    mlflow.tracking.containerSecurityContext.runAsNonRoot: false
