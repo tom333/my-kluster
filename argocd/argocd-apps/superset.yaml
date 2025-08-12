@@ -19,8 +19,8 @@ spec:
       values: |
         bootstrapScript: |
           #!/bin/bash
-          pip install psycopg2-binary duckdb duckdb-engine \
-            sqlalchemy-bigquery &&\
+          uv pip install .[postgres] .[duckdb] \
+            .[bigquery] &&\
           if [ ! -f ~/bootstrap ]; then echo "Running Superset with uid {{ .Values.runAsUser }}" > ~/bootstrap; fi
         ingress:
           enabled: true
