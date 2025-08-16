@@ -18,14 +18,23 @@ spec:
       values: |
         ingress:
           enabled: true
-          hosts:
-            - netdata.tgu.ovh
           annotations:
             cert-manager.io/cluster-issuer: "letsencrypt-prod"
+            kubernetes.io/ingress.class: public
+            kubernetes.io/tls-acme: "true"
+          path: /
+          pathType: Prefix
+          hosts:
+          - netdata.tgu.ovh
+          ## whole spec is going to be included into ingress spec.
+          ## if you intend to use ingressClassName declaration, remove ingress.class from annotations
+          spec:
+            ingressClassName: public
           tls:
-            - hosts:
+            - secretName: netdata-tls
+              hosts:
                 - netdata.tgu.ovh
-              secretName: netdata-tls
+        
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
