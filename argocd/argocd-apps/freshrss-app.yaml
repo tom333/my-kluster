@@ -12,7 +12,7 @@ spec:
   project: selfhost-project
   source:
     repoURL: tccr.io/truecharts
-    targetRevision: 21.3.1
+    targetRevision: 21.3.2
     chart: freshrss
     helm:
       values: |
