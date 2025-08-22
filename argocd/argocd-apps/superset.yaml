@@ -41,6 +41,8 @@ spec:
             }
           secret: |
             SECRET_KEY = 'JojBoOGWGAT7al1LDHtvvwRPxcrH62cinea62nO7ZXPPcLYAoOiTaPOW'
+        postgresql:
+          postgresqlPassword: superset
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
