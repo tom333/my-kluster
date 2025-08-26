@@ -10,7 +10,7 @@ spec:
   project: infra-project
   source:
     repoURL: https://prometheus-community.github.io/helm-charts
-    targetRevision: 77.0.0
+    targetRevision: 77.0.2
     chart: kube-prometheus-stack
     helm:
       values: |
