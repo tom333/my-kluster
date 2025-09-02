@@ -25,6 +25,9 @@ spec:
             enabled: true
             issuerName: "letsencrypt-prod"
             issuerKind: ClusterIssuer
+        proxy:
+          service:
+            type: ClusterIP
         ingress:
           enabled: true
           spec:
