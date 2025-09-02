@@ -1,0 +1,46 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: teleport
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: teleport
+    server: https://kubernetes.default.svc
+  project: infra-project
+  source:
+    repoURL: https://charts.releases.teleport.dev
+    targetRevision: v18.1.8
+    chart: teleport-cluster
+    helm:
+      values: |
+        clusterName: teleport.tgu.ovh
+        proxyListenerMode: multiplex
+        acme: true
+        acmeEmail: laboitatom@gmail.com
+        highAvailability:
+          certManager:
+            enabled: true
+            issuerName: "letsencrypt-prod"
+            issuerKind: ClusterIssuer
+        ingress:
+          enabled: true
+          spec:
+            annotations:
+              cert-manager.io/cluster-issuer: "letsencrypt-prod"
+            path: /
+            pathType: ImplementationSpecific
+            hosts:
+              - teleport.tgu.ovh
+            tls:
+              - secretName: teleport-tls
+                hosts:
+                  - teleport.tgu.ovh
+
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      selfHeal: true
+      prune: true
