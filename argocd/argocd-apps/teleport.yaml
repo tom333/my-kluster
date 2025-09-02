@@ -21,10 +21,13 @@ spec:
         proxyListenerMode: multiplex
         acme: true
         acmeEmail: laboitatom@gmail.com
+        publicAddr: ['teleport.tgu.ovh:443']
         highAvailability:
           certManager:
             enabled: true
-            issuerName: "letsencrypt-prod"
+            addPublicAddrs: true
+            addCommonName: true
+            issuerName: letsencrypt-prod
             issuerKind: ClusterIssuer
         auth:
         teleportConfig:
