@@ -47,17 +47,11 @@ spec:
             type: ClusterIP
         ingress:
           enabled: true
-          spec:
-            annotations:
-              cert-manager.io/cluster-issuer: "letsencrypt-prod"
-            path: /
-            pathType: ImplementationSpecific
-            hosts:
-              - teleport.tgu.ovh
-            tls:
-              - secretName: teleport-tls
-                hosts:
-                  - teleport.tgu.ovh
+          # spec:
+          #   tls:
+          #     - secretName: teleport-tls
+          #       hosts:
+          #         - teleport.tgu.ovh
 
     syncOptions:
       - CreateNamespace=true
