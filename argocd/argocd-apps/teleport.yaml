@@ -29,22 +29,22 @@ spec:
         #     addCommonName: true
         #     issuerName: letsencrypt-prod
         #     issuerKind: ClusterIssuer
-        auth:
-          teleportConfig:
-            # put any teleport.yaml auth configuration overrides here
-            teleport:
-              log:
-                output: stderr
-                severity: DEBUG
+        # auth:
+        #   teleportConfig:
+        #     # put any teleport.yaml auth configuration overrides here
+        #     teleport:
+        #       log:
+        #         output: stderr
+        #         severity: DEBUG
 
-            auth_service:
-              enabled: true
-              web_idle_timeout: 1h
-              authentication:
-                locking_mode: best_effort
-        proxy:
-          service:
-            type: ClusterIP
+            # auth_service:
+            #   enabled: true
+            #   web_idle_timeout: 1h
+            #   authentication:
+            #     locking_mode: best_effort
+        # proxy:
+        #   service:
+        #     type: ClusterIP
         ingress:
           enabled: true
           # spec:
