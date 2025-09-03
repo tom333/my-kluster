@@ -28,6 +28,7 @@ spec:
             addPublicAddrs: true
             addCommonName: true
             issuerName: letsencrypt-teleport
+            issuerType: Issuer
           replicaCount: 1
         # auth:
         #   teleportConfig:
