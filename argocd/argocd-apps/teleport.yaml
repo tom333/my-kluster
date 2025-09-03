@@ -27,8 +27,8 @@ spec:
             enabled: true
             addPublicAddrs: true
             addCommonName: true
-            issuerName: letsencrypt-prod
-            issuerKind: ClusterIssuer
+            issuerName: letsencrypt-teleport
+          replicaCount: 1
         # auth:
         #   teleportConfig:
         #     # put any teleport.yaml auth configuration overrides here
