@@ -16,7 +16,7 @@ spec:
     chart: cert-manager-webhook-ovh
     helm:
       values: |
-        configVersion: 0.7.5
+        configVersion: 0.0.1
         groupName: tgu.ovh
         issuers:
           - name: letsencrypt-prod-dns
