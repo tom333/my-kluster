@@ -46,7 +46,7 @@ spec:
           service:
             type: ClusterIP
         ingress:
-          enabled: true
+          enabled: false
           # spec:
           #   tls:
           #     - secretName: teleport-tls
