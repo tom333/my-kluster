@@ -22,13 +22,13 @@ spec:
         acme: true
         acmeEmail: laboitatom@gmail.com
         publicAddr: ['teleport.tgu.ovh:443']
-        # highAvailability:
-        #   certManager:
-        #     enabled: true
-        #     addPublicAddrs: true
-        #     addCommonName: true
-        #     issuerName: letsencrypt-prod
-        #     issuerKind: ClusterIssuer
+        highAvailability:
+          certManager:
+            enabled: true
+            addPublicAddrs: true
+            addCommonName: true
+            issuerName: letsencrypt-prod
+            issuerKind: ClusterIssuer
         # auth:
         #   teleportConfig:
         #     # put any teleport.yaml auth configuration overrides here
@@ -50,8 +50,10 @@ spec:
               cert-manager.io/cluster-issuer: "letsencrypt-prod"
         ingress:
           enabled: true
-
-
+          # spec:
+          #   tls:
+          #     - secretName: teleport-tls
+                
     syncOptions:
       - CreateNamespace=true
     automated:
