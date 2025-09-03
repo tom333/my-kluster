@@ -27,7 +27,7 @@ spec:
             enabled: true
             addPublicAddrs: true
             addCommonName: true
-            issuerName: letsencrypt-prod
+            issuerName: letsencrypt-prod-dns
             issuerKind: ClusterIssuer
           replicaCount: 1
         # auth:
@@ -48,7 +48,7 @@ spec:
             type: ClusterIP
           annotations:
             ingress:
-              cert-manager.io/cluster-issuer: letsencrypt-prod
+              cert-manager.io/cluster-issuer: letsencrypt-prod-dns
         ingress:
           enabled: true
           # spec:
