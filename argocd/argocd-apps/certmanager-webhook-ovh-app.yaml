@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: certmanager
+  name: cert-manager-webhook-ovh
   namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
