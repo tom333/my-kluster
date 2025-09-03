@@ -42,9 +42,9 @@ spec:
             #   web_idle_timeout: 1h
             #   authentication:
             #     locking_mode: best_effort
-        # proxy:
-        #   service:
-        #     type: ClusterIP
+        proxy:
+          service:
+            type: ClusterIP
         ingress:
           enabled: true
           # spec:
