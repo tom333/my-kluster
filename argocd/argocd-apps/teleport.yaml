@@ -21,7 +21,7 @@ spec:
         proxyListenerMode: multiplex
         acme: true
         acmeEmail: laboitatom@gmail.com
-        # publicAddr: ['teleport.tgu.ovh:443']
+        publicAddr: ['teleport.tgu.ovh:443']
         # highAvailability:
         #   certManager:
         #     enabled: true
@@ -45,13 +45,12 @@ spec:
         proxy:
           service:
             type: ClusterIP
+          annotations:
+            ingress:
+              cert-manager.io/cluster-issuer: "letsencrypt-prod"
         ingress:
-          enabled: false
-          # spec:
-          #   tls:
-          #     - secretName: teleport-tls
-          #       hosts:
-          #         - teleport.tgu.ovh
+          enabled: true
+
 
     syncOptions:
       - CreateNamespace=true
