@@ -53,7 +53,7 @@ spec:
             failureThreshold: 180
             periodSeconds: 15
             successThreshold: 1
-        syncPolicy:
+  syncPolicy:
     syncOptions:
       - CreateNamespace=true
     automated:

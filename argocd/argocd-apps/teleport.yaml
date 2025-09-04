@@ -30,6 +30,8 @@ spec:
             issuerName: letsencrypt-prod-dns
             issuerKind: ClusterIssuer
           replicaCount: 1
+        service:
+          type: ClusterIP
         # auth:
         #   teleportConfig:
         #     # put any teleport.yaml auth configuration overrides here
@@ -55,6 +57,7 @@ spec:
           #   tls:
           #     - secretName: teleport-tls
                 
+  syncPolicy:
     syncOptions:
       - CreateNamespace=true
     automated:
