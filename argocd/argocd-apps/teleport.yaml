@@ -32,14 +32,9 @@ spec:
           replicaCount: 1
         service:
           type: ClusterIP
-        proxy:
-          service:
-            type: ClusterIP
-          # annotations:
-          #   ingress:
-          #     cert-manager.io/cluster-issuer: letsencrypt-prod-dns
+        
         ingress:
-          enabled: true          
+          enabled: false          
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
