@@ -32,31 +32,14 @@ spec:
           replicaCount: 1
         service:
           type: ClusterIP
-        # auth:
-        #   teleportConfig:
-        #     # put any teleport.yaml auth configuration overrides here
-        #     teleport:
-        #       log:
-        #         output: stderr
-        #         severity: DEBUG
-
-            # auth_service:
-            #   enabled: true
-            #   web_idle_timeout: 1h
-            #   authentication:
-            #     locking_mode: best_effort
         proxy:
           service:
             type: ClusterIP
-          annotations:
-            ingress:
-              cert-manager.io/cluster-issuer: letsencrypt-prod-dns
+          # annotations:
+          #   ingress:
+          #     cert-manager.io/cluster-issuer: letsencrypt-prod-dns
         ingress:
-          enabled: true
-          # spec:
-          #   tls:
-          #     - secretName: teleport-tls
-                
+          enabled: true          
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
