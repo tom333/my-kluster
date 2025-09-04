@@ -1,0 +1,33 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: teleport-proxy
+  namespace: teleport
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: teleport.tgu.ovh
+      http:
+        paths:
+          - backend:
+              service:
+                name: teleport
+                port:
+                  number: 443
+            path: /
+            pathType: Prefix
+    - host: '*.teleport.tgu.ovh'
+      http:
+        paths:
+          - backend:
+              service:
+                name: teleport
+                port:
+                  number: 443
+            path: /
+            pathType: Prefix
+  tls:
+    - hosts:
+        - teleport.tgu.ovh
+        - '*.teleport.tgu.ovh'
+      secretName: teleport
