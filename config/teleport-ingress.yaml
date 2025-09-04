@@ -30,4 +30,4 @@ spec:
     - hosts:
         - teleport.tgu.ovh
         - '*.teleport.tgu.ovh'
-      secretName: teleport
+      secretName: teleport-tls
