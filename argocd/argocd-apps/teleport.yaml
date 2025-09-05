@@ -12,7 +12,7 @@ spec:
   project: infra-project
   source:
     repoURL: https://charts.releases.teleport.dev
-    targetRevision: v18.1.8
+    targetRevision: 18.2.0
     chart: teleport-cluster
     helm:
       values: |
