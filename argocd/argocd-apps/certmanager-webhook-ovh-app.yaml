@@ -12,7 +12,7 @@ spec:
   project: infra-project
   source:
     repoURL: https://aureq.github.io/cert-manager-webhook-ovh/
-    targetRevision: 0.7.5
+    targetRevision: 0.7.6
     chart: cert-manager-webhook-ovh
     helm:
       values: |
