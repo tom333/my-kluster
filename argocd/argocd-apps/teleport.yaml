@@ -32,22 +32,18 @@ spec:
           replicaCount: 1
         service:
           type: ClusterIP
-        proxy:
-          service:
-            type: ClusterIP
-            annotations: {}
-          ingress:
-            enabled: true
-            className: "nginx"
-            annotations:
-              cert-manager.io/cluster-issuer: letsencrypt-prod-dns
-              nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
-              nginx.ingress.kubernetes.io/ssl-passthrough: "true"
-            hosts:
-              - host: teleport.tgu.ovh
-                paths:
-                  - path: /
-                    pathType: ImplementationSpecific      
+        ingress:
+          enabled: true
+          className: "nginx"
+          annotations:
+            cert-manager.io/cluster-issuer: letsencrypt-prod-dns
+            nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+            nginx.ingress.kubernetes.io/ssl-passthrough: "true"
+          hosts:
+            - host: teleport.tgu.ovh
+              paths:
+                - path: /
+                  pathType: ImplementationSpecific      
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
