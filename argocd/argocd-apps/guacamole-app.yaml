@@ -24,7 +24,7 @@ spec:
               hostname: "postgres.guacamole.svc.cluster.local"
               database: "guacamole"
               username: "guacamole"
-              password: "secure-password"
+              password: "guacamole"
           
           resources:
             limits:
