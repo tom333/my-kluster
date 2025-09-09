@@ -12,7 +12,7 @@ spec:
   project: infra-project
   source:
     repoURL: https://charts.beryju.io
-    targetRevision: 11.4.2
+    targetRevision: 1.4.2
     chart: guacamole
     helm:
       values: |
