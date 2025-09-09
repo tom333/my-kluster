@@ -23,6 +23,9 @@ spec:
             cert-manager.io/cluster-issuer: "letsencrypt-prod"
           hosts:
             - host: guacamole.tgu.ovh
+              paths:
+                - /
+                  
           tls:
              - secretName: guacamole-tls
                hosts:
