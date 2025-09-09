@@ -1,0 +1,44 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: guacamole
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: guacamole
+    server: https://kubernetes.default.svc
+  project: infra-project
+  source:
+    repoURL: https://charts.beryju.io
+    targetRevision: 11.4.2
+    chart: poguacamolestgresql
+    helm:
+      values: |
+        ingress:
+          enabled: true
+          className: nginx
+          annotations:
+            cert-manager.io/cluster-issuer: "letsencrypt-prod"
+          hosts:
+            - host: guacamole.tgu.ovh
+              paths: 
+                - /
+                  pathType: Prefix
+          tls:
+             - secretName: guacamole-tls
+               hosts:
+                 - guacamole.tgu.ovh
+        postgres:
+          hostname: "postgresql-guacamole"
+          port: "5432"
+          database: "guacamole"
+          user: "guacamole"
+          password: "guacamole"
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      selfHeal: true
+      prune: true
