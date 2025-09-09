@@ -11,31 +11,52 @@ spec:
     server: https://kubernetes.default.svc
   project: infra-project
   source:
-    repoURL: https://charts.beryju.io
-    targetRevision: 1.4.2
+    repoURL: https://dmunozv04.github.io/charts
+    targetRevision: 0.1.8
     chart: guacamole
     helm:
       values: |
+        client:
+          replicaCount: 1
+          auth:
+            postgresql:
+              enabled: true
+              hostname: "postgres.guacamole.svc.cluster.local"
+              database: "guacamole"
+              username: "guacamole"
+              password: "secure-password"
+          
+          resources:
+            limits:
+              cpu: 500m
+              memory: 512Mi
+            requests:
+              cpu: 250m
+              memory: 256Mi
+
+        guacd:
+          replicaCount: 1
+          resources:
+            limits:
+              cpu: 300m
+              memory: 256Mi
+            requests:
+              cpu: 150m
+              memory: 128Mi
+
         ingress:
           enabled: true
-          className: nginx
           annotations:
             cert-manager.io/cluster-issuer: "letsencrypt-prod"
           hosts:
             - host: guacamole.tgu.ovh
               paths:
-                - /
-                  
+                - path: /
+                  pathType: Prefix
           tls:
-             - secretName: guacamole-tls
-               hosts:
-                 - guacamole.tgu.ovh
-        postgres:
-          hostname: "postgresql-guacamole"
-          port: "5432"
-          database: "guacamole"
-          user: "guacamole"
-          password: "guacamole"
+            - secretName: guacamole-tls
+              hosts:
+                - guacamole.tgu.ovh
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
