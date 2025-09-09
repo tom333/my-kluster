@@ -13,7 +13,7 @@ spec:
   source:
     repoURL: https://charts.beryju.io
     targetRevision: 11.4.2
-    chart: poguacamolestgresql
+    chart: guacamole
     helm:
       values: |
         ingress:
