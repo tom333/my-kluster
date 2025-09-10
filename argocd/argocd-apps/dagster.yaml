@@ -25,6 +25,8 @@ spec:
             tls:
               enabled: true
               secretName: dagster-tls
+        dagster-user-deployments:
+          enabled: false
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
