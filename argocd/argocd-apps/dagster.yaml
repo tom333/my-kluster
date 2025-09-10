@@ -1,0 +1,33 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: dagster
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: dagster
+    server: https://kubernetes.default.svc
+  project: infra-project
+  source:
+    repoURL: https://dagster-io.github.io/helm
+    targetRevision: 1.11.9
+    chart: dagster
+    helm:
+      values: |
+        ingress:
+          enabled: true
+          annotations:
+            cert-manager.io/cluster-issuer: "letsencrypt-prod"
+          dagsterWebserver:
+            host: dagster.tgu.ovh
+            tls:
+              enabled: true
+              secretName: dagster-tls
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      selfHeal: true
+      prune: true
