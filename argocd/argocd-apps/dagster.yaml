@@ -12,7 +12,7 @@ spec:
   project: infra-project
   source:
     repoURL: https://dagster-io.github.io/helm
-    targetRevision: 1.11.9
+    targetRevision: 1.11.10
     chart: dagster
     helm:
       values: |
