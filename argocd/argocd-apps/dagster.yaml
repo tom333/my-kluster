@@ -31,11 +31,11 @@ spec:
               secretName: dagster-tls
             workspace:
               enabled: true
-              # servers:
-              #   - host: "k8s-example-user-code-1"
-              #     port: 3030
-              #     name: "user-code-example"
-              #     useTls: false
+              servers:
+                - host: "poc-lean-datastack"
+                  port: 4000
+                  name: "POC Lean Datastack"
+                  useTls: false
         dagster-user-deployments:
           enabled: true
           deployments: []
