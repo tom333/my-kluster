@@ -44,6 +44,7 @@ spec:
               image:
                 repository: "localhost:32000/poc-lean-datastack-image" # Le chemin de votre image Docker
                 tag: "latest"                  # Le tag de la dernière version de votre image
+                pullPolicy: Always
               dagsterApiGrpcArgs:
                 - "--python-file"
                 - "defs/definitions.py"
