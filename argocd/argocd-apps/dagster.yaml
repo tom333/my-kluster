@@ -39,7 +39,20 @@ spec:
                 useTls: false
         dagster-user-deployments:
           enabled: true
-          deployments: []
+          deployments: 
+            - name: "my-first-job-deployment" # Nom unique pour votre déploiement de code utilisateur
+              image:
+                repository: "localhost:32000/poc-lean-datastack-image" # Le chemin de votre image Docker
+                tag: "latest"                  # Le tag de la dernière version de votre image
+              dagsterApiGrpcArgs:
+                - "--python-file"
+                - "defs/definitions.py"
+                - "--host"
+                - "0.0.0.0"
+                - "--port"
+                - "4000"
+              port: 4000
+              locationName: "mon-super-job-dagster" # Nom affiché dans l'interface Dagster
             # - name: "k8s-example-user-code-1"
               # image:
               #   # When a tag is not supplied, it will default as the Helm chart version.
