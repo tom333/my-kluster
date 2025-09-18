@@ -19,7 +19,7 @@ spec:
       values: |
         bootstrapScript: |
           #!/bin/bash
-          uv pip install ".[postgres]" ".[duckdb]" && uv pip install duckdb>=1.4.0 \
+          uv pip install ".[postgres]" ".[duckdb]" && uv pip install duckdb>=1.4.0 && \
           if [ ! -f ~/bootstrap ]; then echo "Running Superset with uid {{ .Values.runAsUser }}" > ~/bootstrap; fi
         ingress:
           enabled: true
