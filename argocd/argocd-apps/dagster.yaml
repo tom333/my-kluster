@@ -54,6 +54,31 @@ spec:
                 - "4000"
               port: 4000
               locationName: "mon-super-job-dagster" # Nom affiché dans l'interface Dagster
+              env:
+              - name: DAGSTER_INSTANCE_HEARTBEAT_INTERVAL
+                value: "10"
+              - name: POSTGRES_DB
+                value: "data"
+              - name: POSTGRES_HOST
+                value: "postgresql.datalab.svc.cluster.local"
+              - name: POSTGRES_USER
+                value: "data"
+              - name: POSTGRES_PASSWORD
+                value: "data"
+              - name: POSTGRES_PORT
+                value: "5432"
+              - name: MINIO_ACCESS_KEY
+                value: "moi"
+              - name: MINIO_SECRET_KEY
+                value: "Emilie-1"
+              - name: MINIO_ENDPOINT
+                value: "minio.tgu.ovh"
+              - name: MINIO_REGION
+                value: "europe-west1"
+              - name: MINIO_USE_SSL
+                value: "true"
+              - name: DUCKLAKE_CATALOG
+                value: "poc"
             # - name: "k8s-example-user-code-1"
               # image:
               #   # When a tag is not supplied, it will default as the Helm chart version.
