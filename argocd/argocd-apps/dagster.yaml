@@ -31,12 +31,12 @@ spec:
               secretName: dagster-tls
         dagsterWebserver:
           workspace:
-            enabled: true
-            servers:
-              - host: "poc-lean-datastack"
-                port: 4000
-                name: "POC Lean Datastack"
-                useTls: false
+            enabled: false
+            # servers:
+            #   - host: "poc-lean-datastack"
+            #     port: 4000
+            #     name: "POC Lean Datastack"
+            #     useTls: false
         dagster-user-deployments:
           enabled: true
           deployments: 
