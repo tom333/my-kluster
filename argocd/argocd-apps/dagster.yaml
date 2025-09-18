@@ -47,7 +47,7 @@ spec:
                 pullPolicy: Always
               dagsterApiGrpcArgs:
                 - "--python-file"
-                - "defs/definitions.py"
+                - "definitions.py"
                 - "--host"
                 - "0.0.0.0"
                 - "--port"
