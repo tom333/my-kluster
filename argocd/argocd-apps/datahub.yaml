@@ -9,7 +9,7 @@ spec:
   destination:
     namespace: datahub
     server: https://kubernetes.default.svc
-  project: data-project
+  project: infra-project
   source:
     repoURL: https://helm.datahubproject.io/
     targetRevision: 0.1.15
