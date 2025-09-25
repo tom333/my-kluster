@@ -61,9 +61,9 @@ spec:
               - host: datahub.tgu.ovh
                 path: /
             tls:
-              secretName: datahub-tls
-              hosts:
-                - datahub.tgu.ovh
+              - secretName: datahub-tls
+                hosts:
+                  - datahub.tgu.ovh
         mysqlSetupJob:
           enabled: false
         postgresqlSetupJob:
