@@ -112,10 +112,9 @@ spec:
               port: "5432"
               url: "jdbc:postgresql://prerequisites-postgresql:5432/datahub"
               driver: "org.postgresql.Driver"
-              username: "postgres"
+              username: "datahub"
               password:
-                secretRef: postgresql-secrets
-                secretKey: postgres-password
+                value: datahub
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
