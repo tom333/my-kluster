@@ -24,8 +24,8 @@ spec:
                 username: datahub
                 password: datahub
                 database: datahub
-          image:
-            repository: bitnamilegacy/postgresql
+            imageRegistry: bitnamilegacy
+            
         mysql:
           enabled: false
         
