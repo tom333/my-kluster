@@ -25,7 +25,11 @@ spec:
                 password: datahub
                 database: datahub
             imageRegistry: bitnamilegacy
-            
+            image:
+              registry: docker.io
+              repository: bitnamilegacy/postgresql
+              tag: 14.3.0-debian-11-r5
+
         mysql:
           enabled: false
         
