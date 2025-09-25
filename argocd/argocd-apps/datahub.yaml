@@ -24,7 +24,6 @@ spec:
                 username: datahub
                 password: datahub
                 database: datahub
-            imageRegistry: bitnamilegacy
           image:
             registry: docker.io
             repository: bitnamilegacy/postgresql
