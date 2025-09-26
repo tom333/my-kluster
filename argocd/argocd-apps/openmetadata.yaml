@@ -23,19 +23,14 @@ spec:
             ##
             #initialDelaySeconds: 120
             initialDelaySeconds: 300
-            #periodSeconds: 10
             periodSeconds: 30
-            #timeoutSeconds: 1
             timeoutSeconds: 10
             successThreshold: 1
             failureThreshold: 3
           readinessProbe:
             enabled: true
-            #initialDelaySeconds: 30
             initialDelaySeconds: 300
-            #periodSeconds: 10
             periodSeconds: 30
-            #timeoutSeconds: 1
             timeoutSeconds: 10
             successThreshold: 1
             failureThreshold: 3
@@ -45,9 +40,7 @@ spec:
             ##
             #initialDelaySeconds: 120
             initialDelaySeconds: 300
-            #periodSeconds: 10
             periodSeconds: 30
-            #timeoutSeconds: 1
             timeoutSeconds: 10
             successThreshold: 1
         
