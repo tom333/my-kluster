@@ -55,6 +55,74 @@ spec:
     automated:
       selfHeal: true
       prune: true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: mysql-openmetadata
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: openmetadata
+    server: https://kubernetes.default.svc
+  project: infra-project
+  source:
+    repoURL: registry-1.docker.io/bitnamicharts
+    targetRevision: 14.0.3
+    chart: mysql
+    helm:
+      values: | 
+        fullnameOverride: "mysql"
+        architecture: standalone
+        auth:
+          rootPassword: password    # to be provided by CI/CD
+        initdbScripts:
+          init_openmetadata_db_scripts.sql: |
+            CREATE DATABASE openmetadata_db;
+            CREATE USER 'openmetadata_user'@'%' IDENTIFIED BY 'openmetadata_password';
+            GRANT ALL PRIVILEGES ON openmetadata_db.* TO 'openmetadata_user'@'%' WITH GRANT OPTION;
+            commit;
+          init_airflow_db_scripts.sql: |
+            CREATE DATABASE airflow_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+            CREATE USER 'airflow_user'@'%' IDENTIFIED BY 'airflow_pass';
+            GRANT ALL PRIVILEGES ON airflow_db.* TO 'airflow_user'@'%' WITH GRANT OPTION;
+            commit;
+        primary:
+          extraFlags: "--sort_buffer_size=10M"
+          persistence:
+            size: 5Gi
+          service:
+            nodePort: 3306
+          livenessProbe:
+              enabled: true
+              initialDelaySeconds: 300
+              periodSeconds: 10
+              timeoutSeconds: 1
+              failureThreshold: 45
+              successThreshold: 1
+          readinessProbe:
+              enabled: true
+              initialDelaySeconds: 300
+              periodSeconds: 10
+              timeoutSeconds: 1
+              failureThreshold: 45
+              successThreshold: 1
+          startupProbe:
+              enabled: false
+              initialDelaySeconds: 300
+              periodSeconds: 10
+              timeoutSeconds: 1
+              failureThreshold: 45
+              successThreshold: 1
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      selfHeal: true
+      prune: true
+
 # ---
 # apiVersion: argoproj.io/v1alpha1
 # kind: Application
