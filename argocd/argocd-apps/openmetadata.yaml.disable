@@ -19,24 +19,36 @@ spec:
         mysql:
           livenessProbe:
             enabled: true
+            ## Initializing the database could take some time
+            ##
+            #initialDelaySeconds: 120
             initialDelaySeconds: 300
-            periodSeconds: 10
-            timeoutSeconds: 1
-            failureThreshold: 45
+            #periodSeconds: 10
+            periodSeconds: 30
+            #timeoutSeconds: 1
+            timeoutSeconds: 10
             successThreshold: 1
+            failureThreshold: 3
           readinessProbe:
             enabled: true
+            #initialDelaySeconds: 30
             initialDelaySeconds: 300
-            periodSeconds: 10
-            timeoutSeconds: 1
-            failureThreshold: 45
+            #periodSeconds: 10
+            periodSeconds: 30
+            #timeoutSeconds: 1
+            timeoutSeconds: 10
             successThreshold: 1
+            failureThreshold: 3
           startupProbe:
-            enabled: true
+            enabled: false
+            ## Initializing the database could take some time
+            ##
+            #initialDelaySeconds: 120
             initialDelaySeconds: 300
-            periodSeconds: 10
-            timeoutSeconds: 1
-            failureThreshold: 60
+            #periodSeconds: 10
+            periodSeconds: 30
+            #timeoutSeconds: 1
+            timeoutSeconds: 10
             successThreshold: 1
         
   syncPolicy:
