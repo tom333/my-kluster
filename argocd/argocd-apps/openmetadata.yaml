@@ -17,6 +17,7 @@ spec:
     helm:
       values: |
         mysql:
+          enabled: false
           image:
             registry: docker.io
             repository: bitnami/mysql
