@@ -95,19 +95,20 @@ spec:
             size: 5Gi
           service:
             nodePort: 3306
+          
           livenessProbe:
-              enabled: true
+              enabled: false
               initialDelaySeconds: 300
               periodSeconds: 10
               timeoutSeconds: 1
-              failureThreshold: 45
+              failureThreshold: 120
               successThreshold: 1
           readinessProbe:
-              enabled: true
+              enabled: false
               initialDelaySeconds: 300
               periodSeconds: 10
               timeoutSeconds: 1
-              failureThreshold: 45
+              failureThreshold: 120
               successThreshold: 1
           startupProbe:
               enabled: false
