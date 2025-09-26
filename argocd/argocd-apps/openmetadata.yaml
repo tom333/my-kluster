@@ -17,6 +17,10 @@ spec:
     helm:
       values: |
         mysql:
+          image:
+            registry: docker.io
+            repository: bitnami/mysql
+            tag: 9.4.0-debian-12-r1
           primary:
             command:
               - "/opt/bitnami/mysql/bin/mysqld"
