@@ -22,14 +22,6 @@ spec:
             repository: bitnami/mysql
             tag: 9.4.0-debian-12-r1
           primary:
-            command:
-              - "/opt/bitnami/mysql/bin/mysqld"
-              - "--defaults-file=/opt/bitnami/mysql/conf/my.cnf"
-              - "--basedir=/opt/bitnami/mysql"
-              - "--datadir=/bitnami/mysql/data"
-              - "--socket=/opt/bitnami/mysql/tmp/mysql.sock"
-              - "--pid-file=/opt/bitnami/mysql/tmp/mysqld.pid"
-          livenessProbe:
             enabled: true
             ## Initializing the database could take some time
             ##
