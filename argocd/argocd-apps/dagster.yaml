@@ -32,18 +32,12 @@ spec:
         dagsterWebserver:
           workspace:
             enabled: false
-            # servers:
-            #   - host: "poc-lean-datastack"
-            #     port: 4000
-            #     name: "POC Lean Datastack"
-            #     useTls: false
         dagster-user-deployments:
           enabled: true
           deployments: 
-            - name: "rcs2bq # Nom unique pour votre déploiement de code utilisateur
-              image:
-                repository: "localhost:32000/rcs2bq" # Le chemin de votre image Docker
-                tag: "latest"                  # Le tag de la dernière version de votre image
+            - name: "rcs2bq" 
+                repository: "localhost:32000/rcs2bq"
+                tag: "latest"
                 pullPolicy: Always
               dagsterApiGrpcArgs:
                 - "--python-file"
