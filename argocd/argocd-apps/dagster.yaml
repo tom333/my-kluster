@@ -35,7 +35,8 @@ spec:
         dagster-user-deployments:
           enabled: true
           deployments: 
-            - name: "rcs2bq" 
+            - name: "rcs2bq"
+              image:
                 repository: "localhost:32000/rcs2bq"
                 tag: "latest"
                 pullPolicy: Always
