@@ -40,6 +40,20 @@ spec:
         dagster-user-deployments:
           enabled: true
           deployments: 
+            - name: "rcs2bq # Nom unique pour votre déploiement de code utilisateur
+              image:
+                repository: "localhost:32000/rcs2bq" # Le chemin de votre image Docker
+                tag: "latest"                  # Le tag de la dernière version de votre image
+                pullPolicy: Always
+              dagsterApiGrpcArgs:
+                - "--python-file"
+                - "definitions.py"
+                - "--host"
+                - "0.0.0.0"
+                - "--port"
+                - "4000"
+              port: 4000
+              locationName: "rcs2bq" # Nom affiché dans l'interface Dagster
             - name: "my-first-job-deployment" # Nom unique pour votre déploiement de code utilisateur
               image:
                 repository: "localhost:32000/poc-lean-datastack-image" # Le chemin de votre image Docker
