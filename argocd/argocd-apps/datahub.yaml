@@ -105,6 +105,11 @@ spec:
         postgresqlSetupJob:
           enabled: true
         global:
+          kafka:
+            bootstrap:
+              server: "datahub-prerequisites-kafka:9092"
+            zookeeper:
+              server: "datahub-prerequisites-zookeeper:2181"
           elasticsearch:
             host: "elasticsearch-master"
           sql:
