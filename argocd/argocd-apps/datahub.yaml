@@ -107,7 +107,7 @@ spec:
         antiAffinity: "soft"
         clusterHealthCheckParams: "wait_for_status=yellow&timeout=1s"
         esJavaOpts: "-Xmx512m -Xms512m"
-        protocol: http
+        protocol: https
         securityConfig:
           enabled: false
         createCert: true
@@ -176,7 +176,7 @@ spec:
             host: "opensearch-cluster-master"
             skipcheck: "true"
             insecure: "true"
-            useSSL: "false"
+            useSSL: "true"
             # auth:
             #   username: elastic
             #   password:
