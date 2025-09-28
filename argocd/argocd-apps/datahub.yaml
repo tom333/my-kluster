@@ -126,6 +126,11 @@ spec:
             skipcheck: "true"
             insecure: "true"
             useSSL: "true"
+            auth:
+              username: elastic
+              password:
+                secretRef: elasticsearch-master-credentials
+                secretKey: password
           sql:
             datasource:
               host: "datahub-prerequisites-postgresql:5432"
