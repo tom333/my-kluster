@@ -66,6 +66,7 @@ spec:
         clusterHealthCheckParams: "wait_for_status=yellow&timeout=1s"
         esJavaOpts: "-Xmx512m -Xms512m"
         protocol: http
+        createCert: false
         resources:
           requests:
             cpu: "100m"
