@@ -120,7 +120,7 @@ spec:
             memory: "1024M"
         extraEnvs:
           - name: OPENSEARCH_INITIAL_ADMIN_PASSWORD
-            value: strong-password
+            value: strong-Passw0rd
         
   syncPolicy:
     syncOptions:
