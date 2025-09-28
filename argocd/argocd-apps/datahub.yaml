@@ -65,8 +65,8 @@ spec:
         antiAffinity: "soft"
         clusterHealthCheckParams: "wait_for_status=yellow&timeout=1s"
         esJavaOpts: "-Xmx512m -Xms512m"
-        protocol: http
-        createCert: false
+        protocol: https
+        createCert: true
         resources:
           requests:
             cpu: "100m"
@@ -127,7 +127,7 @@ spec:
             host: "elasticsearch-master"
             skipcheck: "true"
             insecure: "true"
-            useSSL: "false"
+            useSSL: "true"
             auth:
               username: elastic
               password:
