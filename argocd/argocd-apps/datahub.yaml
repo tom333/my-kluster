@@ -61,6 +61,17 @@ spec:
     helm:
       values: |
         replicas: 1
+        minimumMasterNodes: 1
+        antiAffinity: "soft"
+        clusterHealthCheckParams: "wait_for_status=yellow&timeout=1s"
+        esJavaOpts: "-Xmx512m -Xms512m"
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "1024M"
+          limits:
+            cpu: "1000m"
+            memory: "1024M"
         
   syncPolicy:
     syncOptions:
