@@ -123,7 +123,17 @@ spec:
         extraEnvs:
           - name: OPENSEARCH_INITIAL_ADMIN_PASSWORD
             value: strong-Passw0rd
-        
+        ingress:
+          enabled: true
+          annotations:
+            cert-manager.io/cluster-issuer: "letsencrypt-prod"
+          path: /
+          hosts:
+            - opensearch.tgu.ovh
+          tls:
+            - secretName: opensearch-tls
+              hosts:
+                - opensearch.tgu.ovh
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
@@ -176,7 +186,8 @@ spec:
             zookeeper:
               server: "datahub-prerequisites-zookeeper:2181"
           elasticsearch:
-            host: "opensearch-cluster-master"
+            host: "opensearch.tgu.ovh"
+            port: "443"
             skipcheck: "true"
             insecure: "true"
             useSSL: "true"
