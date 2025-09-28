@@ -118,6 +118,9 @@ spec:
           limits:
             cpu: "1000m"
             memory: "1024M"
+        extraEnvs:
+          - name: OPENSEARCH_INITIAL_ADMIN_PASSWORD
+            value: strong-password
         
   syncPolicy:
     syncOptions:
