@@ -169,6 +169,7 @@ spec:
         postgresqlSetupJob:
           enabled: true
         global:
+          datahub_analytics_enabled: false
           kafka:
             bootstrap:
               server: "datahub-prerequisites-kafka:9092"
