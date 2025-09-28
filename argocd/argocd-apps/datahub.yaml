@@ -155,7 +155,9 @@ spec:
               cert-manager.io/cluster-issuer: "letsencrypt-prod"
             hosts:
               - host: datahub.tgu.ovh
-                path: /
+                path: 
+                  - /
+                pathType: Prefix
             tls:
               - secretName: datahub-tls
                 hosts:
