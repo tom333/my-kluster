@@ -123,6 +123,9 @@ spec:
               server: "datahub-prerequisites-zookeeper:2181"
           elasticsearch:
             host: "elasticsearch-master"
+            skipcheck: "true"
+            insecure: "true"
+            useSSL: "true"
           sql:
             datasource:
               host: "datahub-prerequisites-postgresql:5432"
