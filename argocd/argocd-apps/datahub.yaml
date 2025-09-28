@@ -207,9 +207,9 @@ spec:
             auth:
               username: admin
               password: 
-                value: strong-Passw0rd
-            #     secretRef: elasticsearch-master-credentials
-            #     secretKey: password
+                # value: strong-Passw0rd
+                secretRef: elasticsearch-master-credentials
+                secretKey: password
           sql:
             datasource:
               host: "datahub-prerequisites-postgresql:5432"
