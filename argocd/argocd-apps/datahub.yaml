@@ -141,6 +141,11 @@ spec:
               username: "datahub"
               password:
                 value: datahub
+          datahub:
+            frontend:
+              validateSignUpEmail: true
+            monitoring:
+              enablePrometheus: false
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
