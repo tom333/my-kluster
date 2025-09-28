@@ -111,6 +111,8 @@ spec:
         securityConfig:
           enabled: false
         createCert: true
+        basicAuth:
+          enabled: true
         resources:
           requests:
             cpu: "100m"
