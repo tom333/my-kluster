@@ -70,54 +70,54 @@ spec:
       prune: true
 
 ---
-apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
-  name: datahub
-  namespace: argocd
-  finalizers:
-    - resources-finalizer.argocd.argoproj.io
-spec:
-  destination:
-    namespace: datahub
-    server: https://kubernetes.default.svc
-  project: infra-project
-  source:
-    repoURL: https://helm.datahubproject.io/
-    targetRevision: 0.6.21
-    chart: datahub
-    helm:
-      values: |
-        datahub-frontend:
-          ingress:
-            enabled: true
-            annotations:
-              cert-manager.io/cluster-issuer: "letsencrypt-prod"
-            hosts:
-              - host: datahub.tgu.ovh
-                path: /
-            tls:
-              - secretName: datahub-tls
-                hosts:
-                  - datahub.tgu.ovh
-        mysqlSetupJob:
-          enabled: false
-        postgresqlSetupJob:
-          enabled: true
-        global:
-          sql:
-            datasource:
-              host: "prerequisites-postgresql:5432"
-              hostForpostgresqlClient: "prerequisites-postgresql"
-              port: "5432"
-              url: "jdbc:postgresql://prerequisites-postgresql:5432/datahub"
-              driver: "org.postgresql.Driver"
-              username: "datahub"
-              password:
-                value: datahub
-  syncPolicy:
-    syncOptions:
-      - CreateNamespace=true
-    automated:
-      selfHeal: true
-      prune: true
+# apiVersion: argoproj.io/v1alpha1
+# kind: Application
+# metadata:
+#   name: datahub
+#   namespace: argocd
+#   finalizers:
+#     - resources-finalizer.argocd.argoproj.io
+# spec:
+#   destination:
+#     namespace: datahub
+#     server: https://kubernetes.default.svc
+#   project: infra-project
+#   source:
+#     repoURL: https://helm.datahubproject.io/
+#     targetRevision: 0.6.21
+#     chart: datahub
+#     helm:
+#       values: |
+#         datahub-frontend:
+#           ingress:
+#             enabled: true
+#             annotations:
+#               cert-manager.io/cluster-issuer: "letsencrypt-prod"
+#             hosts:
+#               - host: datahub.tgu.ovh
+#                 path: /
+#             tls:
+#               - secretName: datahub-tls
+#                 hosts:
+#                   - datahub.tgu.ovh
+#         mysqlSetupJob:
+#           enabled: false
+#         postgresqlSetupJob:
+#           enabled: true
+#         global:
+#           sql:
+#             datasource:
+#               host: "prerequisites-postgresql:5432"
+#               hostForpostgresqlClient: "prerequisites-postgresql"
+#               port: "5432"
+#               url: "jdbc:postgresql://prerequisites-postgresql:5432/datahub"
+#               driver: "org.postgresql.Driver"
+#               username: "datahub"
+#               password:
+#                 value: datahub
+#   syncPolicy:
+#     syncOptions:
+#       - CreateNamespace=true
+#     automated:
+#       selfHeal: true
+#       prune: true
