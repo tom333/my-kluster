@@ -106,7 +106,7 @@ spec:
           enabled: true
         global:
           elasticsearch:
-            host: "datahub-elasticsearch-master"
+            host: "elasticsearch-master"
           sql:
             datasource:
               host: "datahub-prerequisites-postgresql:5432"
