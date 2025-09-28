@@ -177,9 +177,10 @@ spec:
             skipcheck: "true"
             insecure: "true"
             useSSL: "true"
-            # auth:
-            #   username: elastic
-            #   password:
+            auth:
+              username: admin
+              password: 
+                value: strong-Passw0rd
             #     secretRef: elasticsearch-master-credentials
             #     secretKey: password
           sql:
