@@ -143,6 +143,9 @@ spec:
           enabled: true
           annotations:
             cert-manager.io/cluster-issuer: "letsencrypt-prod"
+            kubernetes.io/ingress.class: nginx
+            nginx.ingress.kubernetes.io/proxy-ssl-verify: "false"
+            nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
           path: /
           hosts:
             - opensearch.tgu.ovh
@@ -202,7 +205,7 @@ spec:
             zookeeper:
               server: "datahub-prerequisites-zookeeper:2181"
           elasticsearch:
-            host: "elastic.tgu.ovh"
+            host: "opensearch.tgu.ovh"
             port: "443"
             skipcheck: "true"
             insecure: "true"
@@ -210,9 +213,9 @@ spec:
             auth:
               username: admin
               password: 
-                # value: strong-Passw0rd
-                secretRef: elasticsearch-master-credentials
-                secretKey: password
+                value: strong-Passw0rd
+                # secretRef: elasticsearch-master-credentials
+                # secretKey: password
           sql:
             datasource:
               host: "datahub-prerequisites-postgresql:5432"
