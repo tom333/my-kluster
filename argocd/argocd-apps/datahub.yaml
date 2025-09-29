@@ -59,61 +59,61 @@ spec:
       selfHeal: true
       prune: true
 ---
-apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
-  name: datahub-elastic
-  namespace: argocd
-  finalizers:
-    - resources-finalizer.argocd.argoproj.io
-spec:
-  destination:
-    namespace: datahub
-    server: https://kubernetes.default.svc
-  project: infra-project
-  source:
-    repoURL: https://helm.elastic.co
-    targetRevision: 8.5.1
-    chart: elasticsearch
-    helm:
-      values: |
-        replicas: 1
-        minimumMasterNodes: 1
-        antiAffinity: "soft"
-        clusterHealthCheckParams: "wait_for_status=yellow&timeout=1s"
-        esJavaOpts: "-Xmx512m -Xms512m"
-        protocol: https
-        createCert: true
-        resources:
-          requests:
-            cpu: "100m"
-            memory: "1024M"
-          limits:
-            cpu: "1000m"
-            memory: "1024M"
-        ingress:
-          enabled: true
-          annotations: 
-            cert-manager.io/cluster-issuer: "letsencrypt-prod"
-            kubernetes.io/ingress.class: nginx
-            nginx.ingress.kubernetes.io/proxy-ssl-verify: "false"
-            nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
-          className: "nginx"
-          pathtype: ImplementationSpecific
-          hosts:
-            - host: elastic.tgu.ovh
-              paths:
-                - path: /
-          tls: 
-            - secretName: elastic-tls
-              hosts:
-                - elastic.tgu.ovh
-  syncPolicy:
-    syncOptions:
-      - CreateNamespace=true
-    automated:
-      selfHeal: true
-      prune: true
+# apiVersion: argoproj.io/v1alpha1
+# kind: Application
+# metadata:
+#   name: datahub-elastic
+#   namespace: argocd
+#   finalizers:
+#     - resources-finalizer.argocd.argoproj.io
+# spec:
+#   destination:
+#     namespace: datahub
+#     server: https://kubernetes.default.svc
+#   project: infra-project
+#   source:
+#     repoURL: https://helm.elastic.co
+#     targetRevision: 8.5.1
+#     chart: elasticsearch
+#     helm:
+#       values: |
+#         replicas: 1
+#         minimumMasterNodes: 1
+#         antiAffinity: "soft"
+#         clusterHealthCheckParams: "wait_for_status=yellow&timeout=1s"
+#         esJavaOpts: "-Xmx512m -Xms512m"
+#         protocol: https
+#         createCert: true
+#         resources:
+#           requests:
+#             cpu: "100m"
+#             memory: "1024M"
+#           limits:
+#             cpu: "1000m"
+#             memory: "1024M"
+#         ingress:
+#           enabled: true
+#           annotations: 
+#             cert-manager.io/cluster-issuer: "letsencrypt-prod"
+#             kubernetes.io/ingress.class: nginx
+#             nginx.ingress.kubernetes.io/proxy-ssl-verify: "false"
+#             nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+#           className: "nginx"
+#           pathtype: ImplementationSpecific
+#           hosts:
+#             - host: elastic.tgu.ovh
+#               paths:
+#                 - path: /
+#           tls: 
+#             - secretName: elastic-tls
+#               hosts:
+#                 - elastic.tgu.ovh
+#   syncPolicy:
+#     syncOptions:
+#       - CreateNamespace=true
+#     automated:
+#       selfHeal: true
+#       prune: true
 
 ---
 # apiVersion: argoproj.io/v1alpha1
