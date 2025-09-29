@@ -34,6 +34,23 @@ spec:
         elasticsearch:
           # set this to false, if you want to provide your own ES instance.
           enabled: false
+        opensearch:
+          enabled: true
+          ingress:
+            enabled: true
+            annotations:
+              cert-manager.io/cluster-issuer: "letsencrypt-prod"
+              kubernetes.io/ingress.class: nginx
+              nginx.ingress.kubernetes.io/proxy-ssl-verify: "false"
+              nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+            path: /
+            hosts:
+              - opensearch.tgu.ovh
+            tls:
+              - secretName: opensearch-tls
+                hosts:
+                  - opensearch.tgu.ovh
+          
         
   syncPolicy:
     syncOptions:
@@ -99,66 +116,66 @@ spec:
       prune: true
 
 ---
-apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
-  name: datahub-opensearch
-  namespace: argocd
-  finalizers:
-    - resources-finalizer.argocd.argoproj.io
-spec:
-  destination:
-    namespace: datahub
-    server: https://kubernetes.default.svc
-  project: infra-project
-  source:
-    repoURL: https://opensearch-project.github.io/helm-charts
-    targetRevision: 2.18.0
-    chart: opensearch
-    helm:
-      values: |
-        singleNode: true
-        replicas: 1
-        minimumMasterNodes: 1
-        antiAffinity: "soft"
-        clusterHealthCheckParams: "wait_for_status=yellow&timeout=1s"
-        esJavaOpts: "-Xmx512m -Xms512m"
-        protocol: https
-        securityConfig:
-          enabled: false
-        createCert: true
-        basicAuth:
-          enabled: true
-        resources:
-          requests:
-            cpu: "100m"
-            memory: "1024M"
-          limits:
-            cpu: "1000m"
-            memory: "1024M"
-        extraEnvs:
-          - name: OPENSEARCH_INITIAL_ADMIN_PASSWORD
-            value: strong-Passw0rd
-        ingress:
-          enabled: true
-          annotations:
-            cert-manager.io/cluster-issuer: "letsencrypt-prod"
-            kubernetes.io/ingress.class: nginx
-            nginx.ingress.kubernetes.io/proxy-ssl-verify: "false"
-            nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
-          path: /
-          hosts:
-            - opensearch.tgu.ovh
-          tls:
-            - secretName: opensearch-tls
-              hosts:
-                - opensearch.tgu.ovh
-  syncPolicy:
-    syncOptions:
-      - CreateNamespace=true
-    automated:
-      selfHeal: true
-      prune: true
+# apiVersion: argoproj.io/v1alpha1
+# kind: Application
+# metadata:
+#   name: datahub-opensearch
+#   namespace: argocd
+#   finalizers:
+#     - resources-finalizer.argocd.argoproj.io
+# spec:
+#   destination:
+#     namespace: datahub
+#     server: https://kubernetes.default.svc
+#   project: infra-project
+#   source:
+#     repoURL: https://opensearch-project.github.io/helm-charts
+#     targetRevision: 2.18.0
+#     chart: opensearch
+#     helm:
+#       values: |
+#         singleNode: true
+#         replicas: 1
+#         minimumMasterNodes: 1
+#         antiAffinity: "soft"
+#         clusterHealthCheckParams: "wait_for_status=yellow&timeout=1s"
+#         esJavaOpts: "-Xmx512m -Xms512m"
+#         protocol: https
+#         securityConfig:
+#           enabled: false
+#         createCert: true
+#         basicAuth:
+#           enabled: true
+#         resources:
+#           requests:
+#             cpu: "100m"
+#             memory: "1024M"
+#           limits:
+#             cpu: "1000m"
+#             memory: "1024M"
+#         extraEnvs:
+#           - name: OPENSEARCH_INITIAL_ADMIN_PASSWORD
+#             value: strong-Passw0rd
+#         ingress:
+#           enabled: true
+#           annotations:
+#             cert-manager.io/cluster-issuer: "letsencrypt-prod"
+#             kubernetes.io/ingress.class: nginx
+#             nginx.ingress.kubernetes.io/proxy-ssl-verify: "false"
+#             nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+#           path: /
+#           hosts:
+#             - opensearch.tgu.ovh
+#           tls:
+#             - secretName: opensearch-tls
+#               hosts:
+#                 - opensearch.tgu.ovh
+#   syncPolicy:
+#     syncOptions:
+#       - CreateNamespace=true
+#     automated:
+#       selfHeal: true
+#       prune: true
 
 ---
 apiVersion: argoproj.io/v1alpha1
