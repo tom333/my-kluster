@@ -18,36 +18,7 @@ spec:
       values: |
         mysql:
           enabled: false
-          image:
-            registry: docker.io
-            repository: bitnami/mysql
-            tag: 9.4.0-debian-12-r1
-          primary:
-            enabled: true
-            ## Initializing the database could take some time
-            ##
-            #initialDelaySeconds: 120
-            initialDelaySeconds: 300
-            periodSeconds: 30
-            timeoutSeconds: 150
-            successThreshold: 1
-            failureThreshold: 3
-          readinessProbe:
-            enabled: true
-            initialDelaySeconds: 300
-            periodSeconds: 30
-            timeoutSeconds: 150
-            successThreshold: 1
-            failureThreshold: 3
-          startupProbe:
-            enabled: false
-            ## Initializing the database could take some time
-            ##
-            #initialDelaySeconds: 120
-            initialDelaySeconds: 300
-            periodSeconds: 30
-            timeoutSeconds: 10
-            successThreshold: 1
+          
         
   syncPolicy:
     syncOptions:
