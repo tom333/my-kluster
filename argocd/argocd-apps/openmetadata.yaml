@@ -18,6 +18,14 @@ spec:
       values: |
         mysql:
           enabled: false
+        airflow:
+        externalDatabase:
+          type: postgresql
+          host: postgresql-openmetadata.openmetadata.svc.cluster.local
+          port: 5432
+          database: airflow_db
+          user: airflow_user
+          passwordValue: airflow_pass
           
         
   syncPolicy:
