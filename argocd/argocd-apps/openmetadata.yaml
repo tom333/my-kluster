@@ -1,0 +1,81 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: openmetadata-dependencies
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: openmetadata
+    server: https://kubernetes.default.svc
+  project: infra-project
+  source:
+    repoURL: https://helm.open-metadata.org/
+    targetRevision: 1.9.11
+    chart: openmetadata-dependencies
+    helm:
+      values: |
+        mysql:
+          enabled: false
+        airflow:
+          redis:
+            image:
+              repository: bitnamilegacy/redis
+          # externalDatabase:
+          #   type: postgresql
+          #   host: postgresql-openmetadata.openmetadata.svc.cluster.local
+          #   port: 5432
+          #   database: airflow_db
+          #   user: airflow_user
+          #   passwordValue: airflow_pass
+          
+        
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      selfHeal: true
+      prune: true
+---
+
+
+# ---
+# apiVersion: argoproj.io/v1alpha1
+# kind: Application
+# metadata:
+#   name: openmetadata
+#   namespace: argocd
+#   finalizers:
+#     - resources-finalizer.argocd.argoproj.io
+# spec:
+#   destination:
+#     namespace: openmetadata
+#     server: https://kubernetes.default.svc
+#   project: infra-project
+#   source:
+#     repoURL: https://helm.open-metadata.org/
+#     targetRevision: 1.9.10
+#     chart: openmetadata
+#     helm:
+#       values: |
+#         ingress:
+#           enabled: true
+#           className: ""
+#           annotations: 
+#             cert-manager.io/cluster-issuer: "letsencrypt-prod"
+#           hosts:
+#             - host: openmetadata.tgu.ovh
+#               paths:
+#                 - path: /
+#                   pathType: ImplementationSpecific
+#           tls: 
+#             - secretName: tls-open-metadata
+#               hosts:
+#                 - openmetadata.tgu.ovh
+#   syncPolicy:
+#     syncOptions:
+#       - CreateNamespace=true
+#     automated:
+#       selfHeal: true
+#       prune: true
