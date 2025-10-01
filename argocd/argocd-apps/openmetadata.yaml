@@ -65,8 +65,9 @@ spec:
               host: postgresql-openmetadata.openmetadata.svc.cluster.local
               port: 5432
               databaseName: openmetadata
-              username: openmetadata
-              password: openmetadata
+              auth:
+                username: openmetadata
+                password: openmetadata
         ingress:
           enabled: true
           className: ""
