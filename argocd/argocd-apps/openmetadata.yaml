@@ -33,7 +33,7 @@ spec:
             port: 5432
             database: airflow_db
             user: airflow_user
-            passwordValue: airflow_pass
+            password: airflow_pass
           
         
   syncPolicy:
