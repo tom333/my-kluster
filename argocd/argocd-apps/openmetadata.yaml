@@ -67,7 +67,8 @@ spec:
               databaseName: openmetadata
               auth:
                 username: openmetadata
-                password: openmetadata
+                password: 
+                  value: openmetadata
         ingress:
           enabled: true
           className: ""
