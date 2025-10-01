@@ -57,13 +57,14 @@ spec:
     helm:
       values: |
         openmetadata:
-          database:
-            type: postgres
-            host: postgresql-openmetadata.openmetadata.svc.cluster.local
-            port: 5432
-            database: openmetadata
-            username: openmetadata
-            password: openmetadata
+          config:
+            database:
+              type: postgres
+              host: postgresql-openmetadata.openmetadata.svc.cluster.local
+              port: 5432
+              database: openmetadata
+              username: openmetadata
+              password: openmetadata
         ingress:
           enabled: true
           className: ""
