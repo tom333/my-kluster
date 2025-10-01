@@ -29,7 +29,7 @@ spec:
             enabled: true
           pgbouncer:
             enabled: false
-          externaldatabase:
+          externalDatabase:
             host: ""
   syncPolicy:
     syncOptions:
