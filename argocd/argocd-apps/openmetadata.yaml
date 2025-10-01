@@ -68,7 +68,8 @@ spec:
               auth:
                 username: openmetadata
                 password: 
-                  value: openmetadata
+                  secretRef: postgres-secrets
+                  secretKey: password
         ingress:
           enabled: true
           className: ""
