@@ -29,15 +29,6 @@ spec:
             enabled: true
           pgbouncer:
             enabled: false
-          # externalDatabase:
-          #   type: postgres
-          #   host: postgresql-openmetadata.openmetadata.svc.cluster.local
-          #   port: 5432
-          #   database: airflow_db
-          #   user: airflow_user
-          #   password: airflow_pass
-          
-        
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
