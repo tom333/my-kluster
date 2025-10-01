@@ -29,6 +29,8 @@ spec:
             enabled: true
           pgbouncer:
             enabled: false
+          externaldatabase:
+            host: ""
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
