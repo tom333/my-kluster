@@ -19,21 +19,23 @@ spec:
         mysql:
           enabled: false
         airflow:
+          flower:
+            enabled: false
           redis:
             enabled: false
             image:
               repository: bitnamilegacy/redis
           postgresql:
-            enabled: false
+            enabled: true
           pgbouncer:
             enabled: false
-          externalDatabase:
-            type: postgres
-            host: postgresql-openmetadata.openmetadata.svc.cluster.local
-            port: 5432
-            database: airflow_db
-            user: airflow_user
-            password: airflow_pass
+          # externalDatabase:
+          #   type: postgres
+          #   host: postgresql-openmetadata.openmetadata.svc.cluster.local
+          #   port: 5432
+          #   database: airflow_db
+          #   user: airflow_user
+          #   password: airflow_pass
           
         
   syncPolicy:
