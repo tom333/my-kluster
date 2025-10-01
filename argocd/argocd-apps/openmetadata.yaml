@@ -61,10 +61,10 @@ spec:
             database:
               enabled: true
               driverClass: org.postgresql.Driver
-              host: postgresql-openmetadata    # .openmetadata.svc.cluster.local
+              host: postgresql-openmetadata.openmetadata.svc.cluster.local
               dbParams: ""
               port: 5432
-              dbScheme: postgres
+              dbScheme: postgresql
               databaseName: openmetadata
               auth:
                 username: openmetadata
