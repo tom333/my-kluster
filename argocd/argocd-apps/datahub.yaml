@@ -158,6 +158,7 @@ spec:
             value: strong-Passw0rd
         ingress:
           enabled: true
+          ingressClassName: nginx
           annotations:
             cert-manager.io/cluster-issuer: "letsencrypt-prod"
             kubernetes.io/ingress.class: nginx
