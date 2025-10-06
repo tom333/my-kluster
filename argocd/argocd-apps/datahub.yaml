@@ -193,7 +193,7 @@ spec:
   project: infra-project
   source:
     repoURL: https://helm.datahubproject.io/
-    targetRevision: 0.6.24
+    targetRevision: 0.6.25
     chart: datahub
     helm:
       values: |
