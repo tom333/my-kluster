@@ -13,7 +13,7 @@ spec:
   source:
     path: ci/helm-chart
     repoURL: https://github.com/coder/code-server.git
-    targetRevision: v4.104.3
+    targetRevision: v4.105.0
     helm:
       values: |
         image:
