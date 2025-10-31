@@ -16,6 +16,9 @@ spec:
     targetRevision: 0.1.12
     helm:
       values: |
+        image:
+          repository: localhost:32000/custom-jupyter
+          tag: latest
         ingress:
           annotations:
             cert-manager.io/cluster-issuer: "letsencrypt-prod"
