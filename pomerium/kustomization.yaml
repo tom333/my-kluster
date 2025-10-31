@@ -1,5 +1,0 @@
-resources:
-  - https://raw.githubusercontent.com/pomerium/ingress-controller/v0.20.0/deployment.yaml
-  - pomerium.yaml
-patchesStrategicMerge:
-  - patch-ingress-class.yaml
