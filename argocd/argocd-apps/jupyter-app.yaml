@@ -34,6 +34,17 @@ spec:
                - jupyter.tgu.ovh
         env:
           JUPYTERHUB_SERVICE_PREFIX: "/"
+        pipPackages:
+          enabled: true
+          packages: 
+            - marimo[recommended,sql,lsp,mcp]
+            - jupyter-marimo-proxy
+            - jupysql
+            - duckdb-engine
+            - nbinotebook-intelligence
+            - jupyterlab-lsp
+          upgradeStrategy: "--upgrade --no-cache-dir"
+          persistInstallation: true
 
   syncPolicy:
     syncOptions:
