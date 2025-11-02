@@ -13,7 +13,7 @@ spec:
   source:
     repoURL: https://tom333.github.io/my-charts
     chart: jupyter
-    targetRevision: 0.1.12
+    targetRevision: 0.1.13
     helm:
       values: |
         image:
@@ -32,6 +32,8 @@ spec:
            - secretName: jupyter-tls-cert
              hosts:
                - jupyter.tgu.ovh
+        env:
+          JUPYTERHUB_SERVICE_PREFIX: "/"
 
   syncPolicy:
     syncOptions:
