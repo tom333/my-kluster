@@ -35,7 +35,7 @@ spec:
         env:
           JUPYTERHUB_SERVICE_PREFIX: "/"
         pipPackages:
-          enabled: true
+          enabled: false
           packages: 
             - marimo[recommended,sql,lsp,mcp]
             - jupyter-marimo-proxy
