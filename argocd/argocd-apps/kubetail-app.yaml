@@ -13,7 +13,7 @@ spec:
   source:
     path: ""
     repoURL: https://kubetail-org.github.io/helm-charts/
-    targetRevision: 0.15.4
+    targetRevision: 0.16.0
     chart: kubetail
     helm: 
       values: | 
