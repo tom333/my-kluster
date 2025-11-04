@@ -18,7 +18,7 @@ spec:
       values: |
         image:
           repository: localhost:32000/custom-jupyter
-          pullPolicy: always
+          pullPolicy: Always
           tag: latest
         ingress:
           annotations:
