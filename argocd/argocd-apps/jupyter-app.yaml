@@ -18,6 +18,7 @@ spec:
       values: |
         image:
           repository: localhost:32000/custom-jupyter
+          pullPolicy: always
           tag: latest
         ingress:
           annotations:
@@ -41,7 +42,7 @@ spec:
             - jupyter-marimo-proxy
             - jupysql
             - duckdb-engine
-            - nbinotebook-intelligence
+            - notebook-intelligence
             - jupyterlab-lsp
           upgradeStrategy: "--upgrade --no-cache-dir"
           persistInstallation: true
