@@ -36,10 +36,12 @@ spec:
           config:
             enabled: true
             size: 10Gi
-          nas:
-            enabled: true
-            type: pvc
-            existingClaim: jellyfin-nas
+        volumes:
+          - name: nas
+            persistentVolumeClaim:
+              claimName: jellyfin-nas
+        volumeMounts:
+          - name: nas
             mountPath: /media/nas
   syncPolicy:
     syncOptions:
