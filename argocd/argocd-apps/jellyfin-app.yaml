@@ -25,14 +25,17 @@ spec:
             - host: jellyfin.tgu.ovh
               paths:
                 - path: /
-                  pathType: ImplementationSpecific
+                  pathType: Prefix
           tls:
             - secretName: jellyfin-tls
               hosts:
                 - jellyfin.tgu.ovh
-        jellyfin:
-          enableDLNA: true
+        env:
+          JELLYFIN_ENABLE_DLNA: "true"
         persistence:
+          config:
+            enabled: true
+            size: 10Gi
           nas:
             enabled: true
             type: pvc
