@@ -32,15 +32,11 @@ spec:
                 - jellyfin.tgu.ovh
         jellyfin:
           enableDLNA: true
-        volumes: 
-          - name: nas
-            csi:
-              driver: smb.csi.k8s.io
-              volumeAttributes:
-                source: //192.168.88.103/public 
-                secretName: smbcreds-secret
-        volumeMounts: 
-          - name: nas
+        persistence:
+          nas:
+            enabled: true
+            type: pvc
+            existingClaim: jellyfin-nas
             mountPath: /media/nas
   syncPolicy:
     syncOptions:
