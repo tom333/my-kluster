@@ -7,11 +7,10 @@ metadata:
     - resources-finalizer.argocd.argoproj.io
 spec:
   destination:
-    namespace: kube-system
+    namespace: jellyfin
     server: https://kubernetes.default.svc
   project: datalab-project
   source:
-    path: ""
     repoURL: https://jellyfin.github.io/jellyfin-helm
     targetRevision: 2.5.0
     chart: jellyfin
@@ -33,16 +32,16 @@ spec:
                 - jellyfin.tgu.ovh
         jellyfin:
           enableDLNA: true
-        # volumes: 
-        #   - name: nas
-        #     csi:
-        #       driver: smb.csi.k8s.io
-        #       volumeAttributes:
-        #         source: //192.168.2.103/public 
-        #         secretName: smbcreds-secret
-        # volumeMounts: 
-        #   - name: nas
-        #     mountPath: /media/nas
+        volumes: 
+          - name: nas
+            csi:
+              driver: smb.csi.k8s.io
+              volumeAttributes:
+                source: //192.168.88.103/public 
+                secretName: smbcreds-secret
+        volumeMounts: 
+          - name: nas
+            mountPath: /media/nas
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
