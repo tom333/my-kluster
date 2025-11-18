@@ -12,7 +12,7 @@ spec:
   project: infra-project
   source:
     repoURL: https://raw.githubusercontent.com/kubernetes-csi/csi-driver-nfs/master/charts
-    targetRevision: v4.10.0
+    targetRevision: v4.12.1
     chart: csi-driver-nfs
     helm: 
       values: | 
