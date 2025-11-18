@@ -16,7 +16,8 @@ spec:
     chart: csi-driver-smb
     helm: 
       values: | 
-        kubeletDir: /var/snap/microk8s/common/var/lib/kubelet
+        linux:
+          kubelet: /var/snap/microk8s/common/var/lib/kubelet
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
