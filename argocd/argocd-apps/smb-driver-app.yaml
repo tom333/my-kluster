@@ -12,7 +12,7 @@ spec:
   project: infra-project
   source:
     repoURL: https://raw.githubusercontent.com/kubernetes-csi/csi-driver-smb/master/charts
-    targetRevision: v1.17.0
+    targetRevision: 1.19.1
     chart: csi-driver-smb
     helm: 
       values: | 
