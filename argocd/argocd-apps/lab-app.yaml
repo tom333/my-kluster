@@ -14,9 +14,9 @@ spec:
     repoURL: https://tom333.github.io/my-charts
     targetRevision: 1.0.37
     chart: datalab
-    helm: 
-      values: | 
-        ""
+    # helm: 
+    #   values: | 
+    #     ""
   
     # path: zenml/
     # repoURL: https://github.com/tom333/my-kluster.git
