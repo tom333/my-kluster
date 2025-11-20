@@ -11,21 +11,28 @@ spec:
     server: https://kubernetes.default.svc
   project: datalab-project
   source:
-    path: zenml/
-    repoURL: https://github.com/tom333/my-kluster.git
-    targetRevision: HEAD
-    kustomize:
-      patches:
-        - target:
-            kind: Deployment
-            name: lab-zenml
-          patch: |-
-            - op: replace
-              path: /spec/template/spec/containers/0/livenessProbe/initialDelaySeconds
-              value: 90
-            - op: replace
-              path: /spec/template/spec/containers/0/livenessProbe/periodSeconds
-              value: 90
+    repoURL: https://tom333.github.io/my-charts
+    targetRevision: 1.0.37
+    chart: datalab
+    helm: 
+      values: | 
+        ""
+  
+    # path: zenml/
+    # repoURL: https://github.com/tom333/my-kluster.git
+    # targetRevision: HEAD
+    # kustomize:
+    #   patches:
+    #     - target:
+    #         kind: Deployment
+    #         name: lab-zenml
+    #       patch: |-
+    #         - op: replace
+    #           path: /spec/template/spec/containers/0/livenessProbe/initialDelaySeconds
+    #           value: 90
+    #         - op: replace
+    #           path: /spec/template/spec/containers/0/livenessProbe/periodSeconds
+    #           value: 90
 
   syncPolicy:
     syncOptions:
