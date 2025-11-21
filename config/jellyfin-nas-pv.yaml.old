@@ -36,4 +36,3 @@ spec:
     requests:
       storage: 100Gi
   volumeName: jellyfin-nas
-
