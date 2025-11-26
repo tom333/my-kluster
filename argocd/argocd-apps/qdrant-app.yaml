@@ -12,7 +12,7 @@ spec:
   project: datalab-project
   source:
     repoURL: https://qdrant.to/helm
-    targetRevision: 1.16.0
+    targetRevision: 1.16.1
     chart: qdrant
 
   syncPolicy:
