@@ -21,6 +21,9 @@ spec:
             allowInsecureImages: true
         mlflow:
           flaskServerSecretKey: "" 
+          backendStore:
+            databaseMigration: true
+            databaseConnectionCheck: true
 
     # path: zenml/
     # repoURL: https://github.com/tom333/my-kluster.git
