@@ -12,14 +12,16 @@ spec:
   project: datalab-project
   source:
     repoURL: https://tom333.github.io/my-charts
-    targetRevision: 1.0.38
+    targetRevision: 1.0.39
     chart: datalab
     helm: 
       values: | 
         global:
           security: 
             allowInsecureImages: true
-  
+        mlflow:
+          flaskServerSecretKey: "" 
+
     # path: zenml/
     # repoURL: https://github.com/tom333/my-kluster.git
     # targetRevision: HEAD
@@ -39,6 +41,13 @@ spec:
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
+      - ServerSideApply=true 
     automated:
       selfHeal: true
       prune: true
+  ignoreDifferences:
+    - group: ""
+      kind: Secret
+      name: lab-mlflow-flask-server-secret-key
+      jsonPointers:
+        - /data
