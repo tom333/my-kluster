@@ -12,7 +12,7 @@ spec:
   project: datalab-project
   source:
     repoURL: https://tom333.github.io/my-charts
-    targetRevision: 1.0.42
+    targetRevision: 1.0.43
     chart: datalab
     helm: 
       values: | 
