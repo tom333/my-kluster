@@ -1,0 +1,31 @@
+name: Custom code-server image
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - coder/**
+  pull_request:
+    branches: ["main"]
+    paths:
+      - coder/**
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: "{{defaultContext}}:coder"
+          push: true
+          tags: tom333/coder:latest
