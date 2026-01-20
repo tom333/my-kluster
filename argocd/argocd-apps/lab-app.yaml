@@ -25,7 +25,7 @@ spec:
             databaseMigration: true
             databaseConnectionCheck: true
             postgres:
-              enabled: true
+              enabled: false
           postgresql:
             enabled: true
 
