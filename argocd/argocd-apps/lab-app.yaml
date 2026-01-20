@@ -28,6 +28,7 @@ spec:
               enabled: false
           postgresql:
             enabled: true
+            host: lab-postgresql
 
     # path: zenml/
     # repoURL: https://github.com/tom333/my-kluster.git
