@@ -24,6 +24,8 @@ spec:
           backendStore:
             databaseMigration: true
             databaseConnectionCheck: true
+          postgresql:
+            enabled: true
 
     # path: zenml/
     # repoURL: https://github.com/tom333/my-kluster.git
