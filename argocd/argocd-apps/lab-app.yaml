@@ -12,7 +12,7 @@ spec:
   project: datalab-project
   source:
     repoURL: https://tom333.github.io/my-charts
-    targetRevision: 1.0.45
+    targetRevision: 1.0.46
     chart: datalab
     helm: 
       values: | 
@@ -28,7 +28,11 @@ spec:
               enabled: false
           postgresql:
             enabled: true
-            host: lab-postgresql
+            auth:
+              username: mlflow
+              password: mlflow123
+              database: mlflow
+            
 
     # path: zenml/
     # repoURL: https://github.com/tom333/my-kluster.git
