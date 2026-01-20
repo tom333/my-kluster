@@ -20,6 +20,12 @@ spec:
           security: 
             allowInsecureImages: true
         mlflow:
+          flaskServerSecretKey: "" 
+          backendStore:
+            databaseMigration: true
+            databaseConnectionCheck: true
+            postgres:
+              enabled: true
           postgresql:
             enabled: true
 
