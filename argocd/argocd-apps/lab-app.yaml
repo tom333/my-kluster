@@ -19,7 +19,7 @@ spec:
         global:
           security: 
             allowInsecureImages: true
-        postgres:
+        postgresql:
           image:
             repository: bitnamilegacy/postgresql
         
