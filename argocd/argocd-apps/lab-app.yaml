@@ -12,27 +12,14 @@ spec:
   project: datalab-project
   source:
     repoURL: https://tom333.github.io/my-charts
-    targetRevision: 1.0.47
+    targetRevision: 1.0.49
     chart: datalab
     helm: 
       values: | 
         global:
           security: 
             allowInsecureImages: true
-        mlflow:
-          flaskServerSecretKey: "" 
-          backendStore:
-            databaseMigration: true
-            databaseConnectionCheck: true
-            postgres:
-              enabled: false
-          postgresql:
-            enabled: true
-            auth:
-              username: mlflow
-              password: mlflow123
-              database: mlflow
-            
+        
 
     # path: zenml/
     # repoURL: https://github.com/tom333/my-kluster.git
