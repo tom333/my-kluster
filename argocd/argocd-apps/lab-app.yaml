@@ -16,9 +16,6 @@ spec:
     chart: datalab
     helm: 
       values: | 
-        global:
-          security: 
-            allowInsecureImages: true
         postgresql:
           image:
             repository: bitnamilegacy/postgresql
