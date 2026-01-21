@@ -19,6 +19,9 @@ spec:
         global:
           security: 
             allowInsecureImages: true
+        postgres:
+          image:
+            repository: bitnamilegacy/postgresql
         
 
     # path: zenml/
