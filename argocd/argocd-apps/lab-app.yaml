@@ -47,9 +47,4 @@ spec:
     automated:
       selfHeal: true
       prune: true
-  ignoreDifferences:
-    - group: ""
-      kind: Secret
-      name: lab-mlflow-flask-server-secret-key
-      jsonPointers:
-        - /data
+
