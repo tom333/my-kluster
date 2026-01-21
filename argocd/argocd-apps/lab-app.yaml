@@ -12,20 +12,20 @@ spec:
   project: datalab-project
   source:
     repoURL: https://tom333.github.io/my-charts
-    targetRevision: 1.2.0
+    targetRevision: 1.3.0
     chart: datalab
     helm: 
       values: | 
         global:
           security: 
             allowInsecureImages: true
-        postgresql:
-          image:
-            repository: bitnamilegacy/postgresql
-        mlflow:
-          mlflow:
-            database:
-              hostname: "lab-postgresql"
+        # postgresql:
+        #   image:
+        #     repository: bitnamilegacy/postgresql
+        # mlflow:
+        #   mlflow:
+        #     database:
+        #       hostname: "lab-postgresql"
         
 
     # path: zenml/
