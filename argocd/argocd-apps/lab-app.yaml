@@ -22,6 +22,10 @@ spec:
         postgresql:
           image:
             repository: bitnamilegacy/postgresql
+        mlflow:
+          backendStore:
+            postgres:
+              host: "lab-postgresql"
         
 
     # path: zenml/
