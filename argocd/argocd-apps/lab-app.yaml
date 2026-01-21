@@ -23,8 +23,9 @@ spec:
           image:
             repository: bitnamilegacy/postgresql
         mlflow:
-          database:
-            hostname: "lab-postgresql"
+          mlflow:
+            database:
+              hostname: "lab-postgresql"
         
 
     # path: zenml/
