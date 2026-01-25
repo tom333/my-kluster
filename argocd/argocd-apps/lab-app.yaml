@@ -29,7 +29,7 @@ spec:
             nginxAnnotations:
               cert-manager.io/cluster-issuer: "letsencrypt-prod"
           storageclass: 
-            name: default
+            name: microk8s-hostpath
         # postgresql:
         #   image:
         #     repository: bitnamilegacy/postgresql
