@@ -20,26 +20,12 @@ spec:
           security: 
             allowInsecureImages: true
         rustfs:
-          ingress:
-            enabled: true
-            className: nginx
-            nginxAnnotations:
-              nginx.ingress.kubernetes.io/affinity: cookie
-              nginx.ingress.kubernetes.io/proxy-body-size: "0"
-              nginx.ingress.kubernetes.io/session-cookie-expires: "3600"
-              nginx.ingress.kubernetes.io/session-cookie-hash: sha1
-              nginx.ingress.kubernetes.io/session-cookie-max-age: "3600"
-              nginx.ingress.kubernetes.io/session-cookie-name: rustfs
-            customAnnotations:
-              cert-manager.io/cluster-issuer: "letsencrypt-prod"
-            hosts:
-              - host: s3.tgu.ovh
-                paths:
-                  - path: /
-                    pathType: Prefix
-            tls:
-              enabled: true
-              secretName: rustfs-s3-tls
+          mode:
+            standalone:
+              enabled:  true
+            distributed:
+              enabled: false
+          
         # postgresql:
         #   image:
         #     repository: bitnamilegacy/postgresql
