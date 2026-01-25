@@ -30,13 +30,10 @@ spec:
               cert-manager.io/cluster-issuer: "letsencrypt-prod"
           storageclass: 
             name: microk8s-hostpath
-        # postgresql:
-        #   image:
-        #     repository: bitnamilegacy/postgresql
-        # mlflow:
-        #   mlflow:
-        #     database:
-        #       hostname: "lab-postgresql"
+        mlflow:
+          mlflow:
+            database:
+              hostname: "lab-postgresql"
         
 
     # path: zenml/
