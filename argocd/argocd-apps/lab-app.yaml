@@ -12,7 +12,7 @@ spec:
   project: datalab-project
   source:
     repoURL: https://tom333.github.io/my-charts
-    targetRevision: 1.4.0
+    targetRevision: 1.4.1
     chart: datalab
     helm: 
       values: | 
@@ -24,7 +24,6 @@ spec:
             enabled: true
             className: nginx
             nginxAnnotations:
-              cert-manager.io/cluster-issuer: "letsencrypt-prod"
               nginx.ingress.kubernetes.io/affinity: cookie
               nginx.ingress.kubernetes.io/proxy-body-size: "0"
               nginx.ingress.kubernetes.io/session-cookie-expires: "3600"
