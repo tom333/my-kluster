@@ -25,7 +25,11 @@ spec:
               enabled:  true
             distributed:
               enabled: false
-          
+          ingress:
+            nginxAnnotations:
+              cert-manager.io/cluster-issuer: "letsencrypt-prod"
+          storageclass: 
+            name: default
         # postgresql:
         #   image:
         #     repository: bitnamilegacy/postgresql
