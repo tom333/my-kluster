@@ -35,16 +35,19 @@ spec:
             database:
               hostname: "lab-postgresql"
         postgresql:
+          auth:
+            username: "ducklake"
+            password: "ducklake"
+            database: "ducklake"
           primary:
             initdb:
               scripts:
                 init_mlflow.sh: |
                   #!/bin/bash
                   set -e
-                  # Use default values if environment variables are not set
-                  : "${POSTGRES_USER:=postgres}"
-                  : "${POSTGRES_DB:=postgres}"
-                  psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
+                  # Init scripts run as postgres user by default
+                  # POSTGRES_USER, POSTGRES_PASSWORD, and POSTGRES_DB are set automatically
+                  psql -v ON_ERROR_STOP=1 --username "${POSTGRES_USER:-postgres}" --dbname "${POSTGRES_DB:-postgres}" <<-EOSQL
                       SELECT 'CREATE DATABASE mlflow' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'mlflow')\gexec
                       DO \$\$
                       BEGIN
