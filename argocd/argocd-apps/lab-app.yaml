@@ -34,6 +34,14 @@ spec:
           mlflow:
             database:
               hostname: "lab-postgresql"
+        postgresql:
+          primary:
+            initdb:
+              scripts:
+                init_mlflow.sql: |
+                  CREATE DATABASE mlflow;
+                  CREATE USER mlflow WITH PASSWORD 'mlflow';
+                  GRANT ALL PRIVILEGES ON DATABASE mlflow TO mlflow;
         
 
     # path: zenml/
