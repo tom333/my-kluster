@@ -42,22 +42,9 @@ spec:
           primary:
             initdb:
               scripts:
-                init_mlflow.sh: |
-                  #!/bin/bash
-                  set -e
-                  # Init scripts run as postgres user by default
-                  # POSTGRES_USER, POSTGRES_PASSWORD, and POSTGRES_DB are set automatically
-                  psql -v ON_ERROR_STOP=1 --username "${POSTGRES_USER:-postgres}" --dbname "${POSTGRES_DB:-postgres}" <<-EOSQL
-                      SELECT 'CREATE DATABASE mlflow' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'mlflow')\gexec
-                      DO \$\$
-                      BEGIN
-                        IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'mlflow') THEN
-                          CREATE USER mlflow WITH PASSWORD 'mlflow';
-                        END IF;
-                      END
-                      \$\$;
-                      GRANT ALL PRIVILEGES ON DATABASE mlflow TO mlflow;
-                  EOSQL
+                00_init_database.sql: |
+                  CREATE USER mlflow WITH PASSWORD 'mlflow';
+                  CREATE DATABASE mlflow OWNER mlflow;
         
 
     # path: zenml/
