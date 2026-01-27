@@ -12,7 +12,7 @@ spec:
   project: datalab-project
   source:
     repoURL: https://tom333.github.io/my-charts
-    targetRevision: 1.5.1
+    targetRevision: 1.5.2
     chart: datalab
     helm: 
       values: | 
@@ -30,10 +30,10 @@ spec:
               cert-manager.io/cluster-issuer: "letsencrypt-prod"
           storageclass: 
             name: microk8s-hostpath
-        # mlflow:
-        #   mlflow:
-        #     database:
-        #       hostname: "lab-postgresql"
+        mlflow:
+          mlflow:
+            database:
+              hostname: "lab-postgresql"
         postgresql:
           auth:
             username: "ducklake"
