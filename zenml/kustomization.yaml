@@ -6,7 +6,7 @@ helmCharts:
   namespace: ia-lab
   releaseName: lab
   repo: https://tom333.github.io/my-charts
-  version: 1.5.0
+  version: 1.6.5
   valuesInline:
     # mlflow.postgresql.auth.password: mlflow  
     #mlflow.postgresql.auth.postgresPassword: bn_mlflow  
