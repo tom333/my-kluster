@@ -34,6 +34,9 @@ spec:
           mlflow:
             database:
               hostname: "lab-postgresql"
+            s3:
+              awsAccessKeyId: "rustfsadmin"
+              awsSecretAccessKey: "rustfsadmin"
         postgresql:
           auth:
             username: "mlflow"
