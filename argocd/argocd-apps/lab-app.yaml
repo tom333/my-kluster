@@ -36,9 +36,9 @@ spec:
               hostname: "lab-postgresql"
         postgresql:
           auth:
-            username: "ducklake"
-            password: "ducklake"
-            database: "ducklake"
+            username: "mlflow"
+            password: "mlflow"
+            database: "mlflow"
           primary:
             initdb:
               scripts:
