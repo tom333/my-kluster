@@ -12,7 +12,7 @@ spec:
   project: datalab-project
   source:
     repoURL: https://tom333.github.io/my-charts
-    targetRevision: 1.5.2
+    targetRevision: 1.5.3
     chart: datalab
     helm: 
       values: | 
@@ -39,12 +39,12 @@ spec:
             username: "mlflow"
             password: "mlflow"
             database: "mlflow"
-          primary:
-            initdb:
-              scripts:
-                00_init_database.sql: |
-                  CREATE USER mlflow WITH PASSWORD 'mlflow';
-                  CREATE DATABASE mlflow OWNER mlflow;
+          # primary:
+          #   initdb:
+          #     scripts:
+          #       00_init_database.sql: |
+          #         CREATE USER mlflow WITH PASSWORD 'mlflow';
+          #         CREATE DATABASE mlflow OWNER mlflow;
         
 
     # path: zenml/
