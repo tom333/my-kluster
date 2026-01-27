@@ -12,7 +12,7 @@ spec:
   project: datalab-project
   source:
     repoURL: https://tom333.github.io/my-charts
-    targetRevision: 1.5.3
+    targetRevision: 1.6.0
     chart: datalab
     helm: 
       values: | 
@@ -30,24 +30,7 @@ spec:
               cert-manager.io/cluster-issuer: "letsencrypt-prod"
           storageclass: 
             name: microk8s-hostpath
-        mlflow:
-          mlflow:
-            database:
-              hostname: "lab-postgresql"
-            s3:
-              awsAccessKeyId: "rustfsadmin"
-              awsSecretAccessKey: "rustfsadmin"
-        postgresql:
-          auth:
-            username: "mlflow"
-            password: "mlflow"
-            database: "mlflow"
-          # primary:
-          #   initdb:
-          #     scripts:
-          #       00_init_database.sql: |
-          #         CREATE USER mlflow WITH PASSWORD 'mlflow';
-          #         CREATE DATABASE mlflow OWNER mlflow;
+        
         
 
     # path: zenml/
