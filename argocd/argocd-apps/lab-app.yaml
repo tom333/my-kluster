@@ -42,30 +42,9 @@ spec:
           primary:
             initdb:
               scripts:
-                00_init_database.sh: |
-                  #!/bin/bash
-                  set -e
-                  
-                  psql -v ON_ERROR_STOP=1 --username "$POSTGRESQL_USERNAME" --dbname "$POSTGRESQL_DATABASE" <<-EOSQL
-                    DO \$\$
-                    BEGIN
-                       IF NOT EXISTS (
-                          SELECT FROM pg_catalog.pg_roles 
-                          WHERE rolname = 'mlflow'
-                       ) THEN
-                          CREATE ROLE mlflow LOGIN PASSWORD 'mlflow';
-                       END IF;
-                    END
-                    \$\$;
-                  EOSQL
-                  
-                  if ! psql -v ON_ERROR_STOP=1 --username "$POSTGRESQL_USERNAME" -lqt | cut -d \| -f 1 | grep -qw mlflow; then
-                    createdb -U "$POSTGRESQL_USERNAME" -O mlflow mlflow
-                  fi
-                  
-                  psql -v ON_ERROR_STOP=1 --username "$POSTGRESQL_USERNAME" --dbname mlflow <<-EOSQL
-                    GRANT ALL PRIVILEGES ON DATABASE mlflow TO mlflow;
-                  EOSQL
+                00_init_database.sql: |
+                  CREATE USER mlflow WITH PASSWORD 'mlflow';
+                  CREATE DATABASE mlflow OWNER mlflow;
         
 
     # path: zenml/
