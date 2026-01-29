@@ -34,7 +34,7 @@ spec:
         - name: FML_DEFAULT_ARTIFACT_ROOT
           value: "s3://fasttrackml-artifacts"
         - name: FML_DATABASE_URI
-          value: "sqlite:////data/fasttrackml.db"
+          value: "sqlite:///data/fasttrackml.db"
         ports:
         - name: http
           containerPort: 5000
