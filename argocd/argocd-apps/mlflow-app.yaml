@@ -1,0 +1,24 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: mlflow
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: ia-lab
+    server: https://kubernetes.default.svc
+  project: datalab-project
+  source:
+    repoURL: https://github.com/tom333/my-kluster.git
+    targetRevision: HEAD
+    path: charts/mlflow
+
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+    automated:
+      selfHeal: true
+      prune: true

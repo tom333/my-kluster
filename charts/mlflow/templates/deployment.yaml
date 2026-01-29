@@ -1,23 +1,34 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "fasttrackml.fullname" . }}
+  name: {{ include "mlflow.fullname" . }}
   labels:
-    {{- include "fasttrackml.labels" . | nindent 4 }}
+    {{- include "mlflow.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      {{- include "fasttrackml.selectorLabels" . | nindent 6 }}
+      {{- include "mlflow.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        {{- include "fasttrackml.selectorLabels" . | nindent 8 }}
+        {{- include "mlflow.selectorLabels" . | nindent 8 }}
     spec:
       containers:
-      - name: fasttrackml
+      - name: mlflow
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
+        command:
+        - mlflow
+        - server
+        - --host
+        - "0.0.0.0"
+        - --port
+        - "5000"
+        - --backend-store-uri
+        - "sqlite:///data/mlflow.db"
+        - --default-artifact-root
+        - "s3://mlflow-artifacts"
         env:
         - name: AWS_ACCESS_KEY_ID
           valueFrom:
@@ -29,12 +40,10 @@ spec:
             secretKeyRef:
               name: rustfs-credentials
               key: AWS_SECRET_ACCESS_KEY
-        - name: FML_S3_ENDPOINT_URI
-            value: "http://rustfs-svc:9000"
-        - name: FML_DEFAULT_ARTIFACT_ROOT
-          value: "s3://fasttrackml-artifacts"
-        - name: FML_DATABASE_URI
-          value: "sqlite:///data/fasttrackml.db"
+        - name: MLFLOW_S3_ENDPOINT_URL
+          value: "http://rustfs-svc:9000"
+        - name: AWS_DEFAULT_REGION
+          value: "us-east-1"
         ports:
         - name: http
           containerPort: 5000
@@ -59,4 +68,4 @@ spec:
       volumes:
       - name: data
         persistentVolumeClaim:
-          claimName: {{ include "fasttrackml.fullname" . }}-data
+          claimName: {{ include "mlflow.fullname" . }}-data
