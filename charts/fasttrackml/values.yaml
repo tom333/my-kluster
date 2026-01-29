@@ -1,0 +1,38 @@
+replicaCount: 1
+
+image:
+  repository: gresearch/fasttrackml
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 5000
+
+persistence:
+  enabled: true
+  storageClass: microk8s-hostpath
+  size: 10Gi
+
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+  requests:
+    cpu: 250m
+    memory: 512Mi
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  hosts:
+    - host: fasttrackml.tgu.ovh
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: fasttrackml-tls
+      hosts:
+        - fasttrackml.tgu.ovh

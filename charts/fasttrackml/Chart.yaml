@@ -1,0 +1,6 @@
+apiVersion: v2
+name: fasttrackml
+description: FastTrackML experiment tracking server
+type: application
+version: 1.0.0
+appVersion: "latest"
