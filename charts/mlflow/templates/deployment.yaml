@@ -32,8 +32,6 @@ spec:
         - --serve-artifacts
         - --artifacts-destination
         - "s3://mlflow-artifacts"
-        - --gunicorn-opts
-        - "--timeout 180"
         - --allowed-hosts
         - "{{ (index .Values.ingress.hosts 0).host }}"
         env:
