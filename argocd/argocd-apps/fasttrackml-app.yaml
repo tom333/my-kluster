@@ -1,0 +1,86 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: fasttrackml
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: ia-lab
+    server: https://kubernetes.default.svc
+  project: datalab-project
+  source:
+    repoURL: https://github.com/G-Research/fasttrackml
+    targetRevision: main
+    path: helm/fasttrackml
+    helm:
+      values: |
+        replicaCount: 1
+        
+        image:
+          repository: gresearch/fasttrackml
+          tag: latest
+          pullPolicy: IfNotPresent
+        
+        # Configuration S3 pour utiliser RustFS
+        env:
+          - name: AWS_ACCESS_KEY_ID
+            valueFrom:
+              secretKeyRef:
+                name: rustfs-credentials
+                key: AWS_ACCESS_KEY_ID
+          - name: AWS_SECRET_ACCESS_KEY
+            valueFrom:
+              secretKeyRef:
+                name: rustfs-credentials
+                key: AWS_SECRET_ACCESS_KEY
+          - name: FML_S3_ENDPOINT_URI
+            value: "http://rustfs:9000"
+        
+        service:
+          type: ClusterIP
+          port: 5000
+        
+        ingress:
+          enabled: true
+          className: nginx
+          annotations:
+            cert-manager.io/cluster-issuer: "letsencrypt-prod"
+          hosts:
+            - host: fasttrackml.tgu.ovh
+              paths:
+                - path: /
+                  pathType: Prefix
+          tls:
+            - secretName: fasttrackml-tls
+              hosts:
+                - fasttrackml.tgu.ovh
+        
+        # Configuration de la base de données
+        database:
+          uri: "sqlite:///data/fasttrackml.db"
+        
+        # Artifact storage sur RustFS (S3)
+        defaultArtifactRoot: "s3://fasttrackml-artifacts"
+        
+        persistence:
+          enabled: true
+          storageClass: microk8s-hostpath
+          size: 10Gi
+        
+        resources:
+          limits:
+            cpu: 1000m
+            memory: 1Gi
+          requests:
+            cpu: 250m
+            memory: 512Mi
+
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+    automated:
+      selfHeal: true
+      prune: true

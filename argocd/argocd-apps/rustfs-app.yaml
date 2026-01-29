@@ -1,0 +1,111 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: rustfs
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: ia-lab
+    server: https://kubernetes.default.svc
+  project: datalab-project
+  source:
+    repoURL: https://github.com/rustfs/rustfs
+    targetRevision: main
+    path: helm/rustfs
+    helm:
+      values: |
+        # Mode de déploiement
+        mode:
+          standalone:
+            enabled: true
+          distributed:
+            enabled: false
+        
+        replicaCount: 1
+        
+        image:
+          repository: rustfs/rustfs
+          tag: latest
+          pullPolicy: IfNotPresent
+        
+        # Configuration RustFS
+        config:
+          rustfs:
+            address: ":9000"
+            console_address: ":9001"
+            console_enable: "true"
+            region: "us-east-1"
+            log_level: "info"
+            rust_log: "info"
+            obs_environment: "production"
+            obs_log_directory: "/logs"
+        
+        secret:
+          existingSecret: "rustfs-credentials"
+        
+        service:
+          type: ClusterIP
+          endpoint:
+            port: 9000
+          console:
+            port: 9001
+        
+        ingress:
+          enabled: true
+          className: nginx
+          hosts:
+            - host: rustfs.tgu.ovh
+              paths:
+                - path: /
+                  pathType: ImplementationSpecific
+          nginxAnnotations:
+            cert-manager.io/cluster-issuer: "letsencrypt-prod"
+            nginx.ingress.kubernetes.io/affinity: "cookie"
+            nginx.ingress.kubernetes.io/session-cookie-name: "rustfs"
+            nginx.ingress.kubernetes.io/session-cookie-expires: "3600"
+            nginx.ingress.kubernetes.io/session-cookie-max-age: "3600"
+          tls:
+            enabled: true
+        
+        # StorageClass et PVC
+        storageclass:
+          name: microk8s-hostpath
+          dataStorageSize: 20Gi
+          logStorageSize: 2Gi
+        
+        resources:
+          limits:
+            cpu: 1000m
+            memory: 2Gi
+          requests:
+            cpu: 500m
+            memory: 1Gi
+        
+        # Probes
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: endpoint
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: endpoint
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+    automated:
+      selfHeal: true
+      prune: true
