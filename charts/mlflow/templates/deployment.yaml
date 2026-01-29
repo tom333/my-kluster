@@ -29,6 +29,13 @@ spec:
         - "sqlite:///data/mlflow.db"
         - --default-artifact-root
         - "s3://mlflow-artifacts"
+        - --serve-artifacts
+        - --artifacts-destination
+        - "s3://mlflow-artifacts"
+        - --gunicorn-opts
+        - "--timeout 180"
+        - --allowed-hosts
+        - "{{ (index .Values.ingress.hosts 0).host }}"
         env:
         - name: AWS_ACCESS_KEY_ID
           valueFrom:
