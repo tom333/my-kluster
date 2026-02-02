@@ -45,3 +45,4 @@ spec:
       - name: data
         persistentVolumeClaim:
           claimName: {{ include "mlflow.fullname" . }}-data
+
