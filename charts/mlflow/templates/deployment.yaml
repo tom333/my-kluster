@@ -19,21 +19,21 @@ spec:
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         command:
-        - mlflow
-        - server
-        - --host
-        - "0.0.0.0"
-        - --port
-        - "5000"
-        - --backend-store-uri
-        - "sqlite:///data/mlflow.db"
-        - --default-artifact-root
-        - "s3://mlflow-artifacts"
-        - --serve-artifacts
-        - --artifacts-destination
-        - "s3://mlflow-artifacts"
-        - --allowed-hosts
-        - "{{ (index .Values.ingress.hosts 0).host }}"
+        - /bin/sh
+        - -c
+        - |
+          set -e
+          echo "Running mlflow db upgrade..."
+          mlflow db upgrade sqlite:///data/mlflow.db
+          echo "Starting mlflow server..."
+          exec mlflow server \
+            --host 0.0.0.0 \
+            --port 5000 \
+            --backend-store-uri sqlite:///data/mlflow.db \
+            --default-artifact-root s3://mlflow-artifacts \
+            --serve-artifacts \
+            --artifacts-destination s3://mlflow-artifacts \
+            --allowed-hosts "{{ (index .Values.ingress.hosts 0).host }}"
         env:
         - name: AWS_ACCESS_KEY_ID
           valueFrom:
