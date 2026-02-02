@@ -1,39 +1,28 @@
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: batch/v1
+kind: Job
 metadata:
-  name: {{ include "mlflow.fullname" . }}
+  name: {{ include "mlflow.fullname" . }}-db-migrate
   labels:
     {{- include "mlflow.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
 spec:
-  replicas: {{ .Values.replicaCount }}
-  selector:
-    matchLabels:
-      {{- include "mlflow.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
         {{- include "mlflow.selectorLabels" . | nindent 8 }}
     spec:
+      restartPolicy: OnFailure
       containers:
-      - name: mlflow
+      - name: mlflow-db-migrate
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         command:
         - mlflow
-        - server
-        - --host
-        - "0.0.0.0"
-        - --port
-        - "5000"
-        - --backend-store-uri
+        - db
+        - upgrade
         - "sqlite:///data/mlflow.db"
-        - --default-artifact-root
-        - "s3://mlflow-artifacts"
-        - --serve-artifacts
-        - --artifacts-destination
-        - "s3://mlflow-artifacts"
-        - --allowed-hosts
-        - "{{ (index .Values.ingress.hosts 0).host }}"
         env:
         - name: AWS_ACCESS_KEY_ID
           valueFrom:
@@ -49,24 +38,6 @@ spec:
           value: "http://rustfs-svc:9000"
         - name: AWS_DEFAULT_REGION
           value: "us-east-1"
-        ports:
-        - name: http
-          containerPort: 5000
-          protocol: TCP
-        livenessProbe:
-          httpGet:
-            path: /health
-            port: http
-          initialDelaySeconds: 30
-          periodSeconds: 10
-        readinessProbe:
-          httpGet:
-            path: /health
-            port: http
-          initialDelaySeconds: 10
-          periodSeconds: 5
-        resources:
-          {{- toYaml .Values.resources | nindent 10 }}
         volumeMounts:
         - name: data
           mountPath: /data
