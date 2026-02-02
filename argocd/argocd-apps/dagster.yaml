@@ -31,7 +31,16 @@ spec:
               secretName: dagster-tls
         dagsterWebserver:
           workspace:
-            enabled: false
+            enabled: true           
+            servers:
+              - host: dagster-user-code-accidents
+                port: 4000
+                name: accidents
+
+        dagster-user-deployments:
+          enabled: true
+          enableSubchart: false
+          deployments: []
 
   syncPolicy:
     syncOptions:
