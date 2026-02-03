@@ -36,13 +36,16 @@ spec:
           config:
             k8sRunLauncher:
               jobNamespace: dagster
-              jobImage: "localhost:32000/accidents-dagster:latest"
-              imagePullPolicy: Always
+              image:
+                repository: "localhost:32000/accidents-dagster"
+                tag: latest
+                pullPolicy: Always
+              imagePullPolicy: "Always"
               loadInclusterConfig: true
               envConfigMaps:
-                - dagster-ducklake-config
+                - name: dagster-ducklake-config
               envSecrets:
-                - rustfs-credentials-dagster
+                - name: rustfs-credentials-dagster
               runK8sConfig:
                 containerConfig:
                   resources:
