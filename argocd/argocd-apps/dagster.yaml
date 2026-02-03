@@ -29,6 +29,32 @@ spec:
             tls:
               enabled: true
               secretName: dagster-tls
+        
+        # Configuration du runLauncher pour K8s
+        runLauncher:
+          type: K8sRunLauncher
+          config:
+            k8sRunLauncher:
+              jobNamespace: dagster
+              jobImage: "localhost:32000/accidents-dagster:latest"
+              imagePullPolicy: Always
+              loadInclusterConfig: true
+              envConfigMaps:
+                - dagster-ducklake-config
+              envSecrets:
+                - rustfs-credentials-dagster
+              runK8sConfig:
+                containerConfig:
+                  resources:
+                    requests:
+                      memory: "2Gi"
+                      cpu: "1000m"
+                    limits:
+                      memory: "4Gi"
+                      cpu: "2000m"
+                jobSpecConfig:
+                  ttlSecondsAfterFinished: 7200
+
         dagsterWebserver:
           workspace:
             enabled: true           
