@@ -16,11 +16,11 @@ spec:
     chart: postgresql
     helm:
       parameters:
-        - name: global.postgresql.auth.username
+        - name: auth.username
           value: "data"
-        - name: global.postgresql.auth.password
+        - name: auth.password
           value: "data"
-        - name: global.postgresql.auth.database
+        - name: auth.database
           value: "data"
 
   syncPolicy:
