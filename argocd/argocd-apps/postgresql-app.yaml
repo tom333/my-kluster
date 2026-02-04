@@ -24,7 +24,7 @@ spec:
           database: data
         
         passwordUpdateJob:
-          enabled: true
+          enabled: false
 
   syncPolicy:
     syncOptions:
