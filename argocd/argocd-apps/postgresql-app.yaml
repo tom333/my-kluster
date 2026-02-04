@@ -15,13 +15,16 @@ spec:
     targetRevision: 18.2.4
     chart: postgresql
     helm:
-      parameters:
-        - name: auth.username
-          value: "data"
-        - name: auth.password
-          value: "data"
-        - name: auth.database
-          value: "data"
+      values: |
+        auth:
+          enablePostgresUser: true
+          postgresPassword: data
+          username: data
+          password: data
+          database: data
+        
+        passwordUpdateJob:
+          enabled: true
 
   syncPolicy:
     syncOptions:
