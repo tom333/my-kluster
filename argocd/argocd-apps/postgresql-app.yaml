@@ -24,7 +24,10 @@ spec:
           database: data
         
         passwordUpdateJob:
-          enabled: false
+          enabled: true
+          previousPasswords:
+            postgresPassword: ""
+            password: ""
 
   syncPolicy:
     syncOptions:
