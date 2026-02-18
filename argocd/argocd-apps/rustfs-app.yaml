@@ -104,6 +104,17 @@ spec:
           timeoutSeconds: 3
           failureThreshold: 3
 
+  # Patches pour corriger le bug #1844 du chart RustFS
+  # Le template a les probes codées en dur, on doit les patcher
+  patches:
+    - target:
+        kind: Deployment
+        name: rustfs
+      patch: |
+        - op: replace
+          path: /spec/template/spec/containers/0/readinessProbe/httpGet/path
+          value: /health
+
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
