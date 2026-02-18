@@ -95,12 +95,13 @@ spec:
         
         readinessProbe:
           httpGet:
-            path: /health
+            path: /health/ready
             port: endpoint
-          initialDelaySeconds: 60
-          periodSeconds: 15
-          timeoutSeconds: 10
-          failureThreshold: 5
+          initialDelaySeconds: 30
+          periodSeconds: 5
+          timeoutSeconds: 3
+          successThreshold: 1
+          failureThreshold: 3
 
   syncPolicy:
     syncOptions:
