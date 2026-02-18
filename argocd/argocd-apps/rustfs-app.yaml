@@ -84,23 +84,24 @@ spec:
             memory: 1Gi
         
         # Probes
+        # Note: Utilisation de /health pour readiness en attendant fix de l'issue #1844
+        # /health/ready retourne 403 (traité comme opération S3)
         livenessProbe:
           httpGet:
             path: /health
-            port: endpoint
-          initialDelaySeconds: 30
-          periodSeconds: 10
-          timeoutSeconds: 5
+            port: 9000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
           failureThreshold: 3
         
         readinessProbe:
           httpGet:
-            path: /health/ready
-            port: endpoint
+            path: /health
+            port: 9000
           initialDelaySeconds: 30
           periodSeconds: 5
           timeoutSeconds: 3
-          successThreshold: 1
           failureThreshold: 3
 
   syncPolicy:
