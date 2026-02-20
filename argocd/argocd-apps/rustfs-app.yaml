@@ -106,6 +106,7 @@ spec:
 
   # Ignorer les différences sur le readinessProbe car on doit le patcher manuellement
   # pour contourner le bug #1844 (chart a les probes codées en dur)
+  # Auto-heal désactivé pour préserver le patch manuel
   ignoreDifferences:
     - group: apps
       kind: Deployment
@@ -118,5 +119,5 @@ spec:
       - CreateNamespace=true
       - ServerSideApply=true
     automated:
-      selfHeal: true
+      selfHeal: false  # Désactivé pour préserver le patch du readinessProbe
       prune: true
