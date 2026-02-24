@@ -30,6 +30,7 @@ spec:
           --serve-artifacts 
           --artifacts-destination s3://mlflow-artifacts 
           --allowed-hosts "{{ (index .Values.ingress.hosts 0).host }}"
+          --cors-allowed-origins "https://{{ (index .Values.ingress.hosts 0).host }}"
         env:
         - name: AWS_ACCESS_KEY_ID
           valueFrom:
