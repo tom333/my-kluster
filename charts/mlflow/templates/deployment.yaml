@@ -20,22 +20,16 @@ spec:
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         command: ["/bin/sh", "-c"]
         args:
-        - >
+        - >-
           pip install boto3 &&
-          mlflow server
-        - --host
-        - "0.0.0.0"
-        - --port
-        - "5000"
-        - --backend-store-uri
-        - "sqlite:///data/mlflow.db"
-        - --default-artifact-root
-        - "s3://mlflow-artifacts"
-        - --serve-artifacts
-        - --artifacts-destination
-        - "s3://mlflow-artifacts"
-        - --allowed-hosts
-        - "{{ (index .Values.ingress.hosts 0).host }}"
+          mlflow server 
+          --host 0.0.0.0 
+          --port 5000 
+          --backend-store-uri sqlite:///data/mlflow.db 
+          --default-artifact-root s3://mlflow-artifacts 
+          --serve-artifacts 
+          --artifacts-destination s3://mlflow-artifacts 
+          --allowed-hosts "{{ (index .Values.ingress.hosts 0).host }}"
         env:
         - name: AWS_ACCESS_KEY_ID
           valueFrom:
