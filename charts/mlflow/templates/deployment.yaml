@@ -65,8 +65,8 @@ spec:
           httpGet:
             path: /health
             port: http
-          initialDelaySeconds: 30
-          periodSeconds: 10
+          initialDelaySeconds: 60
+          periodSeconds: 20
         resources:
           {{- toYaml .Values.resources | nindent 10 }}
         volumeMounts:
