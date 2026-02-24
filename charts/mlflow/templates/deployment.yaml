@@ -18,9 +18,11 @@ spec:
       - name: mlflow
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
-        command:
-        - mlflow
-        - server
+        command: ["/bin/sh", "-c"]
+        args:
+        - >
+          pip install boto3 &&
+          mlflow server
         - --host
         - "0.0.0.0"
         - --port
