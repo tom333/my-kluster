@@ -1,0 +1,24 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: datahub
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: ia-lab
+    server: https://kubernetes.default.svc
+  project: datalab-project
+  source:
+    repoURL: https://helm.datahubproject.io/
+    targetRevision: 0.8.10
+    chart: datahub
+
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+    automated:
+      selfHeal: true
+      prune: true
