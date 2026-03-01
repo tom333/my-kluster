@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: datahub
+  name: datahub-prerequisites
   namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
@@ -13,22 +13,7 @@ spec:
   source:
     repoURL: https://helm.datahubproject.io/
     targetRevision: 0.8.10
-    chart: datahub
-    helm:
-      values: |
-        datahub-frontend:
-          ingress:
-            enabled: true
-            annotations:
-              cert-manager.io/cluster-issuer: letsencrypt-prod
-            hosts:
-              - host: datahub.tgu.ovh
-                paths:
-                  - /
-            tls:
-              - secretName: datahub.tgu.ovh-tls
-                hosts:
-                  - datahub.tgu.ovh
+    chart: datahub-prerequisites
 
   syncPolicy:
     syncOptions:
