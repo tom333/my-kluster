@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: media-nas-pv
+spec:
+  capacity:
+    storage: 5Ti
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  mountOptions:
+    - nfsvers=3
+    - nolock
+    - tcp
+  nfs:
+    server: 192.168.88.103
+    path: /Public/media-stack
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: media-nas-pvc
+  namespace: selfhost
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: ""
+  volumeName: media-nas-pv
+  resources:
+    requests:
+      storage: 5Ti

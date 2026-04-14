@@ -1,0 +1,75 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: jellyfin
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: selfhost
+    server: https://kubernetes.default.svc
+  project: selfhost-project
+  source:
+    repoURL: https://bjw-s-labs.github.io/helm-charts
+    chart: app-template
+    targetRevision: 4.6.2
+    helm:
+      values: |
+        controllers:
+          main:
+            containers:
+              main:
+                image:
+                  repository: lscr.io/linuxserver/jellyfin
+                  tag: latest
+                env:
+                  TZ: "Europe/Paris"
+                  PUID: "1000"
+                  PGID: "1000"
+        service:
+          main:
+            controller: main
+            ports:
+              http:
+                port: 8096
+        ingress:
+          main:
+            className: nginx
+            annotations:
+              cert-manager.io/cluster-issuer: "letsencrypt-prod"
+              # Pas d'oauth2-proxy : Jellyfin gère sa propre authentification
+              # ⚠️ Créer le compte admin immédiatement après le premier déploiement
+              nginx.ingress.kubernetes.io/proxy-body-size: "0"
+            hosts:
+              - host: jellyfin.tgu.ovh
+                paths:
+                  - path: /
+                    pathType: Prefix
+                    service:
+                      identifier: main
+                      port: http
+            tls:
+              - secretName: jellyfin-tls
+                hosts:
+                  - jellyfin.tgu.ovh
+        persistence:
+          config:
+            # Stockage local : BDD SQLite, cache de transcoding, métadonnées (thumbnails, etc.)
+            type: persistentVolumeClaim
+            accessMode: ReadWriteOnce
+            size: 10Gi
+            globalMounts:
+              - path: /config
+          media:
+            # NAS NFS — bibliothèque partagée avec Radarr/Sonarr
+            type: persistentVolumeClaim
+            existingClaim: media-nas-pvc
+            globalMounts:
+              - path: /media
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=false
+    automated:
+      selfHeal: true
+      prune: true

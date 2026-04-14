@@ -1,0 +1,42 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: flaresolverr
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: selfhost
+    server: https://kubernetes.default.svc
+  project: selfhost-project
+  source:
+    repoURL: https://bjw-s-labs.github.io/helm-charts
+    chart: app-template
+    targetRevision: 4.6.2
+    helm:
+      values: |
+        controllers:
+          main:
+            containers:
+              main:
+                image:
+                  repository: ghcr.io/flaresolverr/flaresolverr
+                  tag: latest
+                env:
+                  TZ: "Europe/Paris"
+                  LOG_LEVEL: "info"
+        service:
+          main:
+            controller: main
+            ports:
+              http:
+                port: 8191
+        # Pas d'ingress : accès interne uniquement
+        # URL depuis les autres pods : http://flaresolverr.selfhost.svc.cluster.local:8191
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=false
+    automated:
+      selfHeal: true
+      prune: true
