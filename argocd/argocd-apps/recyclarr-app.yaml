@@ -1,0 +1,112 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: recyclarr
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: selfhost
+    server: https://kubernetes.default.svc
+  project: selfhost-project
+  source:
+    repoURL: https://bjw-s-labs.github.io/helm-charts
+    chart: app-template
+    targetRevision: 4.6.2
+    helm:
+      values: |
+        configMaps:
+          recyclarr-config:
+            enabled: true
+            data:
+              recyclarr.yml: |
+                # Configuration gérée par GitOps via app-template
+                radarr:
+                  radarr1:
+                    base_url: http://radarr.selfhost.svc.cluster.local:7878
+                    api_key: !env_var RADARR_API_KEY
+                    quality_definition:
+                      type: movie
+                    quality_profiles:
+                      - name: MULTi.VF
+                    custom_formats:
+                      - names:
+                          - VFF
+                          - TRUEFRENCH
+                          - VFI
+                          - VFQ
+                          - MULTi
+                        quality_profiles:
+                          - name: MULTi.VF
+                      - names:
+                          - VOSTFR
+                        quality_profiles:
+                          - name: MULTi.VF
+                            score: -10000 # Score rédhibitoire pour interdire le téléchargement
+                      - names:
+                          - x265 (720p/1080p)
+                        quality_profiles:
+                          - name: MULTi.VF
+                            score: 500  # Donne 500 points bonus si c'est du x265 !
+                sonarr:
+                  sonarr1:
+                    base_url: http://sonarr.selfhost.svc.cluster.local:8989
+                    api_key: !env_var SONARR_API_KEY
+                    quality_definition:
+                      type: series
+                    quality_profiles:
+                      - name: MULTi.VF
+                    custom_formats:
+                      - names:
+                          - VFF
+                          - TRUEFRENCH
+                          - VFI
+                          - VFQ
+                          - MULTi
+                        quality_profiles:
+                          - name: MULTi.VF
+                      - names:
+                          - VOSTFR
+                        quality_profiles:
+                          - name: MULTi.VF
+                            score: -10000 # Score rédhibitoire pour interdire le téléchargement
+                      - names:
+                          - x265 (720p/1080p)
+                        quality_profiles:
+                          - name: MULTi.VF
+                            score: 500  # Donne 500 points bonus si c'est du x265 !
+        controllers:
+          main:
+            containers:
+              main:
+                image:
+                  repository: ghcr.io/recyclarr/recyclarr
+                  tag: latest
+                env:
+                  TZ: "Europe/Paris"
+                # Variables à mapper manuellement ou via External Secrets plus tard
+                envFrom:
+                  - secretRef:
+                      name: recyclarr-api-keys
+        # Pas de service ni d'ingress : Recyclarr en arrière-plan.
+        persistence:
+          config:
+            type: persistentVolumeClaim
+            accessMode: ReadWriteOnce
+            size: 1Gi
+            globalMounts:
+              - path: /config
+          recyclarr-file:
+            type: configMap
+            name: recyclarr-recyclarr-config # Chart release name + configMap name
+            globalMounts:
+              - path: /config/recyclarr.yml
+                subPath: recyclarr.yml
+                readOnly: true
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=false
+    automated:
+      selfHeal: true
+      prune: true
