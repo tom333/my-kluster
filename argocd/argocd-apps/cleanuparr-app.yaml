@@ -21,7 +21,7 @@ spec:
             containers:
               main:
                 image:
-                  repository: cleanuparr/cleanuparr
+                  repository: ghcr.io/cleanuparr/cleanuparr
                   tag: latest
                 env:
                   TZ: "Europe/Paris"
