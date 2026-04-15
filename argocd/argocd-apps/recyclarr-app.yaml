@@ -99,7 +99,7 @@ spec:
               - path: /config
           recyclarr-file:
             type: configMap
-            name: recyclarr-recyclarr-config # Chart release name + configMap name
+            name: recyclarr # Nom généré automatiquement par app-template au lieu de recyclarr-recyclarr-config
             globalMounts:
               - path: /config/recyclarr.yml
                 subPath: recyclarr.yml
