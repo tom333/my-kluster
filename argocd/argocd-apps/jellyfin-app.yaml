@@ -22,7 +22,7 @@ spec:
               main:
                 image:
                   repository: lscr.io/linuxserver/jellyfin
-                  tag: latest
+                  tag: 10.11.8
                 env:
                   TZ: "Europe/Paris"
                   PUID: "1000"
