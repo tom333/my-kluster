@@ -22,7 +22,7 @@ spec:
               main:
                 image:
                   repository: lscr.io/linuxserver/sonarr
-                  tag: latest
+                  tag: 4.0.17
                 env:
                   TZ: "Europe/Paris"
                   PUID: "1000"
