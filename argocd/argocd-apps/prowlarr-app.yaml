@@ -22,7 +22,7 @@ spec:
               main:
                 image:
                   repository: lscr.io/linuxserver/prowlarr
-                  tag: latest
+                  tag: 2.3.5.5327
                 env:
                   TZ: "Europe/Paris"
                   PUID: "1000"
