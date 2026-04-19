@@ -13,7 +13,7 @@ spec:
   source:
     repoURL: https://rubxkube.github.io/charts/
     chart: komga
-    targetRevision: 0.0.10
+    targetRevision: 0.0.11
     helm:
       values: |
         common: 
