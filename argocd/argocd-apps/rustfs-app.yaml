@@ -71,6 +71,11 @@ spec:
             nginx.ingress.kubernetes.io/session-cookie-max-age: "3600"
           tls:
             enabled: true
+            # Skip le template secret-tls.yaml du chart (qui crée un Secret bidon
+            # crt="tls.crt"/key="tls.key" et fait reboucler cert-manager → 429 LE).
+            # Le Secret rustfs-tls sera géré uniquement par cert-manager.
+            certManager:
+              enabled: true
         
         # StorageClass et PVC
         storageclass:
