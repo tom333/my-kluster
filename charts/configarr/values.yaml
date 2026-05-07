@@ -18,10 +18,9 @@ cache:
   storageClass: microk8s-hostpath
   size: 1Gi
 
-akeyless:
-  secretStoreName: akeyless-secret-store
-  credsSecret: akeyless-secret-creds
-  apiKeysPath: /configarr/api-keys
+# Secret manuel appliqué via secrets/configarr-secret.yaml (kubectl apply).
+# Sera migré vers ESO/Akeyless en même temps que les autres secrets.
+apiKeysSecret: configarr-env
 
 successfulJobsHistoryLimit: 1
 failedJobsHistoryLimit: 2

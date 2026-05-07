@@ -29,7 +29,7 @@ spec:
                   value: {{ .Values.timezone | quote }}
               envFrom:
                 - secretRef:
-                    name: {{ include "configarr.fullname" . }}-env
+                    name: {{ .Values.apiKeysSecret }}
               volumeMounts:
                 - name: config
                   mountPath: /app/config/config.yml
