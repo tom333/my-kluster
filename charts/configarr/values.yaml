@@ -1,0 +1,27 @@
+image:
+  repository: ghcr.io/raydak-labs/configarr
+  tag: "1.16.0"
+  pullPolicy: IfNotPresent
+
+schedule: "0 */4 * * *"
+timezone: "Europe/Paris"
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 50m
+    memory: 128Mi
+
+cache:
+  storageClass: microk8s-hostpath
+  size: 1Gi
+
+akeyless:
+  secretStoreName: akeyless-secret-store
+  credsSecret: akeyless-secret-creds
+  apiKeysPath: /configarr/api-keys
+
+successfulJobsHistoryLimit: 1
+failedJobsHistoryLimit: 2
