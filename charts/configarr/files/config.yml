@@ -4,7 +4,9 @@
 # Source de vérité unique pour la synchronisation TRaSH-Guides / custom
 # formats sur Sonarr et Radarr (namespace selfhost).
 #
-# Édition libre, recharge automatique à chaque run du CronJob.
+# Stratégie : profil HD only (720p + 1080p), priorité aux fichiers les plus
+# petits via mHD + x265. Pas de HDR, pas de 4K (à activer plus tard).
+#
 # Doc : https://configarr.de/docs/intro/
 # ============================================================================
 
@@ -12,8 +14,7 @@ trashGuideUrl: https://github.com/TRaSH-Guides/Guides
 recyclarrConfigUrl: https://github.com/recyclarr/config-templates
 
 # ============================================================================
-# Custom format definitions — pistes audio françaises et bonus codec.
-# Reproduit le comportement du Recyclarr précédent en config-as-code pure.
+# Custom format definitions
 # ============================================================================
 customFormatDefinitions:
   # ---------------------------------------------------------------------------
@@ -88,8 +89,23 @@ customFormatDefinitions:
           value: "\\bVOSTFR\\b"
 
   # ---------------------------------------------------------------------------
-  # Bonus codec efficace — x265/HEVC en 720p ou 1080p uniquement.
-  # En 4K, x265 est la norme et n'a pas besoin de bonus.
+  # mHD / MHD — encodes HD efficaces, fichiers les plus petits (priorité).
+  # ---------------------------------------------------------------------------
+  - trash_id: fr-mhd
+    trash_scores:
+      default: 1000
+    name: "mHD / MHD (small encode)"
+    includeCustomFormatWhenRenaming: false
+    specifications:
+      - name: mHD or MHD in release title
+        implementation: ReleaseTitleSpecification
+        negate: false
+        required: false
+        fields:
+          value: "\\b(mHD|MHD)\\b"
+
+  # ---------------------------------------------------------------------------
+  # x265 / HEVC en HD (720p / 1080p) — bonus codec efficace.
   # ---------------------------------------------------------------------------
   - trash_id: fr-x265-hd
     trash_scores:
@@ -112,22 +128,86 @@ customFormatDefinitions:
 
 # ============================================================================
 # Sonarr — namespace selfhost
+# ----------------------------------------------------------------------------
+# Profil HD only (720p + 1080p), pas de 4K, pas de Remux, scoring agressif
+# pour les encodes mHD x265.
 # ============================================================================
 sonarr:
   main:
     base_url: http://sonarr.selfhost.svc.cluster.local:8989
     api_key: !env SONARR_API_KEY
 
+    media_naming:
+      series: default
+      season: default
+      episodes:
+        rename: true
+        standard: default
+        daily: default
+        anime: default
+
     quality_definition:
       type: series
+      # Plafonnement plus bas que TRaSH par défaut pour favoriser les encodes
+      # compressés. Valeurs en MB/min (normalisées par durée d'épisode).
+      qualities:
+        - quality: WEBDL-1080p
+          min: 2
+          preferred: 30
+          max: 60
+        - quality: WEBRip-1080p
+          min: 2
+          preferred: 30
+          max: 60
+        - quality: Bluray-1080p
+          min: 2
+          preferred: 50
+          max: 80
+        - quality: HDTV-1080p
+          min: 2
+          preferred: 25
+          max: 45
+        - quality: WEBDL-720p
+          min: 2
+          preferred: 20
+          max: 40
+        - quality: WEBRip-720p
+          min: 2
+          preferred: 20
+          max: 40
+        - quality: Bluray-720p
+          min: 2
+          preferred: 30
+          max: 50
+        - quality: HDTV-720p
+          min: 2
+          preferred: 15
+          max: 30
 
-    include:
-      # Quality definitions Recyclarr (taille des fichiers par tier)
-      - template: sonarr-quality-definition-series
-
-    # Profil créé manuellement dans l'UI Sonarr — configarr injecte les CFs et scores.
     quality_profiles:
       - name: MULTi.VF
+        reset_unmatched_scores:
+          enabled: true
+        upgrade:
+          allowed: true
+          until_quality: Bluray-1080p
+          until_score: 2000
+          min_format_score: 50
+        min_format_score: 0
+        quality_sort: top
+        qualities:
+          - name: Bluray-1080p
+          - name: WEB 1080p
+            qualities:
+              - WEBDL-1080p
+              - WEBRip-1080p
+          - name: HDTV-1080p
+          - name: Bluray-720p
+          - name: WEB 720p
+            qualities:
+              - WEBDL-720p
+              - WEBRip-720p
+          - name: HDTV-720p
 
     custom_formats:
       - trash_ids:
@@ -144,26 +224,87 @@ sonarr:
           - name: MULTi.VF
 
       - trash_ids:
+          - fr-mhd
           - fr-x265-hd
         assign_scores_to:
           - name: MULTi.VF
 
 # ============================================================================
 # Radarr — namespace selfhost
+# ----------------------------------------------------------------------------
+# Mêmes principes que Sonarr : HD only, priorité mHD x265.
 # ============================================================================
 radarr:
   main:
     base_url: http://radarr.selfhost.svc.cluster.local:7878
     api_key: !env RADARR_API_KEY
 
+    media_naming:
+      folder: default
+      movie:
+        rename: true
+        standard: default
+
     quality_definition:
       type: movie
-
-    include:
-      - template: radarr-quality-definition-movie
+      qualities:
+        - quality: WEBDL-1080p
+          min: 2
+          preferred: 25
+          max: 50
+        - quality: WEBRip-1080p
+          min: 2
+          preferred: 25
+          max: 50
+        - quality: Bluray-1080p
+          min: 2
+          preferred: 40
+          max: 70
+        - quality: HDTV-1080p
+          min: 2
+          preferred: 20
+          max: 40
+        - quality: WEBDL-720p
+          min: 2
+          preferred: 15
+          max: 30
+        - quality: WEBRip-720p
+          min: 2
+          preferred: 15
+          max: 30
+        - quality: Bluray-720p
+          min: 2
+          preferred: 25
+          max: 40
+        - quality: HDTV-720p
+          min: 2
+          preferred: 12
+          max: 25
 
     quality_profiles:
       - name: MULTi.VF
+        reset_unmatched_scores:
+          enabled: true
+        upgrade:
+          allowed: true
+          until_quality: Bluray-1080p
+          until_score: 2000
+          min_format_score: 50
+        min_format_score: 0
+        quality_sort: top
+        qualities:
+          - name: Bluray-1080p
+          - name: WEB 1080p
+            qualities:
+              - WEBDL-1080p
+              - WEBRip-1080p
+          - name: HDTV-1080p
+          - name: Bluray-720p
+          - name: WEB 720p
+            qualities:
+              - WEBDL-720p
+              - WEBRip-720p
+          - name: HDTV-720p
 
     custom_formats:
       - trash_ids:
@@ -180,6 +321,7 @@ radarr:
           - name: MULTi.VF
 
       - trash_ids:
+          - fr-mhd
           - fr-x265-hd
         assign_scores_to:
           - name: MULTi.VF
