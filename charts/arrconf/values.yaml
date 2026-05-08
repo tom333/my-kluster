@@ -1,0 +1,29 @@
+image:
+  # renovate: image=ghcr.io/tom333/arr-stack-arrconf
+  repository: ghcr.io/tom333/arr-stack-arrconf
+  tag: "0.1.2"
+  pullPolicy: IfNotPresent
+
+schedule: "0 */4 * * *"
+timezone: "Europe/Paris"
+startingDeadlineSeconds: 600
+
+# Two-PR dry-run protocol (D-28):
+#   PR1: arrconfDryRun: true   -> observe logs, prove zero writes
+#   PR2: arrconfDryRun: false  -> enable apply
+arrconfDryRun: true
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 50m
+    memory: 128Mi
+
+# Manual bootstrap secret (D-29):
+#   kubectl apply -f my-kluster/secrets/arrconf-secret.yaml BEFORE merging PR1
+apiKeysSecret: arrconf-env
+
+successfulJobsHistoryLimit: 1
+failedJobsHistoryLimit: 2
