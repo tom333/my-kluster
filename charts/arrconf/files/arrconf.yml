@@ -20,10 +20,6 @@ apps:
                 value: false
               - name: urlBase
                 value: ''
-              - name: username
-                value: ''
-              - name: password
-                value: ''
               - name: tvCategory
                 value: sonarr
               - name: tvImportedCategory
