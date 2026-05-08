@@ -11,7 +11,7 @@ startingDeadlineSeconds: 600
 # Two-PR dry-run protocol (D-28):
 #   PR1: arrconfDryRun: true   -> observe logs, prove zero writes
 #   PR2: arrconfDryRun: false  -> enable apply
-arrconfDryRun: true
+arrconfDryRun: false
 
 resources:
   limits:
