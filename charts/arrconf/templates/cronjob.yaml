@@ -28,7 +28,7 @@ spec:
             - name: arrconf
               image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
               imagePullPolicy: {{ .Values.image.pullPolicy }}
-              args: ["apply", "--config", "/app/config/arrconf.yml", "--apps", "sonarr"]
+              args: ["--config", "/app/config/arrconf.yml", "apply", "--apps", "sonarr"]
               env:
                 - name: TZ
                   value: {{ .Values.timezone | quote }}
