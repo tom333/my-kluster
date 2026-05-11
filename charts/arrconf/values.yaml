@@ -1,7 +1,7 @@
 image:
   # renovate: image=ghcr.io/tom333/arr-stack-arrconf
   repository: ghcr.io/tom333/arr-stack-arrconf
-  tag: "0.1.6"
+  tag: "0.2.1"
   pullPolicy: IfNotPresent
 
 schedule: "0 */4 * * *"
