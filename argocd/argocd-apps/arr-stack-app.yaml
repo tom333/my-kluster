@@ -1,0 +1,26 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: arr-stack
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: selfhost-project
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: selfhost
+  source:
+    repoURL: https://github.com/tom333/arr-stack.git
+    targetRevision: v0.2.2
+    path: charts/arr-stack
+    helm:
+      valueFiles:
+        - ../../examples/values-prod.yaml
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+      - Replace=true        # MANDATORY: Deployment selector immutability — instance label changes at cutover (RESEARCH §"Standard Stack")
+    # automated: block deliberately omitted (D-04-CUTOVER-02).
+    # Re-enabled by follow-up PR after the first manual sync confirms health (Plan 04-09 Task 9.1).

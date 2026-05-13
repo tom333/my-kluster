@@ -1,6 +1,0 @@
-apiVersion: v2
-name: arrconf
-description: "arrconf — config-as-code reconciler for Sonarr/Radarr/Prowlarr/qBit/Seerr (Phase 2 scope: Sonarr download_clients only)"
-type: application
-version: 0.1.2
-appVersion: "0.1.2"
