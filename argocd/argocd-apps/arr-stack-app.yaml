@@ -22,5 +22,6 @@ spec:
       - CreateNamespace=true
       - ServerSideApply=true
       - Replace=true        # MANDATORY: Deployment selector immutability — instance label changes at cutover (RESEARCH §"Standard Stack")
-    # automated: block deliberately omitted (D-04-CUTOVER-02).
-    # Re-enabled by follow-up PR after the first manual sync confirms health (Plan 04-09 Task 9.1).
+    automated:
+      prune: true
+      selfHeal: true
