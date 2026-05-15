@@ -41,6 +41,24 @@ apiKey:
   secretName: localai-api-key
   secretKey: api-key
 
+# Probes — generous startupProbe lets the pod download the model (1+ GB) and
+# warm up CUDA on first boot without being killed by liveness. Once startup
+# succeeds, liveness takes over with its normal cadence.
+probes:
+  startup:
+    # 30 * 60s = 30 minutes grace window for first-time download
+    periodSeconds: 30
+    failureThreshold: 60
+    timeoutSeconds: 10
+  liveness:
+    periodSeconds: 30
+    failureThreshold: 3
+    timeoutSeconds: 10
+  readiness:
+    periodSeconds: 15
+    failureThreshold: 3
+    timeoutSeconds: 10
+
 ingress:
   enabled: true
   className: nginx
