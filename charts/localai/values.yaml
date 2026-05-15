@@ -1,0 +1,91 @@
+replicaCount: 1
+
+image:
+  repository: localai/localai
+  tag: "v4.1.3-gpu-nvidia-cuda-12"
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 8080
+
+persistence:
+  enabled: true
+  storageClass: microk8s-hostpath
+  size: 50Gi
+
+resources:
+  limits:
+    cpu: "4"
+    memory: 8Gi
+    nvidia.com/gpu: 1
+  requests:
+    cpu: "1"
+    memory: 4Gi
+    nvidia.com/gpu: 1
+
+# Set to "nvidia" only if the GPU operator created a RuntimeClass with that name.
+# On MicroK8s with the gpu addon, containerd is configured to use the nvidia runtime
+# by default for pods requesting nvidia.com/gpu, so this is usually unnecessary.
+runtimeClassName: ""
+
+env:
+  THREADS: "4"
+  CONTEXT_SIZE: "4096"
+  DEBUG: "false"
+  MODELS_PATH: "/models"
+  LOCALAI_WATCHDOG_IDLE: "true"
+  LOCALAI_WATCHDOG_IDLE_TIMEOUT: "5m"
+
+apiKey:
+  secretName: localai-api-key
+  secretKey: api-key
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/whitelist-source-range: "192.168.88.0/24,10.1.0.0/16"
+    nginx.ingress.kubernetes.io/proxy-body-size: "100m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+  hosts:
+    - host: localai.tgu.ovh
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: localai-tls
+      hosts:
+        - localai.tgu.ovh
+
+models:
+  - name: qwen2.5-1.5b-instruct
+    config: |
+      name: qwen2.5-1.5b-instruct
+      backend: llama-cpp
+      context_size: 4096
+      gpu_layers: 99
+      f16: true
+      mmap: true
+      parameters:
+        model: qwen2.5-1.5b-instruct-q4_k_m.gguf
+        temperature: 0.7
+        top_p: 0.9
+        top_k: 40
+      download_files:
+        - filename: qwen2.5-1.5b-instruct-q4_k_m.gguf
+          uri: https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct-GGUF/resolve/main/qwen2.5-1.5b-instruct-q4_k_m.gguf
+      template:
+        chat_message: |
+          <|im_start|>{{ .RoleName }}
+          {{.Content}}<|im_end|>
+        chat: |
+          {{.Input -}}
+          <|im_start|>assistant
+        completion: |
+          {{.Input}}
+      stopwords:
+        - "<|im_end|>"
+        - "<|endoftext|>"

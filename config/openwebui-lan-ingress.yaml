@@ -1,0 +1,34 @@
+# Secondary ingress for Open WebUI on LAN (192.168.88.0/24) — no oauth2-proxy.
+# Open WebUI's built-in user auth handles login. This route exists so LAN clients
+# can reach the chat UI without going through GitHub OAuth.
+#
+# Lives in config/ (not in the openwebui Helm release) so the Helm chart
+# stays close to upstream defaults.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: openwebui-lan
+  namespace: openwebui
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/whitelist-source-range: "192.168.88.0/24,10.1.0.0/16"
+    nginx.ingress.kubernetes.io/proxy-body-size: "100m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - chat-lan.tgu.ovh
+      secretName: chat-lan-tls
+  rules:
+    - host: chat-lan.tgu.ovh
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: open-webui
+                port:
+                  number: 80

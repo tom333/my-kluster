@@ -1,0 +1,86 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: openwebui
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: openwebui
+    server: https://kubernetes.default.svc
+  project: datalab-project
+  source:
+    repoURL: https://helm.openwebui.com/
+    targetRevision: 14.5.0
+    chart: open-webui
+    helm:
+      values: |
+        # Local LLM is served by LocalAI in the localai namespace, not Ollama.
+        ollama:
+          enabled: false
+
+        # Disable Tika & Redis: single-replica, no document RAG yet.
+        tika:
+          enabled: false
+        websocket:
+          enabled: false
+
+        persistence:
+          enabled: true
+          provider: local
+          storageClass: microk8s-hostpath
+          size: 10Gi
+          accessModes:
+            - ReadWriteOnce
+
+        replicaCount: 1
+
+        resources:
+          limits:
+            cpu: "2"
+            memory: 2Gi
+          requests:
+            cpu: 200m
+            memory: 512Mi
+
+        # Public ingress with oauth2-proxy (GitHub auth tom333/tguyader).
+        # A second LAN-only ingress lives in config/openwebui-lan-ingress.yaml
+        # to keep its lifecycle independent of this Helm release.
+        ingress:
+          enabled: true
+          class: nginx
+          host: chat.tgu.ovh
+          tls: true
+          existingSecret: chat-tls
+          annotations:
+            cert-manager.io/cluster-issuer: "letsencrypt-prod"
+            nginx.ingress.kubernetes.io/auth-url: "https://auth.tgu.ovh/oauth2/auth"
+            nginx.ingress.kubernetes.io/auth-signin: "https://auth.tgu.ovh/oauth2/start?rd=https://chat.tgu.ovh"
+            nginx.ingress.kubernetes.io/proxy-body-size: "100m"
+            nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+            nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+
+        extraEnvVars:
+          - name: OPENAI_API_BASE_URLS
+            value: "http://localai.localai.svc.cluster.local:8080/v1"
+          - name: OPENAI_API_KEYS
+            valueFrom:
+              secretKeyRef:
+                name: localai-api-key
+                key: api-key
+          - name: ENABLE_OLLAMA_API
+            value: "false"
+          - name: ENABLE_SIGNUP
+            value: "false"
+          - name: DEFAULT_USER_ROLE
+            value: "pending"
+          - name: WEBUI_AUTH
+            value: "true"
+
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      selfHeal: true
+      prune: true

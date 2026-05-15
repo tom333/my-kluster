@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "localai.fullname" . }}
+  labels:
+    {{- include "localai.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      {{- include "localai.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "localai.selectorLabels" . | nindent 8 }}
+      annotations:
+        checksum/models-config: {{ include (print $.Template.BasePath "/configmap-models.yaml") . | sha256sum }}
+    spec:
+      {{- if .Values.runtimeClassName }}
+      runtimeClassName: {{ .Values.runtimeClassName }}
+      {{- end }}
+      containers:
+      - name: localai
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+        - name: http
+          containerPort: 8080
+          protocol: TCP
+        env:
+        {{- range $k, $v := .Values.env }}
+        - name: {{ $k }}
+          value: {{ $v | quote }}
+        {{- end }}
+        - name: API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.apiKey.secretName }}
+              key: {{ .Values.apiKey.secretKey }}
+        livenessProbe:
+          httpGet:
+            path: /readyz
+            port: http
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 15
+          timeoutSeconds: 10
+        resources:
+          {{- toYaml .Values.resources | nindent 10 }}
+        volumeMounts:
+        - name: models
+          mountPath: /models
+        {{- range .Values.models }}
+        - name: models-config
+          mountPath: /models/{{ .name }}.yaml
+          subPath: {{ .name }}.yaml
+        {{- end }}
+      volumes:
+      - name: models
+        persistentVolumeClaim:
+          claimName: {{ include "localai.fullname" . }}-models
+      - name: models-config
+        configMap:
+          name: {{ include "localai.fullname" . }}-models-config
