@@ -1,3 +1,4 @@
+{{- $persistence := .Values.persistence -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -21,6 +22,39 @@ spec:
       {{- if .Values.runtimeClassName }}
       runtimeClassName: {{ .Values.runtimeClassName }}
       {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if and .Values.modelsConfigs (index $persistence "models" "enabled") }}
+      initContainers:
+        # Seed /models with the YAML configs from the ConfigMap. We copy rather
+        # than subPath-mount so LocalAI can edit/rewrite files at runtime (UI
+        # uploads, gallery installs) without the mount becoming stale.
+        - name: models-config-seed
+          image: "{{ .Values.modelsInitImage.repository }}:{{ .Values.modelsInitImage.tag }}"
+          imagePullPolicy: IfNotPresent
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              for src in /models-configs/*.yaml; do
+                [ -e "$src" ] || continue
+                cp -fL "$src" "/models/$(basename "$src")"
+              done
+          volumeMounts:
+            - name: models-configs
+              mountPath: /models-configs
+            - name: models
+              mountPath: /models
+      {{- end }}
       containers:
       - name: localai
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
@@ -34,11 +68,9 @@ spec:
         - name: {{ $k }}
           value: {{ $v | quote }}
         {{- end }}
-        - name: API_KEY
-          valueFrom:
-            secretKeyRef:
-              name: {{ .Values.apiKey.secretName }}
-              key: {{ .Values.apiKey.secretKey }}
+        {{- with .Values.secretEnv }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
         startupProbe:
           httpGet:
             path: /readyz
@@ -63,17 +95,22 @@ spec:
         resources:
           {{- toYaml .Values.resources | nindent 10 }}
         volumeMounts:
-        - name: models
-          mountPath: /models
-        {{- range .Values.models }}
-        - name: models-config
-          mountPath: /models/{{ .name }}.yaml
-          subPath: {{ .name }}.yaml
+        {{- range $name, $pvc := $persistence }}
+        {{- if $pvc.enabled }}
+        - name: {{ $name }}
+          mountPath: {{ $pvc.globalMount }}
+        {{- end }}
         {{- end }}
       volumes:
-      - name: models
+      {{- range $name, $pvc := $persistence }}
+      {{- if $pvc.enabled }}
+      - name: {{ $name }}
         persistentVolumeClaim:
-          claimName: {{ include "localai.fullname" . }}-models
-      - name: models-config
+          claimName: {{ include "localai.fullname" $ }}-{{ $name }}
+      {{- end }}
+      {{- end }}
+      {{- if .Values.modelsConfigs }}
+      - name: models-configs
         configMap:
           name: {{ include "localai.fullname" . }}-models-config
+      {{- end }}

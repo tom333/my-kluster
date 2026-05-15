@@ -1,15 +1,18 @@
-{{- if .Values.persistence.enabled }}
+{{- range $name, $pvc := .Values.persistence }}
+{{- if $pvc.enabled }}
+---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: {{ include "localai.fullname" . }}-models
+  name: {{ include "localai.fullname" $ }}-{{ $name }}
   labels:
-    {{- include "localai.labels" . | nindent 4 }}
+    {{- include "localai.labels" $ | nindent 4 }}
 spec:
   accessModes:
-    - ReadWriteOnce
-  storageClassName: {{ .Values.persistence.storageClass }}
+    - {{ $pvc.accessMode | default "ReadWriteOnce" }}
+  storageClassName: {{ $pvc.storageClass }}
   resources:
     requests:
-      storage: {{ .Values.persistence.size }}
+      storage: {{ $pvc.size }}
+{{- end }}
 {{- end }}

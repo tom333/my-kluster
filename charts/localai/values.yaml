@@ -5,14 +5,35 @@ image:
   tag: "v4.2.4-gpu-nvidia-cuda-12"
   pullPolicy: IfNotPresent
 
+# Set to "nvidia" only if the GPU operator created a RuntimeClass with that name.
+# On MicroK8s with the gpu addon, containerd is configured to use the nvidia runtime
+# by default for pods requesting nvidia.com/gpu, so this is usually unnecessary.
+runtimeClassName: ""
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
 service:
   type: ClusterIP
   port: 8080
 
+# Map of PVCs. Each entry creates one PVC and mounts it at globalMount in the
+# main container. The "models" PVC is required (LocalAI's working directory).
+# The "output" PVC is for image/audio generation backends; enable when needed.
 persistence:
-  enabled: true
-  storageClass: microk8s-hostpath
-  size: 50Gi
+  models:
+    enabled: true
+    storageClass: microk8s-hostpath
+    size: 50Gi
+    accessMode: ReadWriteOnce
+    globalMount: /models
+  output:
+    enabled: false
+    storageClass: microk8s-hostpath
+    size: 10Gi
+    accessMode: ReadWriteOnce
+    globalMount: /tmp/generated
 
 resources:
   limits:
@@ -23,11 +44,6 @@ resources:
     cpu: "1"
     memory: 4Gi
     nvidia.com/gpu: 1
-
-# Set to "nvidia" only if the GPU operator created a RuntimeClass with that name.
-# On MicroK8s with the gpu addon, containerd is configured to use the nvidia runtime
-# by default for pods requesting nvidia.com/gpu, so this is usually unnecessary.
-runtimeClassName: ""
 
 env:
   THREADS: "4"
@@ -41,9 +57,20 @@ env:
   # "backend not found: llama-cpp". Pre-install at startup from the default gallery.
   LOCALAI_EXTERNAL_BACKENDS: "llama-cpp"
 
-apiKey:
-  secretName: localai-api-key
-  secretKey: api-key
+# Env vars sourced from secrets. Each entry is a standard container env entry
+# with valueFrom: { secretKeyRef: ... }.
+secretEnv:
+  - name: API_KEY
+    valueFrom:
+      secretKeyRef:
+        name: localai-api-key
+        key: api-key
+  # Example for HuggingFace gated models (Llama, Mistral, etc.):
+  # - name: HF_TOKEN
+  #   valueFrom:
+  #     secretKeyRef:
+  #       name: huggingface-token
+  #       key: token
 
 # Probes — generous startupProbe lets the pod download the model (1+ GB) and
 # warm up CUDA on first boot without being killed by liveness. Once startup
@@ -63,6 +90,44 @@ probes:
     failureThreshold: 3
     timeoutSeconds: 10
 
+# Image used by the init container that seeds /models with the YAML configs
+# below. Any minimal image with `cp` and `sh` works.
+modelsInitImage:
+  repository: busybox
+  tag: "1.36"
+
+# Model configurations rendered into a ConfigMap, then copied at pod start by
+# an initContainer into the persistent /models directory. Each key becomes a
+# file <key>.yaml that LocalAI reads on boot.
+modelsConfigs:
+  qwen2.5-1.5b-instruct: |
+    name: qwen2.5-1.5b-instruct
+    backend: llama-cpp
+    context_size: 4096
+    gpu_layers: 99
+    f16: true
+    mmap: true
+    parameters:
+      model: qwen2.5-1.5b-instruct-q4_k_m.gguf
+      temperature: 0.7
+      top_p: 0.9
+      top_k: 40
+    download_files:
+      - filename: qwen2.5-1.5b-instruct-q4_k_m.gguf
+        uri: https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct-GGUF/resolve/main/qwen2.5-1.5b-instruct-q4_k_m.gguf
+    template:
+      chat_message: |
+        <|im_start|>{{ .RoleName }}
+        {{.Content}}<|im_end|>
+      chat: |
+        {{.Input -}}
+        <|im_start|>assistant
+      completion: |
+        {{.Input}}
+    stopwords:
+      - "<|im_end|>"
+      - "<|endoftext|>"
+
 ingress:
   enabled: true
   className: nginx
@@ -81,33 +146,3 @@ ingress:
     - secretName: localai-tls
       hosts:
         - localai.tgu.ovh
-
-models:
-  - name: qwen2.5-1.5b-instruct
-    config: |
-      name: qwen2.5-1.5b-instruct
-      backend: llama-cpp
-      context_size: 4096
-      gpu_layers: 99
-      f16: true
-      mmap: true
-      parameters:
-        model: qwen2.5-1.5b-instruct-q4_k_m.gguf
-        temperature: 0.7
-        top_p: 0.9
-        top_k: 40
-      download_files:
-        - filename: qwen2.5-1.5b-instruct-q4_k_m.gguf
-          uri: https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct-GGUF/resolve/main/qwen2.5-1.5b-instruct-q4_k_m.gguf
-      template:
-        chat_message: |
-          <|im_start|>{{ .RoleName }}
-          {{.Content}}<|im_end|>
-        chat: |
-          {{.Input -}}
-          <|im_start|>assistant
-        completion: |
-          {{.Input}}
-      stopwords:
-        - "<|im_end|>"
-        - "<|endoftext|>"

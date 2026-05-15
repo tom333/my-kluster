@@ -1,4 +1,4 @@
-{{- if .Values.models }}
+{{- if .Values.modelsConfigs }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -6,8 +6,8 @@ metadata:
   labels:
     {{- include "localai.labels" . | nindent 4 }}
 data:
-  {{- range .Values.models }}
-  {{ .name }}.yaml: |-
-{{ .config | indent 4 }}
+  {{- range $name, $config := .Values.modelsConfigs }}
+  {{ $name }}.yaml: |-
+{{ $config | indent 4 }}
   {{- end }}
 {{- end }}
