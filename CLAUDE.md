@@ -14,11 +14,10 @@ L'infrastructure est entièrement déclarative : toute modification doit passer 
 - **Ingress controller** : NGINX (installé via MicroK8s addon)
 - **TLS** : cert-manager + Let's Encrypt (`letsencrypt-prod`)
 - **Authentification** : oauth2-proxy (GitHub OAuth, whitelist : `tom333`, `tguyader`)
-- **Secrets management** : 
-  - Akeyless via External Secrets Operator (ESO) pour les secrets dynamiques
-  - Fichiers YAML plaintexts dans `secrets/` pour l'amorçage (à appliquer manuellement)
+- **Secrets management** : **Sealed Secrets** (Bitnami) — tous les secrets sont chiffrés dans `sealed/` et committés dans Git. Le controller `sealed-secrets-controller` (ns `kube-system`) les déchiffre à la volée vers des Secrets K8s natifs.
 - **Mise à jour automatique des charts** : Renovate (auto-merge pour minor/patch)
 - **Registry locale** : `localhost:32000` (MicroK8s registry addon)
+- **Hygiène secrets** : pre-commit + gitleaks (cf. `.pre-commit-config.yaml` et `.github/workflows/gitleaks.yml`) bloquent l'ajout accidentel de credentials en clair
 
 ---
 
@@ -37,20 +36,19 @@ my-kluster/
 │   │   └── *-app.yaml.disable   # Applications désactivées (ignorées par ArgoCD)
 │   └── argocd-appprojects/      # AppProjects ArgoCD (ségrégation RBAC par domaine)
 ├── charts/
+│   ├── localai/                 # Chart Helm custom pour LocalAI (stocké dans ce dépôt)
 │   └── mlflow/                  # Chart Helm custom pour MLflow (stocké dans ce dépôt)
 ├── config/                      # Manifestes Kubernetes bruts (synchés par l'app "config")
-│   ├── external-secrets.yaml    # SecretStore Akeyless + ExternalSecrets
 │   ├── letsencrypt-issuer.yaml  # ClusterIssuer Let's Encrypt
 │   ├── sc-nfs.yaml              # StorageClass NFS (NAS 192.168.88.103)
 │   ├── dashboard-ingress.yaml   # Ingress K8s Dashboard (protégé oauth2-proxy)
 │   └── *.yaml.disable           # Configs désactivées
-└── secrets/                     # Secrets YAML en clair (NE PAS versionner dans l'état actuel)
-    ├── akeyless_creds.yaml      # Credentials Akeyless (amorçage ESO)
-    ├── rustfs-secret.yaml       # Credentials RustFS + Dagster
-    ├── github-auth.yaml         # OAuth2-proxy GitHub credentials
-    ├── ovh-secrets.yaml         # API OVH (cert-manager DNS challenge)
-    └── *.yaml                   # Autres secrets d'amorçage
+├── sealed/                      # SealedSecrets chiffrés (synchés par l'app "sealed")
+│   └── *.yaml                   # Un fichier par secret K8s (ou groupe logique multi-doc)
+└── secrets/                     # (vide ; gitignored ; usage local éphémère pour kubeseal)
 ```
+
+> `secrets/` est dans `.gitignore` et ne contient plus aucun fichier en clair. Tout secret K8s vit désormais dans `sealed/` sous forme chiffrée.
 
 ---
 
@@ -90,7 +88,8 @@ Les fichiers `.disable` sont ignorés. Pour désactiver une app, suffixe son fic
 | Application        | Namespace      | Source                          | Version   | Notes                                  |
 |--------------------|----------------|---------------------------------|-----------|----------------------------------------|
 | `certmanager`      | `cert-manager` | charts.jetstack.io              | v1.20.0   | CRDs installées, sans Prometheus       |
-| `external-secrets` | `kube-system`  | charts.external-secrets.io      | 2.1.0     | ESO avec provider Akeyless             |
+| `sealed-secrets`   | `kube-system`  | bitnami-labs.github.io/sealed-secrets | 2.16.2 | Controller de déchiffrement, Service `sealed-secrets-controller` |
+| `sealed`           | `kube-system`  | ce dépôt → `sealed/`           | HEAD      | App qui déploie tous les `SealedSecret` du repo |
 | `config`           | `infra`        | ce dépôt → `config/`           | HEAD      | Manifestes bruts (issuer, ingress...)  |
 | `oauth2-proxy`     | `kube-system`  | oauth2-proxy.github.io          | 10.1.4    | GitHub OAuth, `.tgu.ovh`, sans Redis   |
 | `kubetail`         | `kube-system`  | kubetail-org.github.io          | 0.18.2    | Logs agrégés, protégé oauth2-proxy     |
@@ -102,7 +101,7 @@ Les fichiers `.disable` sont ignorés. Pour désactiver une app, suffixe son fic
 | `mlflow`      | `ia-lab`   | ce dépôt → `charts/mlflow/`    | HEAD      | Chart custom, PVC `microk8s-hostpath`, 10Gi   |
 | `rustfs`      | `ia-lab`   | github.com/rustfs/rustfs        | main      | S3-compatible, bug readinessProbe contourné   |
 | `dagster`     | `dagster`  | dagster-io.github.io/helm       | 1.12.19   | K8sRunLauncher, image locale, DuckLake config |
-| `postgresql`  | `datalab`  | charts.bitnami.com              | 18.5.6    | ⚠️ Mot de passe en clair dans le YAML        |
+| `postgresql`  | `datalab`  | charts.bitnami.com              | 18.6.6    | `auth.existingSecret: postgresql-credentials` (SealedSecret) |
 | `qdrant`      | `datalab`  | qdrant.to/helm                  | 1.17.0    | Vector DB, config minimale                    |
 | `jupyter`     | `datalab`  | tom333.github.io/my-charts      | 0.1.18    | Image custom, DuckDB, Marimo, JupyterLSP      |
 | `localai`     | `localai`  | ce dépôt → `charts/localai/`   | HEAD      | LocalAI GPU NVIDIA, MVP Qwen2.5-1.5B Q4_K_M, ingress LAN-only + token API |
@@ -133,22 +132,51 @@ Les fichiers `.disable` sont ignorés. Pour désactiver une app, suffixe son fic
 3. **Nommage** : `<service>-app.yaml` pour les ArgoCD Applications, `<service>-project.yaml` pour les AppProjects.
 4. **Extension doublon** : le fichier `code-server-app.yaml.yaml` a une extension dupliquée — à corriger.
 
-### Gestion des secrets
+### Gestion des secrets — Sealed Secrets
 
-> ⚠️ **CRITIQUE** : Les fichiers dans `secrets/` contiennent des credentials en clair.
-> Ces fichiers sont destinés à l'amorçage manuel (`kubectl apply`) et ne doivent JAMAIS être appliqués par ArgoCD automatiquement.
+Tous les secrets K8s sont chiffrés (Bitnami Sealed Secrets) et committés dans `sealed/`. Le controller `sealed-secrets-controller` (ns `kube-system`) déchiffre à la volée vers des Secret natifs.
 
-- L'app `config` ne surveille **pas** le dossier `secrets/` — c'est intentionnel.
-- Les secrets dynamiques passent par **External Secrets Operator (ESO)** + **Akeyless**.
-- Le fichier `akeyless_creds.yaml` est le seul secret à appliquer avant tout le reste.
-- Les secrets non gérés par ESO (ex: `rustfs-secret.yaml`, `github-auth.yaml`) sont appliqués manuellement.
+**Workflow pour ajouter / mettre à jour un secret** :
+
+```bash
+# 1. Créer le secret en clair en mémoire et le sceller directement
+kubectl create secret generic <name> \
+  --namespace=<ns> \
+  --from-literal=<key>=<value> \
+  --dry-run=client -o yaml \
+  | kubeseal --format=yaml > sealed/<name>.yaml
+
+# 2. Commit + push — ArgoCD synchronise l'app "sealed" et le Secret apparaît dans le cluster
+git add sealed/<name>.yaml
+git commit -m "feat(sealed): add <name>"
+git push
+```
+
+**Règles** :
+- Tout `kind: Secret` plaintext dans un manifest committé est **interdit** (bloqué par gitleaks + hook pre-commit).
+- Les images d'application qui consomment un secret doivent référencer par `secretKeyRef`/`envFrom`/`secretName` — jamais inliner une valeur.
+- **Convention de nommage** : `sealed/<source>-secret.yaml` ou `sealed/<resource-name>.yaml` (cf. fichiers existants).
+- Pour transférer ownership d'un Secret existant non géré au controller (cas migration) : `kubectl annotate secret <name> sealedsecrets.bitnami.com/managed=true --overwrite` AVANT d'appliquer le SealedSecret.
+
+**Clé master du controller** :
+- Stockée dans le namespace `kube-system` sous label `sealedsecrets.bitnami.com/sealed-secrets-key=active`
+- **CRITIQUE** : à backup hors-cluster (password manager / NAS chiffré). Sans elle, impossible de déchiffrer les SealedSecrets en cas de rebuild du cluster.
+- Rotation auto tous les 30j (`keyrenewperiod: 720h`) → re-backup périodique.
+
+```bash
+# Backup
+kubectl get secret -n kube-system \
+  -l sealedsecrets.bitnami.com/sealed-secrets-key=active \
+  -o yaml > ~/sealed-secrets-master-$(date +%Y%m%d).key.backup
+```
 
 ### Syncronisation ArgoCD
 
 - **selfHeal: true** sur toutes les apps sauf `rustfs` (bug readinessProbe contourné manuellement).
 - **prune: true** activé partout : tout ce qui n'est plus dans Git sera supprimé.
-- **ServerSideApply** utilisé pour `external-secrets` et `rustfs` (gestion des CRDs).
+- **ServerSideApply** utilisé pour `sealed-secrets` et `rustfs` (gestion des CRDs).
 - L'app `argocd` elle-même a `helm.sh/resource-policy: keep` pour éviter sa suppression accidentelle.
+- L'app `sealed-secrets` ignore un drift cosmétique sur `GOMEMLIMIT` (voir `ignoreDifferences` dans `sealed-secrets-app.yaml`).
 
 ### Ingress et TLS
 
@@ -183,14 +211,12 @@ Les fichiers `.disable` sont ignorés. Pour désactiver une app, suffixe son fic
 
 ## Initialisation du cluster (bootstrap)
 
+Grâce à Sealed Secrets, **un seul secret d'amorçage** est nécessaire : la clé master du controller.
+
 ```bash
-# 1. Appliquer les secrets d'amorçage (AVANT tout le reste)
-kubectl apply -f secrets/akeyless_creds.yaml
-kubectl apply -f secrets/github-auth.yaml
-kubectl apply -f secrets/rustfs-secret.yaml
-kubectl apply -f secrets/ovh-secrets.yaml
-kubectl apply -f secrets/localai-secret.yaml  # token API LocalAI (ns localai + openwebui)
-# ... autres secrets selon les apps à déployer
+# 1. Restaurer la clé master Sealed Secrets (depuis backup hors-cluster)
+kubectl create namespace kube-system 2>/dev/null || true
+kubectl apply -f ~/sealed-secrets-master-XXXXXXXX.key.backup
 
 # 2. Installer ArgoCD via Helm
 helm install argocd argocd/argocd-install/ --namespace argocd --create-namespace
@@ -201,8 +227,12 @@ kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.pas
 # 4. Déployer les app-of-apps (bootstrap)
 helm install argocd-apps argocd/argocd-install-apps/ --namespace argocd
 
-# ArgoCD prend ensuite le relais et synchronise tout automatiquement
+# ArgoCD installe ensuite sealed-secrets-controller (qui détecte la clé restaurée),
+# puis l'app "sealed" déploie tous les SealedSecrets → tous les Secrets natifs sont créés,
+# puis les autres apps démarrent dans l'ordre des dépendances.
 ```
+
+**Sans la clé master backup, le rebuild est impossible** : les SealedSecrets dans Git ne pourront pas être déchiffrés et toutes les apps consommatrices échoueront au démarrage.
 
 ---
 
@@ -235,7 +265,8 @@ Configuré dans `renovate.json` :
 ## Ce que tu NE dois PAS faire
 
 - ❌ Ne pas éditer `argocd/argocd-install-apps/values.yaml` sans comprendre l'impact sur le bootstrap
-- ❌ Ne pas ajouter de secrets en clair dans `argocd/argocd-apps/` ou `config/` — toujours utiliser ESO ou le dossier `secrets/`
+- ❌ Ne pas committer de `kind: Secret` plaintext (gitleaks bloque, mais le geste reste interdit). Toujours passer par `kubeseal` → `sealed/`.
+- ❌ Ne pas désinstaller `sealed-secrets` sans avoir d'abord migré les Secrets ou backup la clé master.
 - ❌ Ne pas activer `selfHeal: true` sur `rustfs` sans avoir résolu le bug upstream #1844
 - ❌ Ne pas changer la `targetRevision` d'une app sans vérifier la compatibilité MicroK8s
 - ❌ Ne pas modifier les `sourceRepos: ["*"]` des AppProjects sans analyse RBAC
@@ -246,11 +277,10 @@ Configuré dans `renovate.json` :
 
 ## Choses à faire / améliorations connues
 
-- [ ] **URGENT** : Chiffrer les fichiers dans `secrets/` avec SOPS ou les migrer vers ESO
+Voir `TODO.md` pour la liste complète. Items principaux restants :
 - [ ] Corriger l'extension dupliquée de `code-server-app.yaml.yaml` → `code-server-app.yaml`
 - [ ] Résoudre le bug RustFS #1844 (readinessProbe) pour réactiver `selfHeal: true`
-- [ ] Chiffrer le mot de passe PostgreSQL (actuellement `data`/`data` en clair dans `postgresql-app.yaml`)
-- [ ] Ajouter un `ClusterIssuer` DNS-01 OVH pour les wildcards (les credentials OVH sont déjà dans `secrets/`)
+- [ ] Ajouter un `ClusterIssuer` DNS-01 OVH pour les wildcards `*.tgu.ovh`
 - [ ] Nettoyer les fichiers `.old` et `test-volume.yaml` du dossier `config/`
 - [ ] Documenter le processus de build des images custom (`localhost:32000/accidents-dagster`, `custom-jupyter`)
 - [ ] Activer Renovate pour le chart custom `charts/mlflow` (versionner le tag d'image)
