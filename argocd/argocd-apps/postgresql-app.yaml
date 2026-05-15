@@ -18,16 +18,9 @@ spec:
       values: |
         auth:
           enablePostgresUser: true
-          postgresPassword: data
+          existingSecret: postgresql-credentials
           username: data
-          password: data
           database: data
-        
-        passwordUpdateJob:
-          enabled: true
-          previousPasswords:
-            postgresPassword: ""
-            password: ""
 
   syncPolicy:
     syncOptions:
