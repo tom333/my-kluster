@@ -90,42 +90,11 @@ spec:
           requests:
             cpu: 500m
             memory: 1Gi
-        
-        # Probes
-        # Note: Utilisation de /health pour readiness en attendant fix de l'issue #1844
-        # /health/ready retourne 403 (traité comme opération S3)
-        livenessProbe:
-          httpGet:
-            path: /health
-            port: 9000
-          initialDelaySeconds: 10
-          periodSeconds: 5
-          timeoutSeconds: 3
-          failureThreshold: 3
-        
-        readinessProbe:
-          httpGet:
-            path: /health
-            port: 9000
-          initialDelaySeconds: 30
-          periodSeconds: 5
-          timeoutSeconds: 3
-          failureThreshold: 3
-
-  # Ignorer les différences sur le readinessProbe car on doit le patcher manuellement
-  # pour contourner le bug #1844 (chart a les probes codées en dur)
-  # Auto-heal désactivé pour préserver le patch manuel
-  ignoreDifferences:
-    - group: apps
-      kind: Deployment
-      name: rustfs
-      jsonPointers:
-        - /spec/template/spec/containers/0/readinessProbe/httpGet/path
 
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
       - ServerSideApply=true
     automated:
-      selfHeal: false  # Désactivé pour préserver le patch du readinessProbe
+      selfHeal: true
       prune: true

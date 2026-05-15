@@ -19,11 +19,15 @@
   - Suppression `config/test-volume.yaml` (Pod test `test-read-static` + PVC orphelin `jellyfin-media-pvc`)
   - Suppression `config/jellyfin-nas-pv.yaml.old`, `config/mlflow-pvc.yaml.old`, `.github/workflows/coder-docker-image.yml.old`
 
+- [x] **Retrait du workaround RustFS #1844** ([upstream corrigé](https://github.com/rustfs/rustfs/issues/1844))
+  - Suppression des overrides `livenessProbe`/`readinessProbe` (path `/health` forcé)
+  - Suppression du bloc `ignoreDifferences` sur `/spec/template/spec/containers/0/readinessProbe/httpGet/path`
+  - Réactivation de `selfHeal: true`
+  - Cleanup des mentions dans `CLAUDE.md` (workaround kubectl patch, règle "ne pas activer selfHeal sur rustfs", item TODO)
+
 ## 🟠 Dette technique
 
-- [ ] **Fixer `rustfs` `targetRevision: main`** → pointer sur un tag sémantique ou un commit SHA stable
-- [ ] **Résoudre le bug RustFS #1844** (readinessProbe `/health/ready` retourne 403) pour réactiver `selfHeal: true`
-- [ ] **Nettoyer le namespace `accidents`** — pods en `ContainerStatusUnknown` / `CreateContainerConfigError` depuis 20+ jours (`accidents-api-*`, `streamlit-app-*`)
+- [ ] **Fixer `rustfs` `targetRevision: main`** → pointer sur un tag sémantique ou un commit SHA stable (maintenant que [#1844](https://github.com/rustfs/rustfs/issues/1844) est corrigé)
 
 ## 🟡 Améliorations
 

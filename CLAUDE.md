@@ -99,7 +99,7 @@ Les fichiers `.disable` sont ignorés. Pour désactiver une app, suffixe son fic
 | Application   | Namespace  | Source                          | Version   | Notes                                         |
 |---------------|------------|---------------------------------|-----------|-----------------------------------------------|
 | `mlflow`      | `ia-lab`   | ce dépôt → `charts/mlflow/`    | HEAD      | Chart custom, PVC `microk8s-hostpath`, 10Gi   |
-| `rustfs`      | `ia-lab`   | github.com/rustfs/rustfs        | main      | S3-compatible, bug readinessProbe contourné   |
+| `rustfs`      | `ia-lab`   | github.com/rustfs/rustfs        | main      | S3-compatible, probes par défaut du chart      |
 | `dagster`     | `dagster`  | dagster-io.github.io/helm       | 1.12.19   | K8sRunLauncher, image locale, DuckLake config |
 | `postgresql`  | `datalab`  | charts.bitnami.com              | 18.6.6    | `auth.existingSecret: postgresql-credentials` (SealedSecret) |
 | `qdrant`      | `datalab`  | qdrant.to/helm                  | 1.17.0    | Vector DB, config minimale                    |
@@ -172,7 +172,7 @@ kubectl get secret -n kube-system \
 
 ### Syncronisation ArgoCD
 
-- **selfHeal: true** sur toutes les apps sauf `rustfs` (bug readinessProbe contourné manuellement).
+- **selfHeal: true** sur toutes les apps.
 - **prune: true** activé partout : tout ce qui n'est plus dans Git sera supprimé.
 - **ServerSideApply** utilisé pour `sealed-secrets` et `rustfs` (gestion des CRDs).
 - L'app `argocd` elle-même a `helm.sh/resource-policy: keep` pour éviter sa suppression accidentelle.
@@ -244,10 +244,6 @@ kubectl delete pod --field-selector=status.phase=Succeeded -A
 
 # Nettoyer les images MicroK8s non utilisées
 microk8s ctr images prune --all
-
-# Patch manuel RustFS (workaround bug #1844 readinessProbe)
-kubectl patch deployment rustfs -n ia-lab --type=json \
-  -p='[{"op": "replace", "path": "/spec/template/spec/containers/0/readinessProbe/httpGet/path", "value": "/health"}]'
 ```
 
 ---
@@ -267,7 +263,6 @@ Configuré dans `renovate.json` :
 - ❌ Ne pas éditer `argocd/argocd-install-apps/values.yaml` sans comprendre l'impact sur le bootstrap
 - ❌ Ne pas committer de `kind: Secret` plaintext (gitleaks bloque, mais le geste reste interdit). Toujours passer par `kubeseal` → `sealed/`.
 - ❌ Ne pas désinstaller `sealed-secrets` sans avoir d'abord migré les Secrets ou backup la clé master.
-- ❌ Ne pas activer `selfHeal: true` sur `rustfs` sans avoir résolu le bug upstream #1844
 - ❌ Ne pas changer la `targetRevision` d'une app sans vérifier la compatibilité MicroK8s
 - ❌ Ne pas modifier les `sourceRepos: ["*"]` des AppProjects sans analyse RBAC
 - ❌ Ne pas créer de nouveau namespace sans l'ajouter à l'AppProject correspondant
@@ -279,7 +274,6 @@ Configuré dans `renovate.json` :
 
 Voir `TODO.md` pour la liste complète. Items principaux restants :
 - [ ] Corriger l'extension dupliquée de `code-server-app.yaml.yaml` → `code-server-app.yaml`
-- [ ] Résoudre le bug RustFS #1844 (readinessProbe) pour réactiver `selfHeal: true`
 - [ ] Ajouter un `ClusterIssuer` DNS-01 OVH pour les wildcards `*.tgu.ovh`
 - [ ] Nettoyer les fichiers `.old` et `test-volume.yaml` du dossier `config/`
 - [ ] Documenter le processus de build des images custom (`localhost:32000/accidents-dagster`, `custom-jupyter`)
