@@ -8,6 +8,24 @@
     ],
     "automerge": true
   },
+  "helm-values": {
+    "fileMatch": [
+      "^charts/mlflow/values\\.yaml$"
+    ]
+  },
+  "customManagers": [
+    {
+      "customType": "regex",
+      "fileMatch": [
+        "^charts/localai/values\\.yaml$"
+      ],
+      "matchStrings": [
+        "repository:\\s*(?<depName>localai/localai)\\s*\\n\\s*tag:\\s*\"(?<currentValue>v\\d+\\.\\d+\\.\\d+-gpu-nvidia-cuda-12)\""
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "regex:^v(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-gpu-nvidia-cuda-12$"
+    }
+  ],
   "packageRules": [
     {
       "matchUpdateTypes": [
@@ -19,5 +37,7 @@
       "automerge": true
     }
   ],
-  "ignorePaths": ["argocd/argocd-apps/authentik-app.yaml"]
+  "ignorePaths": [
+    "argocd/argocd-apps/authentik-app.yaml"
+  ]
 }
