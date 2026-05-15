@@ -99,7 +99,7 @@ Les fichiers `.disable` sont ignorés. Pour désactiver une app, suffixe son fic
 | Application   | Namespace  | Source                          | Version   | Notes                                         |
 |---------------|------------|---------------------------------|-----------|-----------------------------------------------|
 | `mlflow`      | `ia-lab`   | ce dépôt → `charts/mlflow/`    | HEAD      | Chart custom, PVC `microk8s-hostpath`, 10Gi   |
-| `rustfs`      | `ia-lab`   | github.com/rustfs/rustfs        | main      | S3-compatible, probes par défaut du chart      |
+| `rustfs`      | `ia-lab`   | github.com/rustfs/rustfs        | 1.0.0-beta.3 | S3-compatible, probes par défaut du chart      |
 | `dagster`     | `dagster`  | dagster-io.github.io/helm       | 1.12.19   | K8sRunLauncher, image locale, DuckLake config |
 | `postgresql`  | `datalab`  | charts.bitnami.com              | 18.6.6    | `auth.existingSecret: postgresql-credentials` (SealedSecret) |
 | `qdrant`      | `datalab`  | qdrant.to/helm                  | 1.17.0    | Vector DB, config minimale                    |

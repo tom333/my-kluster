@@ -23,11 +23,11 @@
   - Suppression des overrides `livenessProbe`/`readinessProbe` (path `/health` forcé)
   - Suppression du bloc `ignoreDifferences` sur `/spec/template/spec/containers/0/readinessProbe/httpGet/path`
   - Réactivation de `selfHeal: true`
+  - Pinning `targetRevision: 1.0.0-beta.3` (au lieu de `main`) + `image.tag: 1.0.0-beta.3` (au lieu de `latest`)
   - Cleanup des mentions dans `CLAUDE.md` (workaround kubectl patch, règle "ne pas activer selfHeal sur rustfs", item TODO)
 
 ## 🟠 Dette technique
 
-- [ ] **Fixer `rustfs` `targetRevision: main`** → pointer sur un tag sémantique ou un commit SHA stable (maintenant que [#1844](https://github.com/rustfs/rustfs/issues/1844) est corrigé)
 
 ## 🟡 Améliorations
 
