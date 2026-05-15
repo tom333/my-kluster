@@ -71,8 +71,12 @@ spec:
                 key: api-key
           - name: ENABLE_OLLAMA_API
             value: "false"
+          # Open WebUI bootstrap: the first user to sign up automatically
+          # becomes admin. Subsequent signups land in "pending" and need
+          # explicit approval from the admin UI. Tighten ENABLE_SIGNUP to
+          # "false" later if you want a fully closed instance.
           - name: ENABLE_SIGNUP
-            value: "false"
+            value: "true"
           - name: DEFAULT_USER_ROLE
             value: "pending"
           - name: WEBUI_AUTH
