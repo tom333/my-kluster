@@ -8,11 +8,6 @@
     ],
     "automerge": true
   },
-  "helm-values": {
-    "fileMatch": [
-      "^charts/mlflow/values\\.yaml$"
-    ]
-  },
   "customManagers": [
     {
       "customType": "regex",

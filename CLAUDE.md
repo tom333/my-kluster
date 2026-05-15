@@ -36,8 +36,7 @@ my-kluster/
 │   │   └── *-app.yaml.disable   # Applications désactivées (ignorées par ArgoCD)
 │   └── argocd-appprojects/      # AppProjects ArgoCD (ségrégation RBAC par domaine)
 ├── charts/
-│   ├── localai/                 # Chart Helm custom pour LocalAI (stocké dans ce dépôt)
-│   └── mlflow/                  # Chart Helm custom pour MLflow (stocké dans ce dépôt)
+│   └── localai/                 # Chart Helm custom pour LocalAI (stocké dans ce dépôt)
 ├── config/                      # Manifestes Kubernetes bruts (synchés par l'app "config")
 │   ├── letsencrypt-issuer.yaml  # ClusterIssuer Let's Encrypt
 │   ├── sc-nfs.yaml              # StorageClass NFS (NAS 192.168.88.103)
@@ -98,7 +97,7 @@ Les fichiers `.disable` sont ignorés. Pour désactiver une app, suffixe son fic
 
 | Application   | Namespace  | Source                          | Version   | Notes                                         |
 |---------------|------------|---------------------------------|-----------|-----------------------------------------------|
-| `mlflow`      | `ia-lab`   | ce dépôt → `charts/mlflow/`    | HEAD      | Chart custom, PVC `microk8s-hostpath`, 10Gi   |
+| `mlflow`      | `ia-lab`   | bjw-s-labs.github.io/helm-charts | 5.0.1     | `app-template`, image `ghcr.io/mlflow/mlflow:v3.12.0`, initContainer `mlflow db upgrade`, PVC `mlflow-data` 10Gi |
 | `rustfs`      | `ia-lab`   | github.com/rustfs/rustfs        | 1.0.0-beta.3 | S3-compatible, probes par défaut du chart      |
 | `dagster`     | `dagster`  | dagster-io.github.io/helm       | 1.12.19   | K8sRunLauncher, image locale, DuckLake config |
 | `postgresql`  | `datalab`  | charts.bitnami.com              | 18.6.6    | `auth.existingSecret: postgresql-credentials` (SealedSecret) |

@@ -26,6 +26,12 @@
   - Pinning `targetRevision: 1.0.0-beta.3` (au lieu de `main`) + `image.tag: 1.0.0-beta.3` (au lieu de `latest`)
   - Cleanup des mentions dans `CLAUDE.md` (workaround kubectl patch, règle "ne pas activer selfHeal sur rustfs", item TODO)
 
+- [x] **Migration `charts/mlflow/` → `bjw-s/app-template` 5.0.1**
+  - `mlflow-app.yaml` réécrit avec values inline (controllers + initContainer `mlflow db upgrade` + service + ingress + persistence)
+  - `persistence.data.forceRename: mlflow-data` pour préserver le PVC existant (SQLite des expériences)
+  - Suppression du dossier `charts/mlflow/` (Chart.yaml + 6 templates)
+  - Renovate `helm-values` manager sur `charts/mlflow/` retiré (devenu sans objet)
+
 ## 🟠 Dette technique
 
 
@@ -47,73 +53,12 @@
 
 ---
 
-## 🔵 Utilisation du pattern bjw-s/app-template
+## 🔵 Pattern bjw-s/app-template — où l'utiliser à l'avenir
 
 > **Chart** : `https://bjw-s-labs.github.io/helm-charts` — `app-template`
-> **Pertinence** : uniquement pour les apps sans chart upstream dédié (éviter de maintenir un mini-chart custom)
+> **Pertinence** : uniquement pour les apps sans chart upstream dédié, et dont les besoins restent dans le cadre "workload standard" (Deployment + Service + Ingress + PVC + ConfigMap/Secret).
 
-### ✅ Migration prioritaire : `charts/mlflow/` → `app-template`
-
-Le chart custom `charts/mlflow/` (Chart.yaml + templates/ + values.yaml) peut être entièrement remplacé.
-
-**Avant** (app actuelle `mlflow-app.yaml`) :
-```yaml
-source:
-  repoURL: https://github.com/tom333/my-kluster.git
-  targetRevision: HEAD
-  path: charts/mlflow
-```
-
-**Après** (avec app-template) :
-```yaml
-source:
-  repoURL: https://bjw-s-labs.github.io/helm-charts
-  chart: app-template
-  targetRevision: 4.6.2   # à mettre à jour via Renovate
-  helm:
-    values: |
-      controllers:
-        main:
-          containers:
-            main:
-              image:
-                repository: ghcr.io/mlflow/mlflow
-                tag: "v3.10.1"
-                pullPolicy: IfNotPresent
-      service:
-        main:
-          controller: main
-          ports:
-            http:
-              port: 5000
-      ingress:
-        main:
-          annotations:
-            cert-manager.io/cluster-issuer: "letsencrypt-prod"
-          hosts:
-            - host: mlflow.tgu.ovh
-              paths:
-                - path: /
-                  pathType: Prefix
-      persistence:
-        data:
-          type: persistentVolumeClaim
-          storageClass: microk8s-hostpath
-          size: 10Gi
-          globalMounts:
-            - path: /mlflow
-```
-
-**Gains** :
-- Supprime le dossier `charts/mlflow/` du dépôt
-- Le tag d'image `ghcr.io/mlflow/mlflow` devient détectable par Renovate via le chart versionné
-- API claire et maintenue par la communauté
-
-**Tâches** :
-- [ ] Créer la nouvelle `mlflow-app.yaml` avec app-template
-- [ ] Désactiver l'ancienne (`mlflow-app.yaml.disable` existe déjà — vérifier son contenu)
-- [ ] Supprimer `charts/mlflow/` une fois la migration validée
-- [ ] Ajouter `bjw-s-labs.github.io/helm-charts` à la liste `sourceRepos` de `datalab-project`
+**Déjà migré** : `mlflow` (cf. section "Récemment terminé").
 
 ### ⚠️ Cas non pertinents (ne pas migrer)
 
@@ -121,3 +66,4 @@ Les apps suivantes ont des charts upstream bien maintenus — **ne pas remplacer
 - `dagster`, `certmanager`, `oauth2-proxy`, `postgresql`, `qdrant`, `sealed-secrets`
 - `rustfs` (chart dans le dépôt upstream)
 - `freshrss`, `komga`, `kubetail`, `jupyter`, `code-server`
+- `localai` — chart custom récent et stable, Renovate déjà géré via `customManager` regex (suffixe `-gpu-nvidia-cuda-12`), patterns atypiques (GPU exclusif, ConfigMap seed via initContainer, multi-modèles à venir avec la RTX 3060)
