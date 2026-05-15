@@ -21,17 +21,24 @@ spec:
     syncOptions:
       - CreateNamespace=true
       - ServerSideApply=true
-      - Replace=true        # MANDATORY: Deployment selector immutability — instance label changes at cutover (RESEARCH §"Standard Stack")
+      # Replace=true was added in Phase 4 for the umbrella cutover (Deployment selector
+      # immutability via the app.kubernetes.io/instance label change). The cutover is done.
+      # Keeping it past that makes every sync run `kubectl replace` on the 7 bjw-s/app-template
+      # PVCs, and K8s rejects the replace because spec.volumeName + spec.storageClassName are
+      # immutable post-bind. PR #1403's `ignoreDifferences` only affects diff computation —
+      # Replace=true bypasses it on the apply side. ServerSideApply alone handles ongoing
+      # reconciliation cleanly via field-level patches that respect immutability. Re-add
+      # Replace=true scoped to specific resources only if a future cutover-style change
+      # needs it.
     automated:
       prune: true
       selfHeal: true
-  # K8s populates spec.volumeName + spec.storageClassName on PVCs after binding, then locks them
-  # as immutable. Helm renders without these fields (provisioner assigns at bind time), so
-  # Replace=true above tries to remove them on every sync → "spec is immutable" retry storm
-  # across all 7 bjw-s/app-template PVCs (cleanuparr, jellyfin, prowlarr, qbittorrent, radarr,
-  # seerr, sonarr). selfHeal eventually grinds past it but produces noisy attempt-N failures
-  # in the Argo UI. Narrow ignore: only PVCs, only the two auto-bound fields. resources.requests
-  # remains tracked — chart-side size changes still reconcile.
+  # K8s populates spec.volumeName + spec.storageClassName on PVCs after binding, then locks
+  # them as immutable. Helm renders without these fields (provisioner assigns at bind time).
+  # ignoreDifferences keeps these PVC fields out of the drift signal (ServerSideApply respects
+  # field ownership and won't touch them anyway, but the explicit ignore prevents false drift
+  # alerts in the Argo UI). resources.requests stays tracked — chart-side size changes still
+  # reconcile.
   ignoreDifferences:
     - group: ""
       kind: PersistentVolumeClaim
