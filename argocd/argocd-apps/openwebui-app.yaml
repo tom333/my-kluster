@@ -76,7 +76,7 @@ spec:
           # explicit approval from the admin UI. Tighten ENABLE_SIGNUP to
           # "false" later if you want a fully closed instance.
           - name: ENABLE_SIGNUP
-            value: "true"
+            value: "false"
           - name: DEFAULT_USER_ROLE
             value: "pending"
           - name: WEBUI_AUTH
