@@ -94,7 +94,7 @@ probes:
 # below. Any minimal image with `cp` and `sh` works.
 modelsInitImage:
   repository: busybox
-  tag: "1.36"
+  tag: "1.37"
 
 # Model configurations rendered into a ConfigMap, then copied at pod start by
 # an initContainer into the persistent /models directory. Each key becomes a
