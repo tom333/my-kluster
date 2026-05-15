@@ -25,3 +25,16 @@ spec:
     automated:
       prune: true
       selfHeal: true
+  # K8s populates spec.volumeName + spec.storageClassName on PVCs after binding, then locks them
+  # as immutable. Helm renders without these fields (provisioner assigns at bind time), so
+  # Replace=true above tries to remove them on every sync → "spec is immutable" retry storm
+  # across all 7 bjw-s/app-template PVCs (cleanuparr, jellyfin, prowlarr, qbittorrent, radarr,
+  # seerr, sonarr). selfHeal eventually grinds past it but produces noisy attempt-N failures
+  # in the Argo UI. Narrow ignore: only PVCs, only the two auto-bound fields. resources.requests
+  # remains tracked — chart-side size changes still reconcile.
+  ignoreDifferences:
+    - group: ""
+      kind: PersistentVolumeClaim
+      jsonPointers:
+        - /spec/volumeName
+        - /spec/storageClassName
