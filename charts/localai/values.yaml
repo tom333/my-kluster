@@ -36,6 +36,10 @@ env:
   MODELS_PATH: "/models"
   LOCALAI_WATCHDOG_IDLE: "true"
   LOCALAI_WATCHDOG_IDLE_TIMEOUT: "5m"
+  # Backends are a separate gallery in LocalAI v3+. The base GPU image no longer
+  # bundles llama-cpp; without this var, the model loads but completions return
+  # "backend not found: llama-cpp". Pre-install at startup from the default gallery.
+  LOCALAI_EXTERNAL_BACKENDS: "llama-cpp"
 
 apiKey:
   secretName: localai-api-key
