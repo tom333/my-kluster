@@ -46,6 +46,7 @@ spec:
                 - name: dagster-ducklake-config
               envSecrets:
                 - name: rustfs-credentials-dagster
+                - name: dagster-postgres-password
               runK8sConfig:
                 containerConfig:
                   resources:
