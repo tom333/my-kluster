@@ -1,0 +1,14 @@
+repos:
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.21.0
+    hooks:
+      - id: gitleaks
+
+  - repo: local
+    hooks:
+      - id: forbid-plain-k8s-secrets
+        name: Block plaintext kind=Secret with data/stringData
+        language: pygrep
+        entry: '(?ms)^kind:\s*Secret\b(?!.*SealedSecret).*?^(data|stringData):'
+        files: '\.ya?ml$'
+        exclude: '^(secrets/|sealed/|argocd/argocd-install/charts/)'
