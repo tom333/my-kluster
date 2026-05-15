@@ -11,24 +11,21 @@
   - Suppression de tous les fichiers plaintext dans `secrets/`
   - Hook pre-commit + workflow CI **gitleaks** pour bloquer les secrets en clair
 
+- [x] **Activer Renovate sur les charts custom locaux**
+  - `helm-values` manager sur `charts/mlflow/values.yaml` (tag standard `ghcr.io/mlflow/mlflow:vX.Y.Z`)
+  - `customManagers` regex sur `charts/localai/values.yaml` (suffixe non-standard `-gpu-nvidia-cuda-12`, versioning regex custom)
+
+- [x] **Nettoyage déchets `config/` et `.github/`**
+  - Suppression `config/test-volume.yaml` (Pod test `test-read-static` + PVC orphelin `jellyfin-media-pvc`)
+  - Suppression `config/jellyfin-nas-pv.yaml.old`, `config/mlflow-pvc.yaml.old`, `.github/workflows/coder-docker-image.yml.old`
+
 ## 🟠 Dette technique
 
-- [ ] **Corriger l'extension dupliquée** : `code-server-app.yaml.yaml` → `code-server-app.yaml`
-- [ ] **Supprimer `config/test-volume.yaml`** — contient un Pod de test (`test-read-static`) et un PVC `jellyfin-media-pvc` qui ne devraient pas être livrés par ArgoCD
-- [ ] **Supprimer les fichiers `.old`** : `config/jellyfin-nas-pv.yaml.old`, `config/mlflow-pvc.yaml.old`, `.github/workflows/coder-docker-image.yml.old`
 - [ ] **Fixer `rustfs` `targetRevision: main`** → pointer sur un tag sémantique ou un commit SHA stable
 - [ ] **Résoudre le bug RustFS #1844** (readinessProbe `/health/ready` retourne 403) pour réactiver `selfHeal: true`
 - [ ] **Nettoyer le namespace `accidents`** — pods en `ContainerStatusUnknown` / `CreateContainerConfigError` depuis 20+ jours (`accidents-api-*`, `streamlit-app-*`)
 
 ## 🟡 Améliorations
-
-- [ ] **Ajouter un `ClusterIssuer` DNS-01 OVH** pour les wildcards TLS `*.tgu.ovh`
-  - Les credentials OVH ne sont plus dans `secrets/` — à recréer en SealedSecret si on relance ce chantier
-  - Voir `config/wildcard_dns.yaml.disable` qui semble déjà préparé
-
-- [ ] **Activer Renovate sur le tag d'image MLflow**
-  - Actuellement le tag `v3.10.1` est dans `charts/mlflow/values.yaml`, non détecté par Renovate
-  - Solution : passer en annotation Renovate ou utiliser un chart source externe
 
 - [ ] **Ajouter `description` aux AppProjects** pour améliorer la lisibilité dans l'UI ArgoCD
 
