@@ -12,7 +12,7 @@ spec:
     namespace: selfhost
   source:
     repoURL: https://github.com/tom333/arr-stack.git
-    targetRevision: v0.3.4
+    targetRevision: v0.4.1
     path: charts/arr-stack
     helm:
       valueFiles:
