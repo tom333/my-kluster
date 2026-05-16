@@ -29,7 +29,7 @@ persistence:
     accessMode: ReadWriteOnce
     globalMount: /models
   output:
-    enabled: false
+    enabled: true
     storageClass: microk8s-hostpath
     size: 10Gi
     accessMode: ReadWriteOnce
@@ -48,11 +48,11 @@ persistence:
 resources:
   limits:
     cpu: "4"
-    memory: 12Gi
+    memory: 16Gi
     nvidia.com/gpu: 1
   requests:
     cpu: "1"
-    memory: 6Gi
+    memory: 8Gi
     nvidia.com/gpu: 1
 
 env:
@@ -65,9 +65,11 @@ env:
   LOCALAI_WATCHDOG_IDLE: "true"
   LOCALAI_WATCHDOG_IDLE_TIMEOUT: "5m"
   # Backends are a separate gallery in LocalAI v3+. The base GPU image no longer
-  # bundles llama-cpp; without this var, the model loads but completions return
-  # "backend not found: llama-cpp". Pre-install at startup from the default gallery.
-  LOCALAI_EXTERNAL_BACKENDS: "llama-cpp"
+  # bundles them; the install is cached in the /backends PVC so subsequent boots
+  # skip the download.
+  #  - llama-cpp:  chat / completions (Qwen models below)
+  #  - diffusers:  image generation via HF Diffusers (Flux.2 Klein FP8 below)
+  LOCALAI_EXTERNAL_BACKENDS: "llama-cpp,diffusers"
 
 # Env vars sourced from secrets. Each entry is a standard container env entry
 # with valueFrom: { secretKeyRef: ... }.
@@ -206,6 +208,31 @@ modelsConfigs:
     stopwords:
       - "<|im_end|>"
       - "<|endoftext|>"
+
+  # ~10 GB VRAM. Black Forest Labs Flux.2 Klein 9B in official FP8 — fits in
+  # 12 GB next to the OS overhead. Klein is the fast variant (4-8 steps).
+  # Outputs land in /tmp/generated (persistence.output PVC).
+  #
+  # Alternative if VRAM gets tight: switch to unsloth/FLUX.2-klein-9B-GGUF
+  # Q5_K_M (~7 GB) but requires the stablediffusion-cpp backend and separate
+  # CLIP-L / T5-XXL / VAE files — more wiring, save for later.
+  #
+  # Image generation is invoked via the OpenAI-compatible endpoint:
+  #   POST /v1/images/generations
+  #   { "model": "flux.2-klein", "prompt": "...", "size": "1024x1024", "n": 1 }
+  flux.2-klein: |
+    name: flux.2-klein
+    backend: diffusers
+    parameters:
+      model: black-forest-labs/FLUX.2-klein-9b-kv-fp8
+    diffusers:
+      pipeline_type: FluxPipeline
+      cuda: true
+      enable_parameters: "num_inference_steps,guidance_scale,width,height,seed"
+    step: 4
+    f16: true
+    options:
+      - "scheduler:FlowMatchEulerDiscreteScheduler"
 
 ingress:
   enabled: true
