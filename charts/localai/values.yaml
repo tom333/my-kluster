@@ -34,6 +34,16 @@ persistence:
     size: 10Gi
     accessMode: ReadWriteOnce
     globalMount: /tmp/generated
+  # Persist the backend gallery installs (~1 GB OCI for cuda12-llama-cpp).
+  # Without this, every pod restart re-downloads the backend at boot, adding
+  # ~10 min to startup. Path discovered empirically: LocalAI v4 installs
+  # extracted backends to /backends/<name>/.
+  backends:
+    enabled: true
+    storageClass: microk8s-hostpath
+    size: 10Gi
+    accessMode: ReadWriteOnce
+    globalMount: /backends
 
 resources:
   limits:
@@ -147,8 +157,10 @@ modelsConfigs:
       top_p: 0.9
       top_k: 40
     download_files:
+      # The official Qwen GGUF repo shards Q4_K_M in two files. Bartowski
+      # republishes a single-file version — simpler to manage in LocalAI.
       - filename: qwen2.5-7b-instruct-q4_k_m.gguf
-        uri: https://huggingface.co/Qwen/Qwen2.5-7B-Instruct-GGUF/resolve/main/qwen2.5-7b-instruct-q4_k_m.gguf
+        uri: https://huggingface.co/bartowski/Qwen2.5-7B-Instruct-GGUF/resolve/main/Qwen2.5-7B-Instruct-Q4_K_M.gguf
     template:
       chat_message: |
         <|im_start|>{{ .RoleName }}
@@ -178,8 +190,10 @@ modelsConfigs:
       top_p: 0.95
       top_k: 40
     download_files:
+      # Same situation as the 7B: official repo shards Q4_K_M, bartowski has a
+      # single-file build.
       - filename: qwen2.5-coder-7b-instruct-q4_k_m.gguf
-        uri: https://huggingface.co/Qwen/Qwen2.5-Coder-7B-Instruct-GGUF/resolve/main/qwen2.5-coder-7b-instruct-q4_k_m.gguf
+        uri: https://huggingface.co/bartowski/Qwen2.5-Coder-7B-Instruct-GGUF/resolve/main/Qwen2.5-Coder-7B-Instruct-Q4_K_M.gguf
     template:
       chat_message: |
         <|im_start|>{{ .RoleName }}
