@@ -91,9 +91,13 @@ secretEnv:
 # succeeds, liveness takes over with its normal cadence.
 probes:
   startup:
-    # 30 * 60s = 30 minutes grace window for first-time download
+    # 30s * 180 = 90 minutes grace window. Generous because the FIRST boot
+    # after adding a new backend (e.g. diffusers ~1+ GB OCI) downloads to the
+    # ephemeral /tmp before extracting to the /backends PVC. If killed before
+    # extraction completes, the next boot starts from zero — vicious cycle.
+    # Once the backend is in /backends, subsequent boots are <5 min.
     periodSeconds: 30
-    failureThreshold: 60
+    failureThreshold: 180
     timeoutSeconds: 10
   liveness:
     periodSeconds: 30
