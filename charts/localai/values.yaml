@@ -38,16 +38,18 @@ persistence:
 resources:
   limits:
     cpu: "4"
-    memory: 8Gi
+    memory: 12Gi
     nvidia.com/gpu: 1
   requests:
     cpu: "1"
-    memory: 4Gi
+    memory: 6Gi
     nvidia.com/gpu: 1
 
 env:
   THREADS: "4"
-  CONTEXT_SIZE: "4096"
+  # Default context window for models that don't override it in their YAML.
+  # The 7B and Coder configs below specify their own context_size.
+  CONTEXT_SIZE: "16384"
   DEBUG: "false"
   MODELS_PATH: "/models"
   LOCALAI_WATCHDOG_IDLE: "true"
@@ -100,12 +102,14 @@ modelsInitImage:
 # an initContainer into the persistent /models directory. Each key becomes a
 # file <key>.yaml that LocalAI reads on boot.
 modelsConfigs:
+  # ~1 GB VRAM. Kept around for quick smoke tests and ultra-low-latency replies.
   qwen2.5-1.5b-instruct: |
     name: qwen2.5-1.5b-instruct
     backend: llama-cpp
     context_size: 4096
     gpu_layers: 99
     f16: true
+    flash_attention: true
     mmap: true
     parameters:
       model: qwen2.5-1.5b-instruct-q4_k_m.gguf
@@ -115,6 +119,67 @@ modelsConfigs:
     download_files:
       - filename: qwen2.5-1.5b-instruct-q4_k_m.gguf
         uri: https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct-GGUF/resolve/main/qwen2.5-1.5b-instruct-q4_k_m.gguf
+    template:
+      chat_message: |
+        <|im_start|>{{ .RoleName }}
+        {{.Content}}<|im_end|>
+      chat: |
+        {{.Input -}}
+        <|im_start|>assistant
+      completion: |
+        {{.Input}}
+    stopwords:
+      - "<|im_end|>"
+      - "<|endoftext|>"
+
+  # ~5 GB VRAM at ctx=16k. Polyvalent chat model, very good in French.
+  qwen2.5-7b-instruct: |
+    name: qwen2.5-7b-instruct
+    backend: llama-cpp
+    context_size: 16384
+    gpu_layers: 99
+    f16: true
+    flash_attention: true
+    mmap: true
+    parameters:
+      model: qwen2.5-7b-instruct-q4_k_m.gguf
+      temperature: 0.7
+      top_p: 0.9
+      top_k: 40
+    download_files:
+      - filename: qwen2.5-7b-instruct-q4_k_m.gguf
+        uri: https://huggingface.co/Qwen/Qwen2.5-7B-Instruct-GGUF/resolve/main/qwen2.5-7b-instruct-q4_k_m.gguf
+    template:
+      chat_message: |
+        <|im_start|>{{ .RoleName }}
+        {{.Content}}<|im_end|>
+      chat: |
+        {{.Input -}}
+        <|im_start|>assistant
+      completion: |
+        {{.Input}}
+    stopwords:
+      - "<|im_end|>"
+      - "<|endoftext|>"
+
+  # ~6 GB VRAM at ctx=32k. Dedicated coding model; long context is worth the
+  # extra KV cache for handling whole-file edits and multi-file diffs.
+  qwen2.5-coder-7b-instruct: |
+    name: qwen2.5-coder-7b-instruct
+    backend: llama-cpp
+    context_size: 32768
+    gpu_layers: 99
+    f16: true
+    flash_attention: true
+    mmap: true
+    parameters:
+      model: qwen2.5-coder-7b-instruct-q4_k_m.gguf
+      temperature: 0.2
+      top_p: 0.95
+      top_k: 40
+    download_files:
+      - filename: qwen2.5-coder-7b-instruct-q4_k_m.gguf
+        uri: https://huggingface.co/Qwen/Qwen2.5-Coder-7B-Instruct-GGUF/resolve/main/qwen2.5-coder-7b-instruct-q4_k_m.gguf
     template:
       chat_message: |
         <|im_start|>{{ .RoleName }}

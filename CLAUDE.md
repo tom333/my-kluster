@@ -196,7 +196,7 @@ kubectl get secret -n kube-system \
 - **GPU Operator** : installé hors GitOps via `microk8s enable gpu`. Géré dans le namespace `gpu-operator-resources` (CRDs + DaemonSets).
 - **Workaround obligatoire** sur cette install : patcher la `ClusterPolicy` avec `DISABLE_DEV_CHAR_SYMLINK_CREATION=true` (bug NVIDIA gpu-operator #430, le validator essaie de recréer des symlinks `/dev/char/` déjà présents).
 - Allocation GPU : **exclusive** (`nvidia.com/gpu: 1` en `requests` ET `limits`). **Pas de Time-Slicing** (provoque des erreurs mémoire).
-- Carte actuelle : **GTX 1050 Ti, 4 GB** (Pascal CC 6.1, pas de tensor cores). Carte cible future : RTX 3060 12 GB.
+- Carte actuelle : **RTX 3060, 12 GB** (Ampere CC 8.6, tensor cores FP16/BF16, supporte Flash Attention natif).
 - LocalAI est aujourd'hui le seul consommateur GPU. Toute autre Application demandant `nvidia.com/gpu` entrera en compétition (file d'attente Pending).
 
 ### Spécificités MicroK8s
