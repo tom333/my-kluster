@@ -64,12 +64,15 @@ env:
   MODELS_PATH: "/models"
   LOCALAI_WATCHDOG_IDLE: "true"
   LOCALAI_WATCHDOG_IDLE_TIMEOUT: "5m"
-  # Backends are a separate gallery in LocalAI v3+. The base GPU image no longer
-  # bundles them; the install is cached in the /backends PVC so subsequent boots
-  # skip the download.
-  #  - llama-cpp:  chat / completions (Qwen models below)
-  #  - diffusers:  image generation via HF Diffusers (Flux.2 Klein FP8 below)
-  LOCALAI_EXTERNAL_BACKENDS: "llama-cpp,diffusers"
+  # NOTE: LOCALAI_EXTERNAL_BACKENDS volontairement non défini.
+  # Les backends (cuda12-llama-cpp + cuda12-diffusers) sont déjà installés dans
+  # le PVC /backends. Définir cette env var déclenche un manifest check OCI à
+  # chaque boot (Docker Hub puis quay.io, souvent lent ou en timeout) — sans
+  # bénéfice puisque les backends sont déjà là.
+  # Pour réinstaller un backend (ex: après upgrade LocalAI majeur) :
+  # remettre temporairement LOCALAI_EXTERNAL_BACKENDS="llama-cpp,diffusers",
+  # supprimer le dossier /backends/<name> concerné, restart le pod, puis
+  # retirer à nouveau l'env var.
 
 # Env vars sourced from secrets. Each entry is a standard container env entry
 # with valueFrom: { secretKeyRef: ... }.
