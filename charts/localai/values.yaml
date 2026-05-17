@@ -213,30 +213,34 @@ modelsConfigs:
       - "<|im_end|>"
       - "<|endoftext|>"
 
-  # ~10 GB VRAM. Black Forest Labs Flux.2 Klein 9B in official FP8 — fits in
-  # 12 GB next to the OS overhead. Klein is the fast variant (4-8 steps).
+  # Black Forest Labs Flux.2 Klein, smaller 4B variant.
+  # Chosen over the 9B variants because:
+  #  - 4B has a complete Diffusers-format repo (model_index.json + text_encoder/
+  #    + vae/ + transformer/) → loadable via FluxPipeline.from_pretrained()
+  #  - 9B variants are gated on HuggingFace (would need HF_TOKEN secret)
+  #  - The 9B-kv-fp8 repo is a single-file safetensors, NOT Diffusers format
+  #
+  # VRAM: ~7-8 GB with CPU offload of the T5 text encoder.
+  # First call downloads ~15 GB from HF — long on slow links; subsequent calls
+  # are cached in the HuggingFace cache dir.
   # Outputs land in /tmp/generated (persistence.output PVC).
   #
-  # Alternative if VRAM gets tight: switch to unsloth/FLUX.2-klein-9B-GGUF
-  # Q5_K_M (~7 GB) but requires the stablediffusion-cpp backend and separate
-  # CLIP-L / T5-XXL / VAE files — more wiring, save for later.
-  #
-  # Image generation is invoked via the OpenAI-compatible endpoint:
+  # Invoked via the OpenAI-compatible endpoint:
   #   POST /v1/images/generations
   #   { "model": "flux.2-klein", "prompt": "...", "size": "1024x1024", "n": 1 }
   flux.2-klein: |
     name: flux.2-klein
     backend: diffusers
     parameters:
-      model: black-forest-labs/FLUX.2-klein-9b-kv-fp8
+      model: black-forest-labs/FLUX.2-klein-4B
     diffusers:
       pipeline_type: FluxPipeline
       cuda: true
       enable_parameters: "num_inference_steps,guidance_scale,width,height,seed"
+      cpu_offload: true
     step: 4
     f16: true
-    options:
-      - "scheduler:FlowMatchEulerDiscreteScheduler"
+    low_vram: true
 
 ingress:
   enabled: true
