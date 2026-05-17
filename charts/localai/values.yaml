@@ -180,38 +180,44 @@ modelsConfigs:
       - "<|im_end|>"
       - "<|endoftext|>"
 
-  # ~6 GB VRAM at ctx=32k. Dedicated coding model; long context is worth the
-  # extra KV cache for handling whole-file edits and multi-file diffs.
-  qwen2.5-coder-7b-instruct: |
-    name: qwen2.5-coder-7b-instruct
+  # DeepSeek-Coder-V2-Lite-Instruct (MoE 15.7B / 2.4B actifs).
+  # Sélectionné par llmfit (score 91.5) comme meilleur modèle code pour RTX 3060.
+  # Remplace Qwen2.5-Coder-7B-Instruct (score 84.5) — MoE = vitesse d'un 2-3B
+  # avec qualité d'un 16B sur HumanEval/MBPP.
+  #
+  # Q4_K_M ~10 GB en VRAM, fit confortable sur 12 GB avec ctx 8192 + flash_attention.
+  # Si OOM en pratique : baisser context_size à 4096 ou switcher en Q3_K_M (~7.5 GB).
+  deepseek-coder-v2-lite-instruct: |
+    name: deepseek-coder-v2-lite-instruct
     backend: llama-cpp
-    context_size: 32768
+    context_size: 8192
     gpu_layers: 99
     f16: true
     flash_attention: true
     mmap: true
     parameters:
-      model: qwen2.5-coder-7b-instruct-q4_k_m.gguf
+      model: deepseek-coder-v2-lite-instruct-q4_k_m.gguf
       temperature: 0.2
       top_p: 0.95
       top_k: 40
     download_files:
-      # Same situation as the 7B: official repo shards Q4_K_M, bartowski has a
-      # single-file build.
-      - filename: qwen2.5-coder-7b-instruct-q4_k_m.gguf
-        uri: https://huggingface.co/bartowski/Qwen2.5-Coder-7B-Instruct-GGUF/resolve/main/Qwen2.5-Coder-7B-Instruct-Q4_K_M.gguf
+      - filename: deepseek-coder-v2-lite-instruct-q4_k_m.gguf
+        uri: https://huggingface.co/bartowski/DeepSeek-Coder-V2-Lite-Instruct-GGUF/resolve/main/DeepSeek-Coder-V2-Lite-Instruct-Q4_K_M.gguf
     template:
       chat_message: |
-        <|im_start|>{{ .RoleName }}
-        {{.Content}}<|im_end|>
+        {{- if eq .RoleName "system" -}}{{.Content}}
+        {{ end -}}
+        {{- if eq .RoleName "user" -}}User: {{.Content}}
+
+        {{ end -}}
+        {{- if eq .RoleName "assistant" -}}Assistant: {{.Content}}<|end▁of▁sentence|>{{ end -}}
       chat: |
-        {{.Input -}}
-        <|im_start|>assistant
+        {{.Input -}}Assistant:
       completion: |
         {{.Input}}
     stopwords:
-      - "<|im_end|>"
-      - "<|endoftext|>"
+      - "<|end▁of▁sentence|>"
+      - "<|EOT|>"
 
   # Black Forest Labs Flux.2 Klein, smaller 4B variant.
   # Chosen over the 9B variants because:
