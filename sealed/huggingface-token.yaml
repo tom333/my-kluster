@@ -1,0 +1,15 @@
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  creationTimestamp: null
+  name: huggingface-token
+  namespace: localai
+spec:
+  encryptedData:
+    token: AgCmez5YdJWarsAtMIS5TpuouaR3AHnioxyB3xbJFtCUMFK2MlcHWZbXtRjQHMogFEL9CokbcQgkuh/KxBxHfpoQn28zEWbjcLoKpvRmM9yVImp3B1Cqy4odNZ8poOclKKN8770PGtgM5EySoYzJn/oqkh+vJoNKwt9wksbn7zsvPFa0/XiR2wJ+6LuUO1KgSlm4g6a5KuKmc+TTDSCnrDU6S5ToZXdt5SOd6plgKX6CLKdgJI0FGhX8x1R/K8VlXEUkYW8EIqxwEjulWKeA9TYq0jbss0pWkt7QNaL+vqllre8ohesjzVUMefnNMsibO/A/4TVzpUYDJ1hRXEzpNRNwMbg04/263rZ7eKEDGV0V/xm0cDB0c/Ba95pbRIg5nl2eiXjQ+NcXTe4qdEOjkGsPbTg5xfl9AtTv9/vRG5gOcvXX8xpyKY8oDtXau6C6Q2zufn5Ik+qSefJYr/eLB3hfmy/tAsLvgvgVxlYKzSgmgZl6TZ2zDf0QiAU0KlgfyFTGm6o2GFUk/KAXxPJN9dIRIbFf6ji9GR2QMURTxcgkHOSf8CHpDBayE7s2QmZzDA6Dp4hUpPYqkHMItLmKJVnb6RBRUnzE1sevvOZ8xnTHWy6NeYGGn0I5kyULgI9cdw/kHCygPCU3nKlNagi27CMsKiJ3yFOxSRRWSGDBXsWka25bDGxulg40qtSrJ4R29Cwjg9DHqKOXmOOCHnke53n8PNjLkVnCpBbv/auSFOrcQB8NosVd
+  template:
+    metadata:
+      creationTimestamp: null
+      name: huggingface-token
+      namespace: localai

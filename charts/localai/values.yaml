@@ -80,11 +80,11 @@ secretEnv:
         name: localai-api-key
         key: api-key
   # Example for HuggingFace gated models (Llama, Mistral, etc.):
-  # - name: HF_TOKEN
-  #   valueFrom:
-  #     secretKeyRef:
-  #       name: huggingface-token
-  #       key: token
+  - name: HF_TOKEN
+    valueFrom:
+      secretKeyRef:
+        name: huggingface-token
+        key: token
 
 # Probes — generous startupProbe lets the pod download the model (1+ GB) and
 # warm up CUDA on first boot without being killed by liveness. Once startup
