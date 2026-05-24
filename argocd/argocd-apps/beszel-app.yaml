@@ -1,0 +1,76 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: beszel
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: monitoring
+    server: https://kubernetes.default.svc
+  project: infra-project
+  source:
+    repoURL: https://bjw-s-labs.github.io/helm-charts
+    chart: app-template
+    targetRevision: 5.0.1
+    helm:
+      values: |
+        controllers:
+          beszel:
+            type: deployment
+            strategy: Recreate
+            containers:
+              main:
+                image:
+                  repository: henrygd/beszel
+                  tag: "0.10.0"
+                  pullPolicy: IfNotPresent
+                env:
+                  PORT: "8090"
+                  HUB_URL: "https://beszel.tgu.ovh"
+                envFrom:
+                  - secretRef:
+                      name: beszel-secrets
+                resources:
+                  limits:   { cpu: "500m", memory: 512Mi }
+                  requests: { cpu: "100m", memory: 128Mi }
+        service:
+          app:
+            controller: beszel
+            ports:
+              http:
+                port: 8090
+        ingress:
+          app:
+            className: nginx
+            annotations:
+              cert-manager.io/cluster-issuer: "letsencrypt-prod"
+              nginx.ingress.kubernetes.io/whitelist-source-range: "192.168.88.0/24,10.1.0.0/16"
+              nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+            hosts:
+              - host: beszel.tgu.ovh
+                paths:
+                  - path: /
+                    pathType: Prefix
+                    service:
+                      identifier: app
+                      port: http
+            tls:
+              - secretName: beszel-tls
+                hosts:
+                  - beszel.tgu.ovh
+        persistence:
+          data:
+            type: persistentVolumeClaim
+            storageClass: microk8s-hostpath
+            accessMode: ReadWriteOnce
+            size: 1Gi
+            globalMounts:
+              - path: /beszel_data
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      selfHeal: true
+      prune: true

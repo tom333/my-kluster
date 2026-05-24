@@ -32,6 +32,12 @@
   - Suppression du dossier `charts/mlflow/` (Chart.yaml + 6 templates)
   - Renovate `helm-values` manager sur `charts/mlflow/` retiré (devenu sans objet)
 
+- [x] **Monitoring multi-machines Beszel + Ansible**
+  - Hub Beszel sur cluster k8s (namespace `monitoring`), ingress LAN-only `beszel.tgu.ovh`
+  - Agents déployés via Ansible sur N machines (cf. `ansible/inventory.yml`)
+  - 8 alertes Telegram configurées (disque, RAM, CPU, agent down, Docker, température)
+  - Documentation : spec `2026-05-24-beszel-monitoring-design.md` + plan `2026-05-24-beszel-monitoring.md`
+
 ## 🟠 Dette technique
 
 

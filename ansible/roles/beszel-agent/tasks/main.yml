@@ -1,0 +1,104 @@
+---
+- name: Validate beszel_hub_ssh_pubkey is set
+  ansible.builtin.assert:
+    that:
+      - beszel_hub_ssh_pubkey is defined
+      - beszel_hub_ssh_pubkey | length > 0
+    fail_msg: "beszel_hub_ssh_pubkey must be set (via group_vars/vault.yml)"
+
+- name: Create beszel system group
+  ansible.builtin.group:
+    name: "{{ beszel_agent_group }}"
+    system: true
+    state: present
+
+- name: Create beszel system user
+  ansible.builtin.user:
+    name: "{{ beszel_agent_user }}"
+    group: "{{ beszel_agent_group }}"
+    system: true
+    shell: /usr/sbin/nologin
+    home: "{{ beszel_agent_home }}"
+    create_home: true
+    state: present
+
+- name: Ensure .ssh directory exists
+  ansible.builtin.file:
+    path: "{{ beszel_agent_home }}/.ssh"
+    state: directory
+    owner: "{{ beszel_agent_user }}"
+    group: "{{ beszel_agent_group }}"
+    mode: '0700'
+
+- name: Add Hub SSH public key to authorized_keys
+  ansible.posix.authorized_key:
+    user: "{{ beszel_agent_user }}"
+    state: present
+    key: "{{ beszel_hub_ssh_pubkey }}"
+    exclusive: true
+
+- name: Check if beszel-agent binary already at correct version
+  ansible.builtin.command: "{{ beszel_agent_binary_path }} -v"
+  register: beszel_current_version
+  changed_when: false
+  failed_when: false
+
+- name: Download and install beszel-agent binary
+  when: beszel_current_version.rc != 0 or beszel_agent_version not in (beszel_current_version.stdout | default(''))
+  block:
+    - name: Download beszel-agent tarball
+      ansible.builtin.get_url:
+        url: "https://github.com/henrygd/beszel/releases/download/v{{ beszel_agent_version }}/beszel-agent_linux_{{ beszel_arch }}.tar.gz"
+        dest: "/tmp/beszel-agent-{{ beszel_agent_version }}.tar.gz"
+        mode: '0644'
+        force: true
+
+    - name: Extract beszel-agent binary
+      ansible.builtin.unarchive:
+        src: "/tmp/beszel-agent-{{ beszel_agent_version }}.tar.gz"
+        dest: /tmp/
+        remote_src: true
+
+    - name: Install beszel-agent binary
+      ansible.builtin.copy:
+        src: /tmp/beszel-agent
+        dest: "{{ beszel_agent_binary_path }}"
+        remote_src: true
+        owner: root
+        group: root
+        mode: '0755'
+      notify: restart beszel-agent
+
+    - name: Cleanup tarball
+      ansible.builtin.file:
+        path: "/tmp/beszel-agent-{{ beszel_agent_version }}.tar.gz"
+        state: absent
+
+    - name: Cleanup extracted binary in /tmp
+      ansible.builtin.file:
+        path: /tmp/beszel-agent
+        state: absent
+
+- name: Install beszel-agent systemd service unit
+  ansible.builtin.template:
+    src: beszel-agent.service.j2
+    dest: "/etc/systemd/system/{{ beszel_agent_service_name }}.service"
+    owner: root
+    group: root
+    mode: '0644'
+  notify:
+    - reload systemd
+    - restart beszel-agent
+
+- name: Enable and start beszel-agent service
+  ansible.builtin.systemd:
+    name: "{{ beszel_agent_service_name }}"
+    enabled: true
+    state: started
+    daemon_reload: true
+
+- name: Wait for beszel-agent to listen on configured port
+  ansible.builtin.wait_for:
+    port: "{{ beszel_agent_port }}"
+    host: 127.0.0.1
+    timeout: 30

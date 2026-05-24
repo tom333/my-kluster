@@ -1,0 +1,11 @@
+---
+# Variables globales partagées par toutes les machines du playbook.
+# Pas de secrets ici (cf. vault.yml pour les sensibles).
+
+beszel_agent_version: "0.10.0"
+beszel_agent_port: 43000
+beszel_agent_user: beszel
+beszel_agent_home: /var/lib/beszel
+
+# Référence le secret chiffré dans vault.yml
+beszel_hub_ssh_pubkey: "{{ vault_beszel_hub_ssh_pubkey }}"

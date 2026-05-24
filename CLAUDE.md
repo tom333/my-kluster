@@ -106,6 +106,15 @@ Les fichiers `.disable` sont ignorés. Pour désactiver une app, suffixe son fic
 | `localai`     | `localai`  | ce dépôt → `charts/localai/`   | HEAD      | LocalAI GPU NVIDIA, MVP Qwen2.5-1.5B Q4_K_M, ingress LAN-only + token API |
 | `openwebui`   | `openwebui`| helm.openwebui.com              | 7.0.0     | UI chat (CPU), upstream LocalAI, 2 ingress (public oauth2-proxy + LAN whitelist) |
 
+### Monitoring (namespace `monitoring`)
+
+| Application | Namespace    | Source                            | Version | Notes                                                                  |
+|-------------|--------------|-----------------------------------|---------|------------------------------------------------------------------------|
+| `beszel`    | `monitoring` | bjw-s-labs.github.io/helm-charts  | 5.0.1   | Hub Beszel (henrygd/beszel 0.10.0). Ingress LAN-only `beszel.tgu.ovh`. Alertes Telegram. |
+
+Agents déployés via Ansible (`ansible/` du repo) sur toutes les machines monitorées.
+Documentation déploiement : `docs/superpowers/specs/2026-05-24-beszel-monitoring-design.md`.
+
 ### Self-hosted
 
 | Application  | Namespace  | Source                    | Version  | Notes                              |
@@ -139,11 +148,21 @@ Tous les secrets K8s sont chiffrés (Bitnami Sealed Secrets) et committés dans 
 
 ```bash
 # 1. Créer le secret en clair en mémoire et le sceller directement
+#    Les flags --controller-name / --controller-namespace sont OBLIGATOIRES sur ce cluster
+#    (le service ne s'appelle pas "sealed-secrets" mais "sealed-secrets-controller").
 kubectl create secret generic <name> \
   --namespace=<ns> \
   --from-literal=<key>=<value> \
   --dry-run=client -o yaml \
-  | kubeseal --format=yaml > sealed/<name>.yaml
+| kubeseal \
+    --controller-name=sealed-secrets-controller \
+    --controller-namespace=kube-system \
+    --format=yaml \
+  > sealed/<name>.yaml
+
+# Astuce : exporter une fois pour toutes pour éviter de répéter les flags
+#   export SEALED_SECRETS_CONTROLLER_NAME=sealed-secrets-controller
+#   export SEALED_SECRETS_CONTROLLER_NAMESPACE=kube-system
 
 # 2. Commit + push — ArgoCD synchronise l'app "sealed" et le Secret apparaît dans le cluster
 git add sealed/<name>.yaml
@@ -205,6 +224,15 @@ kubectl get secret -n kube-system \
 - **Registry locale** : `localhost:32000/<image>:<tag>` — images buildées en local
 - **Ingress** : NGINX activé via addon MicroK8s (`microk8s enable ingress`)
 - **NAS** : `192.168.88.103` (NFS v3, share `/Public`)
+
+### Ansible (déploiement multi-machines)
+
+- Dossier : `ansible/` du repo.
+- Inventaire en clair dans `ansible/inventory.yml` (IPs LAN RFC1918).
+- Secrets chiffrés via Ansible Vault dans `ansible/group_vars/vault.yml` (password local en `~/.vault-password.txt`, jamais commité).
+- Commande pleine : `cd ansible/ && ansible-playbook -i inventory.yml playbook.yml --vault-password-file ~/.vault-password.txt`.
+- Ajout machine : éditer `inventory.yml`, runner avec `--limit <nouveau-host>`.
+- Rôle disponible : `beszel-agent` (install/update agent Beszel).
 
 ---
 

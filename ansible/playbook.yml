@@ -1,0 +1,16 @@
+---
+- name: Deploy Beszel agents on all monitored machines
+  hosts: all
+  become: true
+  gather_facts: true
+
+  pre_tasks:
+    - name: Show host info
+      ansible.builtin.debug:
+        msg: "Running on {{ inventory_hostname }} ({{ ansible_host }}) — arch={{ beszel_arch }}"
+
+  vars_files:
+    - group_vars/vault.yml
+
+  roles:
+    - beszel-agent

@@ -1,0 +1,17 @@
+---
+# Valeurs par défaut du rôle beszel-agent.
+# Overrides possible via inventory ou group_vars.
+
+beszel_agent_version: "0.10.0"
+beszel_agent_port: 43000
+beszel_agent_user: beszel
+beszel_agent_group: beszel
+beszel_agent_home: /var/lib/beszel
+beszel_agent_binary_path: /usr/local/bin/beszel-agent
+beszel_agent_service_name: beszel-agent
+
+# Architecture : "amd64" ou "arm64" (à set par host dans inventory)
+beszel_arch: amd64
+
+# Clé publique du Hub (override via group_vars/vault.yml)
+beszel_hub_ssh_pubkey: ""

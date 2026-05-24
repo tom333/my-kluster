@@ -1,2 +1,7 @@
 .vscode
 secrets/
+
+# Ansible — vault password files (jamais commiter)
+**/.vault-password*
+**/*.vault-password
+ansible/*.retry
