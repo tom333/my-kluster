@@ -28,7 +28,9 @@ spec:
                   pullPolicy: IfNotPresent
                 env:
                   PORT: "8090"
-                  HUB_URL: "https://beszel.tgu.ovh"
+                  # Beszel (v0.10.0) lit APP_URL via GetEnv (BESZEL_HUB_APP_URL puis APP_URL).
+                  # Sans, le SPA et les routes /api/beszel/* ne s'enregistrent pas (404 sur /).
+                  APP_URL: "https://beszel.tgu.ovh"
                 envFrom:
                   - secretRef:
                       name: beszel-secrets
