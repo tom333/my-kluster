@@ -1,0 +1,11 @@
+[Unit]
+Description=Encrypted backup of Kodi userdata to NAS
+Documentation=file://{{ kodi_backup_script_path }}
+After=network-online.target
+Wants=network-online.target
+OnFailure={{ kodi_backup_service_name }}-notify.service
+
+[Service]
+Type=oneshot
+User=root
+ExecStart={{ kodi_backup_script_path }}

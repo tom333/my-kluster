@@ -1,0 +1,12 @@
+[Unit]
+Description=Weekly Kodi userdata backup
+Documentation=file://{{ kodi_backup_script_path }}
+
+[Timer]
+OnCalendar={{ kodi_backup_oncalendar }}
+RandomizedDelaySec=600
+Persistent=true
+Unit={{ kodi_backup_service_name }}.service
+
+[Install]
+WantedBy=timers.target

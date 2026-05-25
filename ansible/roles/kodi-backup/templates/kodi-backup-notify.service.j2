@@ -1,0 +1,9 @@
+[Unit]
+Description=Send Telegram notification on kodi-backup failure
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/curl -fsS -o /dev/null -X POST \
+  https://api.telegram.org/bot{{ vault_telegram_bot_token }}/sendMessage \
+  --data-urlencode "chat_id={{ vault_telegram_chat_id }}" \
+  --data-urlencode "text=⚠ kodi-backup failed on {{ inventory_hostname }} — check journalctl -u {{ kodi_backup_service_name }}.service"

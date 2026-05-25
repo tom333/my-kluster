@@ -1,0 +1,103 @@
+---
+# kodi-backup — weekly encrypted backup of /storage/.kodi/userdata/ to NAS.
+# No `become:` — root is the SSH user on LibreELEC.
+
+- name: Preflight — sealed_backup_age_pubkey must be set
+  ansible.builtin.assert:
+    that:
+      - kodi_backup_age_pubkey is defined
+      - kodi_backup_age_pubkey | length > 0
+      - kodi_backup_age_pubkey.startswith('age1')
+    fail_msg: "kodi_backup_age_pubkey (or sealed_backup_age_pubkey) must be set in group_vars/all.yml"
+
+- name: Preflight — vault_telegram_bot_token must be set
+  ansible.builtin.assert:
+    that:
+      - vault_telegram_bot_token is defined
+      - vault_telegram_bot_token | length > 0
+    fail_msg: "vault_telegram_bot_token must be set in vault.yml"
+
+- name: Ensure install dir exists
+  ansible.builtin.file:
+    path: "{{ kodi_backup_install_dir }}"
+    state: directory
+    mode: '0755'
+
+- name: Ensure systemd unit dir exists
+  ansible.builtin.file:
+    path: "{{ kodi_backup_systemd_unit_dir }}"
+    state: directory
+    mode: '0755'
+
+- name: Check installed age version
+  ansible.builtin.command: "{{ kodi_backup_age_bin }} -version"
+  register: age_version_check
+  changed_when: false
+  failed_when: false
+  check_mode: false
+
+- name: Download and install age
+  when: kodi_backup_age_version not in (age_version_check.stdout | default(''))
+  block:
+    - name: Download age tarball
+      ansible.builtin.get_url:
+        url: "https://github.com/FiloSottile/age/releases/download/v{{ kodi_backup_age_version }}/age-v{{ kodi_backup_age_version }}-linux-amd64.tar.gz"
+        dest: "/storage/age-{{ kodi_backup_age_version }}.tar.gz"
+        mode: '0644'
+
+    - name: Extract age binary (busybox tar)
+      ansible.builtin.command:
+        cmd: "tar xzf /storage/age-{{ kodi_backup_age_version }}.tar.gz -C /storage/"
+        creates: /storage/age/age
+
+    - name: Install age binary
+      ansible.builtin.copy:
+        src: /storage/age/age
+        dest: "{{ kodi_backup_age_bin }}"
+        remote_src: true
+        mode: '0755'
+
+    - name: Cleanup age install artifacts
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - "/storage/age-{{ kodi_backup_age_version }}.tar.gz"
+        - "/storage/age"
+
+- name: Install backup script
+  ansible.builtin.template:
+    src: kodi-backup.sh.j2
+    dest: "{{ kodi_backup_script_path }}"
+    mode: '0755'
+
+- name: Install systemd service unit
+  ansible.builtin.template:
+    src: kodi-backup.service.j2
+    dest: "{{ kodi_backup_systemd_unit_dir }}/{{ kodi_backup_service_name }}.service"
+    mode: '0644'
+  notify: reload systemd (kodi-backup)
+
+- name: Install systemd timer unit
+  ansible.builtin.template:
+    src: kodi-backup.timer.j2
+    dest: "{{ kodi_backup_systemd_unit_dir }}/{{ kodi_backup_service_name }}.timer"
+    mode: '0644'
+  notify: reload systemd (kodi-backup)
+
+- name: Install Telegram notify service unit (OnFailure trigger)
+  ansible.builtin.template:
+    src: kodi-backup-notify.service.j2
+    dest: "{{ kodi_backup_systemd_unit_dir }}/{{ kodi_backup_service_name }}-notify.service"
+    mode: '0644'
+  notify: reload systemd (kodi-backup)
+
+- name: Flush handlers (so daemon-reload runs before enable/start)
+  ansible.builtin.meta: flush_handlers
+
+- name: Enable and start the timer
+  ansible.builtin.systemd:
+    name: "{{ kodi_backup_service_name }}.timer"
+    enabled: true
+    state: started
+  when: not ansible_check_mode

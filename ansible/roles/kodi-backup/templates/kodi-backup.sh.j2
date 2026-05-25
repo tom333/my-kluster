@@ -1,0 +1,44 @@
+#!/bin/sh
+# Managed by Ansible role kodi-backup. Do not edit by hand.
+#
+# Weekly encrypted backup of Kodi userdata to NAS via NFS+age.
+
+set -e
+
+NFS_SRC="{{ kodi_backup_nfs_server }}:{{ kodi_backup_nfs_export }}"
+NFS_OPTS="{{ kodi_backup_nfs_mount_opts }}"
+LOCAL_MOUNT="{{ kodi_backup_local_mount }}"
+SUBDIR="{{ kodi_backup_nas_subdir }}"
+KEEP={{ kodi_backup_keep }}
+SOURCE_DIR="{{ kodi_backup_source_dir }}"
+AGE_BIN="{{ kodi_backup_age_bin }}"
+AGE_RECIPIENT="{{ kodi_backup_age_pubkey }}"
+
+HOSTNAME=$(hostname)
+TS=$(date +%Y-%m-%d)
+
+# Mount NAS
+mkdir -p "$LOCAL_MOUNT"
+mount -t nfs -o "$NFS_OPTS" "$NFS_SRC" "$LOCAL_MOUNT"
+trap "umount '$LOCAL_MOUNT' 2>/dev/null; rmdir '$LOCAL_MOUNT' 2>/dev/null; true" EXIT
+
+DEST="$LOCAL_MOUNT/$SUBDIR/$HOSTNAME"
+mkdir -p "$DEST"
+
+TARGET="$DEST/kodi-userdata-${TS}.tar.gz.age"
+TMP="$TARGET.tmp"
+
+# Tar source -> age encrypt -> write atomically
+cd /storage
+tar czf - "$SOURCE_DIR" | "$AGE_BIN" -r "$AGE_RECIPIENT" -o "$TMP"
+mv "$TMP" "$TARGET"
+
+# Rotation: keep KEEP newest
+ls -1t "$DEST"/kodi-userdata-*.tar.gz.age 2>/dev/null \
+  | tail -n +$((KEEP + 1)) \
+  | while read -r f; do
+      rm -f "$f"
+      logger -t kodi-backup "Pruned old backup: $f"
+    done
+
+logger -t kodi-backup "Backup successful: $TARGET"

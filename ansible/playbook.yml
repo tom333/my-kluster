@@ -51,6 +51,7 @@
         msg: "LibreELEC play on {{ inventory_hostname }} ({{ ansible_host }}) — arch={{ beszel_le_arch }}"
   roles:
     - beszel-agent-libreelec
+    - kodi-backup
 
 - name: Deploy Beszel agents on other monitored machines
   hosts: all:!k8s_nodes:!dev_workstations:!libreelec_hosts

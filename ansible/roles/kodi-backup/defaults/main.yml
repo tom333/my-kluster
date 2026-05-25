@@ -1,0 +1,37 @@
+---
+# Default variables for kodi-backup role (LibreELEC).
+# Overridable via inventory or group_vars.
+
+# NFS source
+kodi_backup_nfs_server: "192.168.88.103"
+kodi_backup_nfs_export: "/Public"
+kodi_backup_nfs_mount_opts: "nolock,vers=3"
+
+# Local temporary mount during backup
+kodi_backup_local_mount: "/tmp/kodi-backup-nas"
+
+# Destination (relative to the NFS mount)
+kodi_backup_nas_subdir: "backups/libreelec"
+
+# Backup retention
+kodi_backup_keep: 4
+
+# Timer schedule (default: weekly, Sunday 03h00)
+kodi_backup_oncalendar: "Sun *-*-* 03:00:00"
+
+# What to backup (relative to /storage/)
+kodi_backup_source_dir: ".kodi/userdata"
+
+# age binary (downloaded by the role into /storage/.kodi-backup/)
+kodi_backup_age_version: "1.3.1"
+kodi_backup_install_dir: "/storage/.kodi-backup"
+kodi_backup_age_bin: "/storage/.kodi-backup/age"
+
+# Script + systemd
+kodi_backup_script_path: "/storage/.kodi-backup/kodi-backup.sh"
+kodi_backup_service_name: "kodi-backup"
+kodi_backup_systemd_unit_dir: "/storage/.config/system.d"
+
+# age recipient pubkey — reuse the global one set in group_vars/all.yml
+# (sealed_backup_age_pubkey). No need to override.
+kodi_backup_age_pubkey: "{{ sealed_backup_age_pubkey }}"
