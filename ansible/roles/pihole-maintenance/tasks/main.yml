@@ -1,0 +1,68 @@
+---
+# pihole-maintenance — weekly `pihole -up` via systemd timer + Telegram failure notif.
+
+- name: Preflight — pihole binary exists
+  ansible.builtin.stat:
+    path: "{{ pihole_bin }}"
+  register: pihole_stat
+
+- name: Preflight — pihole binary must be installed
+  ansible.builtin.assert:
+    that:
+      - pihole_stat.stat.exists
+      - pihole_stat.stat.executable
+    fail_msg: |
+      PiHole binary not found at {{ pihole_bin }}.
+      Install PiHole manually first: curl -sSL https://install.pi-hole.net | bash
+
+- name: Preflight — vault_telegram_bot_token must be set
+  ansible.builtin.assert:
+    that:
+      - vault_telegram_bot_token is defined
+      - vault_telegram_bot_token | length > 0
+    fail_msg: "vault_telegram_bot_token must be set in vault.yml"
+
+- name: Install pihole-update script
+  ansible.builtin.template:
+    src: pihole-update.sh.j2
+    dest: "{{ pihole_maint_script_path }}"
+    owner: root
+    group: root
+    mode: '0750'
+
+- name: Install systemd service unit
+  ansible.builtin.template:
+    src: pihole-update.service.j2
+    dest: "/etc/systemd/system/{{ pihole_maint_service_name }}.service"
+    owner: root
+    group: root
+    mode: '0644'
+  notify: reload systemd (pihole-maintenance)
+
+- name: Install systemd timer unit
+  ansible.builtin.template:
+    src: pihole-update.timer.j2
+    dest: "/etc/systemd/system/{{ pihole_maint_service_name }}.timer"
+    owner: root
+    group: root
+    mode: '0644'
+  notify: reload systemd (pihole-maintenance)
+
+- name: Install notify service unit (OnFailure trigger)
+  ansible.builtin.template:
+    src: pihole-update-notify.service.j2
+    dest: "/etc/systemd/system/{{ pihole_maint_service_name }}-notify.service"
+    owner: root
+    group: root
+    mode: '0644'
+  notify: reload systemd (pihole-maintenance)
+
+- name: Flush handlers so daemon-reload runs before enable
+  ansible.builtin.meta: flush_handlers
+
+- name: Enable and start the timer
+  ansible.builtin.systemd:
+    name: "{{ pihole_maint_service_name }}.timer"
+    enabled: true
+    state: started
+  when: not ansible_check_mode

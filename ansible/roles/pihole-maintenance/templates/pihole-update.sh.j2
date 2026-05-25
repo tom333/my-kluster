@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+# Managed by Ansible role pihole-maintenance. Do not edit by hand.
+#
+# Weekly PiHole core update (binary + web + FTL).
+# Gravity (DNS blocklist) is updated separately by PiHole's native cron.
+
+set -euo pipefail
+
+PIHOLE_BIN="{{ pihole_bin }}"
+
+if [ ! -x "$PIHOLE_BIN" ]; then
+  echo "PiHole binary not found at $PIHOLE_BIN" >&2
+  exit 1
+fi
+
+logger -t pihole-update "Starting pihole -up"
+
+# Run pihole -up and capture combined output for journalctl context.
+if "$PIHOLE_BIN" -up; then
+  logger -t pihole-update "pihole -up succeeded"
+  exit 0
+else
+  RC=$?
+  logger -t pihole-update "pihole -up FAILED with rc=$RC"
+  exit "$RC"
+fi

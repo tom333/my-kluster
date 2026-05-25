@@ -39,6 +39,14 @@ all:
           beszel_arch: amd64
           beszel_le_arch: amd64
 
+    # PiHole boxes (Raspbian/Debian on Raspberry Pi) — Beszel agent + pihole-maintenance.
+    pihole_hosts:
+      hosts:
+        pihole:
+          ansible_host: 192.168.88.203
+          ansible_user: pi
+          beszel_arch: arm      # Raspberry Pi armv7 32-bit (Pi 1/2/3, or Pi 4 in 32-bit mode)
+
   hosts:
     # Machines monitorées uniquement — reçoivent seulement beszel-agent.
     # Décommenter et adapter quand une machine est ajoutée.

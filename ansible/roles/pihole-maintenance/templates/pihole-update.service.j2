@@ -1,0 +1,12 @@
+[Unit]
+Description=Weekly PiHole core update (pihole -up)
+Documentation=https://docs.pi-hole.net/main/update/
+After=network-online.target
+Wants=network-online.target
+OnFailure={{ pihole_maint_service_name }}-notify.service
+
+[Service]
+Type=oneshot
+User=root
+ExecStart={{ pihole_maint_script_path }}
+TimeoutStartSec=900

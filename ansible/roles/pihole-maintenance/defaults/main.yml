@@ -1,0 +1,14 @@
+---
+# Default variables for pihole-maintenance role.
+
+# Timer schedule: weekly, Sunday 04h00 local time, ±10 min jitter.
+# Default 04h00 (after sealed-secrets-backup at 03h00 and after PiHole's own
+# native gravity update cron jobs which typically run between 00h-03h).
+pihole_maint_oncalendar: "Sun *-*-* 04:00:00"
+
+# Script path
+pihole_maint_script_path: "/usr/local/bin/pihole-update.sh"
+pihole_maint_service_name: "pihole-update"
+
+# pihole binary (overridable if installed elsewhere)
+pihole_bin: "/usr/local/bin/pihole"

@@ -1,0 +1,4 @@
+---
+- name: reload systemd (pihole-maintenance)
+  ansible.builtin.systemd:
+    daemon_reload: true
