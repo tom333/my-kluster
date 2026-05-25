@@ -1,11 +1,11 @@
 ---
 # Variables globales partagées par toutes les machines du playbook.
 # Pas de secrets ici (cf. vault.yml pour les sensibles).
-
-beszel_agent_version: "0.10.0"
-beszel_agent_port: 43000
-beszel_agent_user: beszel
-beszel_agent_home: /var/lib/beszel
+#
+# Note : beszel_agent_version / port / user / home sont définis dans
+# defaults/main.yml du rôle beszel-agent — pas besoin de les dupliquer ici
+# (sinon l'override empêche le bump du rôle de se propager, cf. incident
+# d'upgrade Beszel 0.10 → 0.18).
 
 # Référence le secret chiffré dans vault.yml
 beszel_hub_ssh_pubkey: "{{ vault_beszel_hub_ssh_pubkey }}"
