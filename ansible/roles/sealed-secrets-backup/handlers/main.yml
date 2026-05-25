@@ -1,0 +1,4 @@
+---
+- name: reload systemd (sealed-secrets-backup)
+  ansible.builtin.systemd:
+    daemon_reload: true

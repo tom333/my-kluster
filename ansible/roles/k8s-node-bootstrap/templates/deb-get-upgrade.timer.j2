@@ -1,0 +1,12 @@
+[Unit]
+Description=Weekly deb-get upgrade (Sunday 04h00)
+Documentation=https://github.com/wimpysworld/deb-get
+
+[Timer]
+OnCalendar=Sun 04:00
+RandomizedDelaySec=600
+Persistent=true
+Unit=deb-get-upgrade.service
+
+[Install]
+WantedBy=timers.target

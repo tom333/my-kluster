@@ -1,0 +1,42 @@
+---
+- name: Check for NVIDIA GPU presence
+  ansible.builtin.command: lspci
+  register: lspci_out
+  changed_when: false
+  check_mode: false
+
+- name: Skip NVIDIA section if no GPU detected
+  ansible.builtin.meta: end_play
+  when: lspci_out.stdout is not search('NVIDIA')
+
+- name: Ensure NVIDIA kernel driver is present (must be installed manually)
+  ansible.builtin.command: nvidia-smi
+  register: nvidia_smi
+  changed_when: false
+  check_mode: false
+  failed_when: nvidia_smi.rc != 0
+
+- name: Add NVIDIA Container Toolkit GPG key
+  ansible.builtin.shell:
+    cmd: |
+      curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey \
+        | gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg
+    creates: /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg
+
+- name: Add NVIDIA Container Toolkit APT repo
+  ansible.builtin.apt_repository:
+    repo: "deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://nvidia.github.io/libnvidia-container/stable/deb/{{ ansible_architecture | replace('x86_64', 'amd64') }} /"
+    state: present
+    filename: nvidia-container-toolkit
+    update_cache: true
+
+- name: Install nvidia-container-toolkit
+  ansible.builtin.apt:
+    name: nvidia-container-toolkit
+    state: present
+
+- name: Enable nvidia-persistenced (reduce CUDA wake-up latency)
+  ansible.builtin.systemd:
+    name: nvidia-persistenced
+    enabled: true
+    state: started

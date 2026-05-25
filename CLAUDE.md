@@ -228,11 +228,26 @@ kubectl get secret -n kube-system \
 ### Ansible (déploiement multi-machines)
 
 - Dossier : `ansible/` du repo.
-- Inventaire en clair dans `ansible/inventory.yml` (IPs LAN RFC1918).
+- Inventaire : `ansible/inventory.yml`. Groupe `k8s_nodes` (juste `k8s-node` aujourd'hui) reçoit le pack complet bootstrap+backup+monitoring. Les autres machines ne reçoivent que `beszel-agent`.
 - Secrets chiffrés via Ansible Vault dans `ansible/group_vars/vault.yml` (password local en `~/.vault-password.txt`, jamais commité).
-- Commande pleine : `cd ansible/ && ansible-playbook -i inventory.yml playbook.yml --vault-password-file ~/.vault-password.txt`.
-- Ajout machine : éditer `inventory.yml`, runner avec `--limit <nouveau-host>`.
-- Rôle disponible : `beszel-agent` (install/update agent Beszel).
+- Variables non-sensibles dans `ansible/group_vars/all.yml` (dont la pubkey `age` `sealed_backup_age_pubkey`).
+- Commande pleine : `cd ansible/ && ansible-playbook -i inventory.yml playbook.yml --vault-password-file ~/.vault-password.txt --ask-become-pass`.
+- Exécution partielle via tags : `--tags bootstrap` (k8s-node-bootstrap), `--tags filesystem`/`microk8s`/`packages`/`nvidia`/`gpu_operator` (sous-étapes du bootstrap).
+- Ajout machine monitorée : éditer `inventory.yml` (hors `k8s_nodes`), runner avec `--limit <nouveau-host>`.
+
+Rôles disponibles :
+- `beszel-agent` : install/update agent Beszel.
+- `sealed-secrets-backup` : backup quotidien chiffré (`age`) de la clé master Sealed Secrets vers NAS, notification Telegram en cas d'échec. Timer systemd 03h00.
+- `k8s-node-bootstrap` : OS + nvidia-container-toolkit + mount NFS + sysctl + MicroK8s + addons + workaround gpu-operator NVIDIA #430 + outils dev (htop/btop/ncdu/ripgrep/fd/bat) + deb-get (dust, gh, upgrade hebdo). Idempotent. Garde-fou hostname.
+
+**Disaster recovery — clé master Sealed Secrets** :
+Les backups sont sur `192.168.88.103:/Public/backups/sealed-secrets/` (chiffrés `.yaml.age`). La clé privée `age` correspondante (`~/.config/age/sealed-backup.key`) est **CRITIQUE** : sans elle les backups sont inutilisables. À conserver hors-machine (password manager + clé USB, et à terme copie sur un autre hôte via Ansible).
+
+Procédure de restore (machine fraîchement bootstrappée) :
+```bash
+age -d -i ~/.config/age/sealed-backup.key \
+  /mnt/nas/backups/sealed-secrets/<latest>.yaml.age | kubectl apply -f -
+```
 
 ---
 

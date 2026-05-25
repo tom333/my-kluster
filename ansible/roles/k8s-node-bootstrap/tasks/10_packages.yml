@@ -1,0 +1,94 @@
+---
+- name: Install base APT packages
+  ansible.builtin.apt:
+    name:
+      # Required by other roles / k8s
+      - jq
+      - curl
+      - git
+      - python3-kubernetes
+      - age
+      - nfs-common
+      - ca-certificates
+      - apt-transport-https
+      - gnupg
+      # User-confort CLI tools (Ubuntu repos)
+      - htop
+      - btop
+      - ncdu
+      - ripgrep
+      - fd-find
+      - bat
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Symlink fd → fdfind
+  ansible.builtin.file:
+    src: /usr/bin/fdfind
+    dest: /usr/local/bin/fd
+    state: link
+    force: true
+
+- name: Symlink bat → batcat
+  ansible.builtin.file:
+    src: /usr/bin/batcat
+    dest: /usr/local/bin/bat
+    state: link
+    force: true
+
+# deb-get installs packages not in Ubuntu repos (dust, gh) as real .deb files,
+# integrated with apt. Auto-update via weekly systemd timer below.
+- name: Install deb-get script
+  ansible.builtin.get_url:
+    url: "{{ deb_get_url }}"
+    dest: /usr/local/bin/deb-get
+    owner: root
+    group: root
+    mode: '0755'
+    force: false  # Don't re-download every run; rely on the weekly upgrade timer
+
+- name: Refresh deb-get package list
+  ansible.builtin.command: deb-get update
+  changed_when: false
+  check_mode: false
+
+- name: Install packages via deb-get
+  ansible.builtin.command: "deb-get install {{ item.name }}"
+  args:
+    creates: "/usr/bin/{{ item.binary }}"
+  environment:
+    DEB_GET_NO_CONFIRM: "1"
+  loop: "{{ deb_get_packages }}"
+  loop_control:
+    label: "{{ item.name }} (binary: {{ item.binary }})"
+
+- name: Install deb-get-upgrade systemd service unit (weekly auto-update)
+  ansible.builtin.template:
+    src: deb-get-upgrade.service.j2
+    dest: /etc/systemd/system/deb-get-upgrade.service
+    owner: root
+    group: root
+    mode: '0644'
+  notify: reload systemd (k8s-node-bootstrap)
+
+- name: Install deb-get-upgrade systemd timer unit
+  ansible.builtin.template:
+    src: deb-get-upgrade.timer.j2
+    dest: /etc/systemd/system/deb-get-upgrade.timer
+    owner: root
+    group: root
+    mode: '0644'
+  notify: reload systemd (k8s-node-bootstrap)
+
+- name: Flush handlers so daemon-reload runs before enable
+  ansible.builtin.meta: flush_handlers
+
+- name: Enable and start deb-get-upgrade.timer
+  ansible.builtin.systemd:
+    name: deb-get-upgrade.timer
+    enabled: true
+    state: started
+  # In --check, the template above is simulated (not written to disk),
+  # so systemd can't find the unit. Skip safely; real runs will apply it.
+  when: not ansible_check_mode

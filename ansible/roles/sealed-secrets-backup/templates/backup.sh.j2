@@ -1,0 +1,92 @@
+#!/usr/bin/env bash
+# Managed by Ansible role sealed-secrets-backup. Do not edit by hand.
+#
+# Daily encrypted backup of the Bitnami Sealed Secrets master key.
+# Uses age for asymmetric encryption — the private key is stored OFF-MACHINE.
+# Skips if the master key hasn't changed since last successful backup.
+
+set -euo pipefail
+
+NAS_PATH="{{ sealed_backup_nas_path }}"
+AGE_RECIPIENT="{{ sealed_backup_age_pubkey }}"
+KEEP={{ sealed_backup_keep }}
+
+mkdir -p "$NAS_PATH"
+
+# Use snap microk8s kubectl. The script runs as root via systemd, whose PATH
+# does NOT include /snap/bin — use absolute paths only.
+# microk8s.kubectl in root context requires explicit KUBECONFIG (the snap
+# auth file is readable only by group=microk8s, and root via DAC).
+KUBECTL="/snap/bin/microk8s.kubectl"
+KUBECONFIG_FILE="{{ sealed_backup_kubeconfig }}"
+
+if [ ! -x "$KUBECTL" ]; then
+  KUBECTL="/usr/local/bin/kubectl"
+  if [ ! -x "$KUBECTL" ]; then
+    KUBECTL="/usr/bin/kubectl"
+  fi
+fi
+if [ ! -x "$KUBECTL" ]; then
+  echo "No kubectl binary found" >&2
+  exit 1
+fi
+if [ ! -r "$KUBECONFIG_FILE" ]; then
+  echo "KUBECONFIG not readable: $KUBECONFIG_FILE" >&2
+  exit 1
+fi
+export KUBECONFIG="$KUBECONFIG_FILE"
+
+# Export the active master key to a temp file
+TMPFILE=$(mktemp /tmp/sealed-backup.XXXXXX.yaml)
+trap 'rm -f "$TMPFILE" "${TMPFILE}.age"' EXIT
+
+KUBECTL_STDERR=$(mktemp /tmp/sealed-backup-kctl-err.XXXXXX)
+trap 'rm -f "$TMPFILE" "${TMPFILE}.age" "$KUBECTL_STDERR"' EXIT
+
+if ! "$KUBECTL" get secret -n kube-system \
+       -l sealedsecrets.bitnami.com/sealed-secrets-key=active \
+       -o yaml > "$TMPFILE" 2> "$KUBECTL_STDERR"; then
+  echo "Failed to fetch sealed-secrets master key via $KUBECTL (KUBECONFIG=$KUBECONFIG):" >&2
+  cat "$KUBECTL_STDERR" >&2
+  exit 1
+fi
+
+# Verify the file has actual content. kubectl returns a `kind: List`
+# wrapper with the actual Secret indented inside when querying by label,
+# so we don't anchor at start-of-line and we match a non-empty list.
+if ! grep -q 'kind: Secret' "$TMPFILE"; then
+  echo "kubectl returned no Secret with active sealed-secrets-key label" >&2
+  echo "kubectl output (first 30 lines):" >&2
+  head -30 "$TMPFILE" >&2
+  exit 1
+fi
+
+# Compute checksum on the plaintext for dedup
+NEW_SHA=$(sha256sum "$TMPFILE" | awk '{print $1}')
+
+# Find last backup's sidecar .sha256 (if any) and compare
+LAST=$(ls -1t "$NAS_PATH"/*.yaml.age 2>/dev/null | head -1 || true)
+if [ -n "$LAST" ] && [ -f "${LAST%.yaml.age}.sha256" ]; then
+  if [ "$NEW_SHA" = "$(cat "${LAST%.yaml.age}.sha256")" ]; then
+    logger -t sealed-backup "No change in master key, skipping backup"
+    exit 0
+  fi
+fi
+
+# Encrypt and copy
+TS=$(date +%Y-%m-%d_%H%M)
+OUT="$NAS_PATH/${TS}.yaml.age"
+age -r "$AGE_RECIPIENT" -o "${TMPFILE}.age" "$TMPFILE"
+cp "${TMPFILE}.age" "$OUT"
+chmod 644 "$OUT"
+echo "$NEW_SHA" > "${OUT%.yaml.age}.sha256"
+
+# Rotation : keep $KEEP most recent
+ls -1t "$NAS_PATH"/*.yaml.age 2>/dev/null \
+  | tail -n +$((KEEP + 1)) \
+  | while read -r f; do
+      rm -f "$f" "${f%.yaml.age}.sha256"
+      logger -t sealed-backup "Pruned old backup: $f"
+    done
+
+logger -t sealed-backup "Backup successful: $OUT"

@@ -1,0 +1,59 @@
+---
+- name: Install microk8s via snap
+  community.general.snap:
+    name: microk8s
+    classic: true
+    channel: "{{ microk8s_channel }}"
+    state: present
+
+- name: Add user to microk8s group
+  ansible.builtin.user:
+    name: "{{ ansible_user }}"
+    groups: microk8s
+    append: true
+
+# microk8s is installed via snap → binary lives at /snap/bin/microk8s.
+# Ansible runs with `become: true` (root) whose PATH does NOT include /snap/bin
+# (the snap PATH is added via /etc/profile.d for login shells only).
+# We use absolute paths throughout.
+
+- name: Wait for microk8s ready
+  ansible.builtin.command: /snap/bin/microk8s status --wait-ready --timeout=120
+  changed_when: false
+  check_mode: false
+
+- name: Get currently enabled addons
+  ansible.builtin.command: /snap/bin/microk8s status --format yaml
+  register: mk8s_status
+  changed_when: false
+  check_mode: false
+
+- name: Enable each microk8s addon if not already enabled
+  ansible.builtin.command: "/snap/bin/microk8s enable {{ item }}"
+  loop: "{{ microk8s_addons }}"
+  register: enable_result
+  changed_when: "'is already enabled' not in (enable_result.stdout | default(''))"
+  failed_when:
+    - enable_result.rc | default(0) != 0
+    - "'is already enabled' not in (enable_result.stdout | default(''))"
+
+- name: Ensure ~/.kube directory exists for user
+  ansible.builtin.file:
+    path: "/home/{{ ansible_user }}/.kube"
+    state: directory
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: '0700'
+
+- name: Check if kubectl config exists
+  ansible.builtin.stat:
+    path: "/home/{{ ansible_user }}/.kube/config"
+  register: kubeconfig_stat
+
+- name: Export microk8s config to user kubeconfig
+  ansible.builtin.shell:
+    cmd: |
+      /snap/bin/microk8s config > /home/{{ ansible_user }}/.kube/config
+      chown {{ ansible_user }}:{{ ansible_user }} /home/{{ ansible_user }}/.kube/config
+      chmod 600 /home/{{ ansible_user }}/.kube/config
+  when: not kubeconfig_stat.stat.exists

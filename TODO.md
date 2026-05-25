@@ -2,6 +2,13 @@
 
 ## ✅ Récemment terminé (mai 2026)
 
+- [x] **Extension Ansible : disaster recovery + bootstrap k8s-node**
+  - Rôle `sealed-secrets-backup` : backup quotidien chiffré `age` de la clé master vers NAS, alerte Telegram on failure, timer systemd
+  - Rôle `k8s-node-bootstrap` : OS + nvidia-container-toolkit + NFS + sysctl + MicroK8s + addons + workaround gpu-operator NVIDIA #430, idempotent, garde-fou hostname, sous-tâches taguées
+  - Refactor `inventory.yml` (groupe `k8s_nodes`) + `playbook.yml` (2 plays)
+  - Outils CLI : btop, ncdu, ripgrep, fd, bat, plus dust + gh via deb-get (auto-upgrade hebdo dim 4h via timer systemd)
+  - Documentation : spec `2026-05-25-ansible-extension-design.md` + plan `2026-05-25-ansible-extension.md`
+
 - [x] **Migration GitOps des secrets vers Sealed Secrets** (Bitnami)
   - Installation du controller `sealed-secrets-controller` (ns `kube-system`)
   - Migration de 13 SealedSecrets dans `sealed/` (localai, github-auth, rustfs, postgresql, mlflow-s3, openai, arr-stack, etc.)

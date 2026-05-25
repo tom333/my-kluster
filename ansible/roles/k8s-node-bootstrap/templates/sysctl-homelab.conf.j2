@@ -1,0 +1,5 @@
+# Managed by Ansible role k8s-node-bootstrap. Do not edit by hand.
+vm.max_map_count = {{ sysctl_max_map_count }}
+fs.inotify.max_user_watches = {{ sysctl_inotify_max_user_watches }}
+net.bridge.bridge-nf-call-iptables = 1
+net.ipv4.ip_forward = 1

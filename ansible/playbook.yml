@@ -1,16 +1,32 @@
 ---
-- name: Deploy Beszel agents on all monitored machines
-  hosts: all
+# Playbook entry point.
+# - Play 1 : tout sur les machines k8s (bootstrap OS + backups + agent monitoring)
+# - Play 2 : juste l'agent Beszel sur les autres machines
+
+- name: Bootstrap & monitor k8s-node
+  hosts: k8s_nodes
   become: true
   gather_facts: true
-
+  vars_files:
+    - group_vars/vault.yml
   pre_tasks:
     - name: Show host info
       ansible.builtin.debug:
-        msg: "Running on {{ inventory_hostname }} ({{ ansible_host }}) — arch={{ beszel_arch }}"
+        msg: "k8s-node play on {{ inventory_hostname }} ({{ ansible_host }}) — arch={{ beszel_arch }}"
+  roles:
+    - k8s-node-bootstrap
+    - sealed-secrets-backup
+    - beszel-agent
 
+- name: Deploy Beszel agents on other monitored machines
+  hosts: all:!k8s_nodes
+  become: true
+  gather_facts: true
   vars_files:
     - group_vars/vault.yml
-
+  pre_tasks:
+    - name: Show host info
+      ansible.builtin.debug:
+        msg: "Monitor-only play on {{ inventory_hostname }} ({{ ansible_host }}) — arch={{ beszel_arch }}"
   roles:
     - beszel-agent

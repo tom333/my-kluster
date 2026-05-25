@@ -9,3 +9,8 @@ beszel_agent_home: /var/lib/beszel
 
 # Référence le secret chiffré dans vault.yml
 beszel_hub_ssh_pubkey: "{{ vault_beszel_hub_ssh_pubkey }}"
+
+# Age recipient public key used by sealed-secrets-backup role.
+# Private key is OFF-MACHINE (password manager + USB).
+# Generated via: age-keygen -o ~/.config/age/sealed-backup.key
+sealed_backup_age_pubkey: "age17h4te2ys0jryrecayrygx6qel56yssxhhxkz68l00mreeq3dn4gqmnvlmv"

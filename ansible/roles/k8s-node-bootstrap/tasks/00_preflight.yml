@@ -1,0 +1,25 @@
+---
+- name: Preflight — Ubuntu 24+ x86_64
+  ansible.builtin.assert:
+    that:
+      - ansible_distribution == "Ubuntu"
+      - ansible_distribution_major_version | int >= 24
+      - ansible_architecture == "x86_64"
+    fail_msg: "k8s-node-bootstrap requires Ubuntu 24+ x86_64 (got {{ ansible_distribution }} {{ ansible_distribution_version }} {{ ansible_architecture }})"
+
+- name: Preflight — Hostname guard (anti-friendly-fire)
+  ansible.builtin.assert:
+    that:
+      - ansible_hostname == k8s_node_expected_hostname
+    fail_msg: |
+      Refusing to run on host '{{ ansible_hostname }}' — this role is hardcoded for
+      hostname='{{ k8s_node_expected_hostname }}'. If you really want to run elsewhere,
+      override via -e 'k8s_node_expected_hostname={{ ansible_hostname }}'.
+
+- name: Preflight — Require 20G free on /
+  ansible.builtin.assert:
+    that:
+      # ansible_mounts is gathered by setup → works in --check mode (no `command`)
+      - (ansible_mounts | selectattr('mount', 'equalto', '/') | list | first).size_available
+        > (20 * 1024 ** 3)
+    fail_msg: "Less than 20G free on / — refusing to install."

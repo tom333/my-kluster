@@ -1,0 +1,15 @@
+# gitleaks config — extends the default ruleset + repo-specific allowlist.
+# https://github.com/gitleaks/gitleaks/blob/master/config/gitleaks.toml
+
+title = "my-kluster gitleaks config"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Public-by-design keys committed to this repo"
+regexes = [
+  # age recipient public keys (https://age-encryption.org) — bech32 `age1` + 58 chars.
+  # Used for sealed-secrets-backup encryption; the recipient is the PUBLIC half.
+  '''age1[02-9ac-hj-np-z]{58}''',
+]

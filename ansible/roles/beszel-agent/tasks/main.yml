@@ -42,6 +42,9 @@
   register: beszel_current_version
   changed_when: false
   failed_when: false
+  # Read-only — must run in --check too, otherwise the version guard below
+  # would always evaluate true and trigger the download block (which fails in check).
+  check_mode: false
 
 - name: Download and install beszel-agent binary
   when: beszel_current_version.rc != 0 or beszel_agent_version not in (beszel_current_version.stdout | default(''))

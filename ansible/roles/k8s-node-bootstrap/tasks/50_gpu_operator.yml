@@ -1,0 +1,41 @@
+---
+# Workaround NVIDIA gpu-operator issue #430:
+# the validator daemonset re-creates /dev/char/ symlinks that already exist
+# in MicroK8s' GPU addon → infinite restart loop.
+# Setting DISABLE_DEV_CHAR_SYMLINK_CREATION=true fixes it.
+
+- name: Wait for ClusterPolicy CRD to become available
+  ansible.builtin.command: kubectl get clusterpolicy -n gpu-operator-resources
+  register: cp_check
+  retries: 30
+  delay: 10
+  until: cp_check.rc == 0
+  changed_when: false
+  check_mode: false
+  become: false
+
+- name: Get name of ClusterPolicy resource
+  ansible.builtin.shell: kubectl get clusterpolicy -n gpu-operator-resources -o name | head -1
+  register: cp_name
+  changed_when: false
+  check_mode: false
+  become: false
+
+- name: Get current value of DISABLE_DEV_CHAR_SYMLINK_CREATION
+  ansible.builtin.shell:
+    cmd: |
+      kubectl get {{ cp_name.stdout }} -n gpu-operator-resources -o json \
+        | jq -r '.spec.validator.driver.env[]? | select(.name=="DISABLE_DEV_CHAR_SYMLINK_CREATION") | .value' \
+        || echo "absent"
+  register: current_val
+  changed_when: false
+  check_mode: false
+  become: false
+
+- name: Apply DISABLE_DEV_CHAR_SYMLINK_CREATION=true workaround
+  when: current_val.stdout != "true"
+  become: false
+  ansible.builtin.command: >
+    kubectl patch {{ cp_name.stdout }}
+    -n gpu-operator-resources --type=merge -p
+    '{"spec":{"validator":{"driver":{"env":[{"name":"DISABLE_DEV_CHAR_SYMLINK_CREATION","value":"true"}]}}}}'

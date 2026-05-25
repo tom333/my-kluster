@@ -1,0 +1,8 @@
+---
+- name: reload sysctl
+  ansible.builtin.command: sysctl --system
+  changed_when: true
+
+- name: reload systemd (k8s-node-bootstrap)
+  ansible.builtin.systemd:
+    daemon_reload: true

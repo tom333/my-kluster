@@ -1,0 +1,11 @@
+[Unit]
+Description=Weekly deb-get upgrade (CLI tools from upstream releases)
+Documentation=https://github.com/wimpysworld/deb-get
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+Environment=DEB_GET_NO_CONFIRM=1
+ExecStart=/usr/local/bin/deb-get update
+ExecStart=/usr/local/bin/deb-get upgrade

@@ -1,0 +1,96 @@
+---
+# sealed-secrets-backup — daily encrypted backup of the Sealed Secrets master key.
+
+- name: Preflight — sealed_backup_age_pubkey must be set
+  ansible.builtin.assert:
+    that:
+      - sealed_backup_age_pubkey is defined
+      - sealed_backup_age_pubkey | length > 0
+      - sealed_backup_age_pubkey.startswith('age1')
+    fail_msg: |
+      sealed_backup_age_pubkey must be set in group_vars/all.yml.
+      Generate it via:
+        age-keygen -o ~/.config/age/sealed-backup.key
+        grep "public key" ~/.config/age/sealed-backup.key
+
+- name: Preflight — vault_telegram_bot_token must be set
+  ansible.builtin.assert:
+    that:
+      - vault_telegram_bot_token is defined
+      - vault_telegram_bot_token | length > 0
+    fail_msg: "vault_telegram_bot_token must be set in vault.yml"
+
+- name: Preflight — NAS mount point exists and is a mount
+  ansible.builtin.command: "mountpoint -q {{ sealed_backup_nas_mount }}"
+  register: nas_mount_check
+  changed_when: false
+  check_mode: false
+  failed_when: false
+
+- name: Preflight — NAS mount point must be mounted
+  ansible.builtin.assert:
+    that:
+      - nas_mount_check.rc == 0
+    fail_msg: |
+      {{ sealed_backup_nas_mount }} is not a mount point.
+      Run k8s-node-bootstrap (filesystem tag) first, or mount the NAS manually.
+  # Skipped in --check because the bootstrap role's mount task is simulated, not applied.
+  when: not ansible_check_mode
+
+- name: Ensure age is installed
+  ansible.builtin.apt:
+    name: age
+    state: present
+    update_cache: false
+
+- name: Ensure backup destination exists
+  ansible.builtin.file:
+    path: "{{ sealed_backup_nas_path }}"
+    state: directory
+    mode: '0755'
+
+- name: Install backup script
+  ansible.builtin.template:
+    src: backup.sh.j2
+    dest: "{{ sealed_backup_script_path }}"
+    owner: root
+    group: root
+    mode: '0750'
+
+- name: Install systemd service unit
+  ansible.builtin.template:
+    src: sealed-secrets-backup.service.j2
+    dest: "/etc/systemd/system/{{ sealed_backup_service_name }}.service"
+    owner: root
+    group: root
+    mode: '0644'
+  notify: reload systemd (sealed-secrets-backup)
+
+- name: Install systemd timer unit
+  ansible.builtin.template:
+    src: sealed-secrets-backup.timer.j2
+    dest: "/etc/systemd/system/{{ sealed_backup_service_name }}.timer"
+    owner: root
+    group: root
+    mode: '0644'
+  notify: reload systemd (sealed-secrets-backup)
+
+- name: Install notify service unit (OnFailure trigger)
+  ansible.builtin.template:
+    src: sealed-secrets-backup-notify.service.j2
+    dest: "/etc/systemd/system/{{ sealed_backup_service_name }}-notify.service"
+    owner: root
+    group: root
+    mode: '0644'
+  notify: reload systemd (sealed-secrets-backup)
+
+- name: Flush handlers (so daemon-reload runs before enable/start)
+  ansible.builtin.meta: flush_handlers
+
+- name: Enable and start the timer
+  ansible.builtin.systemd:
+    name: "{{ sealed_backup_service_name }}.timer"
+    enabled: true
+    state: started
+  # See 10_packages.yml: in --check, the template isn't written, so skip enable.
+  when: not ansible_check_mode

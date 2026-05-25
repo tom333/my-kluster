@@ -1,34 +1,33 @@
 ---
-# Inventaire des machines monitorées par Beszel.
+# Inventaire des machines monitorées par Beszel + bootstrap k8s-node.
 # IPs en clair = LAN privé RFC1918, peu sensible. Pour ajouter une machine :
 # 1) ajouter 3 lignes ci-dessous, 2) ansible-playbook ... --limit <nouveau-host>
 
 all:
-  hosts:
-    # Cluster k8s MicroK8s (Ubuntu, x86_64)
-    k8s-node:
-      ansible_host: 192.168.88.250
-      ansible_user: moi
-      beszel_arch: amd64
+  children:
+    # Machines qui hébergent un node Kubernetes — reçoivent les 3 rôles
+    # (k8s-node-bootstrap, sealed-secrets-backup, beszel-agent).
+    k8s_nodes:
+      hosts:
+        k8s-node:
+          ansible_host: 192.168.88.250
+          ansible_connection: local
+          ansible_user: moi
+          beszel_arch: amd64
 
-    # Home Assistant — REMPLACER IP + user selon ton install
+  hosts:
+    # Machines monitorées uniquement (pas k8s) — reçoivent seulement beszel-agent.
+    # Décommenter et adapter quand une machine est ajoutée.
+
     # ha-host:
     #   ansible_host: 192.168.88.200
     #   ansible_user: hass
     #   beszel_arch: amd64
 
-    # Raspberry Pi — REMPLACER
     # pi-salon:
     #   ansible_host: 192.168.88.150
     #   ansible_user: pi
     #   beszel_arch: arm64
 
-    # Ubuntu bureau — REMPLACER
-    # ubuntu-bureau:
-    #   ansible_host: 192.168.88.151
-    #   ansible_user: moi
-    #   beszel_arch: amd64
-
   vars:
-    # Toutes les machines partagent ces vars (override possible par-host)
     ansible_ssh_common_args: '-o StrictHostKeyChecking=no'

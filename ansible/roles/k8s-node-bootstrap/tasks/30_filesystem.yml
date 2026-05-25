@@ -1,0 +1,30 @@
+---
+- name: Ensure NFS mount directory exists (without touching mode — NFS will own it once mounted)
+  ansible.builtin.command: "mkdir -p {{ nfs_local_mount }}"
+  args:
+    creates: "{{ nfs_local_mount }}"
+
+- name: Mount NAS NFS share
+  ansible.posix.mount:
+    src: "{{ nfs_server_ip }}:{{ nfs_export }}"
+    path: "{{ nfs_local_mount }}"
+    fstype: nfs
+    opts: "defaults,_netdev,rsize=1048576,wsize=1048576"
+    state: mounted
+
+- name: Configure sysctl for k8s + ML workloads
+  ansible.builtin.template:
+    src: sysctl-homelab.conf.j2
+    dest: /etc/sysctl.d/99-homelab.conf
+    owner: root
+    group: root
+    mode: '0644'
+  notify: reload sysctl
+
+- name: Configure ulimits for k8s + ML workloads
+  ansible.builtin.template:
+    src: limits-homelab.conf.j2
+    dest: /etc/security/limits.d/99-homelab.conf
+    owner: root
+    group: root
+    mode: '0644'

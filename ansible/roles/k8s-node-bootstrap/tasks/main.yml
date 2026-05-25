@@ -1,0 +1,23 @@
+---
+# k8s-node-bootstrap — idempotent OS + MicroK8s setup.
+# Decomposed by concern. Use --tags <name> to run partial sections.
+
+- ansible.builtin.import_tasks: 00_preflight.yml
+  tags: [bootstrap, preflight]
+
+- ansible.builtin.import_tasks: 10_packages.yml
+  tags: [bootstrap, packages]
+
+- ansible.builtin.import_tasks: 20_nvidia.yml
+  tags: [bootstrap, nvidia]
+  when: gpu_enabled | default(true)
+
+- ansible.builtin.import_tasks: 30_filesystem.yml
+  tags: [bootstrap, filesystem]
+
+- ansible.builtin.import_tasks: 40_microk8s.yml
+  tags: [bootstrap, microk8s]
+
+- ansible.builtin.import_tasks: 50_gpu_operator.yml
+  tags: [bootstrap, gpu_operator]
+  when: gpu_enabled | default(true)

@@ -1,0 +1,39 @@
+---
+# Defaults for k8s-node-bootstrap role.
+
+# MicroK8s
+# WARNING: changing the channel triggers a snap refresh — k8s minor upgrades
+# can break CRDs, deprecated APIs, etc. Always bump in lockstep with cluster
+# workloads and read MicroK8s release notes first.
+microk8s_channel: "1.33/stable"
+microk8s_addons:
+  - dns
+  - ingress
+  - hostpath-storage
+  - registry
+  - gpu
+  - helm3
+
+# NFS
+nfs_server_ip: "192.168.88.103"
+nfs_export: "/Public"
+nfs_local_mount: "/mnt/nas"
+
+# Sysctl
+sysctl_max_map_count: 262144
+sysctl_inotify_max_user_watches: 524288
+
+# Feature flags
+gpu_enabled: true
+
+# Packages installed via deb-get (https://github.com/wimpysworld/deb-get).
+# binary is the actual binary name used for idempotence (creates:) — usually under /usr/bin.
+deb_get_packages:
+  - { name: du-dust, binary: dust }
+  - { name: github-cli, binary: gh }
+
+# deb-get script URL (pinned to main HEAD; review changes periodically).
+deb_get_url: "https://raw.githubusercontent.com/wimpysworld/deb-get/main/deb-get"
+
+# Hostname guard (override if you renamed your machine)
+k8s_node_expected_hostname: "pc"

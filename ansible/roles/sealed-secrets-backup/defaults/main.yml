@@ -1,0 +1,28 @@
+---
+# Default variables for sealed-secrets-backup role.
+# Overridable via inventory or group_vars.
+
+# Local mount point of the NAS — must already be mounted before this role runs
+# (ensured by k8s-node-bootstrap, or manually). Used by the preflight assertion.
+sealed_backup_nas_mount: /mnt/nas
+
+# Backup destination directory (created by the role if missing).
+sealed_backup_nas_path: /mnt/nas/backups/sealed-secrets
+
+# Number of backups to retain (oldest get pruned).
+sealed_backup_keep: 30
+
+# Hour of the day (0–23, machine local time) for the timer.
+sealed_backup_hour: 3
+
+# age recipient pubkey — OVERRIDE in group_vars/all.yml.
+# Empty default triggers preflight assertion failure.
+sealed_backup_age_pubkey: ""
+
+# Where the backup script gets installed.
+sealed_backup_script_path: /usr/local/bin/sealed-secrets-backup.sh
+sealed_backup_service_name: sealed-secrets-backup
+
+# Kubeconfig used by the backup script (run as root via systemd).
+# Defaults to the user's kubeconfig, which root can read via DAC override.
+sealed_backup_kubeconfig: "/home/{{ ansible_user }}/.kube/config"
