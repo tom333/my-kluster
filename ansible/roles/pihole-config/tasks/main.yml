@@ -1,0 +1,55 @@
+---
+# pihole-config — push local custom DNS records into PiHole v6's dns.hosts.
+#
+# PiHole v6 stores custom A records in /etc/pihole/pihole.toml (section
+# dns.hosts). The CLI `pihole-FTL --config dns.hosts <json-array>` is the
+# supported way to write it. PiHole-FTL reloads its config automatically.
+
+- name: Preflight — pihole-FTL must be installed
+  ansible.builtin.command: which pihole-FTL
+  register: pihole_ftl_check
+  changed_when: false
+  check_mode: false
+  failed_when: pihole_ftl_check.rc != 0
+
+- name: Build the desired dns.hosts list (HOSTS-format strings)
+  ansible.builtin.set_fact:
+    pihole_hosts_desired: "{{ pihole_local_dns | map(attribute='ip')
+                            | zip(pihole_local_dns | map(attribute='name'))
+                            | map('join', ' ')
+                            | list
+                            | sort }}"
+
+- name: Read current dns.hosts from pihole.toml
+  ansible.builtin.command: pihole-FTL --config dns.hosts
+  register: pihole_hosts_current_raw
+  changed_when: false
+  check_mode: false
+
+- name: Parse current dns.hosts into a sorted list for diff
+  ansible.builtin.set_fact:
+    # pihole-FTL returns "[ a b c, d e f ]" with no quotes; split on ", " and strip "[ ]"
+    pihole_hosts_current: "{{ pihole_hosts_current_raw.stdout
+                              | regex_replace('^\\[\\s*', '')
+                              | regex_replace('\\s*\\]$', '')
+                              | split(', ')
+                              | reject('equalto', '')
+                              | list
+                              | sort }}"
+
+- name: Show the diff (informational)
+  ansible.builtin.debug:
+    msg: |
+      desired: {{ pihole_hosts_desired }}
+      current: {{ pihole_hosts_current }}
+      to_add:  {{ pihole_hosts_desired | difference(pihole_hosts_current) }}
+      to_drop: {{ pihole_hosts_current | difference(pihole_hosts_desired) }}
+
+- name: Update dns.hosts in pihole.toml (only if changed)
+  # Use `shell` to pass the JSON array as a single quoted argument; the
+  # `command` module would split on whitespace and break each "IP hostname"
+  # entry into separate argv elements.
+  ansible.builtin.shell: >-
+    pihole-FTL --config dns.hosts {{ pihole_hosts_desired | to_json | quote }}
+  when: pihole_hosts_desired != pihole_hosts_current
+  changed_when: true

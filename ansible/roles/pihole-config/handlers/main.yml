@@ -1,0 +1,3 @@
+---
+# pihole-FTL reloads `pihole.toml` on its own when written through the CLI,
+# so no explicit restart handler is needed. Kept here for symmetry.

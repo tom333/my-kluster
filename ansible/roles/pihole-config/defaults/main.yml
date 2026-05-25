@@ -1,0 +1,7 @@
+---
+# Default variables for pihole-config role.
+# Override per-group/per-host (cf. group_vars/pihole_hosts.yml).
+
+# Custom local DNS A records: list of { ip, name } entries.
+# Pushed into pihole.toml's dns.hosts array via pihole-FTL CLI.
+pihole_local_dns: []

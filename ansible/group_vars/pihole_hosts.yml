@@ -1,0 +1,46 @@
+---
+# Custom DNS records pushed into PiHole's pihole.toml (section dns.hosts).
+# Consumed by the pihole-config role.
+#
+# Conventions:
+# - `.lan` shortcuts for LAN hosts (RFC: non-delegated TLD by convention).
+# - `*.tgu.ovh` split-horizon: resolved internally to the k8s-node (avoids
+#   public DNS → hairpin NAT path, faster + works for LAN-whitelisted apps).
+
+pihole_local_dns:
+  # === Noms courts LAN ===
+  - { ip: 192.168.88.1,   name: router.lan }
+  - { ip: 192.168.88.103, name: nas.lan }
+  - { ip: 192.168.88.199, name: gaming.lan }
+  - { ip: 192.168.88.201, name: ha.lan }
+  - { ip: 192.168.88.202, name: kodi.lan }
+  - { ip: 192.168.88.203, name: pihole.lan }
+  - { ip: 192.168.88.211, name: laptop.lan }
+  - { ip: 192.168.88.250, name: pc.lan }
+
+  # === Split-horizon DNS pour *.tgu.ovh (toutes les apps cluster) ===
+  # Toutes pointent sur le k8s-node (192.168.88.250). NGINX ingress fait le
+  # routing par Host header vers le bon service backend.
+  - { ip: 192.168.88.250, name: auth.tgu.ovh }
+  - { ip: 192.168.88.250, name: beszel.tgu.ovh }
+  - { ip: 192.168.88.250, name: chat.tgu.ovh }
+  - { ip: 192.168.88.250, name: chat-lan.tgu.ovh }
+  - { ip: 192.168.88.250, name: code.tgu.ovh }
+  - { ip: 192.168.88.250, name: dagster.tgu.ovh }
+  - { ip: 192.168.88.250, name: dashboard.tgu.ovh }
+  - { ip: 192.168.88.250, name: dremio2.tgu.ovh }
+  - { ip: 192.168.88.250, name: freshrss.tgu.ovh }
+  - { ip: 192.168.88.250, name: hue.tgu.ovh }
+  - { ip: 192.168.88.250, name: jupyter.tgu.ovh }
+  - { ip: 192.168.88.250, name: komga.tgu.ovh }
+  - { ip: 192.168.88.250, name: kubeflow.tgu.ovh }
+  - { ip: 192.168.88.250, name: kubetail.tgu.ovh }
+  - { ip: 192.168.88.250, name: localai.tgu.ovh }
+  - { ip: 192.168.88.250, name: metaflow.tgu.ovh }
+  - { ip: 192.168.88.250, name: minio.tgu.ovh }
+  - { ip: 192.168.88.250, name: mlflow.tgu.ovh }
+  - { ip: 192.168.88.250, name: mlrun.tgu.ovh }
+  - { ip: 192.168.88.250, name: nuclio.tgu.ovh }
+  - { ip: 192.168.88.250, name: pipeline.tgu.ovh }
+  - { ip: 192.168.88.250, name: rustfs.tgu.ovh }
+  - { ip: 192.168.88.250, name: skooner.tgu.ovh }

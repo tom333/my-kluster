@@ -51,7 +51,7 @@
     - { role: media-pc, tags: [media] }
     - beszel-agent
 
-- name: PiHole boxes — monitoring + weekly core update
+- name: PiHole boxes — monitoring + weekly core update + custom DNS
   hosts: pihole_hosts
   become: true
   gather_facts: true
@@ -64,6 +64,7 @@
   roles:
     - beszel-agent
     - pihole-maintenance
+    - { role: pihole-config, tags: [pihole, dns] }
 
 - name: Monitor LibreELEC appliances
   hosts: libreelec_hosts
