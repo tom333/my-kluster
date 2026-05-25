@@ -24,7 +24,7 @@ spec:
               main:
                 image:
                   repository: henrygd/beszel
-                  tag: "0.10.0"
+                  tag: "0.18.7"
                   pullPolicy: IfNotPresent
                 env:
                   PORT: "8090"

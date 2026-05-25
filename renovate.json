@@ -11,6 +11,7 @@
   "customManagers": [
     {
       "customType": "regex",
+      "description": "LocalAI custom CUDA image tag in chart values",
       "fileMatch": [
         "^charts/localai/values\\.yaml$"
       ],
@@ -19,6 +20,69 @@
       ],
       "datasourceTemplate": "docker",
       "versioningTemplate": "regex:^v(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-gpu-nvidia-cuda-12$"
+    },
+    {
+      "customType": "regex",
+      "description": "Beszel hub image tag inside ArgoCD app-template helm values",
+      "fileMatch": [
+        "^argocd/argocd-apps/beszel-app\\.yaml$"
+      ],
+      "matchStrings": [
+        "repository:\\s*(?<depName>henrygd/beszel)\\s*\\n\\s*tag:\\s*\"(?<currentValue>\\d+\\.\\d+\\.\\d+)\""
+      ],
+      "datasourceTemplate": "docker"
+    },
+    {
+      "customType": "regex",
+      "description": "Beszel agent versions in Ansible role defaults (apt + libreelec)",
+      "fileMatch": [
+        "^ansible/roles/beszel-agent.*/defaults/main\\.yml$"
+      ],
+      "matchStrings": [
+        "beszel_(?:le_)?agent_version:\\s*\"(?<currentValue>\\d+\\.\\d+\\.\\d+)\""
+      ],
+      "datasourceTemplate": "github-releases",
+      "depNameTemplate": "henrygd/beszel",
+      "extractVersionTemplate": "^v(?<version>.*)$"
+    },
+    {
+      "customType": "regex",
+      "description": "lazygit version in dev-workstation role",
+      "fileMatch": [
+        "^ansible/roles/dev-workstation/defaults/main\\.yml$"
+      ],
+      "matchStrings": [
+        "dev_lazygit_version:\\s*\"(?<currentValue>\\d+\\.\\d+\\.\\d+)\""
+      ],
+      "datasourceTemplate": "github-releases",
+      "depNameTemplate": "jesseduffield/lazygit",
+      "extractVersionTemplate": "^v(?<version>.*)$"
+    },
+    {
+      "customType": "regex",
+      "description": "chezmoi version in dev-workstation role",
+      "fileMatch": [
+        "^ansible/roles/dev-workstation/defaults/main\\.yml$"
+      ],
+      "matchStrings": [
+        "dev_chezmoi_version:\\s*\"(?<currentValue>\\d+\\.\\d+\\.\\d+)\""
+      ],
+      "datasourceTemplate": "github-releases",
+      "depNameTemplate": "twpayne/chezmoi",
+      "extractVersionTemplate": "^v(?<version>.*)$"
+    },
+    {
+      "customType": "regex",
+      "description": "age binary version in kodi-backup role",
+      "fileMatch": [
+        "^ansible/roles/kodi-backup/defaults/main\\.yml$"
+      ],
+      "matchStrings": [
+        "kodi_backup_age_version:\\s*\"(?<currentValue>\\d+\\.\\d+\\.\\d+)\""
+      ],
+      "datasourceTemplate": "github-releases",
+      "depNameTemplate": "FiloSottile/age",
+      "extractVersionTemplate": "^v(?<version>.*)$"
     }
   ],
   "packageRules": [

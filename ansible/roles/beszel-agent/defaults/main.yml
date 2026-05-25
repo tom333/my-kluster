@@ -2,7 +2,7 @@
 # Valeurs par défaut du rôle beszel-agent.
 # Overrides possible via inventory ou group_vars.
 
-beszel_agent_version: "0.10.0"
+beszel_agent_version: "0.18.7"
 beszel_agent_port: 43000
 beszel_agent_user: beszel
 beszel_agent_group: beszel
