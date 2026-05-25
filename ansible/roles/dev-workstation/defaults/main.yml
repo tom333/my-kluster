@@ -17,7 +17,7 @@ dev_chezmoi_version: "2.70.4"
 
 # lazygit — not in deb-get nor apt. Downloaded as tarball from GitHub releases.
 # Update this var to bump version (Renovate could automate this in future).
-dev_lazygit_version: "0.55.1"
+dev_lazygit_version: "0.61.1"
 dev_lazygit_install: true
 
 # Git global config (set for the ansible_user, not root).
