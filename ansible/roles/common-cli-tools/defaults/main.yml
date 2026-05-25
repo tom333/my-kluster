@@ -1,0 +1,28 @@
+---
+# APT packages installed unconditionally (CLI tools shared across all hosts).
+cli_apt_packages:
+  - jq
+  - curl
+  - git
+  - python3-kubernetes
+  - age
+  - nfs-common
+  - ca-certificates
+  - apt-transport-https
+  - gnupg
+  - htop
+  - btop
+  - ncdu
+  - ripgrep
+  - fd-find
+  - bat
+  - pipx
+
+# Packages installed via deb-get (https://github.com/wimpysworld/deb-get).
+# Note: deb-get a renommé github-cli → gh dans une version récente du main.
+cli_deb_get_packages:
+  - { name: du-dust, binary: dust }
+  - { name: gh, binary: gh }
+
+# deb-get script URL (pinned to main HEAD; review changes periodically).
+cli_deb_get_url: "https://raw.githubusercontent.com/wimpysworld/deb-get/main/deb-get"

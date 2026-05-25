@@ -1,0 +1,11 @@
+---
+# Install dev-specific packages via deb-get (already provisioned by common-cli-tools).
+- name: Install dev-workstation packages via deb-get
+  ansible.builtin.command: "deb-get install {{ item.name }}"
+  args:
+    creates: "/usr/bin/{{ item.binary }}"
+  environment:
+    DEB_GET_NO_CONFIRM: "1"
+  loop: "{{ dev_deb_get_packages }}"
+  loop_control:
+    label: "{{ item.name }} (binary: {{ item.binary }})"

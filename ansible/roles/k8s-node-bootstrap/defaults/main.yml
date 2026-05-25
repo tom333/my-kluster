@@ -26,14 +26,5 @@ sysctl_inotify_max_user_watches: 524288
 # Feature flags
 gpu_enabled: true
 
-# Packages installed via deb-get (https://github.com/wimpysworld/deb-get).
-# binary is the actual binary name used for idempotence (creates:) — usually under /usr/bin.
-deb_get_packages:
-  - { name: du-dust, binary: dust }
-  - { name: github-cli, binary: gh }
-
-# deb-get script URL (pinned to main HEAD; review changes periodically).
-deb_get_url: "https://raw.githubusercontent.com/wimpysworld/deb-get/main/deb-get"
-
 # Hostname guard (override if you renamed your machine)
 k8s_node_expected_hostname: "pc"

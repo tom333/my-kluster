@@ -1,24 +1,9 @@
 ---
+# common-cli-tools — CLI tooling shared by both k8s-node-bootstrap and dev-workstation.
+
 - name: Install base APT packages
   ansible.builtin.apt:
-    name:
-      # Required by other roles / k8s
-      - jq
-      - curl
-      - git
-      - python3-kubernetes
-      - age
-      - nfs-common
-      - ca-certificates
-      - apt-transport-https
-      - gnupg
-      # User-confort CLI tools (Ubuntu repos)
-      - htop
-      - btop
-      - ncdu
-      - ripgrep
-      - fd-find
-      - bat
+    name: "{{ cli_apt_packages }}"
     state: present
     update_cache: true
     cache_valid_time: 3600
@@ -37,16 +22,16 @@
     state: link
     force: true
 
-# deb-get installs packages not in Ubuntu repos (dust, gh) as real .deb files,
+# deb-get installs packages not in Ubuntu repos as real .deb files,
 # integrated with apt. Auto-update via weekly systemd timer below.
 - name: Install deb-get script
   ansible.builtin.get_url:
-    url: "{{ deb_get_url }}"
+    url: "{{ cli_deb_get_url }}"
     dest: /usr/local/bin/deb-get
     owner: root
     group: root
     mode: '0755'
-    force: false  # Don't re-download every run; rely on the weekly upgrade timer
+    force: false
 
 - name: Refresh deb-get package list
   ansible.builtin.command: deb-get update
@@ -59,7 +44,7 @@
     creates: "/usr/bin/{{ item.binary }}"
   environment:
     DEB_GET_NO_CONFIRM: "1"
-  loop: "{{ deb_get_packages }}"
+  loop: "{{ cli_deb_get_packages }}"
   loop_control:
     label: "{{ item.name }} (binary: {{ item.binary }})"
 
@@ -70,7 +55,7 @@
     owner: root
     group: root
     mode: '0644'
-  notify: reload systemd (k8s-node-bootstrap)
+  notify: reload systemd (common-cli-tools)
 
 - name: Install deb-get-upgrade systemd timer unit
   ansible.builtin.template:
@@ -79,7 +64,7 @@
     owner: root
     group: root
     mode: '0644'
-  notify: reload systemd (k8s-node-bootstrap)
+  notify: reload systemd (common-cli-tools)
 
 - name: Flush handlers so daemon-reload runs before enable
   ansible.builtin.meta: flush_handlers
@@ -89,6 +74,4 @@
     name: deb-get-upgrade.timer
     enabled: true
     state: started
-  # In --check, the template above is simulated (not written to disk),
-  # so systemd can't find the unit. Skip safely; real runs will apply it.
   when: not ansible_check_mode

@@ -228,25 +228,40 @@ kubectl get secret -n kube-system \
 ### Ansible (déploiement multi-machines)
 
 - Dossier : `ansible/` du repo.
-- Inventaire : `ansible/inventory.yml`. Groupe `k8s_nodes` (juste `k8s-node` aujourd'hui) reçoit le pack complet bootstrap+backup+monitoring. Les autres machines ne reçoivent que `beszel-agent`.
+- Inventaire : `ansible/inventory.yml`. Groupes :
+  - `k8s_nodes` (juste `k8s-node` aujourd'hui) reçoit common-cli-tools + k8s-node-bootstrap + sealed-secrets-backup + beszel-agent.
+  - `dev_workstations` (`work-laptop`) reçoit common-cli-tools + dev-workstation + beszel-agent.
+  - Hors groupe (commented in the file) : seulement beszel-agent.
 - Secrets chiffrés via Ansible Vault dans `ansible/group_vars/vault.yml` (password local en `~/.vault-password.txt`, jamais commité).
 - Variables non-sensibles dans `ansible/group_vars/all.yml` (dont la pubkey `age` `sealed_backup_age_pubkey`).
 - Commande pleine : `cd ansible/ && ansible-playbook -i inventory.yml playbook.yml --vault-password-file ~/.vault-password.txt --ask-become-pass`.
-- Exécution partielle via tags : `--tags bootstrap` (k8s-node-bootstrap), `--tags filesystem`/`microk8s`/`packages`/`nvidia`/`gpu_operator` (sous-étapes du bootstrap).
-- Ajout machine monitorée : éditer `inventory.yml` (hors `k8s_nodes`), runner avec `--limit <nouveau-host>`.
+- Exécution partielle via tags : `--tags bootstrap` (k8s-node), `--tags dev` (workstations), `--tags cli-tools` (commun aux deux), `--tags filesystem`/`microk8s`/`nvidia`/`gpu_operator` (sous-étapes bootstrap), `--tags pipx`/`deb-get-extras`/`chezmoi`/`lazygit`/`git` (sous-étapes dev).
+- Ajout machine monitorée only (pas k8s ni dev) : décommenter dans `hosts:` puis `--limit <nouveau-host>`.
 
 Rôles disponibles :
+- `common-cli-tools` : APT packages partagés (jq/curl/git/age/pipx/htop/btop/ncdu/ripgrep/fd/bat...) + deb-get + dust + gh + timer hebdo `deb-get-upgrade`.
 - `beszel-agent` : install/update agent Beszel.
 - `sealed-secrets-backup` : backup quotidien chiffré (`age`) de la clé master Sealed Secrets vers NAS, notification Telegram en cas d'échec. Timer systemd 03h00.
-- `k8s-node-bootstrap` : OS + nvidia-container-toolkit + mount NFS + sysctl + MicroK8s + addons + workaround gpu-operator NVIDIA #430 + outils dev (htop/btop/ncdu/ripgrep/fd/bat) + deb-get (dust, gh, upgrade hebdo). Idempotent. Garde-fou hostname.
+- `k8s-node-bootstrap` : nvidia-container-toolkit + mount NFS + sysctl + MicroK8s + addons + workaround gpu-operator NVIDIA #430. Idempotent. Garde-fou hostname.
+- `dev-workstation` : pipx + uv + ruff (user-scope), VS Code (deb-get), wezterm (deb-get), lazygit (GitHub releases binary), chezmoi (GitHub releases binary, snap est désactivé sur Linux Mint), git config global avec commit.gpgsign actif.
 
 **Disaster recovery — clé master Sealed Secrets** :
-Les backups sont sur `192.168.88.103:/Public/backups/sealed-secrets/` (chiffrés `.yaml.age`). La clé privée `age` correspondante (`~/.config/age/sealed-backup.key`) est **CRITIQUE** : sans elle les backups sont inutilisables. À conserver hors-machine (password manager + clé USB, et à terme copie sur un autre hôte via Ansible).
+Les backups sont sur `192.168.88.103:/Public/backups/sealed-secrets/` (chiffrés `.yaml.age`). La clé privée `age` correspondante (`~/.config/age/sealed-backup.key`) est **CRITIQUE** : sans elle les backups sont inutilisables. À conserver hors-machine (password manager + clé USB, et à terme copie sur work-laptop via Ansible).
 
 Procédure de restore (machine fraîchement bootstrappée) :
 ```bash
 age -d -i ~/.config/age/sealed-backup.key \
   /mnt/nas/backups/sealed-secrets/<latest>.yaml.age | kubectl apply -f -
+```
+
+**Setup chezmoi (manuel après bootstrap dev-workstation)** :
+```bash
+# 1) Générer une clé SSH dédiée GitHub
+ssh-keygen -t ed25519 -C "moi@<hostname>"
+gh ssh-key add ~/.ssh/id_ed25519.pub --title "<hostname>"
+# 2) Initialiser chezmoi sur le repo dotfiles privé
+chezmoi init git@github.com:tom333/dotfiles.git
+chezmoi apply
 ```
 
 ---

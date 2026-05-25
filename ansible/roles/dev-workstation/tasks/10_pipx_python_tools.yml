@@ -1,0 +1,38 @@
+---
+# pipx installs tools into the USER's $HOME/.local/, not system-wide.
+# Must run as ansible_user, NOT root, otherwise installs in /root/.
+
+# pipx 1.4.3 has a bug where `pipx ensurepath` always reports "has been added"
+# even when nothing changes (regardless of stdout content). We can't trust stdout
+# for idempotence, so we check the shell rc files directly.
+- name: Check if pipx PATH is already in shell rc files
+  ansible.builtin.command: >
+    grep -l '\.local/bin' /home/{{ ansible_user }}/.bashrc /home/{{ ansible_user }}/.profile /home/{{ ansible_user }}/.zshrc
+  register: pipx_rc_check
+  changed_when: false
+  check_mode: false
+  failed_when: false
+
+- name: Ensure pipx PATH for user (only if not yet in shell rc)
+  ansible.builtin.command: pipx ensurepath
+  become: true
+  become_user: "{{ ansible_user }}"
+  when: pipx_rc_check.stdout | length == 0
+  changed_when: true
+  check_mode: false
+
+- name: List currently pipx-installed packages
+  ansible.builtin.command: pipx list --short
+  become: true
+  become_user: "{{ ansible_user }}"
+  register: pipx_list
+  changed_when: false
+  check_mode: false
+
+- name: Install Python tools via pipx
+  ansible.builtin.command: "pipx install {{ item }}"
+  become: true
+  become_user: "{{ ansible_user }}"
+  loop: "{{ dev_pipx_packages }}"
+  when: item not in (pipx_list.stdout | default(''))
+  changed_when: true

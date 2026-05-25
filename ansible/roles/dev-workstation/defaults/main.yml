@@ -1,0 +1,30 @@
+---
+# Python tools installed via pipx (in the user's home, not system-wide).
+dev_pipx_packages:
+  - uv
+  - ruff
+
+# Extra deb-get packages specific to dev workstations.
+# All 3 are available in the current deb-get main catalog (verified 2026-05-25).
+dev_deb_get_packages:
+  - { name: code, binary: code }         # VS Code (Microsoft)
+  - { name: wezterm, binary: wezterm }   # Terminal emulator (Wez Furlong's repo)
+
+# chezmoi — not in deb-get nor apt. Snap is disabled on Linux Mint by default,
+# so we use the GitHub releases binary tarball (same pattern as lazygit).
+dev_chezmoi_install: true
+dev_chezmoi_version: "2.70.4"
+
+# lazygit — not in deb-get nor apt. Downloaded as tarball from GitHub releases.
+# Update this var to bump version (Renovate could automate this in future).
+dev_lazygit_version: "0.55.1"
+dev_lazygit_install: true
+
+# Git global config (set for the ansible_user, not root).
+dev_git_user_name: "Thomas Guyader"
+dev_git_user_email: "laboitatom@gmail.com"
+dev_git_editor: "nano"
+dev_git_commit_gpgsign: true
+
+# OS guards
+dev_workstation_allowed_distros: ["Ubuntu", "Linux Mint"]   # exact match required (ansible_distribution = "Linux Mint" with space on Mint)

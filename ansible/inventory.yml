@@ -1,12 +1,12 @@
 ---
-# Inventaire des machines monitorées par Beszel + bootstrap k8s-node.
+# Inventaire des machines monitorées par Beszel + bootstrap k8s-node + dev workstations.
 # IPs en clair = LAN privé RFC1918, peu sensible. Pour ajouter une machine :
-# 1) ajouter 3 lignes ci-dessous, 2) ansible-playbook ... --limit <nouveau-host>
+# 1) ajouter 3 lignes ci-dessous dans le bon groupe, 2) ansible-playbook ... --limit <nouveau-host>
 
 all:
   children:
-    # Machines qui hébergent un node Kubernetes — reçoivent les 3 rôles
-    # (k8s-node-bootstrap, sealed-secrets-backup, beszel-agent).
+    # Machines qui hébergent un node Kubernetes — reçoivent common-cli-tools,
+    # k8s-node-bootstrap, sealed-secrets-backup, beszel-agent.
     k8s_nodes:
       hosts:
         k8s-node:
@@ -15,8 +15,17 @@ all:
           ansible_user: moi
           beszel_arch: amd64
 
+    # PC de développement — reçoivent common-cli-tools, dev-workstation, beszel-agent.
+    dev_workstations:
+      hosts:
+        # Linux Mint 22.3 (Ubuntu 24 noble-based) — laptop dev
+        work-laptop:
+          ansible_host: 192.168.88.211
+          ansible_user: moi
+          beszel_arch: amd64
+
   hosts:
-    # Machines monitorées uniquement (pas k8s) — reçoivent seulement beszel-agent.
+    # Machines monitorées uniquement — reçoivent seulement beszel-agent.
     # Décommenter et adapter quand une machine est ajoutée.
 
     # ha-host:

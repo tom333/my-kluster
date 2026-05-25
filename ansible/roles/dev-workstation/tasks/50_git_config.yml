@@ -1,0 +1,51 @@
+---
+# Git global config — set for ansible_user, NOT root.
+# git config --global writes to $HOME/.gitconfig.
+
+- name: Set git user.name
+  community.general.git_config:
+    scope: global
+    name: user.name
+    value: "{{ dev_git_user_name }}"
+  become: true
+  become_user: "{{ ansible_user }}"
+
+- name: Set git user.email
+  community.general.git_config:
+    scope: global
+    name: user.email
+    value: "{{ dev_git_user_email }}"
+  become: true
+  become_user: "{{ ansible_user }}"
+
+- name: Set git core.editor
+  community.general.git_config:
+    scope: global
+    name: core.editor
+    value: "{{ dev_git_editor }}"
+  become: true
+  become_user: "{{ ansible_user }}"
+
+- name: Set git init.defaultBranch
+  community.general.git_config:
+    scope: global
+    name: init.defaultBranch
+    value: main
+  become: true
+  become_user: "{{ ansible_user }}"
+
+- name: Set git pull.rebase
+  community.general.git_config:
+    scope: global
+    name: pull.rebase
+    value: "true"
+  become: true
+  become_user: "{{ ansible_user }}"
+
+- name: Set git commit.gpgsign
+  community.general.git_config:
+    scope: global
+    name: commit.gpgsign
+    value: "{{ 'true' if dev_git_commit_gpgsign else 'false' }}"
+  become: true
+  become_user: "{{ ansible_user }}"

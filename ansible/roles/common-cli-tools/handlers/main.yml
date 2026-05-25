@@ -1,0 +1,4 @@
+---
+- name: reload systemd (common-cli-tools)
+  ansible.builtin.systemd:
+    daemon_reload: true

@@ -1,0 +1,23 @@
+---
+# dev-workstation — opinionated dev environment setup.
+# Assumes common-cli-tools has already run (pipx + base CLI tools installed).
+
+- ansible.builtin.import_tasks: 00_preflight.yml
+  tags: [dev, preflight]
+
+- ansible.builtin.import_tasks: 10_pipx_python_tools.yml
+  tags: [dev, pipx]
+
+- ansible.builtin.import_tasks: 20_deb_get_extras.yml
+  tags: [dev, deb-get-extras]
+
+- ansible.builtin.import_tasks: 30_chezmoi.yml
+  tags: [dev, chezmoi]
+  when: dev_chezmoi_install | bool
+
+- ansible.builtin.import_tasks: 40_lazygit.yml
+  tags: [dev, lazygit]
+  when: dev_lazygit_install | bool
+
+- ansible.builtin.import_tasks: 50_git_config.yml
+  tags: [dev, git]

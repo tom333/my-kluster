@@ -5,9 +5,6 @@
 - ansible.builtin.import_tasks: 00_preflight.yml
   tags: [bootstrap, preflight]
 
-- ansible.builtin.import_tasks: 10_packages.yml
-  tags: [bootstrap, packages]
-
 - ansible.builtin.import_tasks: 20_nvidia.yml
   tags: [bootstrap, nvidia]
   when: gpu_enabled | default(true)

@@ -1,0 +1,47 @@
+---
+# chezmoi — not in deb-get nor apt. Snap is disabled by default on Linux Mint,
+# so we download the upstream binary tarball from GitHub releases.
+
+- name: Check installed chezmoi version
+  ansible.builtin.command: chezmoi --version
+  register: chezmoi_version_check
+  changed_when: false
+  check_mode: false
+  failed_when: false
+
+- name: Download and install chezmoi
+  when: dev_chezmoi_version not in (chezmoi_version_check.stdout | default(''))
+  block:
+    - name: Download chezmoi tarball
+      ansible.builtin.get_url:
+        url: "https://github.com/twpayne/chezmoi/releases/download/v{{ dev_chezmoi_version }}/chezmoi_{{ dev_chezmoi_version }}_linux_amd64.tar.gz"
+        dest: "/tmp/chezmoi-{{ dev_chezmoi_version }}.tar.gz"
+        mode: '0644'
+
+    - name: Extract chezmoi binary
+      ansible.builtin.unarchive:
+        src: "/tmp/chezmoi-{{ dev_chezmoi_version }}.tar.gz"
+        dest: /tmp/
+        remote_src: true
+        creates: "/tmp/chezmoi"
+
+    - name: Install chezmoi binary
+      ansible.builtin.copy:
+        src: /tmp/chezmoi
+        dest: /usr/local/bin/chezmoi
+        remote_src: true
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: Cleanup chezmoi install artifacts
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - "/tmp/chezmoi-{{ dev_chezmoi_version }}.tar.gz"
+        - "/tmp/chezmoi"
+        - "/tmp/LICENSE"
+        - "/tmp/README.md"
+        - "/tmp/completions"
+        - "/tmp/docs"

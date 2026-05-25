@@ -1,0 +1,45 @@
+---
+# lazygit — not in deb-get nor in standard apt repos.
+# Downloaded as a binary tarball from GitHub releases. Pin via dev_lazygit_version.
+
+- name: Check installed lazygit version
+  ansible.builtin.command: lazygit --version
+  register: lazygit_version_check
+  changed_when: false
+  check_mode: false
+  failed_when: false
+
+- name: Download and install lazygit
+  when: dev_lazygit_version not in (lazygit_version_check.stdout | default(''))
+  block:
+    - name: Download lazygit tarball
+      ansible.builtin.get_url:
+        url: "https://github.com/jesseduffield/lazygit/releases/download/v{{ dev_lazygit_version }}/lazygit_{{ dev_lazygit_version }}_Linux_x86_64.tar.gz"
+        dest: "/tmp/lazygit-{{ dev_lazygit_version }}.tar.gz"
+        mode: '0644'
+
+    - name: Extract lazygit binary
+      ansible.builtin.unarchive:
+        src: "/tmp/lazygit-{{ dev_lazygit_version }}.tar.gz"
+        dest: /tmp/
+        remote_src: true
+        creates: "/tmp/lazygit"
+
+    - name: Install lazygit binary
+      ansible.builtin.copy:
+        src: /tmp/lazygit
+        dest: /usr/local/bin/lazygit
+        remote_src: true
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: Cleanup lazygit install artifacts
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - "/tmp/lazygit-{{ dev_lazygit_version }}.tar.gz"
+        - "/tmp/lazygit"
+        - "/tmp/LICENSE"
+        - "/tmp/README.md"

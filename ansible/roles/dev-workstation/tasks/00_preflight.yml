@@ -1,0 +1,14 @@
+---
+- name: Preflight — supported distro
+  ansible.builtin.assert:
+    that:
+      - ansible_distribution in dev_workstation_allowed_distros
+      - ansible_architecture == "x86_64"
+    fail_msg: "dev-workstation requires Ubuntu/Mint x86_64 (got {{ ansible_distribution }} {{ ansible_architecture }})"
+
+- name: Preflight — pipx must already be installed (provided by common-cli-tools)
+  ansible.builtin.command: pipx --version
+  register: pipx_check
+  changed_when: false
+  check_mode: false
+  failed_when: pipx_check.rc != 0

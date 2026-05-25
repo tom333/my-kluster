@@ -2,6 +2,15 @@
 
 ## ✅ Récemment terminé (mai 2026)
 
+- [x] **Extension Ansible : common-cli-tools + dev-workstation + work-laptop monitoring**
+  - Nouveau rôle `common-cli-tools` (factor des outils CLI partagés : apt + deb-get + timer hebdo deb-get-upgrade)
+  - Nouveau rôle `dev-workstation` (pipx + uv/ruff user-scope, VS Code via deb-get, wezterm via deb-get, lazygit + chezmoi via GitHub releases binary, git config global avec commit.gpgsign)
+  - Refactor `k8s-node-bootstrap` (extract de tasks/10_packages.yml + templates deb-get-upgrade vers common-cli-tools)
+  - Refactor `inventory.yml` (nouveau groupe `dev_workstations`) + `playbook.yml` (3 plays)
+  - `work-laptop` (Linux Mint 22.3, 192.168.88.211) ajouté + monitoré par Beszel + provisionné par dev-workstation
+  - Repo dotfiles privé `tom333/dotfiles` créé (chezmoi init manuel à faire après gh ssh-key add)
+  - Documentation : spec `2026-05-25-devworkstation-design.md` + plan `2026-05-25-devworkstation.md`
+
 - [x] **Extension Ansible : disaster recovery + bootstrap k8s-node**
   - Rôle `sealed-secrets-backup` : backup quotidien chiffré `age` de la clé master vers NAS, alerte Telegram on failure, timer systemd
   - Rôle `k8s-node-bootstrap` : OS + nvidia-container-toolkit + NFS + sysctl + MicroK8s + addons + workaround gpu-operator NVIDIA #430, idempotent, garde-fou hostname, sous-tâches taguées
