@@ -1,0 +1,17 @@
+---
+# media-pc — install Jellyfin client + gaming optims + disable broken input devices.
+
+- ansible.builtin.import_tasks: 00_preflight.yml
+  tags: [media, preflight]
+
+- ansible.builtin.import_tasks: 10_jellyfin.yml
+  tags: [media, jellyfin]
+  when: media_install_jellyfin | bool
+
+- ansible.builtin.import_tasks: 20_gaming_optims.yml
+  tags: [media, gaming]
+  when: media_apply_gaming_optims | bool
+
+- ansible.builtin.import_tasks: 30_xinput_autostart.yml
+  tags: [media, xinput]
+  when: media_xinput_disable_devices | length > 0

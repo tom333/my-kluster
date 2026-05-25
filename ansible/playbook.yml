@@ -36,6 +36,21 @@
     - { role: dev-workstation, tags: [dev] }
     - beszel-agent
 
+- name: Media / gaming PCs (Jellyfin client + gaming optims + xinput disable)
+  hosts: media_pcs
+  become: true
+  gather_facts: true
+  vars_files:
+    - group_vars/vault.yml
+  pre_tasks:
+    - name: Show host info
+      ansible.builtin.debug:
+        msg: "Media/gaming play on {{ inventory_hostname }} ({{ ansible_host }}) — arch={{ beszel_arch }}"
+  roles:
+    - { role: common-cli-tools, tags: [media, cli-tools] }
+    - { role: media-pc, tags: [media] }
+    - beszel-agent
+
 - name: PiHole boxes — monitoring + weekly core update
   hosts: pihole_hosts
   become: true
@@ -68,7 +83,7 @@
     - kodi-backup
 
 - name: Deploy Beszel agents on other monitored machines
-  hosts: all:!k8s_nodes:!dev_workstations:!libreelec_hosts:!pihole_hosts
+  hosts: all:!k8s_nodes:!dev_workstations:!media_pcs:!libreelec_hosts:!pihole_hosts
   become: true
   gather_facts: true
   vars_files:

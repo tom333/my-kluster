@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Disable broken input device: {{ item }}
+Exec=sh -c "xinput disable '{{ item }}' || true"
+NoDisplay=true
+X-GNOME-Autostart-enabled=true
+StartupNotify=false
+Terminal=false

@@ -1,0 +1,19 @@
+---
+- name: Ensure user's autostart directory exists
+  ansible.builtin.file:
+    path: "/home/{{ ansible_user }}/.config/autostart"
+    state: directory
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: '0755'
+
+- name: Install xinput disable autostart entries
+  ansible.builtin.template:
+    src: disable-input.desktop.j2
+    dest: "/home/{{ ansible_user }}/.config/autostart/disable-input-{{ item | regex_replace('[^a-zA-Z0-9]', '_') | lower }}.desktop"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: '0644'
+  loop: "{{ media_xinput_disable_devices }}"
+  loop_control:
+    label: "{{ item }}"

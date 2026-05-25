@@ -1,0 +1,19 @@
+---
+- name: Preflight — supported distro
+  ansible.builtin.assert:
+    that:
+      - ansible_distribution in media_pc_allowed_distros
+      - ansible_architecture in ["x86_64", "amd64"]
+    fail_msg: "media-pc requires {{ media_pc_allowed_distros | join('/') }} on x86_64 (got {{ ansible_distribution }} {{ ansible_architecture }})"
+
+- name: Preflight — deb-get must already be installed (provided by common-cli-tools)
+  ansible.builtin.stat:
+    path: /usr/local/bin/deb-get
+  register: debget_stat
+
+- name: Preflight — deb-get must exist
+  ansible.builtin.assert:
+    that:
+      - debget_stat.stat.exists
+      - debget_stat.stat.executable
+    fail_msg: "deb-get not found. Run common-cli-tools first."

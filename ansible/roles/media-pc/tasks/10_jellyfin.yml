@@ -1,0 +1,14 @@
+---
+- name: Check if jellyfin-media-player package is already installed
+  ansible.builtin.command: dpkg -s jellyfin-media-player
+  register: jmp_check
+  changed_when: false
+  check_mode: false
+  failed_when: false
+
+- name: Install jellyfin-media-player via deb-get
+  ansible.builtin.command: deb-get install jellyfin-media-player
+  environment:
+    DEB_GET_NO_CONFIRM: "1"
+  when: jmp_check.rc != 0
+  changed_when: true

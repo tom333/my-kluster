@@ -1,0 +1,21 @@
+---
+# Default variables for media-pc role.
+
+# Jellyfin Media Player install via deb-get. Toggle off if not needed on a host.
+media_install_jellyfin: true
+
+# Gaming optimisations (sysctl + Feral gamemode). Toggle off for laptop / dev hosts.
+media_apply_gaming_optims: true
+
+# sysctl values (tweaks for low-jitter media + games).
+media_swappiness: 10
+media_dirty_writeback_centisecs: 1500
+
+# Broken input devices to disable at graphical login (xinput names, not IDs).
+# Override per-host in inventory. Example:
+#   media_xinput_disable_devices:
+#     - "Raydium Corporation Raydium Touch System"
+media_xinput_disable_devices: []
+
+# OS guards
+media_pc_allowed_distros: ["Ubuntu", "Linux Mint", "Bodhi"]

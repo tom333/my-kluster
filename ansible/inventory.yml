@@ -47,6 +47,20 @@ all:
           ansible_user: pi
           beszel_arch: arm      # Raspberry Pi armv7 32-bit (Pi 1/2/3, or Pi 4 in 32-bit mode)
 
+    # Media / gaming PCs — Jellyfin client + Feral gamemode + sysctl tweaks.
+    # work-laptop est aussi dans dev_workstations (host dans 2 groupes).
+    media_pcs:
+      hosts:
+        gaming-pc:
+          ansible_host: 192.168.88.199
+          ansible_user: moi
+          beszel_arch: amd64
+          # Per-host: touchpad cassé Raydium à désactiver au login graphique
+          media_xinput_disable_devices:
+            - "Raydium Corporation Raydium Touch System"
+        # work-laptop : réutilise les vars définies dans dev_workstations
+        work-laptop: {}
+
   hosts:
     # Machines monitorées uniquement — reçoivent seulement beszel-agent.
     # Décommenter et adapter quand une machine est ajoutée.

@@ -1,0 +1,4 @@
+---
+- name: reload sysctl (media-pc)
+  ansible.builtin.command: sysctl --system
+  changed_when: true

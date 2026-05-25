@@ -1,0 +1,15 @@
+---
+- name: Install Feral gamemode (apt)
+  ansible.builtin.apt:
+    name: gamemode
+    state: present
+    update_cache: false
+
+- name: Configure media-pc sysctl tweaks
+  ansible.builtin.template:
+    src: sysctl-media.conf.j2
+    dest: /etc/sysctl.d/99-media.conf
+    owner: root
+    group: root
+    mode: '0644'
+  notify: reload sysctl (media-pc)
