@@ -1,0 +1,40 @@
+---
+# Nerd Fonts (user-scope, ~/.local/share/fonts/).
+# Required for wezterm, lazygit (icons), Powerline-style themes, etc.
+
+- name: Ensure nerd-fonts directories exist
+  ansible.builtin.file:
+    path: "/home/{{ ansible_user }}/.local/share/fonts/{{ item }}"
+    state: directory
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: '0755'
+  loop: "{{ dev_nerd_fonts }}"
+
+- name: Check if each nerd-font is already installed
+  ansible.builtin.find:
+    paths: "/home/{{ ansible_user }}/.local/share/fonts/{{ item }}"
+    patterns: "*.ttf"
+  loop: "{{ dev_nerd_fonts }}"
+  register: nerd_fonts_check
+  changed_when: false
+  check_mode: false
+
+- name: Download and extract missing nerd-fonts
+  ansible.builtin.unarchive:
+    src: "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/{{ item.item }}.zip"
+    dest: "/home/{{ ansible_user }}/.local/share/fonts/{{ item.item }}/"
+    remote_src: true
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+  loop: "{{ nerd_fonts_check.results }}"
+  loop_control:
+    label: "{{ item.item }}"
+  when: item.matched == 0
+
+- name: Rebuild user font cache (only if a font was just installed)
+  ansible.builtin.command: fc-cache -f
+  become: true
+  become_user: "{{ ansible_user }}"
+  when: nerd_fonts_check.results | selectattr('matched', 'equalto', 0) | list | length > 0
+  changed_when: true

@@ -26,5 +26,12 @@ dev_git_user_email: "laboitatom@gmail.com"
 dev_git_editor: "nano"
 dev_git_commit_gpgsign: true
 
+# Nerd Fonts installées user-scope (~/.local/share/fonts/).
+# Requises pour wezterm, lazygit (icônes), thèmes Powerline, etc.
+# Liste extensible : ajouter d'autres nerd-fonts releases names (FiraCode, Hack, etc.).
+dev_nerd_fonts_install: true
+dev_nerd_fonts:
+  - JetBrainsMono
+
 # OS guards
 dev_workstation_allowed_distros: ["Ubuntu", "Linux Mint"]   # exact match required (ansible_distribution = "Linux Mint" with space on Mint)

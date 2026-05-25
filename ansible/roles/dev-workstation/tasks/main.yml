@@ -21,3 +21,7 @@
 
 - ansible.builtin.import_tasks: 50_git_config.yml
   tags: [dev, git]
+
+- ansible.builtin.import_tasks: 60_nerd_fonts.yml
+  tags: [dev, fonts]
+  when: dev_nerd_fonts_install | bool

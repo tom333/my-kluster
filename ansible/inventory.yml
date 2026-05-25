@@ -16,8 +16,13 @@ all:
           beszel_arch: amd64
 
     # PC de développement — reçoivent common-cli-tools, dev-workstation, beszel-agent.
+    # Note : k8s-node figure ici aussi (l'utilisateur dev dessus) — un host peut
+    # appartenir à plusieurs groupes. Les vars restent définies dans k8s_nodes
+    # (référence vide ici, Ansible matche par nom de host).
     dev_workstations:
       hosts:
+        # k8s-node = pc (poste dev de l'utilisateur, en plus de host k8s)
+        k8s-node: {}
         # Linux Mint 22.3 (Ubuntu 24 noble-based) — laptop dev
         work-laptop:
           ansible_host: 192.168.88.211
