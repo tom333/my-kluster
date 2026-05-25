@@ -1,0 +1,9 @@
+---
+- name: reload systemd (beszel-agent-libreelec)
+  ansible.builtin.systemd:
+    daemon_reload: true
+
+- name: restart beszel-agent (libreelec)
+  ansible.builtin.systemd:
+    name: "{{ beszel_le_service_name }}"
+    state: restarted

@@ -1,0 +1,17 @@
+[Unit]
+Description=Beszel Agent (LibreELEC, {{ beszel_le_agent_version }})
+Documentation=https://github.com/henrygd/beszel
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+ExecStart={{ beszel_le_binary_path }}
+Restart=on-failure
+RestartSec=10
+Environment="PORT={{ beszel_le_agent_port }}"
+Environment="KEY={{ beszel_hub_ssh_pubkey }}"
+
+[Install]
+WantedBy=multi-user.target

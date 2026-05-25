@@ -1,0 +1,101 @@
+---
+# beszel-agent-libreelec — install/update the Beszel agent on a LibreELEC host.
+# No `become:` — root is the default SSH user on LibreELEC, no sudo available.
+
+- name: Preflight — beszel_hub_ssh_pubkey must be set
+  ansible.builtin.assert:
+    that:
+      - beszel_hub_ssh_pubkey is defined
+      - beszel_hub_ssh_pubkey | length > 0
+      - beszel_hub_ssh_pubkey.startswith('ssh-')
+    fail_msg: "beszel_hub_ssh_pubkey must be set (via group_vars/all.yml)"
+
+- name: Preflight — running on LibreELEC
+  ansible.builtin.command: cat /etc/os-release
+  register: osrelease
+  changed_when: false
+  check_mode: false
+
+- name: Preflight — confirm LibreELEC OS
+  ansible.builtin.assert:
+    that:
+      - "'LibreELEC' in osrelease.stdout"
+    fail_msg: "This role targets LibreELEC only (got: {{ ansible_distribution | default('?') }})"
+
+- name: Ensure beszel-agent install dir exists
+  ansible.builtin.file:
+    path: "{{ beszel_le_install_dir }}"
+    state: directory
+    mode: '0755'
+
+- name: Ensure /storage/.config/system.d exists
+  ansible.builtin.file:
+    path: "{{ beszel_le_systemd_unit_dir }}"
+    state: directory
+    mode: '0755'
+
+- name: Check installed beszel-agent version
+  ansible.builtin.command: "{{ beszel_le_binary_path }} -v"
+  register: beszel_le_current_version
+  changed_when: false
+  failed_when: false
+  check_mode: false
+
+- name: Download and install beszel-agent (LibreELEC)
+  when: beszel_le_current_version.rc != 0 or beszel_le_agent_version not in (beszel_le_current_version.stdout | default(''))
+  block:
+    - name: Download beszel-agent tarball
+      ansible.builtin.get_url:
+        url: "https://github.com/henrygd/beszel/releases/download/v{{ beszel_le_agent_version }}/beszel-agent_linux_{{ beszel_le_arch }}.tar.gz"
+        dest: "/storage/beszel-agent-{{ beszel_le_agent_version }}.tar.gz"
+        mode: '0644'
+        force: true
+
+    # LibreELEC ships busybox tar (not GNU tar) which Ansible's unarchive module
+    # rejects. We extract via `command` instead — busybox tar supports `xzf` fine.
+    - name: Extract beszel-agent binary (busybox tar)
+      ansible.builtin.command:
+        cmd: "tar xzf /storage/beszel-agent-{{ beszel_le_agent_version }}.tar.gz -C /storage/"
+        creates: /storage/beszel-agent
+
+    - name: Install beszel-agent binary
+      ansible.builtin.copy:
+        src: /storage/beszel-agent
+        dest: "{{ beszel_le_binary_path }}"
+        remote_src: true
+        mode: '0755'
+
+    - name: Cleanup tarball + scratch binary
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - "/storage/beszel-agent-{{ beszel_le_agent_version }}.tar.gz"
+        - "/storage/beszel-agent"
+  notify: restart beszel-agent (libreelec)
+
+- name: Install beszel-agent systemd unit
+  ansible.builtin.template:
+    src: beszel-agent.service.j2
+    dest: "{{ beszel_le_systemd_unit_dir }}/{{ beszel_le_service_name }}.service"
+    mode: '0644'
+  notify:
+    - reload systemd (beszel-agent-libreelec)
+    - restart beszel-agent (libreelec)
+
+- name: Flush handlers (so daemon-reload runs before enable/start)
+  ansible.builtin.meta: flush_handlers
+
+- name: Enable and start beszel-agent service
+  ansible.builtin.systemd:
+    name: "{{ beszel_le_service_name }}"
+    enabled: true
+    state: started
+  when: not ansible_check_mode
+
+- name: Wait for beszel-agent to listen on configured port
+  ansible.builtin.wait_for:
+    port: "{{ beszel_le_agent_port }}"
+    host: 0.0.0.0
+    timeout: 30
+  when: not ansible_check_mode

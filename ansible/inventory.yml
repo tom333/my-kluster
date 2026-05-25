@@ -29,6 +29,16 @@ all:
           ansible_user: moi
           beszel_arch: amd64
 
+    # Appliances LibreELEC (Kodi media center) — read-only FS, root SSH, no apt.
+    # Reçoivent uniquement beszel-agent-libreelec (paths /storage/...).
+    libreelec_hosts:
+      hosts:
+        libreelec-tv:
+          ansible_host: 192.168.88.202
+          ansible_user: root
+          beszel_arch: amd64
+          beszel_le_arch: amd64
+
   hosts:
     # Machines monitorées uniquement — reçoivent seulement beszel-agent.
     # Décommenter et adapter quand une machine est ajoutée.

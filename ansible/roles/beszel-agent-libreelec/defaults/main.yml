@@ -1,0 +1,16 @@
+---
+# beszel-agent-libreelec — adapted for LibreELEC's read-only OS.
+# LibreELEC has no apt, read-only root FS, systemd in custom paths.
+
+beszel_le_agent_version: "0.10.0"
+beszel_le_agent_port: 43000
+beszel_le_arch: amd64    # override to arm64 / armv7 per host if needed
+
+# All writable paths must be under /storage/
+beszel_le_install_dir: /storage/.beszel-agent
+beszel_le_binary_path: /storage/.beszel-agent/beszel-agent
+beszel_le_systemd_unit_dir: /storage/.config/system.d
+beszel_le_service_name: beszel-agent
+
+# Clé publique du Hub (override via group_vars/vault.yml)
+beszel_hub_ssh_pubkey: ""

@@ -1,8 +1,9 @@
 ---
-# Playbook entry point — 3 plays:
+# Playbook entry point — 4 plays:
 # - k8s_nodes : full bootstrap + backup + monitoring
 # - dev_workstations : CLI tools + dev tooling + monitoring
-# - others : just monitoring
+# - libreelec_hosts : appliance-friendly monitoring (no apt, paths under /storage)
+# - others : just monitoring (vanilla apt + beszel-agent)
 
 - name: Bootstrap & monitor k8s-node
   hosts: k8s_nodes
@@ -35,8 +36,24 @@
     - { role: dev-workstation, tags: [dev] }
     - beszel-agent
 
+- name: Monitor LibreELEC appliances
+  hosts: libreelec_hosts
+  # No become — root is the SSH user on LibreELEC.
+  become: false
+  # gather_facts can fail on minimal LibreELEC; we don't need ansible_distribution
+  # for our role (we sniff /etc/os-release manually).
+  gather_facts: false
+  vars_files:
+    - group_vars/vault.yml
+  pre_tasks:
+    - name: Show host info
+      ansible.builtin.debug:
+        msg: "LibreELEC play on {{ inventory_hostname }} ({{ ansible_host }}) — arch={{ beszel_le_arch }}"
+  roles:
+    - beszel-agent-libreelec
+
 - name: Deploy Beszel agents on other monitored machines
-  hosts: all:!k8s_nodes:!dev_workstations
+  hosts: all:!k8s_nodes:!dev_workstations:!libreelec_hosts
   become: true
   gather_facts: true
   vars_files:
