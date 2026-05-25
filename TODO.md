@@ -1,5 +1,30 @@
 # TODO — Améliorations du cluster my-kluster
 
+## 💡 Scénarios à explorer
+
+- **Mail → Paperless-ngx auto-ingest** : à étudier
+  - Lecture des mails reçus (compte dédié genre `factures@`) via Home Assistant (intégration IMAP) ou n8n (trigger IMAP/Gmail)
+  - Extraction des PJ (PDF de factures, etc.)
+  - Push direct vers Paperless-ngx via son API
+  - Bonus : tag auto par expéditeur (Vinted, EDF NC, etc.)
+  - Prérequis : déployer Paperless-ngx + (HA ou n8n) sur le cluster
+
+- **Accès distant à l'infra** : 2 voies possibles, à arbitrer
+  - **Voie A — Headscale (VPN mesh, self-hosted Tailscale)** :
+    - 100% open-source (BSD), Go single binary, ~25k stars GitHub
+    - Déploiement : ArgoCD app sur k8s + ingress `headscale.tgu.ovh`
+    - Client Tailscale officiel sur laptop + phone perso (App Store/Play/Linux)
+    - Use cases : SSH sur n'importe quelle machine LAN depuis n'importe où, accès aux apps LAN-only (`beszel`, `chat-lan`, `localai`), subnet router pour atteindre NAS/Kodi/HAOS sans installer Tailscale dessus, exit node pour DNS PiHole en 4G
+    - Trade-off : client à installer sur chaque device qui veut accéder. **Login initial via browser**, ensuite VPN tourne silencieusement.
+  - **Voie B — Cloudflare Tunnel + Access (zero-client)** :
+    - Pas d'install côté visiteur : auth via browser (Google/GitHub login)
+    - Container `cloudflared` outbound chez toi → réseau Cloudflare → visiteur
+    - Cloudflare Access SaaS, gratuit jusqu'à 50 users
+    - Use cases : exposer publiquement Argo/Beszel/Jellyfin avec auth Google, depuis n'importe quel browser sans VPN
+    - Limite : marche surtout pour HTTP, pas pour NFS/SMB/SSH-direct
+  - **Voie C — Pangolin** : équivalent open-source de Cloudflare Tunnel + Access, self-hosted (nécessite un VPS frontend)
+  - Recommandation perso : **Headscale** pour la flexibilité, sauf si zero-client est dealbreaker
+
 ## ✅ Récemment terminé (mai 2026)
 
 - [x] **Extension Ansible : common-cli-tools + dev-workstation + work-laptop monitoring**
