@@ -73,10 +73,6 @@ spec:
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
-    # automated: temporairement désactivé pour faire le ménage manuel de la DB
-    # (migration 0.18 crée un index UNIQUE alerts(user,system,name) incompatible
-    # avec les alertes warning+critical sur le même type qu'on avait créées).
-    # À restaurer après le clean.
-    # automated:
-    #   selfHeal: true
-    #   prune: true
+    automated:
+      selfHeal: true
+      prune: true
