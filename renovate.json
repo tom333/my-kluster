@@ -34,6 +34,17 @@
     },
     {
       "customType": "regex",
+      "description": "Wyoming Whisper/Piper image tags inside ArgoCD app-template helm values",
+      "fileMatch": [
+        "^argocd/argocd-apps/wyoming-(whisper|piper)-app\\.yaml$"
+      ],
+      "matchStrings": [
+        "repository:\\s*(?<depName>rhasspy/wyoming-(?:whisper|piper))\\s*\\n\\s*tag:\\s*\"(?<currentValue>\\d+\\.\\d+\\.\\d+)\""
+      ],
+      "datasourceTemplate": "docker"
+    },
+    {
+      "customType": "regex",
       "description": "Beszel agent versions in Ansible role defaults (apt + libreelec)",
       "fileMatch": [
         "^ansible/roles/beszel-agent.*/defaults/main\\.yml$"

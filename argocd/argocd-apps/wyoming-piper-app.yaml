@@ -1,0 +1,64 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: wyoming-piper
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: voice
+    server: https://kubernetes.default.svc
+  project: infra-project
+  source:
+    repoURL: https://bjw-s-labs.github.io/helm-charts
+    chart: app-template
+    targetRevision: 5.0.1
+    helm:
+      values: |
+        controllers:
+          piper:
+            type: deployment
+            strategy: Recreate
+            containers:
+              main:
+                image:
+                  repository: rhasspy/wyoming-piper
+                  tag: "2.2.2"
+                  pullPolicy: IfNotPresent
+                args:
+                  - "--voice"
+                  - "fr_FR-siwis-medium"        # Voix féminine FR claire
+                  - "--uri"
+                  - "tcp://0.0.0.0:10200"       # Wyoming protocol port
+                  - "--data-dir"
+                  - "/data"
+                  - "--download-dir"
+                  - "/data"
+                resources:
+                  limits:   { cpu: "2",    memory: 1Gi }
+                  requests: { cpu: "200m", memory: 256Mi }
+        service:
+          app:
+            controller: piper
+            type: NodePort
+            ports:
+              wyoming:
+                port: 10200
+                targetPort: 10200
+                nodePort: 30200       # Exposé sur 192.168.88.250:30200 (LAN)
+                protocol: TCP
+        persistence:
+          data:
+            type: persistentVolumeClaim
+            storageClass: microk8s-hostpath
+            accessMode: ReadWriteOnce
+            size: 1Gi                 # Voix Piper FR ~100 MB
+            globalMounts:
+              - path: /data
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      selfHeal: true
+      prune: true

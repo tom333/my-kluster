@@ -1,0 +1,70 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: wyoming-whisper
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: voice
+    server: https://kubernetes.default.svc
+  project: infra-project
+  source:
+    repoURL: https://bjw-s-labs.github.io/helm-charts
+    chart: app-template
+    targetRevision: 5.0.1
+    helm:
+      values: |
+        controllers:
+          whisper:
+            type: deployment
+            strategy: Recreate
+            containers:
+              main:
+                image:
+                  repository: rhasspy/wyoming-whisper
+                  tag: "3.1.0"
+                  pullPolicy: IfNotPresent
+                args:
+                  - "--model"
+                  - "large-v3-turbo"           # Qualité large, vitesse turbo
+                  - "--language"
+                  - "fr"                        # Langue par défaut FR
+                  - "--uri"
+                  - "tcp://0.0.0.0:10300"       # Écoute Wyoming protocol
+                  - "--data-dir"
+                  - "/data"
+                  - "--download-dir"
+                  - "/data"
+                  - "--device"
+                  - "cpu"                       # CPU en Phase 1 (pas de conflit VRAM)
+                  - "--beam-size"
+                  - "1"                         # Plus rapide, OK pour commandes courtes
+                resources:
+                  limits:   { cpu: "4",    memory: 4Gi }
+                  requests: { cpu: "500m", memory: 2Gi }
+        service:
+          app:
+            controller: whisper
+            type: NodePort
+            ports:
+              wyoming:
+                port: 10300
+                targetPort: 10300
+                nodePort: 30300       # Exposé sur 192.168.88.250:30300 (LAN)
+                protocol: TCP
+        persistence:
+          data:
+            type: persistentVolumeClaim
+            storageClass: microk8s-hostpath
+            accessMode: ReadWriteOnce
+            size: 5Gi                 # Cache modèle (~1.5 GB téléchargé)
+            globalMounts:
+              - path: /data
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      selfHeal: true
+      prune: true
