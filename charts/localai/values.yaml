@@ -152,9 +152,13 @@ modelsConfigs:
       - "<|endoftext|>"
 
   # ~5 GB VRAM at ctx=16k. Polyvalent chat model, very good in French.
+  # Tool-calling enabled via llama.cpp jinja runtime + GGUF embedded
+  # Hermes-style chat template (pattern from mudler/LocalAI gallery qwen3.yaml).
   qwen2.5-7b-instruct: |
     name: qwen2.5-7b-instruct
     backend: llama-cpp
+    known_usecases:
+      - chat
     context_size: 16384
     gpu_layers: 99
     f16: true
@@ -170,15 +174,14 @@ modelsConfigs:
       # republishes a single-file version — simpler to manage in LocalAI.
       - filename: qwen2.5-7b-instruct-q4_k_m.gguf
         uri: https://huggingface.co/bartowski/Qwen2.5-7B-Instruct-GGUF/resolve/main/Qwen2.5-7B-Instruct-Q4_K_M.gguf
+    options:
+      - use_jinja:true
     template:
-      chat_message: |
-        <|im_start|>{{ .RoleName }}
-        {{.Content}}<|im_end|>
-      chat: |
-        {{.Input -}}
-        <|im_start|>assistant
-      completion: |
-        {{.Input}}
+      use_tokenizer_template: true
+    function:
+      automatic_tool_parsing_fallback: true
+      grammar:
+        disable: true
     stopwords:
       - "<|im_end|>"
       - "<|endoftext|>"
