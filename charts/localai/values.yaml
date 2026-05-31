@@ -2,7 +2,7 @@ replicaCount: 1
 
 image:
   repository: localai/localai
-  tag: "v4.3.5-gpu-nvidia-cuda-12"
+  tag: "v4.3.6-gpu-nvidia-cuda-12"
   pullPolicy: IfNotPresent
 
 # Set to "nvidia" only if the GPU operator created a RuntimeClass with that name.
