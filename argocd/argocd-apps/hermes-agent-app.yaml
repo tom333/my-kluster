@@ -162,9 +162,29 @@ spec:
                   allow_private_urls: false
                 compression:
                   enabled: true
-                  threshold: 0.5
-                  target_ratio: 0.2
-                  protect_last_n: 20
+                  # Threshold MUST be tuned to LocalAI's real ceiling (32k for Qwen 2.5 7B),
+                  # NOT to the declared context_length (65536). At 0.5 * 65536 = 32k,
+                  # compression triggers exactly at the LocalAI overflow point, too late.
+                  # 0.35 * 65536 = ~22.9k → compression starts well below the 32k ceiling,
+                  # leaving ~9k of headroom for the new user turn + tool calls.
+                  threshold: 0.35
+                  # Tighter target_ratio: after compaction, transcript settles at
+                  # 0.15 * 65536 = ~9.8k tokens (was ~13k), giving more room for the
+                  # ~16k baseline system prompt + skills index.
+                  target_ratio: 0.15
+                  protect_last_n: 10
+                  protect_first_n: 1
+                # Restrict Telegram toolset: drop tts/image_gen/vision/messaging to
+                # shrink the tool-schema portion of the system prompt (~2-3k tokens saved).
+                # Keep web (search), browser (page fetch), file, todo, cronjob, skills
+                # — everything needed for job-watch + general assistant use.
+                platform_toolsets:
+                  telegram: [web, browser, file, todo, cronjob, skills]
+                # Disable Nous Portal as auxiliary fallback — no subscription, every
+                # call returns 402 and floods logs. Hermes already throttles it after
+                # the first failure (60s); this just silences the noise.
+                fallback:
+                  exclude: ["nous", "nous-api"]
                 security:
                   redact_secrets: true
                   tirith_enabled: true
