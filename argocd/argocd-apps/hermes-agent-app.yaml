@@ -31,9 +31,9 @@ spec:
                 args:
                   - |
                     set -e
-                    if [ ! -f /opt/hermes/config.yaml ]; then
+                    if [ ! -f /opt/data/config.yaml ]; then
                       echo "Seeding config.yaml from ConfigMap"
-                      cp /bootstrap/config.yaml /opt/hermes/config.yaml
+                      cp /bootstrap/config.yaml /opt/data/config.yaml
                     else
                       echo "config.yaml already exists, skip"
                     fi
@@ -47,7 +47,9 @@ spec:
                   - "gateway"
                   - "run"
                 env:
-                  HERMES_HOME: "/opt/hermes"
+                  # HERMES_HOME points to /opt/data (PVC), not /opt/hermes
+                  # which holds image code + scripts (main-wrapper.sh etc).
+                  HERMES_HOME: "/opt/data"
                   # Plain Telegram config (non-sensitive)
                   TELEGRAM_ALLOWED_USERS: "843341688"
                   TELEGRAM_HOME_CHANNEL: "843341688"
@@ -91,9 +93,9 @@ spec:
             type: persistentVolumeClaim
             storageClass: microk8s-hostpath
             accessMode: ReadWriteOnce
-            size: 10Gi                              # HERMES_HOME: skills + sessions + memory + LLM cache
+            size: 10Gi                              # HERMES_HOME (/opt/data): skills + sessions + memory + LLM cache
             globalMounts:
-              - path: /opt/hermes
+              - path: /opt/data
           bootstrap:
             type: configMap
             # bjw-s 5.0.1 merges all configMaps.* entries into a single CM
