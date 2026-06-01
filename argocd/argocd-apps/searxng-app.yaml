@@ -1,0 +1,161 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: searxng
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: searxng
+    server: https://kubernetes.default.svc
+  project: infra-project
+  source:
+    repoURL: https://bjw-s-labs.github.io/helm-charts
+    chart: app-template
+    targetRevision: 5.0.1
+    helm:
+      values: |
+        controllers:
+          searxng:
+            type: deployment
+            strategy: Recreate
+            initContainers:
+              # Copy the ConfigMap-provided settings.yml into a writable emptyDir
+              # before the main container starts. SearXNG's entrypoint runs
+              # `sed -i` on $SEARXNG_SETTINGS_PATH to substitute "ultrasecretkey"
+              # with $SEARXNG_SECRET — that fails on a read-only configMap mount.
+              # The emptyDir is writable; sed succeeds; runtime secret never lands
+              # in Git.
+              copy-settings:
+                image:
+                  repository: busybox
+                  tag: "1.36"
+                command: ["sh", "-c"]
+                args:
+                  - |
+                    set -e
+                    cp /tmp/template/settings.yml /etc/searxng/settings.yml
+                    chmod 0644 /etc/searxng/settings.yml
+                    echo "settings.yml seeded into /etc/searxng/ (writable)"
+            containers:
+              main:
+                image:
+                  repository: searxng/searxng
+                  # Date-based versioning (YYYY.MM.DD-shortsha). Renovate tracks
+                  # this via custom regex (see renovate.json).
+                  tag: "2026.5.31-7159b8aed"
+                  pullPolicy: IfNotPresent
+                env:
+                  SEARXNG_SETTINGS_PATH: /etc/searxng/settings.yml
+                  # Base URL used in absolute links + open-redirect guard.
+                  SEARXNG_BASE_URL: "https://searxng.tgu.ovh/"
+                envFrom:
+                  - secretRef:
+                      name: searxng-secrets   # SEARXNG_SECRET (sealed)
+                resources:
+                  limits:   { cpu: "1",    memory: 512Mi }
+                  requests: { cpu: "100m", memory: 128Mi }
+        service:
+          app:
+            controller: searxng
+            ports:
+              http:
+                port: 8080
+                targetPort: 8080
+                protocol: TCP
+        ingress:
+          app:
+            className: nginx
+            annotations:
+              cert-manager.io/cluster-issuer: letsencrypt-prod
+              # LAN-only (cf. localai/beszel/hermes pattern).
+              nginx.ingress.kubernetes.io/whitelist-source-range: "192.168.88.0/24,10.1.0.0/16"
+            hosts:
+              - host: searxng.tgu.ovh
+                paths:
+                  - path: /
+                    pathType: Prefix
+                    service:
+                      identifier: app
+                      port: http
+            tls:
+              - hosts:
+                  - searxng.tgu.ovh
+                secretName: searxng-tls
+        persistence:
+          # Writable scratch for /etc/searxng (initContainer seeds settings.yml,
+          # entrypoint mutates it in place with `sed -i`).
+          config:
+            type: emptyDir
+            advancedMounts:
+              searxng:
+                copy-settings:
+                  - path: /etc/searxng
+                main:
+                  - path: /etc/searxng
+          # ConfigMap source — mounted on the init only, read-only.
+          template:
+            type: configMap
+            name: searxng
+            advancedMounts:
+              searxng:
+                copy-settings:
+                  - path: /tmp/template
+                    readOnly: true
+        configMaps:
+          template:
+            data:
+              settings.yml: |
+                # SearXNG settings — overrides on top of default_settings.yml.
+                # Doc: https://docs.searxng.org/admin/settings/
+                #
+                # secret_key MUST stay literal "ultrasecretkey" here — the SearXNG
+                # docker entrypoint sed-substitutes it with $SEARXNG_SECRET at boot.
+                use_default_settings: true
+                general:
+                  instance_name: "SearXNG (tgu)"
+                  privacypolicy_url: false
+                  donation_url: false
+                  contact_url: false
+                  enable_metrics: false
+                server:
+                  secret_key: "ultrasecretkey"
+                  # Disable the bot-protection limiter — needs Redis we don't deploy.
+                  # The instance is LAN-only behind the NGINX whitelist, abuse is
+                  # not a real concern here.
+                  limiter: false
+                  image_proxy: true
+                  bind_address: "0.0.0.0"
+                  public_instance: false
+                ui:
+                  query_in_title: true
+                  infinite_scroll: false
+                  default_locale: "fr"
+                  center_alignment: true
+                  default_theme: simple
+                  theme_args:
+                    simple_style: dark
+                search:
+                  # CRITICAL for Hermes Agent: the SearXNG plugin in
+                  # /opt/hermes/plugins/web/searxng/provider.py calls
+                  # `/search?format=json`. The json format is NOT enabled by
+                  # default — without this list Hermes gets HTTP 403.
+                  formats:
+                    - html
+                    - json
+                  safe_search: 0
+                  autocomplete: ""
+                  default_lang: "fr"
+                outgoing:
+                  request_timeout: 6.0
+                  max_request_timeout: 12.0
+                  pool_connections: 100
+                  pool_maxsize: 20
+                  keepalive_expiry: 5.0
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      selfHeal: true
+      prune: true

@@ -62,6 +62,13 @@ spec:
                   HERMES_DASHBOARD_HOST: "0.0.0.0"
                   HERMES_DASHBOARD_PORT: "9119"
                   HERMES_DASHBOARD_INSECURE: "true"
+                  # SearXNG self-hosted instance (see argocd-apps/searxng-app.yaml).
+                  # Picked up by /opt/hermes/plugins/web/searxng/provider.py via
+                  # `is_available()` → bool(os.getenv("SEARXNG_URL")). Combined with
+                  # the `web.search_backend: searxng` directive in config.yaml below,
+                  # this routes Hermes' web_search tool through SearXNG instead of
+                  # the default Brave/Tavily/etc. (which need paid API keys).
+                  SEARXNG_URL: "http://searxng.searxng.svc.cluster.local:8080"
                 envFrom:
                   - secretRef:
                       name: hermes-secrets
@@ -160,6 +167,13 @@ spec:
                   inactivity_timeout: 120
                   command_timeout: 30
                   allow_private_urls: false
+                # Route the web_search tool through self-hosted SearXNG.
+                # SEARXNG_URL env (set in deployment spec) tells the plugin where to
+                # POST. `search_backend` is the explicit per-capability picker;
+                # `backend` is the shared fallback (both set for clarity).
+                web:
+                  search_backend: searxng
+                  backend: searxng
                 compression:
                   enabled: true
                   # Threshold MUST be tuned to LocalAI's real ceiling (32k for Qwen 2.5 7B),

@@ -57,6 +57,18 @@
     },
     {
       "customType": "regex",
+      "description": "SearXNG image tag (date+shortsha: YYYY.M.D-<hex>)",
+      "fileMatch": [
+        "^argocd/argocd-apps/searxng-app\\.yaml$"
+      ],
+      "matchStrings": [
+        "repository:\\s*(?<depName>searxng/searxng)\\s*\\n\\s*#[^\\n]*\\n\\s*#[^\\n]*\\n\\s*tag:\\s*\"(?<currentValue>\\d{4}\\.\\d+\\.\\d+-[0-9a-f]+)\""
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "loose"
+    },
+    {
+      "customType": "regex",
       "description": "Beszel agent versions in Ansible role defaults (apt + libreelec)",
       "fileMatch": [
         "^ansible/roles/beszel-agent.*/defaults/main\\.yml$"

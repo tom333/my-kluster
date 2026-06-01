@@ -44,4 +44,5 @@ pihole_local_dns:
   - { ip: 192.168.88.250, name: nuclio.tgu.ovh }
   - { ip: 192.168.88.250, name: pipeline.tgu.ovh }
   - { ip: 192.168.88.250, name: rustfs.tgu.ovh }
+  - { ip: 192.168.88.250, name: searxng.tgu.ovh }
   - { ip: 192.168.88.250, name: skooner.tgu.ovh }
