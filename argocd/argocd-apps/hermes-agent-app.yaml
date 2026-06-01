@@ -97,12 +97,10 @@ spec:
           bootstrap:
             type: configMap
             name: hermes-bootstrap
-            globalMounts:
-              - path: /bootstrap
-                readOnly: true
+            # Mount only on the bootstrap initContainer of the hermes controller.
+            # No globalMounts to avoid double-mount on main + init.
             advancedMounts:
               hermes:
-                main: []                            # do not mount in main, only initContainer
                 bootstrap:
                   - path: /bootstrap
                     readOnly: true
