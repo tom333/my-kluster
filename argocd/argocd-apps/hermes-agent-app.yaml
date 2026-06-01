@@ -1,0 +1,149 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: hermes-agent
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: hermes
+    server: https://kubernetes.default.svc
+  project: infra-project
+  source:
+    repoURL: https://bjw-s-labs.github.io/helm-charts
+    chart: app-template
+    targetRevision: 5.0.1
+    helm:
+      values: |
+        controllers:
+          hermes:
+            type: deployment
+            strategy: Recreate                      # state in PVC, single writer
+            initContainers:
+              # Seed config.yaml + SOUL.md into HERMES_HOME on first boot.
+              # Idempotent: copies only when missing in PVC.
+              bootstrap:
+                image:
+                  repository: busybox
+                  tag: "1.36"
+                command: ["sh", "-c"]
+                args:
+                  - |
+                    set -e
+                    if [ ! -f /opt/hermes/config.yaml ]; then
+                      echo "Seeding config.yaml from ConfigMap"
+                      cp /bootstrap/config.yaml /opt/hermes/config.yaml
+                    else
+                      echo "config.yaml already exists, skip"
+                    fi
+            containers:
+              main:
+                image:
+                  repository: nousresearch/hermes-agent
+                  tag: "v2026.5.29.2"
+                  pullPolicy: IfNotPresent
+                args:
+                  - "gateway"
+                  - "run"
+                env:
+                  HERMES_HOME: "/opt/hermes"
+                  # Plain Telegram config (non-sensitive)
+                  TELEGRAM_ALLOWED_USERS: "843341688"
+                  TELEGRAM_HOME_CHANNEL: "843341688"
+                  GATEWAY_ALLOW_ALL_USERS: "false"
+                  WHATSAPP_ENABLED: "false"
+                envFrom:
+                  - secretRef:
+                      name: hermes-secrets
+                resources:
+                  limits:   { cpu: "2",    memory: 2Gi }
+                  requests: { cpu: "200m", memory: 512Mi }
+        service:
+          app:
+            controller: hermes
+            ports:
+              http:
+                port: 8080
+                targetPort: 8080
+                protocol: TCP
+        ingress:
+          app:
+            className: nginx
+            annotations:
+              cert-manager.io/cluster-issuer: letsencrypt-prod
+              # LAN-only (cf. localai/beszel pattern)
+              nginx.ingress.kubernetes.io/whitelist-source-range: "192.168.88.0/24,10.1.0.0/16"
+            hosts:
+              - host: hermes.tgu.ovh
+                paths:
+                  - path: /
+                    pathType: Prefix
+                    service:
+                      identifier: app
+                      port: http
+            tls:
+              - hosts:
+                  - hermes.tgu.ovh
+                secretName: hermes-tls
+        persistence:
+          data:
+            type: persistentVolumeClaim
+            storageClass: microk8s-hostpath
+            accessMode: ReadWriteOnce
+            size: 10Gi                              # HERMES_HOME: skills + sessions + memory + LLM cache
+            globalMounts:
+              - path: /opt/hermes
+          bootstrap:
+            type: configMap
+            name: hermes-bootstrap
+            globalMounts:
+              - path: /bootstrap
+                readOnly: true
+            advancedMounts:
+              hermes:
+                main: []                            # do not mount in main, only initContainer
+                bootstrap:
+                  - path: /bootstrap
+                    readOnly: true
+        configMaps:
+          bootstrap:
+            data:
+              config.yaml: |
+                # Hermes Agent config — seeded into HERMES_HOME on first boot.
+                # Edit via kubectl exec or delete the PVC file to re-seed from this CM.
+                model:
+                  default: qwen2.5-7b-instruct
+                  provider: openai
+                  base_url: http://localai.localai.svc.cluster.local:8080/v1
+                agent:
+                  max_turns: 90
+                  gateway_timeout: 1800
+                  restart_drain_timeout: 60
+                  tool_use_enforcement: auto
+                terminal:
+                  backend: local
+                  cwd: /opt/hermes/workspace
+                  timeout: 180
+                display:
+                  tool_progress: all
+                  interim_assistant_messages: true
+                browser:
+                  inactivity_timeout: 120
+                  command_timeout: 30
+                  allow_private_urls: false
+                compression:
+                  enabled: true
+                  threshold: 0.5
+                  target_ratio: 0.2
+                  protect_last_n: 20
+                security:
+                  redact_secrets: true
+                  tirith_enabled: true
+                  tirith_fail_open: true
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      selfHeal: true
+      prune: true

@@ -45,6 +45,18 @@
     },
     {
       "customType": "regex",
+      "description": "Hermes Agent image tag (date-based versioning vYYYY.M.D[.N])",
+      "fileMatch": [
+        "^argocd/argocd-apps/hermes-agent-app\\.yaml$"
+      ],
+      "matchStrings": [
+        "repository:\\s*(?<depName>nousresearch/hermes-agent)\\s*\\n\\s*tag:\\s*\"(?<currentValue>v\\d{4}\\.\\d+\\.\\d+(\\.\\d+)?)\""
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "loose"
+    },
+    {
+      "customType": "regex",
       "description": "Beszel agent versions in Ansible role defaults (apt + libreelec)",
       "fileMatch": [
         "^ansible/roles/beszel-agent.*/defaults/main\\.yml$"

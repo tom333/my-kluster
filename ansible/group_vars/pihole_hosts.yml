@@ -30,6 +30,7 @@ pihole_local_dns:
   - { ip: 192.168.88.250, name: dashboard.tgu.ovh }
   - { ip: 192.168.88.250, name: dremio2.tgu.ovh }
   - { ip: 192.168.88.250, name: freshrss.tgu.ovh }
+  - { ip: 192.168.88.250, name: hermes.tgu.ovh }
   - { ip: 192.168.88.250, name: hue.tgu.ovh }
   - { ip: 192.168.88.250, name: jupyter.tgu.ovh }
   - { ip: 192.168.88.250, name: komga.tgu.ovh }
