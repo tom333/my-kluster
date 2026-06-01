@@ -130,7 +130,14 @@ spec:
                 # Hermes Agent config — seeded into HERMES_HOME on first boot.
                 # Edit via kubectl exec or delete the PVC file to re-seed from this CM.
                 model:
-                  default: qwen2.5-7b-instruct
+                  # Switched from qwen2.5-7b-instruct → hermes-3-llama-3.1-8b on 2026-06-02.
+                  # Qwen 2.5 7B kept emitting hallucinated text instead of tool_calls JSON
+                  # when the Hermes system prompt was loaded (16k+ tokens, 30 tools, skills
+                  # index). Hermes-3-Llama-3.1-8B is the model Hermes Agent was tuned with;
+                  # it reliably picks tools from large schemas and uses Hermes' native XML
+                  # <tool_call> grammar (LocalAI's automatic_tool_parsing_fallback rewrites
+                  # to OpenAI tool_calls JSON).
+                  default: hermes-3-llama-3.1-8b
                   # Named custom provider — definition is in the `providers:` block below.
                   # Using `provider: custom` (without an entry) means Hermes can't pull the
                   # API key from OPENAI_API_KEY env reliably (it sends "no-key-required"
@@ -150,7 +157,7 @@ spec:
                     name: localai
                     base_url: http://localai.localai.svc.cluster.local:8080/v1
                     key_env: OPENAI_API_KEY
-                    default_model: qwen2.5-7b-instruct
+                    default_model: hermes-3-llama-3.1-8b
                 agent:
                   max_turns: 90
                   gateway_timeout: 1800

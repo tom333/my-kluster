@@ -189,6 +189,46 @@ modelsConfigs:
       - "<|im_end|>"
       - "<|endoftext|>"
 
+  # NousResearch Hermes-3-Llama-3.1-8B — purpose-built for agent / tool-use.
+  # Hermes Agent (the Nous CLI) is tuned WITH this model: it reliably emits
+  # `tool_calls` JSON instead of hallucinating text (Qwen 2.5 7B's failure
+  # mode on big multi-tool system prompts).
+  # ~5 GB Q4_K_M + KV cache. Native 128k ctx but we cap to 32k (RTX 3060 12GB
+  # VRAM budget; 64k KV would tip over the card).
+  # Format: ChatML (<|im_start|>/<|im_end|>) — same as Qwen.
+  # Tool-call grammar: native XML-style <tool_call> tags; LocalAI's automatic
+  # parsing fallback rewrites them to OpenAI tool_calls JSON for the client.
+  hermes-3-llama-3.1-8b: |
+    name: hermes-3-llama-3.1-8b
+    backend: llama-cpp
+    known_usecases:
+      - chat
+    context_size: 32768
+    gpu_layers: 99
+    f16: true
+    flash_attention: true
+    mmap: true
+    parameters:
+      model: Hermes-3-Llama-3.1-8B-Q4_K_M.gguf
+      temperature: 0.6
+      top_p: 0.9
+      top_k: 40
+    download_files:
+      - filename: Hermes-3-Llama-3.1-8B-Q4_K_M.gguf
+        uri: https://huggingface.co/bartowski/Hermes-3-Llama-3.1-8B-GGUF/resolve/main/Hermes-3-Llama-3.1-8B-Q4_K_M.gguf
+    options:
+      - use_jinja:true
+    template:
+      use_tokenizer_template: true
+    function:
+      automatic_tool_parsing_fallback: true
+      grammar:
+        disable: true
+    stopwords:
+      - "<|im_end|>"
+      - "<|endoftext|>"
+      - "<|eot_id|>"
+
   # DeepSeek-Coder-V2-Lite-Instruct (MoE 15.7B / 2.4B actifs).
   # Sélectionné par llmfit (score 91.5) comme meilleur modèle code pour RTX 3060.
   # Remplace Qwen2.5-Coder-7B-Instruct (score 84.5) — MoE = vitesse d'un 2-3B
