@@ -115,8 +115,13 @@ spec:
                 # Edit via kubectl exec or delete the PVC file to re-seed from this CM.
                 model:
                   default: qwen2.5-7b-instruct
-                  provider: openai
+                  # "custom" = generic OpenAI-compatible endpoint (LocalAI, Ollama, vLLM, llama.cpp).
+                  # "openai" is NOT a valid value per cli-config.yaml.example.
+                  provider: custom
                   base_url: http://localai.localai.svc.cluster.local:8080/v1
+                  # LocalAI may not expose /v1/models cleanly → set context window manually.
+                  # Qwen 2.5 7B = 32k tokens native.
+                  context_length: 32768
                 agent:
                   max_turns: 90
                   gateway_timeout: 1800
