@@ -55,6 +55,13 @@ spec:
                   TELEGRAM_HOME_CHANNEL: "843341688"
                   GATEWAY_ALLOW_ALL_USERS: "false"
                   WHATSAPP_ENABLED: "false"
+                  # Dashboard web UI — disabled by default in image; enable for hermes.tgu.ovh.
+                  # INSECURE=true skips the Nous OAuth gate; safe here because the ingress is
+                  # LAN-only (whitelist-source-range below) and not reachable from internet.
+                  HERMES_DASHBOARD: "true"
+                  HERMES_DASHBOARD_HOST: "0.0.0.0"
+                  HERMES_DASHBOARD_PORT: "9119"
+                  HERMES_DASHBOARD_INSECURE: "true"
                 envFrom:
                   - secretRef:
                       name: hermes-secrets
@@ -67,7 +74,9 @@ spec:
             ports:
               http:
                 port: 8080
-                targetPort: 8080
+                # Hermes dashboard listens on 9119 inside the pod (HERMES_DASHBOARD_PORT).
+                # Service keeps 8080 externally; targetPort bridges to the pod.
+                targetPort: 9119
                 protocol: TCP
         ingress:
           app:
