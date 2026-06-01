@@ -115,10 +115,11 @@ spec:
                 # Edit via kubectl exec or delete the PVC file to re-seed from this CM.
                 model:
                   default: qwen2.5-7b-instruct
-                  # "custom" = generic OpenAI-compatible endpoint (LocalAI, Ollama, vLLM, llama.cpp).
-                  # "openai" is NOT a valid value per cli-config.yaml.example.
-                  provider: custom
-                  base_url: http://localai.localai.svc.cluster.local:8080/v1
+                  # Named custom provider — definition is in the `providers:` block below.
+                  # Using `provider: custom` (without an entry) means Hermes can't pull the
+                  # API key from OPENAI_API_KEY env reliably (it sends "no-key-required"
+                  # placeholder and gets 401). Named providers with key_env solve that.
+                  provider: localai
                   # Hermes requires context_length >= 64000 (hard minimum, otherwise ValueError).
                   # Qwen 2.5 7B native = 32k, but we declare 64k here to satisfy Hermes' floor.
                   # Hermes compression kicks in at threshold=0.5 → starts compressing at 32k actual
@@ -126,6 +127,14 @@ spec:
                   # If conversations grow > 32k, LocalAI may truncate; safer long-term is to
                   # enable YaRN in LocalAI or switch to a model with native 64k+ context.
                   context_length: 65536
+                # Named custom providers: Hermes resolves api_key from env var listed in key_env.
+                # OPENAI_API_KEY comes from the `hermes-secrets` SealedSecret (envFrom).
+                providers:
+                  localai:
+                    name: localai
+                    base_url: http://localai.localai.svc.cluster.local:8080/v1
+                    key_env: OPENAI_API_KEY
+                    default_model: qwen2.5-7b-instruct
                 agent:
                   max_turns: 90
                   gateway_timeout: 1800
