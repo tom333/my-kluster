@@ -25,6 +25,14 @@
   - **Voie C — Pangolin** : équivalent open-source de Cloudflare Tunnel + Access, self-hosted (nécessite un VPS frontend)
   - Recommandation perso : **Headscale** pour la flexibilité, sauf si zero-client est dealbreaker
 
+- **Migrer overlay containerd MicroK8s sur NVMe** : perf bottleneck identifié
+  - Symptôme observé (1er boot Hermes, juin 2026) : chown -R sur /opt/hermes/.venv + node_modules a duré >10 min, sda saturé à 87% util / 81 ms wait / 1.5 MB/s, NVMe idle à 0.2%
+  - Cause : `/var/snap/microk8s/common/var/lib/containerd/` + l'overlay/snapshotter vivent encore sur sda alors que `/data` (PVCs k8s) est sur NVMe
+  - Effet : tous les pods k8s souffrent de cold-start lent (image pull + chown overlay sur sda)
+  - Plan : déplacer `/var/snap/microk8s/common/var/lib/containerd` sur NVMe (`/data/containerd/`), via symlink + `microk8s stop` + rsync + `microk8s start`. Garder un backup avant. Vérifier que les snapshots existants (kubelet, images cache) sont préservés
+  - Bonus : bench cold-start avant/après (kubectl rollout restart d'un pod arbitraire, mesurer Pulling→Started)
+  - Risque : si rsync rate ou symlink mal posé → cluster KO. Faire à froid + backup snapshot du fs avant
+
 ## ✅ Récemment terminé (mai 2026)
 
 - [x] **Extension Ansible : common-cli-tools + dev-workstation + work-laptop monitoring**
