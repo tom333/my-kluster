@@ -151,7 +151,10 @@ modelsConfigs:
       - "<|im_end|>"
       - "<|endoftext|>"
 
-  # ~5 GB VRAM at ctx=16k. Polyvalent chat model, very good in French.
+  # ~10 GB VRAM at ctx=32k (native Qwen 2.5 7B window), with flash_attention.
+  # Bumped from 16k → 32k so Hermes Agent (which needs a 64k-declared ctx,
+  # compresses at threshold=0.5 → ~32k real tokens) doesn't overflow on big
+  # system prompts (skills index + persona = ~16k baseline).
   # Tool-calling enabled via llama.cpp jinja runtime + GGUF embedded
   # Hermes-style chat template (pattern from mudler/LocalAI gallery qwen3.yaml).
   qwen2.5-7b-instruct: |
@@ -159,7 +162,7 @@ modelsConfigs:
     backend: llama-cpp
     known_usecases:
       - chat
-    context_size: 16384
+    context_size: 32768
     gpu_layers: 99
     f16: true
     flash_attention: true
