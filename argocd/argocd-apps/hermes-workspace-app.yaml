@@ -1,0 +1,111 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: hermes-workspace
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: hermes
+    server: https://kubernetes.default.svc
+  project: infra-project
+  source:
+    repoURL: https://bjw-s-labs.github.io/helm-charts
+    chart: app-template
+    targetRevision: 5.0.1
+    helm:
+      values: |
+        controllers:
+          workspace:
+            type: deployment
+            strategy: Recreate
+            containers:
+              main:
+                image:
+                  repository: ghcr.io/outsourc-e/hermes-workspace
+                  # Renovate tracks via customManager regex in renovate.json.
+                  # Pinned tag (not :latest) for reproducibility.
+                  tag: "latest"
+                  pullPolicy: IfNotPresent
+                env:
+                  # Bridge to the Hermes Agent backends — both APIs live in the
+                  # `hermes` namespace, exposed by the `hermes-agent` service on
+                  # ports 9119 (dashboard/admin) and 8642 (gateway/chat).
+                  HERMES_API_URL: "http://hermes-agent.hermes.svc.cluster.local:8642"
+                  HERMES_DASHBOARD_URL: "http://hermes-agent.hermes.svc.cluster.local:9119"
+                  # Workspace's HERMES_HOME (config + workspace files) — emptyDir
+                  # via persistence below. The workspace reads agent config from
+                  # the Hermes APIs, not from a shared PVC, so this is just a
+                  # scratch dir for workspace-local state.
+                  HERMES_HOME: "/home/workspace/.hermes"
+                  HERMES_WORKSPACE_DIR: "/workspace"
+                  # Behind the LAN-only NGINX ingress with cert-manager TLS, so
+                  # cookies should be Secure + we trust the proxy's forwarded
+                  # headers for IP classification.
+                  COOKIE_SECURE: "true"
+                  TRUST_PROXY: "true"
+                envFrom:
+                  - secretRef:
+                      name: hermes-workspace-secrets
+                      # Provides:
+                      #   HERMES_API_TOKEN  (= API_SERVER_KEY on hermes-agent side)
+                      #   HERMES_PASSWORD   (workspace web-UI login password)
+                resources:
+                  limits:   { cpu: "1",    memory: 1Gi }
+                  requests: { cpu: "100m", memory: 256Mi }
+        service:
+          app:
+            controller: workspace
+            ports:
+              http:
+                port: 3000
+                targetPort: 3000
+                protocol: TCP
+        ingress:
+          app:
+            className: nginx
+            annotations:
+              cert-manager.io/cluster-issuer: letsencrypt-prod
+              # LAN-only (192.168.88.0/24 home + 10.1.0.0/16 k8s pod CIDR).
+              nginx.ingress.kubernetes.io/whitelist-source-range: "192.168.88.0/24,10.1.0.0/16"
+              # WebSocket + SSE: workspace streams chat tokens + tails terminal
+              # via long-lived connections. Bump NGINX read/send timeouts so
+              # idle SSE doesn't get cut at the 60s default.
+              nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+              nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+            hosts:
+              - host: hermes.tgu.ovh
+                paths:
+                  - path: /
+                    pathType: Prefix
+                    service:
+                      identifier: app
+                      port: http
+            tls:
+              - hosts:
+                  - hermes.tgu.ovh
+                secretName: hermes-tls
+        persistence:
+          # Scratch for the workspace's own HERMES_HOME state (UI prefs,
+          # session token cache). Not shared with the agent — workspace
+          # consumes agent state via APIs, not by filesystem.
+          home:
+            type: emptyDir
+            globalMounts:
+              - path: /home/workspace/.hermes
+          # File browser root — `HERMES_WORKSPACE_DIR=/workspace`. Persisted
+          # so files created from the UI survive pod restarts.
+          files:
+            type: persistentVolumeClaim
+            storageClass: microk8s-hostpath
+            accessMode: ReadWriteOnce
+            size: 5Gi
+            globalMounts:
+              - path: /workspace
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      selfHeal: true
+      prune: true
