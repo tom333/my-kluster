@@ -79,9 +79,17 @@ spec:
                   repository: nousresearch/hermes-agent
                   tag: "v2026.5.29.2"
                   pullPolicy: IfNotPresent
+                # IMPORTANT: do NOT pass `["gateway", "run"]` as CMD here.
+                # The image's reconcile-profiles cont-init dynamically registers
+                # a supervised s6 service `gateway-default` that already runs
+                # `hermes gateway run`. If the container's CMD ALSO runs gateway,
+                # the two processes race for the gateway.lock file and the
+                # supervised one enters a permanent crashloop ("Gateway already
+                # running (PID N)"). Sleep infinity keeps the container alive;
+                # s6 handles gateway + dashboard supervision.
                 args:
-                  - "gateway"
-                  - "run"
+                  - "sleep"
+                  - "infinity"
                 env:
                   # HERMES_HOME points to /opt/data (PVC), not /opt/hermes
                   # which holds image code + scripts (main-wrapper.sh etc).
