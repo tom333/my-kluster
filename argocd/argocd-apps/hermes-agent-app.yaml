@@ -130,14 +130,18 @@ spec:
                 # Hermes Agent config — seeded into HERMES_HOME on first boot.
                 # Edit via kubectl exec or delete the PVC file to re-seed from this CM.
                 model:
-                  # Switched from qwen2.5-7b-instruct → hermes-3-llama-3.1-8b on 2026-06-02.
-                  # Qwen 2.5 7B kept emitting hallucinated text instead of tool_calls JSON
-                  # when the Hermes system prompt was loaded (16k+ tokens, 30 tools, skills
-                  # index). Hermes-3-Llama-3.1-8B is the model Hermes Agent was tuned with;
-                  # it reliably picks tools from large schemas and uses Hermes' native XML
-                  # <tool_call> grammar (LocalAI's automatic_tool_parsing_fallback rewrites
-                  # to OpenAI tool_calls JSON).
-                  default: hermes-3-llama-3.1-8b
+                  # 2026-06-02: switched Qwen2.5-7B → Hermes-3-Llama-3.1-8B → Qwen3-8B.
+                  #
+                  # - Qwen 2.5 7B (Q4) emits tool_calls JSON on small isolated prompts
+                  #   but hallucinates free text under Hermes' 16k+ system prompt.
+                  # - Hermes-3-Llama-3.1-8B (Nous Research) FAILED tool calling even on
+                  #   the small isolated test — likely a LocalAI tool-parser mismatch
+                  #   with Hermes-3's XML grammar under automatic_tool_parsing_fallback.
+                  # - Qwen3-8B is the recommendation in remoteopenclaw.com's "Best
+                  #   Free Models for Hermes Agent" article (May 2026): "Best for 8 GB
+                  #   VRAM, reliable tool calling". Different generation than Qwen2.5
+                  #   — retrained with stronger function-call coverage.
+                  default: qwen3-8b
                   # Named custom provider — definition is in the `providers:` block below.
                   # Using `provider: custom` (without an entry) means Hermes can't pull the
                   # API key from OPENAI_API_KEY env reliably (it sends "no-key-required"
@@ -157,7 +161,7 @@ spec:
                     name: localai
                     base_url: http://localai.localai.svc.cluster.local:8080/v1
                     key_env: OPENAI_API_KEY
-                    default_model: hermes-3-llama-3.1-8b
+                    default_model: qwen3-8b
                 agent:
                   max_turns: 90
                   gateway_timeout: 1800

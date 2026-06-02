@@ -189,6 +189,53 @@ modelsConfigs:
       - "<|im_end|>"
       - "<|endoftext|>"
 
+  # Qwen3 8B — Hermes Agent's recommended local-tier model for tool calling
+  # (per https://www.remoteopenclaw.com/blog/best-free-models-for-hermes,
+  # "Best for 8 GB VRAM, reliable tool calling"). Different generation than
+  # Qwen2.5 — Qwen3 has hybrid thinking/non-thinking modes and was retrained
+  # with stronger function-call coverage.
+  #
+  # ~5 GB Q4_K_M + KV cache. Native 32k ctx (kept at 32k here; Qwen3 supports
+  # YaRN to 128k but VRAM budget on RTX 3060 12 GB is tight at 32k already).
+  #
+  # Thinking mode is OFF by default in our chat template: thinking burns
+  # tokens that the Hermes 16k+ system prompt can't afford. To switch it on
+  # ad-hoc, send the request with `extra_body: {chat_template_kwargs:
+  # {enable_thinking: true}}`.
+  qwen3-8b: |
+    name: qwen3-8b
+    backend: llama-cpp
+    known_usecases:
+      - chat
+    context_size: 32768
+    gpu_layers: 99
+    f16: true
+    flash_attention: true
+    mmap: true
+    parameters:
+      model: Qwen3-8B-Q4_K_M.gguf
+      temperature: 0.7
+      top_p: 0.8
+      top_k: 20
+    download_files:
+      - filename: Qwen3-8B-Q4_K_M.gguf
+        uri: https://huggingface.co/Qwen/Qwen3-8B-GGUF/resolve/main/Qwen3-8B-Q4_K_M.gguf
+    options:
+      - use_jinja:true
+      # Pass chat_template kwarg to disable Qwen3's <think> mode at boot.
+      # The bundled Qwen3 jinja template honours enable_thinking; off keeps
+      # the model in fast-response mode (no <think>...</think> preamble).
+      - "chat_template_kwargs:{\"enable_thinking\":false}"
+    template:
+      use_tokenizer_template: true
+    function:
+      automatic_tool_parsing_fallback: true
+      grammar:
+        disable: true
+    stopwords:
+      - "<|im_end|>"
+      - "<|endoftext|>"
+
   # NousResearch Hermes-3-Llama-3.1-8B — purpose-built for agent / tool-use.
   # Hermes Agent (the Nous CLI) is tuned WITH this model: it reliably emits
   # `tool_calls` JSON instead of hallucinating text (Qwen 2.5 7B's failure
