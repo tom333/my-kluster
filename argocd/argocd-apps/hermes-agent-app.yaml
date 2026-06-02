@@ -37,6 +37,42 @@ spec:
                     else
                       echo "config.yaml already exists, skip"
                     fi
+              # Install static CLI extras (jq, yq) into the PVC so the agent's
+              # terminal tool can pipe HTTP/JSON workflows without an image rebuild.
+              # /opt/data/.local/bin is already on the image's $PATH (verified:
+              # PATH=/opt/hermes/bin:/opt/hermes/.venv/bin:/opt/data/.local/bin:/usr/local/sbin:...).
+              # Image alpine/curl has HTTPS; busybox does not.
+              # Idempotent: skips download if binary already present + executable.
+              install-cli-extras:
+                image:
+                  repository: alpine
+                  tag: "3.20"
+                command: ["sh", "-c"]
+                args:
+                  - |
+                    set -e
+                    apk add --no-cache curl >/dev/null
+                    mkdir -p /opt/data/.local/bin
+                    cd /opt/data/.local/bin
+
+                    if [ ! -x jq ]; then
+                      echo "Downloading jq (static, ~5 MB)"
+                      curl -fsSL -o jq https://github.com/jqlang/jq/releases/latest/download/jq-linux-amd64
+                      chmod +x jq
+                    else
+                      echo "jq already installed, skip"
+                    fi
+
+                    if [ ! -x yq ]; then
+                      echo "Downloading yq (static, ~10 MB)"
+                      curl -fsSL -o yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+                      chmod +x yq
+                    else
+                      echo "yq already installed, skip"
+                    fi
+
+                    echo "Installed CLI extras:"
+                    ls -la /opt/data/.local/bin/
             containers:
               main:
                 image:
@@ -201,10 +237,14 @@ spec:
                   protect_first_n: 1
                 # Restrict Telegram toolset: drop tts/image_gen/vision/messaging to
                 # shrink the tool-schema portion of the system prompt (~2-3k tokens saved).
-                # Keep web (search), browser (page fetch), file, todo, cronjob, skills
-                # — everything needed for job-watch + general assistant use.
+                # Keep web (search), browser (page fetch), file, todo, cronjob, skills,
+                # terminal (curl/jq/awk/sed shell pipelines), code_execution (Python
+                # sandbox: requests/httpx/json/yaml).
+                # Security: TELEGRAM_ALLOWED_USERS pins the bot to user 843341688 only;
+                # k8s container is non-privileged, no host mount, no sudo — terminal
+                # access cannot escape the container.
                 platform_toolsets:
-                  telegram: [web, browser, file, todo, cronjob, skills]
+                  telegram: [web, browser, file, todo, cronjob, skills, terminal, code_execution]
                 # Disable Nous Portal as auxiliary fallback — no subscription, every
                 # call returns 402 and floods logs. Hermes already throttles it after
                 # the first failure (60s); this just silences the noise.
