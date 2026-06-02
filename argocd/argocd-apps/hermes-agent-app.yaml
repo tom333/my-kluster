@@ -73,6 +73,38 @@ spec:
 
                     echo "Installed CLI extras:"
                     ls -la /opt/data/.local/bin/
+              # Force gateway_state.json's `gateway_state` field to "running"
+              # before the main container's cont-init.d/02-reconcile-profiles
+              # reads it. Without this, the supervised gateway-default s6 service
+              # is registered but NOT started after a pod restart: Hermes writes
+              # "stopped" to gateway_state.json on SIGTERM (graceful shutdown),
+              # and the reconciler only auto-starts profiles whose prior state
+              # was "running" (see hermes_cli/container_boot.py:_AUTOSTART_STATES).
+              # Result: container restart → no gateway → no :8642 → workspace
+              # falls into "mode=disconnected" until we manually s6-svc -u.
+              # Idempotent: skips the file if it doesn't exist yet (first boot,
+              # the main container will create it with a sensible default).
+              force-gateway-autostart:
+                image:
+                  repository: alpine
+                  tag: "3.20"
+                command: ["sh", "-c"]
+                args:
+                  - |
+                    set -e
+                    f=/opt/data/gateway_state.json
+                    if [ ! -f "$f" ]; then
+                      echo "$f absent (first boot); reconciler will register only — no-op"
+                      exit 0
+                    fi
+                    apk add --no-cache jq >/dev/null
+                    current=$(jq -r '.gateway_state // "absent"' "$f")
+                    if [ "$current" = "running" ]; then
+                      echo "gateway_state already 'running'; no change"
+                      exit 0
+                    fi
+                    jq '.gateway_state = "running"' "$f" > "$f.tmp" && mv "$f.tmp" "$f"
+                    echo "Patched gateway_state: $current → running"
             containers:
               main:
                 image:
