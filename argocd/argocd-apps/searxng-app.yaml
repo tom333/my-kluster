@@ -44,7 +44,7 @@ spec:
                   repository: searxng/searxng
                   # Date-based versioning (YYYY.MM.DD-shortsha). Renovate tracks
                   # this via custom regex (see renovate.json).
-                  tag: "2026.5.31-7159b8aed"
+                  tag: "2026.6.2-e964708c0"
                   pullPolicy: IfNotPresent
                 env:
                   SEARXNG_SETTINGS_PATH: /etc/searxng/settings.yml
