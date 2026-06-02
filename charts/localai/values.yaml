@@ -212,6 +212,13 @@ modelsConfigs:
     f16: true
     flash_attention: true
     mmap: true
+    # KV cache quantization (q8_0 = 50% smaller KV cache vs FP16, near-lossless).
+    # At 32k ctx on Qwen3 8B this frees ~1.5 GB VRAM — enough headroom to bump
+    # context later, or run a 12B sibling. Requires flash_attention: true above
+    # (without flash-attn, llama.cpp silently downgrades quantized KV to FP16).
+    # If quality regresses on long agent chains, drop to q4_0 only on V (asymmetric).
+    cache_type_k: q8_0
+    cache_type_v: q8_0
     parameters:
       model: Qwen3-8B-Q4_K_M.gguf
       temperature: 0.7
