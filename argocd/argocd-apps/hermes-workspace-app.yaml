@@ -40,11 +40,15 @@ spec:
                   # scratch dir for workspace-local state.
                   HERMES_HOME: "/home/workspace/.hermes"
                   HERMES_WORKSPACE_DIR: "/workspace"
-                  # Behind the LAN-only NGINX ingress with cert-manager TLS, so
-                  # cookies should be Secure + we trust the proxy's forwarded
-                  # headers for IP classification.
-                  COOKIE_SECURE: "true"
-                  TRUST_PROXY: "true"
+                  # Behind the LAN-only NGINX ingress with cert-manager TLS.
+                  # Workspace checks env values strictly as "1" (per
+                  # .env.example); "true" is silently ignored and the
+                  # workspace then warns "plain-HTTP LAN deployment detected"
+                  # because it can't see the X-Forwarded-Proto=https header
+                  # without TRUST_PROXY=1. Resulting Secure-cookie mismatch
+                  # makes login fail on first POST.
+                  COOKIE_SECURE: "1"
+                  TRUST_PROXY: "1"
                 envFrom:
                   - secretRef:
                       name: hermes-workspace-secrets
