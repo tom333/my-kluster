@@ -207,16 +207,26 @@ modelsConfigs:
     backend: llama-cpp
     known_usecases:
       - chat
-    context_size: 32768
+    # Qwen3-8B native context per HuggingFace = 40960. Set to 65536 with YaRN
+    # rope-scaling (2× extension) to handle Hermes cron jobs that accumulate
+    # 13+ browser_snapshot tool results (~30k tokens of HTML each run) before
+    # compression kicks in. The previous 32768 ceiling overflowed at 55k tokens
+    # on the NC job-hunt cron.
+    # VRAM budget on RTX 3060 12GB with Q4_K_M model + Q8_0 KV cache:
+    #   - 32k KV q8_0: ~3.0 GB
+    #   - 64k KV q8_0: ~6.0 GB
+    #   - 5 GB weights + 6 GB KV + 1 GB activation = ~12 GB — fits, tight.
+    # If we OOM, fall back to context_size: 40960 (native, no YaRN), or
+    # switch cache_type_v: q4_0 to halve V-cache size at minor quality cost.
+    context_size: 65536
     gpu_layers: 99
     f16: true
     flash_attention: true
     mmap: true
     # KV cache quantization (q8_0 = 50% smaller KV cache vs FP16, near-lossless).
-    # At 32k ctx on Qwen3 8B this frees ~1.5 GB VRAM — enough headroom to bump
-    # context later, or run a 12B sibling. Requires flash_attention: true above
-    # (without flash-attn, llama.cpp silently downgrades quantized KV to FP16).
-    # If quality regresses on long agent chains, drop to q4_0 only on V (asymmetric).
+    # Critical at 64k context — drops KV from 12 GB FP16 to 6 GB.
+    # Requires flash_attention: true above (without flash-attn, llama.cpp
+    # silently downgrades quantized KV to FP16 and OOMs).
     cache_type_k: q8_0
     cache_type_v: q8_0
     parameters:
@@ -233,6 +243,13 @@ modelsConfigs:
       # The bundled Qwen3 jinja template honours enable_thinking; off keeps
       # the model in fast-response mode (no <think>...</think> preamble).
       - "chat_template_kwargs:{\"enable_thinking\":false}"
+      # YaRN rope scaling — extends Qwen3-8B's native 40960 ctx to 65536
+      # (2× factor). yarn_orig_ctx matches the model's training ctx so the
+      # interpolation is calibrated correctly. Per Qwen team, YaRN at 2×
+      # is near-lossless on the 0–32k range and acceptable for 32–64k.
+      - "rope_scaling:yarn"
+      - "rope_freq_scale:0.5"
+      - "yarn_orig_ctx:40960"
     template:
       use_tokenizer_template: true
     function:
