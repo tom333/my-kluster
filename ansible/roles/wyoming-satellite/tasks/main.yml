@@ -1,0 +1,88 @@
+---
+# Wyoming Satellite — install + systemd user unit.
+# Becomes the wyoming_satellite_user via `become_user` so pipx, $HOME, and
+# `systemctl --user` all target the right account on a multi-user box.
+
+- name: Install audio + build deps (apt, root)
+  ansible.builtin.apt:
+    name:
+      - alsa-utils         # arecord / aplay (capture + playback CLI)
+      - libportaudio2      # PortAudio runtime — sounddevice wheel depends on it
+      - portaudio19-dev    # PortAudio headers — sounddevice builds against them
+      - python3-dev        # CPython headers for any C extensions
+      - build-essential    # gcc / make for sounddevice if no wheel matches
+    state: present
+    update_cache: true
+
+- name: Enable lingering so user systemd survives logout
+  ansible.builtin.command: "loginctl enable-linger {{ wyoming_satellite_user }}"
+  args:
+    creates: "/var/lib/systemd/linger/{{ wyoming_satellite_user }}"
+  when: wyoming_satellite_enable_lingering | bool
+
+- name: Ensure satellite home exists
+  ansible.builtin.file:
+    path: "{{ wyoming_satellite_home }}"
+    state: directory
+    owner: "{{ wyoming_satellite_user }}"
+    group: "{{ wyoming_satellite_user }}"
+    mode: "0755"
+
+# pipx is installed by the dev-workstation role (which runs ahead of this
+# in the play); we lean on it here to keep the wyoming-satellite venv
+# isolated from the user's pip global. --force lets the role be re-run
+# to upgrade pinned versions on rerun.
+- name: Install wyoming-satellite via pipx (user)
+  become: true
+  become_user: "{{ wyoming_satellite_user }}"
+  ansible.builtin.command:
+    cmd: >
+      pipx install
+      --force
+      "wyoming-satellite=={{ wyoming_satellite_version }}"
+  register: pipx_satellite_install
+  changed_when: "'installed package' in pipx_satellite_install.stdout or 'replaced existing' in pipx_satellite_install.stdout"
+
+- name: Inject openwakeword + sounddevice into satellite venv
+  become: true
+  become_user: "{{ wyoming_satellite_user }}"
+  ansible.builtin.command:
+    cmd: >
+      pipx inject wyoming-satellite
+      "wyoming-openwakeword=={{ wyoming_openwakeword_version }}"
+      "sounddevice"
+  register: pipx_inject
+  changed_when: "'injected package' in pipx_inject.stdout"
+
+- name: Render systemd user unit
+  ansible.builtin.template:
+    src: wyoming-satellite.service.j2
+    dest: "/home/{{ wyoming_satellite_user }}/.config/systemd/user/wyoming-satellite.service"
+    owner: "{{ wyoming_satellite_user }}"
+    group: "{{ wyoming_satellite_user }}"
+    mode: "0644"
+  notify: Restart wyoming-satellite
+
+- name: Ensure user systemd dir exists
+  ansible.builtin.file:
+    path: "/home/{{ wyoming_satellite_user }}/.config/systemd/user"
+    state: directory
+    owner: "{{ wyoming_satellite_user }}"
+    group: "{{ wyoming_satellite_user }}"
+    mode: "0755"
+
+- name: Reload user systemd + enable + start
+  become: true
+  become_user: "{{ wyoming_satellite_user }}"
+  ansible.builtin.systemd:
+    name: wyoming-satellite.service
+    scope: user
+    daemon_reload: true
+    enabled: true
+    state: started
+  environment:
+    # systemd --user needs DBUS_SESSION_BUS_ADDRESS pointing at the user's bus.
+    # XDG_RUNTIME_DIR is normally set by login PAM; we set it explicitly so the
+    # task works under Ansible (non-interactive) too.
+    XDG_RUNTIME_DIR: "/run/user/{{ wyoming_satellite_uid | default(1000) }}"
+    DBUS_SESSION_BUS_ADDRESS: "unix:path=/run/user/{{ wyoming_satellite_uid | default(1000) }}/bus"

@@ -1,0 +1,61 @@
+---
+# Wyoming Voice Satellite — runs on a workstation, streams mic to k8s Wyoming
+# services and plays TTS audio back through the host's speaker. The wake word
+# is detected ON-BOARD (Python openWakeWord) — no separate k8s wake service
+# required.
+#
+# Once running, register the satellite in HA: Settings → Devices & Services →
+# Add Integration → "Wyoming Protocol" → host = <this machine's LAN IP>,
+# port = wyoming_satellite_port (default 10700). HA will then expose it as a
+# voice satellite that can be attached to any Assist pipeline.
+
+# --- Identity --------------------------------------------------------------
+# Friendly name shown in HA. Must be unique across satellites.
+wyoming_satellite_name: "{{ inventory_hostname }}-voice"
+
+# TCP port the satellite listens on (HA Wyoming integration connects here).
+wyoming_satellite_port: 10700
+
+# --- Backends in k8s -------------------------------------------------------
+# wyoming-whisper + wyoming-piper Services in the `voice` namespace are
+# exposed via NodePort on the k8s node IP. The satellite reaches them via
+# tcp:// URIs.
+wyoming_whisper_uri: "tcp://192.168.88.250:30300"
+wyoming_piper_uri:   "tcp://192.168.88.250:30200"
+
+# --- Wake word -------------------------------------------------------------
+# Built-in openWakeWord models: alexa, hey_jarvis, hey_mycroft, ok_nabu.
+# Custom microWakeWord models can be dropped in
+# {{ wyoming_satellite_home }}/wake_models/ later.
+wyoming_satellite_wake_word: "ok_nabu"
+
+# --- Audio devices ---------------------------------------------------------
+# ALSA device specifiers (default = ALSA's `default`). Override per-host
+# in inventory or host_vars. Find names with:
+#   arecord -L   # capture
+#   aplay -L     # playback
+# Use `plughw:CARD=...,DEV=...` to skip PulseAudio if the user session
+# isn't fully provisioned (systemd --user limitation in headless context).
+wyoming_satellite_mic_device: "default"
+wyoming_satellite_snd_device: "default"
+
+# Capture format. 16 kHz mono S16_LE matches Wyoming + Whisper expectations.
+wyoming_satellite_mic_rate: 16000
+wyoming_satellite_mic_channels: 1
+
+# --- Install paths ---------------------------------------------------------
+# pipx installs into the invoking user's $HOME/.local/share/pipx/venvs/...
+# (we lean on the existing pipx setup from the `dev-workstation` role).
+wyoming_satellite_user: "{{ ansible_user }}"
+wyoming_satellite_home: "/home/{{ wyoming_satellite_user }}/.wyoming-satellite"
+
+# pip package versions (bumped manually; Renovate can be wired later via
+# a customManager regex on this file).
+wyoming_satellite_version: "1.4.1"
+wyoming_openwakeword_version: "1.10.0"
+
+# --- systemd user unit -----------------------------------------------------
+# Service runs as the user (`systemctl --user`), so user-level lingering
+# must be enabled so the service auto-starts at boot without an active
+# login session (i.e. survives logout on laptop close-and-resume).
+wyoming_satellite_enable_lingering: true

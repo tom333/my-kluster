@@ -1,0 +1,30 @@
+[Unit]
+Description=Wyoming Voice Satellite ({{ wyoming_satellite_name }})
+Documentation=https://github.com/rhasspy/wyoming-satellite
+After=default.target network-online.target sound.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=%h/.local/bin/wyoming-satellite \
+    --name "{{ wyoming_satellite_name }}" \
+    --uri "tcp://0.0.0.0:{{ wyoming_satellite_port }}" \
+    --mic-command "arecord -D {{ wyoming_satellite_mic_device }} -r {{ wyoming_satellite_mic_rate }} -c {{ wyoming_satellite_mic_channels }} -f S16_LE -t raw" \
+    --snd-command "aplay -D {{ wyoming_satellite_snd_device }} -r 22050 -c 1 -f S16_LE -t raw" \
+    --wake-word-name "{{ wyoming_satellite_wake_word }}" \
+    --event-uri "tcp://localhost:10500"
+# Note on --event-uri: we expose a local Wyoming event channel that HA can
+# listen on for satellite state changes (idle / listening / processing / done).
+# Optional; can be commented out if not consumed.
+
+Restart=always
+RestartSec=5
+
+# Hardening — limited because the service needs ALSA + user audio group.
+NoNewPrivileges=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+
+[Install]
+WantedBy=default.target

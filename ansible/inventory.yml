@@ -47,6 +47,17 @@ all:
           ansible_user: pi
           beszel_arch: arm      # Raspberry Pi armv7 32-bit (Pi 1/2/3, or Pi 4 in 32-bit mode)
 
+    # Wyoming Voice satellites — workstations hébergeant un satellite voice
+    # (mic + speaker + wake-word local). Relaient vers les services Wyoming k8s
+    # (whisper STT + piper TTS, ns `voice`) et exposent un endpoint Wyoming
+    # protocol TCP que HA Assist peut consommer.
+    # Run uniquement avec `--tags voice` ; le rôle est lourd (audio deps).
+    voice_satellites:
+      hosts:
+        # Définition canonique dans dev_workstations ; ref nue ici.
+        # Override `wyoming_satellite_uid` en host_vars si UID ≠ 1000.
+        work-laptop: {}
+
     # Media / gaming PCs — Jellyfin client + Feral gamemode + sysctl tweaks.
     # work-laptop est aussi dans dev_workstations (host dans 2 groupes).
     media_pcs:
