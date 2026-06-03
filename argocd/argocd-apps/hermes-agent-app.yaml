@@ -145,6 +145,17 @@ spec:
                   # this routes Hermes' web_search tool through SearXNG instead of
                   # the default Brave/Tavily/etc. (which need paid API keys).
                   SEARXNG_URL: "http://searxng.searxng.svc.cluster.local:8080"
+                  # Legacy OpenAI-compatible env pair. Hermes' actual routing
+                  # for our model goes through `providers.localai` (named
+                  # provider with key_env: OPENAI_API_KEY) — that's the
+                  # modern syntax and takes precedence. But the hermes-workspace
+                  # admin UI probes these legacy env vars to render the
+                  # "Custom Providers → Custom Base URL" status; without them
+                  # set the panel shows "❌ Not configured" even though
+                  # inference works fine. Setting the same target keeps the
+                  # UI honest and gives Hermes a fallback if the named-provider
+                  # lookup ever misses.
+                  OPENAI_BASE_URL: "http://localai.localai.svc.cluster.local:8080/v1"
                   # Gateway HTTP API server (port 8642) — required by
                   # hermes-workspace UI for chat/models/streaming/jobs APIs.
                   # The dashboard (9119) handles sessions/skills/config/MCP.
