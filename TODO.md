@@ -25,15 +25,13 @@
   - **Voie C — Pangolin** : équivalent open-source de Cloudflare Tunnel + Access, self-hosted (nécessite un VPS frontend)
   - Recommandation perso : **Headscale** pour la flexibilité, sauf si zero-client est dealbreaker
 
-- **Migrer overlay containerd MicroK8s sur NVMe** : perf bottleneck identifié
-  - Symptôme observé (1er boot Hermes, juin 2026) : chown -R sur /opt/hermes/.venv + node_modules a duré >10 min, sda saturé à 87% util / 81 ms wait / 1.5 MB/s, NVMe idle à 0.2%
-  - Cause : `/var/snap/microk8s/common/var/lib/containerd/` + l'overlay/snapshotter vivent encore sur sda alors que `/data` (PVCs k8s) est sur NVMe
-  - Effet : tous les pods k8s souffrent de cold-start lent (image pull + chown overlay sur sda)
-  - Plan : déplacer `/var/snap/microk8s/common/var/lib/containerd` sur NVMe (`/data/containerd/`), via symlink + `microk8s stop` + rsync + `microk8s start`. Garder un backup avant. Vérifier que les snapshots existants (kubelet, images cache) sont préservés
-  - Bonus : bench cold-start avant/après (kubectl rollout restart d'un pod arbitraire, mesurer Pulling→Started)
-  - Risque : si rsync rate ou symlink mal posé → cluster KO. Faire à froid + backup snapshot du fs avant
-
 ## ✅ Récemment terminé (mai 2026)
+
+- [x] **Migration overlay containerd MicroK8s sda → NVMe** (juin 2026)
+  - 101.7 GB déplacés de `/var/snap/microk8s/common/var/lib/containerd` (sda) vers `/data/containerd` (NVMe)
+  - Pattern: rsync hot pre-copy → microk8s stop → rsync delta → rename source en backup → bind mount + fstab → microk8s start
+  - Bind mount (pas symlink) pour rester compatible avec le profil AppArmor du snap microk8s
+  - Cleanup post-validation: `sudo rm -rf /var/snap/microk8s/common/var/lib/containerd.old.*` (à faire après 24-48h stable, libère ~100 GB sda)
 
 - [x] **Extension Ansible : common-cli-tools + dev-workstation + work-laptop monitoring**
   - Nouveau rôle `common-cli-tools` (factor des outils CLI partagés : apt + deb-get + timer hebdo deb-get-upgrade)
