@@ -122,6 +122,14 @@
   register: pipx_inject
   changed_when: "'injected package' in pipx_inject.stdout"
 
+- name: Ensure user systemd dir exists
+  ansible.builtin.file:
+    path: "/home/{{ wyoming_satellite_user }}/.config/systemd/user"
+    state: directory
+    owner: "{{ wyoming_satellite_user }}"
+    group: "{{ wyoming_satellite_user }}"
+    mode: "0755"
+
 - name: Render systemd user unit
   ansible.builtin.template:
     src: wyoming-satellite.service.j2
@@ -130,14 +138,6 @@
     group: "{{ wyoming_satellite_user }}"
     mode: "0644"
   notify: Restart wyoming-satellite
-
-- name: Ensure user systemd dir exists
-  ansible.builtin.file:
-    path: "/home/{{ wyoming_satellite_user }}/.config/systemd/user"
-    state: directory
-    owner: "{{ wyoming_satellite_user }}"
-    group: "{{ wyoming_satellite_user }}"
-    mode: "0755"
 
 - name: Reload user systemd + enable + start
   become: true
