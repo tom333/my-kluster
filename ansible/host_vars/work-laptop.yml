@@ -1,0 +1,20 @@
+---
+# Host-specific overrides for work-laptop.
+# `lva_*` keys are consumed by the `linux-voice-assistant` role.
+
+# Force the PulseAudio source — LVA's auto-detection picks the
+# `alsa_output.*.monitor` source on this host instead of the mic, which
+# results in zero wake-word detections (the input is silent or pure
+# loopback). Substring matching against the source name listed by
+# `pactl list sources short` inside the container.
+lva_audio_input_device: "alsa_input.pci-0000_00_1b.0.analog-stereo"
+
+# Pin HA's hostname to its LAN IP so TTS fetches don't try to round-trip
+# through the WAN. work-laptop's resolver (default ISP DNS via wifi router)
+# returns the public IP for persoha.duckdns.org, but hairpin NAT isn't in
+# place and the public path isn't reachable from inside the LAN. The
+# Pi-hole at 192.168.88.203 already overrides this hostname locally; we
+# replicate the override at container scope so we don't depend on
+# work-laptop pointing at Pi-hole for DNS.
+lva_extra_hosts:
+  persoha.duckdns.org: "192.168.88.201"

@@ -54,6 +54,27 @@ lva_wake_model: "okay_nabu"
 # be invoked without sudo.
 lva_compose_dir: "/home/{{ lva_user }}/linux-voice-assistant"
 
+# --- Audio device override -------------------------------------------------
+# When set, passes `--audio-input-device <name>` to LVA. Required when the
+# host has multiple PulseAudio sources and LVA's auto-detection picks the
+# wrong one (e.g. an output `.monitor` source instead of the mic). The
+# value is a PulseAudio source name as listed by
+# `pactl list sources short` inside the container.
+# Empty string = let LVA auto-detect.
+lva_audio_input_device: ""
+lva_audio_output_device: ""
+
+# --- /etc/hosts overrides --------------------------------------------------
+# Map of hostname → IP injected into the container's /etc/hosts via the
+# compose `extra_hosts` key. Required when the host's resolver returns a
+# different IP than the one HA's URL points to (e.g. WAN IP via public DNS
+# vs. LAN IP via Pi-hole override). HA delivers TTS audio as a URL the
+# satellite has to fetch — that URL uses the HA external_url hostname, so
+# the cert is valid but the LAN can't reach the WAN IP from behind NAT
+# without hairpin support. Pin the resolution here instead of fighting
+# the host's resolv.conf.
+lva_extra_hosts: {}
+
 # --- systemd lingering -----------------------------------------------------
 # Container starts via `docker compose` (system daemon), so we don't strictly
 # need user lingering for the container itself. But we DO need the user's

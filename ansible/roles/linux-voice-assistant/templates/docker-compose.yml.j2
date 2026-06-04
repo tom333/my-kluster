@@ -57,6 +57,12 @@ services:
       # Bind the entire user runtime dir so the pipewire-pulse socket
       # (and its cookie) are visible in-container at the same path.
       - ${LVA_XDG_RUNTIME_DIR}:${LVA_XDG_RUNTIME_DIR}
+{% if lva_extra_hosts %}
+    extra_hosts:
+{% for host, ip in lva_extra_hosts.items() %}
+      - "{{ host }}:{{ ip }}"
+{% endfor %}
+{% endif %}
     depends_on:
       # Long-form dependency so `docker compose up --wait` treats the init
       # container's exit 0 as success instead of crashing the whole stack
