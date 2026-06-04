@@ -58,7 +58,13 @@ services:
       # (and its cookie) are visible in-container at the same path.
       - ${LVA_XDG_RUNTIME_DIR}:${LVA_XDG_RUNTIME_DIR}
     depends_on:
-      - fix-permissions
+      # Long-form dependency so `docker compose up --wait` treats the init
+      # container's exit 0 as success instead of crashing the whole stack
+      # — the short-form `- fix-permissions` defaults to service_started,
+      # which never reaches "started" for a one-shot that immediately exits.
+      fix-permissions:
+        condition: service_completed_successfully
+        required: true
     healthcheck:
       test: ["CMD", "pgrep", "-f", "linux_voice_assistant"]
       interval: 30s
