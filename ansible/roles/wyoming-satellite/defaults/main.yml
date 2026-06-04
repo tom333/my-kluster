@@ -49,10 +49,19 @@ wyoming_satellite_mic_channels: 1
 wyoming_satellite_user: "{{ ansible_user }}"
 wyoming_satellite_home: "/home/{{ wyoming_satellite_user }}/.wyoming-satellite"
 
-# pip package versions (bumped manually; Renovate can be wired later via
-# a customManager regex on this file).
-wyoming_satellite_version: "1.4.1"
-wyoming_openwakeword_version: "1.10.0"
+# Versions — bumped manually; Renovate can be wired later.
+#
+# wyoming-satellite: upstream (rhasspy) stopped publishing to PyPI at 1.0.0
+# (Feb 2024). All newer tags (1.1.0 → 1.4.1) live on GitHub only. We install
+# via `git+https://...@<tag>` for that reason.
+# Latest tag: https://github.com/rhasspy/wyoming-satellite/releases
+wyoming_satellite_version: "v1.4.1"
+wyoming_satellite_pip_spec: >-
+  wyoming-satellite @ git+https://github.com/rhasspy/wyoming-satellite@{{ wyoming_satellite_version }}
+
+# wyoming-openwakeword: published normally on PyPI. Latest at:
+# https://pypi.org/project/wyoming-openwakeword/
+wyoming_openwakeword_version: "1.8.2"
 
 # --- systemd user unit -----------------------------------------------------
 # Service runs as the user (`systemctl --user`), so user-level lingering

@@ -11,6 +11,7 @@
       - portaudio19-dev    # PortAudio headers — sounddevice builds against them
       - python3-dev        # CPython headers for any C extensions
       - build-essential    # gcc / make for sounddevice if no wheel matches
+      - git                # pipx git+url install of wyoming-satellite (PyPI stuck at 1.0.0)
     state: present
     update_cache: true
 
@@ -32,14 +33,19 @@
 # in the play); we lean on it here to keep the wyoming-satellite venv
 # isolated from the user's pip global. --force lets the role be re-run
 # to upgrade pinned versions on rerun.
-- name: Install wyoming-satellite via pipx (user)
+# PyPI's `wyoming-satellite` is stuck at 1.0.0 (Feb 2024); newer tags live on
+# GitHub only. We install via a `git+url@<tag>` spec so pipx clones the right
+# ref. The shell quoting on the spec matters — keep the entire `name @ url`
+# as a single argv element.
+- name: Install wyoming-satellite via pipx (user, from git tag)
   become: true
   become_user: "{{ wyoming_satellite_user }}"
   ansible.builtin.command:
-    cmd: >
-      pipx install
-      --force
-      "wyoming-satellite=={{ wyoming_satellite_version }}"
+    argv:
+      - pipx
+      - install
+      - --force
+      - "{{ wyoming_satellite_pip_spec }}"
   register: pipx_satellite_install
   changed_when: "'installed package' in pipx_satellite_install.stdout or 'replaced existing' in pipx_satellite_install.stdout"
 
