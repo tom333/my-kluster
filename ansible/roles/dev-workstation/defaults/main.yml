@@ -13,7 +13,7 @@ dev_deb_get_packages:
 # chezmoi — not in deb-get nor apt. Snap is disabled on Linux Mint by default,
 # so we use the GitHub releases binary tarball (same pattern as lazygit).
 dev_chezmoi_install: true
-dev_chezmoi_version: "2.70.4"
+dev_chezmoi_version: "2.70.5"
 
 # lazygit — not in deb-get nor apt. Downloaded as tarball from GitHub releases.
 # Update this var to bump version (Renovate could automate this in future).
