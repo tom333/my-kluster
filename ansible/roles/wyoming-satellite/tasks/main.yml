@@ -111,16 +111,22 @@
   register: pipx_satellite_install
   changed_when: "'installed package' in pipx_satellite_install.stdout or 'replaced existing' in pipx_satellite_install.stdout"
 
-- name: Inject openwakeword + sounddevice into satellite venv
+- name: Inject openwakeword + sounddevice + wyoming protocol upgrade into satellite venv
+  # `wyoming` upgrade is mandatory: wyoming-satellite v1.4.1 source imports
+  # `AudioFormat` from wyoming.audio (added in 1.5.x), but its own
+  # requirements.txt pins wyoming==1.2.0 — pipx happily resolves the broken
+  # combination unless we force-bump it here.
   become: true
   become_user: "{{ wyoming_satellite_user }}"
   ansible.builtin.command:
     cmd: >
       pipx inject wyoming-satellite
+      "wyoming=={{ wyoming_protocol_version }}"
       "wyoming-openwakeword=={{ wyoming_openwakeword_version }}"
       "sounddevice"
   register: pipx_inject
   changed_when: "'injected package' in pipx_inject.stdout"
+  notify: Restart wyoming-satellite
 
 - name: Ensure user systemd dir exists
   ansible.builtin.file:

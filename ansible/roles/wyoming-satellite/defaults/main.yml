@@ -63,6 +63,14 @@ wyoming_satellite_pip_spec: >-
 # https://pypi.org/project/wyoming-openwakeword/
 wyoming_openwakeword_version: "1.8.2"
 
+# wyoming (protocol lib): the rhasspy/wyoming-satellite v1.4.1 requirements.txt
+# pins this transitively to 1.2.0, which is too old — its source imports
+# `AudioFormat` from `wyoming.audio`, a symbol that only landed in 1.5.x.
+# Result: pipx install resolves a venv that crashes at import time with
+# `ImportError: cannot import name 'AudioFormat'`. Force-upgrade via the
+# inject step. Latest at https://pypi.org/project/wyoming/.
+wyoming_protocol_version: "1.9.0"
+
 # --- systemd user unit -----------------------------------------------------
 # Service runs as the user (`systemctl --user`), so user-level lingering
 # must be enabled so the service auto-starts at boot without an active
