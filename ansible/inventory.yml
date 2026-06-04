@@ -47,15 +47,16 @@ all:
           ansible_user: pi
           beszel_arch: arm      # Raspberry Pi armv7 32-bit (Pi 1/2/3, or Pi 4 in 32-bit mode)
 
-    # Wyoming Voice satellites — workstations hébergeant un satellite voice
-    # (mic + speaker + wake-word local). Relaient vers les services Wyoming k8s
-    # (whisper STT + piper TTS, ns `voice`) et exposent un endpoint Wyoming
-    # protocol TCP que HA Assist peut consommer.
-    # Run uniquement avec `--tags voice` ; le rôle est lourd (audio deps).
+    # Linux Voice Assistant satellites — workstations hébergeant un satellite
+    # voice (mic + speaker + wake-word local) via le container OHF-Voice/LVA.
+    # Le satellite parle le protocole ESPHome (port 6053) ; HA détecte via
+    # l'intégration ESPHome (core). STT/TTS du pipeline Assist sont fournis
+    # par les services Wyoming whisper/piper du namespace k8s `voice`.
+    # Run uniquement avec `--tags voice` ; pull image docker au premier run.
     voice_satellites:
       hosts:
         # Définition canonique dans dev_workstations ; ref nue ici.
-        # Override `wyoming_satellite_uid` en host_vars si UID ≠ 1000.
+        # Override `lva_user_id` en host_vars si UID ≠ 1000.
         work-laptop: {}
 
     # Media / gaming PCs — Jellyfin client + Feral gamemode + sysctl tweaks.

@@ -2,7 +2,7 @@
 # Playbook entry point — 7 plays:
 # - k8s_nodes : full bootstrap + backup + monitoring
 # - dev_workstations : CLI tools + dev tooling + monitoring
-# - voice_satellites : Wyoming Voice satellite (mic + wakeword + relay) — tag `voice`
+# - voice_satellites : Linux-Voice-Assistant (docker, ESPHome protocol) — tag `voice`
 # - media_pcs : Jellyfin client + gaming optims + xinput disable
 # - pihole_hosts : monitoring + weekly upgrade + custom DNS
 # - libreelec_hosts : appliance-friendly monitoring (no apt, paths under /storage)
@@ -39,7 +39,7 @@
     - { role: dev-workstation, tags: [dev] }
     - beszel-agent
 
-- name: Wyoming voice satellites (mic + speaker + wakeword + relay to k8s STT/TTS)
+- name: Linux Voice Assistant satellites (ESPHome protocol, docker-based, OHF-Voice/LVA)
   hosts: voice_satellites
   become: true
   gather_facts: true
@@ -50,7 +50,7 @@
       ansible.builtin.debug:
         msg: "Voice satellite play on {{ inventory_hostname }} ({{ ansible_host }})"
   roles:
-    - { role: wyoming-satellite, tags: [voice] }
+    - { role: linux-voice-assistant, tags: [voice] }
 
 - name: Media / gaming PCs (Jellyfin client + gaming optims + xinput disable)
   hosts: media_pcs

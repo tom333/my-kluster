@@ -1,0 +1,12 @@
+---
+- name: Recreate linux-voice-assistant
+  # docker compose up --force-recreate-on-config-change isn't a thing; we
+  # bounce the service so the new compose/env values take effect.
+  become: true
+  become_user: "{{ lva_user }}"
+  community.docker.docker_compose_v2:
+    project_src: "{{ lva_compose_dir }}"
+    state: present
+    recreate: always
+    wait: true
+    wait_timeout: 120

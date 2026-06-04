@@ -1,0 +1,65 @@
+---
+# Linux-Voice-Assistant (LVA) — official successor of rhasspy/wyoming-satellite
+# from the Open Home Foundation. Speaks the ESPHome protocol (not Wyoming),
+# so HA picks it up via the core ESPHome integration. Local wake-word
+# detection (OpenWakeWord / microWakeWord) runs in-container; STT/TTS
+# happen through whichever pipeline the device is attached to in HA Assist.
+#
+# Once the container is up, register the satellite in HA: Settings →
+# Devices & Services → Add Integration → "ESPHome" → host = this machine's
+# LAN IP, port = lva_port (default 6053). It then becomes a voice satellite
+# usable in any Assist pipeline.
+
+# --- Identity --------------------------------------------------------------
+# Friendly client name shown in HA. Must be unique across satellites.
+lva_client_name: "{{ inventory_hostname }}-voice"
+
+# TCP port the ESPHome native API listens on (HA ESPHome integration
+# connects here). 6053 is the ESPHome default.
+lva_port: 6053
+
+# --- Image -----------------------------------------------------------------
+# Official multi-arch image (linux/amd64 + linux/arm64).
+# https://github.com/OHF-Voice/linux-voice-assistant/pkgs/container/linux-voice-assistant
+lva_image: "ghcr.io/ohf-voice/linux-voice-assistant"
+# Use a pinned major.minor tag so Renovate can bump it later instead of
+# silently consuming nightly builds.
+lva_image_tag: "latest"
+
+# --- Run user --------------------------------------------------------------
+# UID/GID inside the container. Must match the host user whose PulseAudio /
+# PipeWire socket we bind in — otherwise the container can't open the audio
+# device. On a typical single-user desktop the first interactive user is
+# uid 1000.
+lva_user: "{{ ansible_user }}"
+lva_user_id: 1000
+lva_user_group: 1000
+
+# --- Audio -----------------------------------------------------------------
+# Mint 22.3 ships PipeWire with the pulseaudio-compat socket at
+# /run/user/<uid>/pulse/native. The container talks to that socket as if
+# it were a real PulseAudio server — no codec/driver inside the container.
+lva_pulse_server: "/run/user/{{ lva_user_id }}/pulse/native"
+lva_xdg_runtime_dir: "/run/user/{{ lva_user_id }}"
+lva_pulse_cookie: "/run/user/{{ lva_user_id }}/pulse/cookie"
+
+# --- Wake word -------------------------------------------------------------
+# Built-in OpenWakeWord models shipped in the image: okay_nabu, hey_jarvis,
+# hey_mycroft, alexa. Custom .tflite models can be dropped into the
+# wakeword_custom docker volume later.
+lva_wake_model: "okay_nabu"
+
+# --- Install paths ---------------------------------------------------------
+# Compose project lives under the run user's home so `docker compose` can
+# be invoked without sudo.
+lva_compose_dir: "/home/{{ lva_user }}/linux-voice-assistant"
+
+# --- systemd lingering -----------------------------------------------------
+# Container starts via `docker compose` (system daemon), so we don't strictly
+# need user lingering for the container itself. But we DO need the user's
+# graphical/Pipewire session to be running for the pulse socket to exist —
+# on a desktop with auto-login this is automatic; without it, the audio
+# socket only appears when the user is logged in. Keep linger on so the
+# user systemd manager (and therefore the pipewire-pulse user service) is
+# started at boot even without an interactive login.
+lva_enable_lingering: true

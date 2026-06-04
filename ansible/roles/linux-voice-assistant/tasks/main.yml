@@ -1,0 +1,87 @@
+---
+# Linux-Voice-Assistant — install via docker compose.
+# Becomes the lva_user via `become_user` so the compose project lives in
+# their home and `docker` commands run as them (the docker group membership
+# is what grants socket access; no sudo needed for `docker compose`).
+
+- name: Probe docker engine + compose v2 plugin
+  # Don't apt-install docker.io — the user runs upstream docker-ce from
+  # download.docker.com, and the Debian `docker.io` package conflicts with
+  # it. We only check for presence and fail loudly if either component is
+  # missing rather than silently breaking the install.
+  ansible.builtin.command: "{{ item }}"
+  loop:
+    - "docker --version"
+    - "docker compose version --short"
+  register: lva_docker_probe
+  changed_when: false
+  failed_when: lva_docker_probe.rc | default(1) != 0
+
+- name: Ensure run user is in docker group
+  ansible.builtin.user:
+    name: "{{ lva_user }}"
+    groups: docker
+    append: true
+
+- name: Ensure run user is in audio group
+  # PulseAudio/PipeWire socket access on Mint/Ubuntu requires audio group
+  # membership even when binding the socket by path — the cookie file is
+  # mode 0600 owned by the user, but device permissions still go through
+  # the audio group when the container falls back to direct ALSA.
+  ansible.builtin.user:
+    name: "{{ lva_user }}"
+    groups: audio
+    append: true
+
+- name: Enable lingering so user pipewire-pulse stays up without an active login
+  ansible.builtin.command: "loginctl enable-linger {{ lva_user }}"
+  args:
+    creates: "/var/lib/systemd/linger/{{ lva_user }}"
+  when: lva_enable_lingering | bool
+
+- name: Ensure compose project directory exists
+  ansible.builtin.file:
+    path: "{{ lva_compose_dir }}"
+    state: directory
+    owner: "{{ lva_user }}"
+    group: "{{ lva_user }}"
+    mode: "0755"
+
+- name: Render docker-compose.yml
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: "{{ lva_compose_dir }}/docker-compose.yml"
+    owner: "{{ lva_user }}"
+    group: "{{ lva_user }}"
+    mode: "0644"
+  notify: Recreate linux-voice-assistant
+
+- name: Render .env
+  ansible.builtin.template:
+    src: lva.env.j2
+    dest: "{{ lva_compose_dir }}/.env"
+    owner: "{{ lva_user }}"
+    group: "{{ lva_user }}"
+    # Contains no real secrets (paths + UIDs only) but keep tight perms
+    # for hygiene — the file gets baked into the running container's env.
+    mode: "0640"
+  notify: Recreate linux-voice-assistant
+
+- name: Pull image (warms the cache and surfaces auth errors early)
+  become: true
+  become_user: "{{ lva_user }}"
+  community.docker.docker_compose_v2_pull:
+    project_src: "{{ lva_compose_dir }}"
+  register: lva_pull
+  changed_when: lva_pull.actions | default([]) | length > 0
+
+- name: Start the stack
+  become: true
+  become_user: "{{ lva_user }}"
+  community.docker.docker_compose_v2:
+    project_src: "{{ lva_compose_dir }}"
+    state: present
+    # Wait briefly for the healthcheck so a misconfigured run fails the
+    # play instead of "succeeding" with a crash-looping container.
+    wait: true
+    wait_timeout: 120

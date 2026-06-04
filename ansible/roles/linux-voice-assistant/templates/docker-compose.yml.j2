@@ -1,0 +1,75 @@
+---
+# Managed by Ansible — do not edit by hand. Mirrors the upstream
+# docker-compose.yml from OHF-Voice/linux-voice-assistant with our defaults
+# baked in via the adjacent .env file.
+
+services:
+  # One-shot init container that chowns the persistent volumes to
+  # ${LVA_USER_ID}:${LVA_USER_GROUP} so the main container (which runs as
+  # a non-root user) can write to them. Without this, the first run fails
+  # because docker creates volume mountpoints as root.
+  fix-permissions:
+    image: "${LVA_IMAGE}:${LVA_IMAGE_TAG}"
+    entrypoint: []
+    command: "chown -R ${LVA_USER_ID}:${LVA_USER_GROUP} /app/local /app/configuration /app/wakewords/custom /app/sounds/custom"
+    environment:
+      - XDG_RUNTIME_DIR=${LVA_XDG_RUNTIME_DIR}
+      - PULSE_SERVER=${LVA_PULSE_SERVER}
+      - PULSE_COOKIE=${LVA_PULSE_COOKIE}
+    env_file: .env
+    group_add:
+      - audio
+    volumes:
+      - wakeword_data:/app/local
+      - wakeword_custom:/app/wakewords/custom
+      - configuration:/app/configuration
+      - sounds_custom:/app/sounds/custom
+    restart: "no"
+
+  linux-voice-assistant:
+    container_name: linux-voice-assistant
+    image: "${LVA_IMAGE}:${LVA_IMAGE_TAG}"
+    restart: unless-stopped
+    # host networking is required so the ESPHome integration in HA can
+    # discover/reach the device on its real LAN IP rather than a docker
+    # bridge address. Port {{ lva_port }} (ESPHome default 6053) is then
+    # listening directly on the host's interface.
+    network_mode: "host"
+    user: "${LVA_USER_ID}:${LVA_USER_GROUP}"
+    environment:
+      - XDG_RUNTIME_DIR=${LVA_XDG_RUNTIME_DIR}
+      - PULSE_SERVER=${LVA_PULSE_SERVER}
+      - PULSE_COOKIE=${LVA_PULSE_COOKIE}
+    env_file: .env
+    group_add:
+      - audio
+    cap_add:
+      # SYS_NICE lets the container raise priority for the audio capture
+      # thread (real-time scheduling on the PulseAudio client side).
+      - SYS_NICE
+    volumes:
+      - wakeword_data:/app/local
+      - wakeword_custom:/app/wakewords/custom
+      - configuration:/app/configuration
+      - sounds_custom:/app/sounds/custom
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      # Bind the entire user runtime dir so the pipewire-pulse socket
+      # (and its cookie) are visible in-container at the same path.
+      - ${LVA_XDG_RUNTIME_DIR}:${LVA_XDG_RUNTIME_DIR}
+    depends_on:
+      - fix-permissions
+    healthcheck:
+      test: ["CMD", "pgrep", "-f", "linux_voice_assistant"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      # Give the process generous time to download wake-word models on
+      # the first run before failing the health check.
+      start_period: 90s
+
+volumes:
+  wakeword_data:
+  wakeword_custom:
+  configuration:
+  sounds_custom:
