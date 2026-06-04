@@ -29,6 +29,42 @@
     group: "{{ wyoming_satellite_user }}"
     mode: "0755"
 
+# Python version pinning, the painful reason it matters here:
+#   - System Python on Mint 22.3 is 3.12.
+#   - wyoming-openwakeword (every version, 1.0.0 → 1.8.2) hard-depends on
+#     `tflite-runtime-nightly`, which only ships wheels for cp39/cp310/cp311.
+#   - tflite-runtime stable ships at most cp311 wheels too.
+#   - Result: pipx on Python 3.12 fails with "No matching distribution".
+# Workaround: use uv (already on the host via dev-workstation role) to install
+# CPython 3.11 in user-scope, then point pipx at it.
+- name: Install CPython 3.11 via uv (user-scope, no apt PPA)
+  become: true
+  become_user: "{{ wyoming_satellite_user }}"
+  ansible.builtin.command:
+    argv:
+      - "{{ wyoming_satellite_uv_path | default('/home/' + wyoming_satellite_user + '/.local/bin/uv') }}"
+      - python
+      - install
+      - "3.11"
+  register: uv_py_install
+  changed_when: "'Installed' in (uv_py_install.stderr or uv_py_install.stdout)"
+
+- name: Resolve uv-managed Python 3.11 path
+  become: true
+  become_user: "{{ wyoming_satellite_user }}"
+  ansible.builtin.command:
+    argv:
+      - "{{ wyoming_satellite_uv_path | default('/home/' + wyoming_satellite_user + '/.local/bin/uv') }}"
+      - python
+      - find
+      - "3.11"
+  register: uv_py_find
+  changed_when: false
+
+- name: Set fact — Python 3.11 interpreter path
+  ansible.builtin.set_fact:
+    wyoming_satellite_python: "{{ uv_py_find.stdout | trim }}"
+
 # pipx is installed by the dev-workstation role (which runs ahead of this
 # in the play); we lean on it here to keep the wyoming-satellite venv
 # isolated from the user's pip global. --force lets the role be re-run
@@ -37,7 +73,7 @@
 # GitHub only. We install via a `git+url@<tag>` spec so pipx clones the right
 # ref. The shell quoting on the spec matters — keep the entire `name @ url`
 # as a single argv element.
-- name: Install wyoming-satellite via pipx (user, from git tag)
+- name: Install wyoming-satellite via pipx (user, Python 3.11 from uv, from git tag)
   become: true
   become_user: "{{ wyoming_satellite_user }}"
   ansible.builtin.command:
@@ -45,6 +81,8 @@
       - pipx
       - install
       - --force
+      - --python
+      - "{{ wyoming_satellite_python }}"
       - "{{ wyoming_satellite_pip_spec }}"
   register: pipx_satellite_install
   changed_when: "'installed package' in pipx_satellite_install.stdout or 'replaced existing' in pipx_satellite_install.stdout"
