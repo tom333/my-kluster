@@ -39,13 +39,18 @@ spec:
             strategy: Recreate                      # state in PVC, single writer
             pod:
               securityContext:
-                # Upstream agent image runs as HERMES_UID=10010 (see compose).
-                # fsGroup chowns the shared hostpath PVC to GID 10010 with
-                # group-write + setgid, and injects 10010 as a supplemental
-                # group into BOTH containers. Result: whatever the agent
-                # (UID 10010) writes to /opt/data and /workspace is group-
-                # writable by the workspace container too. This is what kills
-                # the "workspace can't write /opt/data/.hermes/scripts" error.
+                # NOTE: fsGroup is INERT on microk8s-hostpath (the hostPath
+                # provisioner does not apply fsGroup ownership/permissions —
+                # verified: /opt/data stays 10010:10000 mode 700, not group
+                # 10010). The shared volume actually works because BOTH images
+                # run their process as uid 10010 (agent: HERMES_UID=10010;
+                # workspace image user is also uid 10010), so /opt/data
+                # (10010-owned) and /home/workspace/.hermes are accessible by
+                # owner, not by group. fsGroup is kept as best-effort: harmless
+                # here, and correct if storage ever moves to a CSI that honors
+                # it. Paths created by the root init containers (e.g.
+                # /opt/data/.local) must be chown'd to 10010 explicitly — see
+                # the install-cli-extras init.
                 fsGroup: 10010
             initContainers:
               # Seed config.yaml into HERMES_HOME on first boot.
@@ -98,19 +103,38 @@ spec:
                       echo "yq already installed, skip"
                     fi
 
+                    # The agent runs non-root (HERMES_UID=10010, gid 10000) and
+                    # writes runtime state under /opt/data/.local (e.g. Telegram's
+                    # .local/state). This init runs as root, so /opt/data/.local is
+                    # created root-owned; the image's own setup only chowns its
+                    # seeded files, not our injected dir. Hand ownership to the
+                    # agent UID/GID or the agent gets EACCES (Telegram: "Permission
+                    # denied: '/opt/data/.local/state'").
+                    chown -R 10010:10000 /opt/data/.local
+
                     echo "Installed CLI extras:"
                     ls -la /opt/data/.local/bin/
               # Force gateway_state.json's `gateway_state` field to "running"
               # before the main container's cont-init.d/02-reconcile-profiles
-              # reads it. Without this, the supervised gateway-default s6 service
-              # is registered but NOT started after a pod restart: Hermes writes
-              # "stopped" to gateway_state.json on SIGTERM (graceful shutdown),
-              # and the reconciler only auto-starts profiles whose prior state
-              # was "running" (see hermes_cli/container_boot.py:_AUTOSTART_STATES).
-              # Result: container restart → no gateway → no :8642 → workspace
-              # falls into "mode=disconnected" until we manually s6-svc -u.
-              # Idempotent: skips the file if it doesn't exist yet (first boot,
-              # the main container will create it with a sensible default).
+              # reads it. The reconciler (hermes_cli/container_boot.py) reads the
+              # DEFAULT gateway's prior state from $HERMES_HOME/gateway_state.json
+              # and auto-starts the supervised gateway-default s6 service ONLY when
+              # that prior state is "running" (_AUTOSTART_STATES = {"running"}).
+              #
+              # Two cases break the gateway otherwise, both leaving :8642 dead and
+              # the workspace UI stuck on "Unauthorized" / disconnected:
+              #   1. Pod restart: Hermes writes "stopped" on SIGTERM (graceful
+              #      shutdown) → reconciler keeps it down.
+              #   2. COLD START (fresh PVC / never-started): the file is ABSENT →
+              #      _read_prior_state() returns None → not in {"running"} → down.
+              #      (The previous version of this init no-op'd on absent, which is
+              #      exactly the chicken-and-egg that broke first boot.)
+              #
+              # So: if the file is missing, CREATE it as running; if present but
+              # not running, flip it. The live gateway overwrites this file with
+              # full state once it boots. chown to the agent UID/GID (10010:10000)
+              # so the non-root agent can rewrite it; /opt/data itself is 10010-
+              # owned mode 700 so it could replace it anyway, but be explicit.
               force-gateway-autostart:
                 image:
                   repository: alpine
@@ -121,17 +145,19 @@ spec:
                     set -e
                     f=/opt/data/gateway_state.json
                     if [ ! -f "$f" ]; then
-                      echo "$f absent (first boot); reconciler will register only — no-op"
-                      exit 0
+                      echo '{"gateway_state":"running"}' > "$f"
+                      echo "Created $f with gateway_state=running (cold start)"
+                    else
+                      apk add --no-cache jq >/dev/null
+                      current=$(jq -r '.gateway_state // "absent"' "$f")
+                      if [ "$current" = "running" ]; then
+                        echo "gateway_state already 'running'; no change"
+                      else
+                        jq '.gateway_state = "running"' "$f" > "$f.tmp" && mv -f "$f.tmp" "$f"
+                        echo "Patched gateway_state: $current → running"
+                      fi
                     fi
-                    apk add --no-cache jq >/dev/null
-                    current=$(jq -r '.gateway_state // "absent"' "$f")
-                    if [ "$current" = "running" ]; then
-                      echo "gateway_state already 'running'; no change"
-                      exit 0
-                    fi
-                    jq '.gateway_state = "running"' "$f" > "$f.tmp" && mv "$f.tmp" "$f"
-                    echo "Patched gateway_state: $current → running"
+                    chown 10010:10000 "$f" 2>/dev/null || true
             containers:
               # CONTAINER 1 — the Hermes Agent (backend: gateway :8642 + dashboard :9119).
               main:
