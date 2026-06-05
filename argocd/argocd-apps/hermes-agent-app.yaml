@@ -1,6 +1,23 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
+  # Single merged Application: the Hermes Agent (backend) and the Hermes
+  # Workspace UI now run as TWO containers in ONE Pod (sidecar pattern),
+  # mirroring the upstream docker-compose.yml of hermes-workspace.
+  #
+  # Why merged (was: 2 separate Deployments talking over the cluster network):
+  #   - The Workspace needs FILESYSTEM access to the agent's HERMES_HOME
+  #     (skills, sessions, memory, scripts) to render/edit them. Separate
+  #     Pods with separate PVCs meant the UI saw an empty home and failed to
+  #     write /opt/data/.hermes/scripts. A shared PVC fixes this.
+  #   - In one Pod the containers share localhost, so the Workspace reaches
+  #     the gateway/dashboard over 127.0.0.1 (no Service, no off-loopback auth
+  #     surface, no cross-namespace URL mistakes).
+  #
+  # Name kept as "hermes-agent" on purpose: the bjw-s PVC is named
+  # <release>-<key> = "hermes-agent-data", so reusing this release name
+  # preserves the EXISTING agent PVC (skills/sessions/memory) across the
+  # migration. The old hermes-workspace Application is disabled separately.
   name: hermes-agent
   namespace: argocd
   finalizers:
@@ -20,8 +37,18 @@ spec:
           hermes:
             type: deployment
             strategy: Recreate                      # state in PVC, single writer
+            pod:
+              securityContext:
+                # Upstream agent image runs as HERMES_UID=10010 (see compose).
+                # fsGroup chowns the shared hostpath PVC to GID 10010 with
+                # group-write + setgid, and injects 10010 as a supplemental
+                # group into BOTH containers. Result: whatever the agent
+                # (UID 10010) writes to /opt/data and /workspace is group-
+                # writable by the workspace container too. This is what kills
+                # the "workspace can't write /opt/data/.hermes/scripts" error.
+                fsGroup: 10010
             initContainers:
-              # Seed config.yaml + SOUL.md into HERMES_HOME on first boot.
+              # Seed config.yaml into HERMES_HOME on first boot.
               # Idempotent: copies only when missing in PVC.
               bootstrap:
                 image:
@@ -106,6 +133,7 @@ spec:
                     jq '.gateway_state = "running"' "$f" > "$f.tmp" && mv "$f.tmp" "$f"
                     echo "Patched gateway_state: $current → running"
             containers:
+              # CONTAINER 1 — the Hermes Agent (backend: gateway :8642 + dashboard :9119).
               main:
                 image:
                   repository: nousresearch/hermes-agent
@@ -123,6 +151,10 @@ spec:
                   - "sleep"
                   - "infinity"
                 env:
+                  # Pin the image's runtime user. Upstream compose sets the same
+                  # value; it must match the Pod fsGroup above so the agent owns
+                  # what it writes and the workspace sidecar can read/write it.
+                  HERMES_UID: "10010"
                   # HERMES_HOME points to /opt/data (PVC), not /opt/hermes
                   # which holds image code + scripts (main-wrapper.sh etc).
                   HERMES_HOME: "/opt/data"
@@ -131,11 +163,14 @@ spec:
                   TELEGRAM_HOME_CHANNEL: "843341688"
                   GATEWAY_ALLOW_ALL_USERS: "false"
                   WHATSAPP_ENABLED: "false"
-                  # Dashboard web UI — disabled by default in image; enable for hermes.tgu.ovh.
-                  # INSECURE=true skips the Nous OAuth gate; safe here because the ingress is
-                  # LAN-only (whitelist-source-range below) and not reachable from internet.
+                  # Dashboard web UI — enabled so the workspace sidecar can drive
+                  # the admin REST API (sessions/skills/config/MCP). Bound to
+                  # loopback only: the only consumer is the workspace container
+                  # in this same Pod, reaching it over 127.0.0.1:9119. Nothing
+                  # off-Pod can touch it (no Service). INSECURE=true skips the
+                  # Nous OAuth gate, which is safe given loopback-only binding.
                   HERMES_DASHBOARD: "true"
-                  HERMES_DASHBOARD_HOST: "0.0.0.0"
+                  HERMES_DASHBOARD_HOST: "127.0.0.1"
                   HERMES_DASHBOARD_PORT: "9119"
                   HERMES_DASHBOARD_INSECURE: "true"
                   # SearXNG self-hosted instance (see argocd-apps/searxng-app.yaml).
@@ -156,14 +191,14 @@ spec:
                   # UI honest and gives Hermes a fallback if the named-provider
                   # lookup ever misses.
                   OPENAI_BASE_URL: "http://localai.localai.svc.cluster.local:8080/v1"
-                  # Gateway HTTP API server (port 8642) — required by
-                  # hermes-workspace UI for chat/models/streaming/jobs APIs.
-                  # The dashboard (9119) handles sessions/skills/config/MCP.
-                  # API_SERVER_KEY (sealed via hermes-secrets) authenticates
-                  # off-loopback calls; the workspace passes the same value
-                  # in HERMES_API_TOKEN. Without it, calls 401.
+                  # Gateway HTTP API server (port 8642) — consumed by the
+                  # workspace sidecar over 127.0.0.1 for chat/models/streaming/
+                  # jobs APIs. Bound to loopback only (sidecar is the sole
+                  # consumer). API_SERVER_KEY (sealed via hermes-secrets) still
+                  # authenticates calls; the workspace passes the same value as
+                  # HERMES_API_TOKEN.
                   API_SERVER_ENABLED: "true"
-                  API_SERVER_HOST: "0.0.0.0"
+                  API_SERVER_HOST: "127.0.0.1"
                   API_SERVER_PORT: "8642"
                 envFrom:
                   - secretRef:
@@ -171,34 +206,119 @@ spec:
                 resources:
                   limits:   { cpu: "2",    memory: 2Gi }
                   requests: { cpu: "200m", memory: 512Mi }
+
+              # CONTAINER 2 — the Hermes Workspace UI (sidecar, port 3000).
+              # Mirrors the upstream docker-compose hermes-workspace service.
+              workspace:
+                image:
+                  repository: ghcr.io/outsourc-e/hermes-workspace
+                  # Renovate tracks via customManager regex in renovate.json.
+                  tag: "latest"
+                  pullPolicy: IfNotPresent
+                env:
+                  # Talk to the agent over the shared Pod loopback — no Service,
+                  # no cluster DNS, no cross-namespace URL. This is the whole
+                  # point of the sidecar merge.
+                  HERMES_API_URL: "http://127.0.0.1:8642"
+                  HERMES_DASHBOARD_URL: "http://127.0.0.1:9119"
+                  # Upstream-canonical paths. HERMES_HOME is the SAME PVC the
+                  # agent uses (mounted here at /home/workspace/.hermes via
+                  # persistence.data advancedMounts), so the UI reads the agent's
+                  # skills/sessions/memory straight off disk. HERMES_WORKSPACE_DIR
+                  # is the file-browser root, shared with the agent's terminal
+                  # cwd (persistence.files) so tool output shows in the Files tab.
+                  HERMES_HOME: "/home/workspace/.hermes"
+                  HERMES_WORKSPACE_DIR: "/workspace"
+                  # Behind the LAN-only NGINX ingress with cert-manager TLS.
+                  # Workspace checks env values strictly as "1" (per .env.example);
+                  # "true" is silently ignored and the workspace then warns
+                  # "plain-HTTP LAN deployment detected" because it can't see the
+                  # X-Forwarded-Proto=https header without TRUST_PROXY=1.
+                  # Resulting Secure-cookie mismatch makes login fail on first POST.
+                  COOKIE_SECURE: "1"
+                  TRUST_PROXY: "1"
+                envFrom:
+                  - secretRef:
+                      name: hermes-workspace-secrets
+                      # Provides:
+                      #   HERMES_API_TOKEN  (= API_SERVER_KEY on the agent side)
+                      #   HERMES_PASSWORD   (workspace web-UI login password)
+                resources:
+                  limits:   { cpu: "1",    memory: 1Gi }
+                  requests: { cpu: "100m", memory: 256Mi }
         service:
           app:
             controller: hermes
             ports:
-              # Dashboard SPA + admin REST API (sessions/skills/config/MCP/cron).
-              # Consumed by hermes-workspace as HERMES_DASHBOARD_URL.
-              dashboard:
-                port: 9119
-                targetPort: 9119
+              # Only the Workspace UI is exposed cluster-side. The gateway (8642)
+              # and dashboard (9119) are loopback-only inside the Pod now.
+              http:
+                port: 3000
+                targetPort: 3000
                 protocol: TCP
-              # Gateway HTTP API (chat/models/streaming/jobs).
-              # Consumed by hermes-workspace as HERMES_API_URL.
-              api:
-                port: 8642
-                targetPort: 8642
-                protocol: TCP
-        # No ingress — hermes.tgu.ovh is now served by hermes-workspace
-        # (see argocd-apps/hermes-workspace-app.yaml). Workspace proxies
-        # to this service over the cluster network. The native Hermes
-        # dashboard remains accessible inside the cluster only.
+        ingress:
+          app:
+            className: nginx
+            annotations:
+              cert-manager.io/cluster-issuer: letsencrypt-prod
+              # LAN-only (192.168.88.0/24 home + 10.1.0.0/16 k8s pod CIDR).
+              nginx.ingress.kubernetes.io/whitelist-source-range: "192.168.88.0/24,10.1.0.0/16"
+              # WebSocket + SSE: workspace streams chat tokens + tails terminal
+              # via long-lived connections. Bump NGINX read/send timeouts so
+              # idle SSE doesn't get cut at the 60s default.
+              nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+              nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+            hosts:
+              - host: hermes.tgu.ovh
+                paths:
+                  - path: /
+                    pathType: Prefix
+                    service:
+                      identifier: app
+                      port: http
+            tls:
+              - hosts:
+                  - hermes.tgu.ovh
+                secretName: hermes-tls
         persistence:
+          # SHARED PVC — the agent's HERMES_HOME. Reused across the migration
+          # (existing claim name "hermes-agent-data"). Mounted at /opt/data in
+          # the agent and at /home/workspace/.hermes in the workspace, so both
+          # see the same skills/sessions/memory tree. advancedMounts (not
+          # globalMounts) because the two containers need DIFFERENT mount paths.
           data:
             type: persistentVolumeClaim
             storageClass: microk8s-hostpath
             accessMode: ReadWriteOnce
-            size: 10Gi                              # HERMES_HOME (/opt/data): skills + sessions + memory + LLM cache
-            globalMounts:
-              - path: /opt/data
+            size: 10Gi                              # NB: hostpath ignores the limit; keep 10Gi to avoid an immutable-field sync error on the existing PVC
+            advancedMounts:
+              hermes:
+                bootstrap:
+                  - path: /opt/data
+                install-cli-extras:
+                  - path: /opt/data
+                force-gateway-autostart:
+                  - path: /opt/data
+                main:
+                  - path: /opt/data
+                workspace:
+                  - path: /home/workspace/.hermes
+          # File-browser root — shared by BOTH the agent (terminal.cwd below)
+          # and the workspace UI (HERMES_WORKSPACE_DIR). This is the one
+          # enhancement over the upstream compose: mounting it into the agent
+          # too means files the agent creates via its terminal/code_execution
+          # tools appear live in the workspace "Files" tab.
+          files:
+            type: persistentVolumeClaim
+            storageClass: microk8s-hostpath
+            accessMode: ReadWriteOnce
+            size: 5Gi
+            advancedMounts:
+              hermes:
+                main:
+                  - path: /workspace
+                workspace:
+                  - path: /workspace
           bootstrap:
             type: configMap
             # bjw-s 5.0.1 merges all configMaps.* entries into a single CM
@@ -256,7 +376,10 @@ spec:
                   tool_use_enforcement: auto
                 terminal:
                   backend: local
-                  cwd: /opt/hermes/workspace
+                  # Shared file-browser root (persistence.files, mounted in both
+                  # containers). Agent tool output here is visible live in the
+                  # workspace UI "Files" tab.
+                  cwd: /workspace
                   timeout: 180
                 display:
                   tool_progress: all

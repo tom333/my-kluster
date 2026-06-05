@@ -105,6 +105,7 @@ Les fichiers `.disable` sont ignorés. Pour désactiver une app, suffixe son fic
 | `jupyter`     | `datalab`  | tom333.github.io/my-charts      | 0.1.18    | Image custom, DuckDB, Marimo, JupyterLSP      |
 | `localai`     | `localai`  | ce dépôt → `charts/localai/`   | HEAD      | LocalAI GPU NVIDIA, MVP Qwen2.5-1.5B Q4_K_M, ingress LAN-only + token API |
 | `openwebui`   | `openwebui`| helm.openwebui.com              | 7.0.0     | UI chat (CPU), upstream LocalAI, 2 ingress (public oauth2-proxy + LAN whitelist) |
+| `hermes-agent`| `hermes`   | bjw-s-labs.github.io/helm-charts | 5.0.1     | **Stack fusionné** : agent (`nousresearch/hermes-agent`) + UI `hermes-workspace` en **sidecar même Pod**. `app-template`, 2 conteneurs, PVC partagés. Backend gateway/dashboard en loopback (`127.0.0.1:8642`/`9119`), UI exposée port 3000. Ingress LAN-only `hermes.tgu.ovh`. Modèle Qwen3-8B via LocalAI, web_search via SearXNG, bot Telegram. |
 
 ### Monitoring (namespace `monitoring`)
 
@@ -209,6 +210,7 @@ kubectl get secret -n kube-system \
 - **Open WebUI** expose **2 ingress** pointant sur le même service :
   - `chat.tgu.ovh` : public + oauth2-proxy (managé par le chart Helm, dans `openwebui-app.yaml`)
   - `chat-lan.tgu.ovh` : whitelist LAN sans oauth (manifest brut dans `config/openwebui-lan-ingress.yaml`)
+- **Hermes** (`hermes.tgu.ovh`) : whitelist LAN, pas d'oauth2-proxy. Agent + UI `hermes-workspace` dans **un seul Pod** (pattern sidecar, calqué sur le docker-compose upstream). Seul le port 3000 (workspace) est exposé ; agent (`8642`/`9119`) en loopback intra-Pod. PVC `hermes-agent-data` (HERMES_HOME partagé `/opt/data` ↔ `/home/workspace/.hermes`) + `hermes-agent-files` (file browser `/workspace`, `terminal.cwd` de l'agent). `fsGroup: 10010` + `HERMES_UID: 10010` pour l'écriture partagée. L'ancienne app séparée `hermes-workspace-app.yaml` est `.disable`.
 
 ### GPU NVIDIA (workloads ML)
 
