@@ -53,8 +53,17 @@ spec:
                 # the install-cli-extras init.
                 fsGroup: 10010
             initContainers:
-              # Seed config.yaml into HERMES_HOME on first boot.
-              # Idempotent: copies only when missing in PVC.
+              # Sync config.yaml into HERMES_HOME from the ConfigMap on EVERY boot.
+              # Git (this chart's values) is the SOURCE OF TRUTH — the previous
+              # "copy only if absent" guard meant any config.yaml edit committed
+              # after first boot was silently ignored on the live PVC (e.g. the
+              # qwen3-8b -> qwen3.6-35b-a3b model switch never took effect until a
+              # manual reseed). Always overwriting makes Git authoritative, in line
+              # with the rest of this GitOps repo. Live edits (kubectl/UI) to the
+              # PVC copy are intentionally clobbered on restart; declare MCP servers,
+              # providers, skills config etc. HERE, not live.
+              # The image's cont-init re-normalises ownership to HERMES_UID after the
+              # root cp, so no chown is needed here.
               bootstrap:
                 image:
                   repository: busybox
@@ -63,12 +72,8 @@ spec:
                 args:
                   - |
                     set -e
-                    if [ ! -f /opt/data/config.yaml ]; then
-                      echo "Seeding config.yaml from ConfigMap"
-                      cp /bootstrap/config.yaml /opt/data/config.yaml
-                    else
-                      echo "config.yaml already exists, skip"
-                    fi
+                    echo "Syncing config.yaml from ConfigMap (Git source of truth)"
+                    cp -f /bootstrap/config.yaml /opt/data/config.yaml
               # Install static CLI extras (jq, yq) into the PVC so the agent's
               # terminal tool can pipe HTTP/JSON workflows without an image rebuild.
               # /opt/data/.local/bin is already on the image's $PATH (verified:
@@ -360,8 +365,10 @@ spec:
           bootstrap:
             data:
               config.yaml: |
-                # Hermes Agent config — seeded into HERMES_HOME on first boot.
-                # Edit via kubectl exec or delete the PVC file to re-seed from this CM.
+                # Hermes Agent config — SOURCE OF TRUTH (declarative).
+                # The bootstrap initContainer overwrites $HERMES_HOME/config.yaml from
+                # this block on EVERY boot. Edit HERE (Git) only — live edits via
+                # kubectl/UI to the PVC copy are clobbered on the next restart.
                 model:
                   # 2026-06-02: switched Qwen2.5-7B → Hermes-3-Llama-3.1-8B → Qwen3-8B.
                   #
