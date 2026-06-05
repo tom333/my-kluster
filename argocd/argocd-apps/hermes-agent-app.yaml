@@ -1,23 +1,34 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  # Single merged Application: the Hermes Agent (backend) and the Hermes
-  # Workspace UI now run as TWO containers in ONE Pod (sidecar pattern),
-  # mirroring the upstream docker-compose.yml of hermes-workspace.
+  # ALL-IN-ONE Hermes stack on the EKKOLearnAI/hermes-web-ui image.
   #
-  # Why merged (was: 2 separate Deployments talking over the cluster network):
-  #   - The Workspace needs FILESYSTEM access to the agent's HERMES_HOME
-  #     (skills, sessions, memory, scripts) to render/edit them. Separate
-  #     Pods with separate PVCs meant the UI saw an empty home and failed to
-  #     write /opt/data/.hermes/scripts. A shared PVC fixes this.
-  #   - In one Pod the containers share localhost, so the Workspace reaches
-  #     the gateway/dashboard over 127.0.0.1 (no Service, no off-loopback auth
-  #     surface, no cross-namespace URL mistakes).
+  # 2026-06: migrated from the previous two-container sidecar (nousresearch/
+  # hermes-agent + outsourc-e/hermes-workspace) to a SINGLE container running
+  # ekkoye8888/hermes-web-ui. That image is `FROM nousresearch/hermes-agent`
+  # plus Node + the web admin UI, so ONE container now provides:
+  #   agent runtime + gateway + Telegram bot + cron + web admin UI (port 6060).
+  # Chat is driven in-process via the image's Python agent-bridge; the UI also
+  # manages the gateway lifecycle itself (no s6 supervision in this image —
+  # the entrypoint is `node dist/server/index.js`, which spawns
+  # `hermes gateway run --replace`).
   #
-  # Name kept as "hermes-agent" on purpose: the bjw-s PVC is named
-  # <release>-<key> = "hermes-agent-data", so reusing this release name
-  # preserves the EXISTING agent PVC (skills/sessions/memory) across the
-  # migration. The old hermes-workspace Application is disabled separately.
+  # Why single-container: EKKOLearn is architected to BE the agent host (it
+  # spawns the agent in-process), so a separate agent container would mean two
+  # AIAgent processes on one state.db. The all-in-one is the upstream-intended
+  # topology and collapses the stack to one image.
+  #
+  # Runtime user: this image runs as ROOT (its Dockerfile sets USER root and
+  # overrides the base entrypoint, so the base image's HERMES_UID step-down is
+  # bypassed). Root reads/writes the existing PVC (data created by the old
+  # nousresearch image as uid 10010) without trouble. HERMES_ALLOW_ROOT_GATEWAY
+  # =1 lets the gateway start as root.
+  #
+  # Name kept as "hermes-agent": the bjw-s PVC is <release>-<key> =
+  # "hermes-agent-data", so reusing this release name PRESERVES the existing
+  # HERMES_HOME PVC (config.yaml, sessions, skills, memory, state.db) across the
+  # migration. EKKOLearn reads $HERMES_HOME/config.yaml exactly like upstream;
+  # existing sessions appear (read-only) in the History tab.
   name: hermes-agent
   namespace: argocd
   finalizers:
@@ -39,31 +50,23 @@ spec:
             strategy: Recreate                      # state in PVC, single writer
             pod:
               securityContext:
-                # NOTE: fsGroup is INERT on microk8s-hostpath (the hostPath
-                # provisioner does not apply fsGroup ownership/permissions —
-                # verified: /opt/data stays 10010:10000 mode 700, not group
-                # 10010). The shared volume actually works because BOTH images
-                # run their process as uid 10010 (agent: HERMES_UID=10010;
-                # workspace image user is also uid 10010), so /opt/data
-                # (10010-owned) and /home/workspace/.hermes are accessible by
-                # owner, not by group. fsGroup is kept as best-effort: harmless
-                # here, and correct if storage ever moves to a CSI that honors
-                # it. Paths created by the root init containers (e.g.
-                # /opt/data/.local) must be chown'd to 10010 explicitly — see
-                # the install-cli-extras init.
-                fsGroup: 10010
+                # EKKOLearn runs as ROOT (entrypoint bypasses the base image's
+                # HERMES_UID step-down). The existing PVC is owned 10010:10000
+                # from the old nousresearch agent; root accesses it regardless,
+                # and microk8s-hostpath ignores fsGroup anyway (known quirk), so
+                # no fsGroup/uid juggling is needed here. New files land root-
+                # owned, which is consistent since the agent+gateway also run
+                # as root in this image.
+                {}
             initContainers:
               # Sync config.yaml into HERMES_HOME from the ConfigMap on EVERY boot.
-              # Git (this chart's values) is the SOURCE OF TRUTH — the previous
-              # "copy only if absent" guard meant any config.yaml edit committed
-              # after first boot was silently ignored on the live PVC (e.g. the
-              # qwen3-8b -> qwen3.6-35b-a3b model switch never took effect until a
-              # manual reseed). Always overwriting makes Git authoritative, in line
-              # with the rest of this GitOps repo. Live edits (kubectl/UI) to the
-              # PVC copy are intentionally clobbered on restart; declare MCP servers,
-              # providers, skills config etc. HERE, not live.
-              # The image's cont-init re-normalises ownership to HERMES_UID after the
-              # root cp, so no chown is needed here.
+              # Git (this chart's values) is the SOURCE OF TRUTH. The bundled agent
+              # reads $HERMES_HOME/config.yaml exactly like upstream hermes-agent
+              # (model/providers/telegram toolsets/compression/web). Live UI edits to
+              # the PVC copy are intentionally clobbered on restart; declare MCP
+              # servers, providers, skills config etc. HERE, not live.
+              # NOTE: EKKOLearn strips any legacy `platforms.api_server` block from
+              # config.yaml on startup — we don't ship one, so this is a no-op.
               bootstrap:
                 image:
                   repository: busybox
@@ -76,9 +79,9 @@ spec:
                     cp -f /bootstrap/config.yaml /opt/data/config.yaml
               # Install static CLI extras (jq, yq) into the PVC so the agent's
               # terminal tool can pipe HTTP/JSON workflows without an image rebuild.
-              # /opt/data/.local/bin is already on the image's $PATH (verified:
-              # PATH=/opt/hermes/bin:/opt/hermes/.venv/bin:/opt/data/.local/bin:/usr/local/sbin:...).
-              # Image alpine/curl has HTTPS; busybox does not.
+              # /opt/data/.local/bin is on the base image's $PATH. The agent+gateway
+              # run as root in this image, so no chown is required (root owns what it
+              # downloads and reads everything). Image alpine/curl has HTTPS.
               # Idempotent: skips download if binary already present + executable.
               install-cli-extras:
                 image:
@@ -108,184 +111,70 @@ spec:
                       echo "yq already installed, skip"
                     fi
 
-                    # The agent runs non-root (HERMES_UID=10010, gid 10000) and
-                    # writes runtime state under /opt/data/.local (e.g. Telegram's
-                    # .local/state). This init runs as root, so /opt/data/.local is
-                    # created root-owned; the image's own setup only chowns its
-                    # seeded files, not our injected dir. Hand ownership to the
-                    # agent UID/GID or the agent gets EACCES (Telegram: "Permission
-                    # denied: '/opt/data/.local/state'").
-                    chown -R 10010:10000 /opt/data/.local
-
                     echo "Installed CLI extras:"
                     ls -la /opt/data/.local/bin/
-              # Force gateway_state.json's `gateway_state` field to "running"
-              # before the main container's cont-init.d/02-reconcile-profiles
-              # reads it. The reconciler (hermes_cli/container_boot.py) reads the
-              # DEFAULT gateway's prior state from $HERMES_HOME/gateway_state.json
-              # and auto-starts the supervised gateway-default s6 service ONLY when
-              # that prior state is "running" (_AUTOSTART_STATES = {"running"}).
-              #
-              # Two cases break the gateway otherwise, both leaving :8642 dead and
-              # the workspace UI stuck on "Unauthorized" / disconnected:
-              #   1. Pod restart: Hermes writes "stopped" on SIGTERM (graceful
-              #      shutdown) → reconciler keeps it down.
-              #   2. COLD START (fresh PVC / never-started): the file is ABSENT →
-              #      _read_prior_state() returns None → not in {"running"} → down.
-              #      (The previous version of this init no-op'd on absent, which is
-              #      exactly the chicken-and-egg that broke first boot.)
-              #
-              # So: if the file is missing, CREATE it as running; if present but
-              # not running, flip it. The live gateway overwrites this file with
-              # full state once it boots. chown to the agent UID/GID (10010:10000)
-              # so the non-root agent can rewrite it; /opt/data itself is 10010-
-              # owned mode 700 so it could replace it anyway, but be explicit.
-              force-gateway-autostart:
-                image:
-                  repository: alpine
-                  tag: "3.20"
-                command: ["sh", "-c"]
-                args:
-                  - |
-                    set -e
-                    f=/opt/data/gateway_state.json
-                    if [ ! -f "$f" ]; then
-                      echo '{"gateway_state":"running"}' > "$f"
-                      echo "Created $f with gateway_state=running (cold start)"
-                    else
-                      apk add --no-cache jq >/dev/null
-                      current=$(jq -r '.gateway_state // "absent"' "$f")
-                      if [ "$current" = "running" ]; then
-                        echo "gateway_state already 'running'; no change"
-                      else
-                        jq '.gateway_state = "running"' "$f" > "$f.tmp" && mv -f "$f.tmp" "$f"
-                        echo "Patched gateway_state: $current → running"
-                      fi
-                    fi
-                    chown 10010:10000 "$f" 2>/dev/null || true
             containers:
-              # CONTAINER 1 — the Hermes Agent (backend: gateway :8642 + dashboard :9119).
+              # SINGLE container — agent + gateway + Telegram + cron + web admin UI.
               main:
                 image:
-                  repository: nousresearch/hermes-agent
-                  tag: "v2026.5.29.2"
+                  repository: ekkoye8888/hermes-web-ui
+                  # Pin a semver tag (NOT latest). amd64 multi-arch confirmed.
+                  # Renovate can track docker tags for this image.
+                  tag: "v0.6.10"
                   pullPolicy: IfNotPresent
-                # IMPORTANT: do NOT pass `["gateway", "run"]` as CMD here.
-                # The image's reconcile-profiles cont-init dynamically registers
-                # a supervised s6 service `gateway-default` that already runs
-                # `hermes gateway run`. If the container's CMD ALSO runs gateway,
-                # the two processes race for the gateway.lock file and the
-                # supervised one enters a permanent crashloop ("Gateway already
-                # running (PID N)"). Sleep infinity keeps the container alive;
-                # s6 handles gateway + dashboard supervision.
-                args:
-                  - "sleep"
-                  - "infinity"
                 env:
-                  # Pin the image's runtime user. Upstream compose sets the same
-                  # value; it must match the Pod fsGroup above so the agent owns
-                  # what it writes and the workspace sidecar can read/write it.
-                  HERMES_UID: "10010"
-                  # HERMES_HOME points to /opt/data (PVC), not /opt/hermes
-                  # which holds image code + scripts (main-wrapper.sh etc).
+                  # --- Web UI server ---
+                  PORT: "6060"                          # UI listen port (Docker default)
+                  BIND_HOST: "0.0.0.0"
+                  CORS_ORIGINS: "https://hermes.tgu.ovh" # not "*"; matches the ingress host
+                  # --- Hermes data home: reuse the EXISTING PVC layout ---
+                  # Override the image default (/home/agent/.hermes) to /opt/data so the
+                  # bundled agent reads the same config.yaml/sessions/skills/state.db the
+                  # old nousresearch agent wrote. Both the web-ui and the spawned gateway
+                  # honor HERMES_HOME.
                   HERMES_HOME: "/opt/data"
-                  # Plain Telegram config (non-sensitive)
+                  # The web UI's OWN state (its SQLite DBs, auth .token, logs, uploads).
+                  # Kept on the same PVC, in a distinct subdir. The auto-generated auth
+                  # token persists here across restarts (so logins/links stay stable).
+                  HERMES_WEB_UI_HOME: "/opt/data/hermes-web-ui"
+                  # File-browser root (own PVC, shared with the agent terminal cwd).
+                  WORKSPACE_BASE: "/workspace"
+                  # --- Gateway / Telegram / cron lifecycle ---
+                  # Managed-gateway mode: the UI starts `hermes gateway run` itself.
+                  # This is what runs the Telegram bot + cron. Do NOT set
+                  # HERMES_WEB_UI_DISABLE_GATEWAY_AUTOSTART (that would kill them).
+                  HERMES_WEB_UI_MANAGED_GATEWAY: "1"
+                  # Gateway refuses to start as root unless this is set; image is root.
+                  HERMES_ALLOW_ROOT_GATEWAY: "1"
+                  # Don't overwrite our seeded/custom skills with EKKOLearn's bundled
+                  # skill set on startup. Drop this if you WANT its bundled skills.
+                  HERMES_WEB_UI_DISABLE_SKILL_INJECTION: "1"
+                  # --- Agent config (best-effort container env) ---
+                  # NOTE: EKKOLearn passes the spawned gateway a FILTERED env (allowlist),
+                  # so these are not guaranteed to reach the agent process. The robust
+                  # path is $HERMES_HOME/.env + config.yaml — the reused PVC's existing
+                  # /opt/data/.env should already carry the agent secrets. VERIFY after
+                  # deploy that Telegram connects and inference works; if not, seed
+                  # /opt/data/.env via an initContainer.
                   TELEGRAM_ALLOWED_USERS: "843341688"
                   TELEGRAM_HOME_CHANNEL: "843341688"
                   GATEWAY_ALLOW_ALL_USERS: "false"
                   WHATSAPP_ENABLED: "false"
-                  # Dashboard web UI — enabled so the workspace sidecar can drive
-                  # the admin REST API (sessions/skills/config/MCP). Bound to
-                  # loopback only: the only consumer is the workspace container
-                  # in this same Pod, reaching it over 127.0.0.1:9119. Nothing
-                  # off-Pod can touch it (no Service). INSECURE=true skips the
-                  # Nous OAuth gate, which is safe given loopback-only binding.
-                  HERMES_DASHBOARD: "true"
-                  HERMES_DASHBOARD_HOST: "127.0.0.1"
-                  HERMES_DASHBOARD_PORT: "9119"
-                  HERMES_DASHBOARD_INSECURE: "true"
-                  # SearXNG self-hosted instance (see argocd-apps/searxng-app.yaml).
-                  # Picked up by /opt/hermes/plugins/web/searxng/provider.py via
-                  # `is_available()` → bool(os.getenv("SEARXNG_URL")). Combined with
-                  # the `web.search_backend: searxng` directive in config.yaml below,
-                  # this routes Hermes' web_search tool through SearXNG instead of
-                  # the default Brave/Tavily/etc. (which need paid API keys).
                   SEARXNG_URL: "http://searxng.searxng.svc.cluster.local:8080"
-                  # Legacy OpenAI-compatible env pair. Hermes' actual routing
-                  # for our model goes through `providers.localai` (named
-                  # provider with key_env: OPENAI_API_KEY) — that's the
-                  # modern syntax and takes precedence. But the hermes-workspace
-                  # admin UI probes these legacy env vars to render the
-                  # "Custom Providers → Custom Base URL" status; without them
-                  # set the panel shows "❌ Not configured" even though
-                  # inference works fine. Setting the same target keeps the
-                  # UI honest and gives Hermes a fallback if the named-provider
-                  # lookup ever misses.
                   OPENAI_BASE_URL: "http://localai.localai.svc.cluster.local:8080/v1"
-                  # Gateway HTTP API server (port 8642) — consumed by the
-                  # workspace sidecar over 127.0.0.1 for chat/models/streaming/
-                  # jobs APIs. Bound to loopback only (sidecar is the sole
-                  # consumer). API_SERVER_KEY (sealed via hermes-secrets) still
-                  # authenticates calls; the workspace passes the same value as
-                  # HERMES_API_TOKEN.
-                  API_SERVER_ENABLED: "true"
-                  API_SERVER_HOST: "127.0.0.1"
-                  API_SERVER_PORT: "8642"
                 envFrom:
                   - secretRef:
                       name: hermes-secrets   # OPENAI_API_KEY + TELEGRAM_BOT_TOKEN + API_SERVER_KEY
                 resources:
-                  limits:   { cpu: "2",    memory: 2Gi }
-                  requests: { cpu: "200m", memory: 512Mi }
-
-              # CONTAINER 2 — the Hermes Workspace UI (sidecar, port 3000).
-              # Mirrors the upstream docker-compose hermes-workspace service.
-              workspace:
-                image:
-                  repository: ghcr.io/outsourc-e/hermes-workspace
-                  # Renovate tracks via customManager regex in renovate.json.
-                  tag: "latest"
-                  pullPolicy: IfNotPresent
-                env:
-                  # Talk to the agent over the shared Pod loopback — no Service,
-                  # no cluster DNS, no cross-namespace URL. This is the whole
-                  # point of the sidecar merge.
-                  HERMES_API_URL: "http://127.0.0.1:8642"
-                  HERMES_DASHBOARD_URL: "http://127.0.0.1:9119"
-                  # Upstream-canonical paths. HERMES_HOME is the SAME PVC the
-                  # agent uses (mounted here at /home/workspace/.hermes via
-                  # persistence.data advancedMounts), so the UI reads the agent's
-                  # skills/sessions/memory straight off disk. HERMES_WORKSPACE_DIR
-                  # is the file-browser root, shared with the agent's terminal
-                  # cwd (persistence.files) so tool output shows in the Files tab.
-                  HERMES_HOME: "/home/workspace/.hermes"
-                  HERMES_WORKSPACE_DIR: "/workspace"
-                  # Behind the LAN-only NGINX ingress with cert-manager TLS.
-                  # Workspace checks env values strictly as "1" (per .env.example);
-                  # "true" is silently ignored and the workspace then warns
-                  # "plain-HTTP LAN deployment detected" because it can't see the
-                  # X-Forwarded-Proto=https header without TRUST_PROXY=1.
-                  # Resulting Secure-cookie mismatch makes login fail on first POST.
-                  COOKIE_SECURE: "1"
-                  TRUST_PROXY: "1"
-                envFrom:
-                  - secretRef:
-                      name: hermes-workspace-secrets
-                      # Provides:
-                      #   HERMES_API_TOKEN  (= API_SERVER_KEY on the agent side)
-                      #   HERMES_PASSWORD   (workspace web-UI login password)
-                resources:
-                  limits:   { cpu: "1",    memory: 1Gi }
-                  requests: { cpu: "100m", memory: 256Mi }
+                  limits:   { cpu: "2",    memory: 3Gi }
+                  requests: { cpu: "300m", memory: 768Mi }
         service:
           app:
             controller: hermes
             ports:
-              # Only the Workspace UI is exposed cluster-side. The gateway (8642)
-              # and dashboard (9119) are loopback-only inside the Pod now.
               http:
-                port: 3000
-                targetPort: 3000
+                port: 6060
+                targetPort: 6060
                 protocol: TCP
         ingress:
           app:
@@ -294,11 +183,14 @@ spec:
               cert-manager.io/cluster-issuer: letsencrypt-prod
               # LAN-only (192.168.88.0/24 home + 10.1.0.0/16 k8s pod CIDR).
               nginx.ingress.kubernetes.io/whitelist-source-range: "192.168.88.0/24,10.1.0.0/16"
-              # WebSocket + SSE: workspace streams chat tokens + tails terminal
-              # via long-lived connections. Bump NGINX read/send timeouts so
-              # idle SSE doesn't get cut at the 60s default.
+              # WebSocket + long-lived streams: Socket.IO chat (/socket.io/), the web
+              # terminal (/api/hermes/terminal) and kanban events. NGINX auto-upgrades
+              # WS; bump read/send timeouts so chat runs + compression (up to minutes)
+              # don't get cut at the 60s default.
               nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
               nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+              # Uploads/downloads (avatars, files) — server allows up to ~200MB.
+              nginx.ingress.kubernetes.io/proxy-body-size: "200m"
             hosts:
               - host: hermes.tgu.ovh
                 paths:
@@ -312,11 +204,9 @@ spec:
                   - hermes.tgu.ovh
                 secretName: hermes-tls
         persistence:
-          # SHARED PVC — the agent's HERMES_HOME. Reused across the migration
-          # (existing claim name "hermes-agent-data"). Mounted at /opt/data in
-          # the agent and at /home/workspace/.hermes in the workspace, so both
-          # see the same skills/sessions/memory tree. advancedMounts (not
-          # globalMounts) because the two containers need DIFFERENT mount paths.
+          # HERMES_HOME — the existing agent PVC (claim "hermes-agent-data"),
+          # reused as-is so config.yaml/sessions/skills/memory/state.db survive the
+          # migration. Also holds the web UI's own state under /opt/data/hermes-web-ui.
           data:
             type: persistentVolumeClaim
             storageClass: microk8s-hostpath
@@ -328,17 +218,9 @@ spec:
                   - path: /opt/data
                 install-cli-extras:
                   - path: /opt/data
-                force-gateway-autostart:
-                  - path: /opt/data
                 main:
                   - path: /opt/data
-                workspace:
-                  - path: /home/workspace/.hermes
-          # File-browser root — shared by BOTH the agent (terminal.cwd below)
-          # and the workspace UI (HERMES_WORKSPACE_DIR). This is the one
-          # enhancement over the upstream compose: mounting it into the agent
-          # too means files the agent creates via its terminal/code_execution
-          # tools appear live in the workspace "Files" tab.
+          # File-browser root (WORKSPACE_BASE), separate PVC.
           files:
             type: persistentVolumeClaim
             storageClass: microk8s-hostpath
@@ -347,8 +229,6 @@ spec:
             advancedMounts:
               hermes:
                 main:
-                  - path: /workspace
-                workspace:
                   - path: /workspace
           bootstrap:
             type: configMap
@@ -409,9 +289,8 @@ spec:
                   tool_use_enforcement: auto
                 terminal:
                   backend: local
-                  # Shared file-browser root (persistence.files, mounted in both
-                  # containers). Agent tool output here is visible live in the
-                  # workspace UI "Files" tab.
+                  # Shared file-browser root (persistence.files = WORKSPACE_BASE).
+                  # Agent tool output here is visible live in the UI "Files" tab.
                   cwd: /workspace
                   timeout: 180
                 display:
