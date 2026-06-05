@@ -374,7 +374,7 @@ spec:
                   #   Free Models for Hermes Agent" article (May 2026): "Best for 8 GB
                   #   VRAM, reliable tool calling". Different generation than Qwen2.5
                   #   — retrained with stronger function-call coverage.
-                  default: qwen3-8b
+                  default: qwen3.6-35b-a3b
                   # Named custom provider — definition is in the `providers:` block below.
                   # Using `provider: custom` (without an entry) means Hermes can't pull the
                   # API key from OPENAI_API_KEY env reliably (it sends "no-key-required"
