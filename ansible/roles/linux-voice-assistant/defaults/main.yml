@@ -65,14 +65,16 @@ lva_audio_input_device: ""
 lva_audio_output_device: ""
 
 # --- /etc/hosts overrides --------------------------------------------------
-# Map of hostname → IP injected into the container's /etc/hosts via the
-# compose `extra_hosts` key. Required when the host's resolver returns a
-# different IP than the one HA's URL points to (e.g. WAN IP via public DNS
-# vs. LAN IP via Pi-hole override). HA delivers TTS audio as a URL the
-# satellite has to fetch — that URL uses the HA external_url hostname, so
-# the cert is valid but the LAN can't reach the WAN IP from behind NAT
-# without hairpin support. Pin the resolution here instead of fighting
-# the host's resolv.conf.
+# Map of hostname → IP injected into the HOST's /etc/hosts (not the
+# container's). The compose service runs with network_mode: host, which
+# makes docker share the host's network namespace AND its /etc/hosts file —
+# the compose-level `extra_hosts:` key is therefore silently ignored.
+# Required when the host's resolver returns a different IP than the one
+# HA's external_url points to (WAN IP via public DNS vs. LAN IP via Pi-hole
+# override): HA delivers TTS audio as a URL the satellite fetches, the URL
+# uses the HA external hostname (cert is valid against it), but the LAN
+# can't reach the WAN IP from behind NAT without hairpin support.
+# Lines are tagged with `# managed by ansible (LVA)` for safe cleanup.
 lva_extra_hosts: {}
 
 # --- systemd lingering -----------------------------------------------------

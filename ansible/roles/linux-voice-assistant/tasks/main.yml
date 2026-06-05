@@ -47,6 +47,20 @@
     group: "{{ lva_user }}"
     mode: "0755"
 
+- name: Inject /etc/hosts overrides on the host
+  # network_mode: host makes the container share the host's /etc/hosts —
+  # compose-level `extra_hosts:` is silently ignored. Edit the host file
+  # directly via lineinfile; the marker comment lets us update or remove
+  # entries cleanly later.
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    regexp: '^[0-9.]+\s+{{ item.key | regex_escape }}(\s|$)'
+    line: "{{ item.value }}  {{ item.key }}  # managed by ansible (LVA)"
+    state: present
+    backup: false
+  loop: "{{ lva_extra_hosts | dict2items }}"
+  when: lva_extra_hosts | length > 0
+
 - name: Render docker-compose.yml
   ansible.builtin.template:
     src: docker-compose.yml.j2
