@@ -251,17 +251,24 @@ spec:
                 # kubectl/UI to the PVC copy are clobbered on the next restart.
                 model:
                   # 2026-06-02: switched Qwen2.5-7B → Hermes-3-Llama-3.1-8B → Qwen3-8B.
+                  # 2026-06-06: tried qwen3.6-35b-a3b → REVERTED to qwen3-8b for the agent.
                   #
                   # - Qwen 2.5 7B (Q4) emits tool_calls JSON on small isolated prompts
                   #   but hallucinates free text under Hermes' 16k+ system prompt.
                   # - Hermes-3-Llama-3.1-8B (Nous Research) FAILED tool calling even on
                   #   the small isolated test — likely a LocalAI tool-parser mismatch
                   #   with Hermes-3's XML grammar under automatic_tool_parsing_fallback.
-                  # - Qwen3-8B is the recommendation in remoteopenclaw.com's "Best
-                  #   Free Models for Hermes Agent" article (May 2026): "Best for 8 GB
-                  #   VRAM, reliable tool calling". Different generation than Qwen2.5
-                  #   — retrained with stronger function-call coverage.
-                  default: qwen3.6-35b-a3b
+                  # - qwen3.6-35b-a3b (MoE) is FAST in direct chat but UNUSABLE for the
+                  #   agent here: its experts are offloaded to CPU RAM (override_tensor
+                  #   ffn_exps=CPU, RTX 3060 12GB can't hold them), so PREFILL of Hermes'
+                  #   large prompts (system prompt + tool schemas + history, 5-16k tokens)
+                  #   is CPU-bound and blows past the OpenAI client timeout → APITimeout
+                  #   after 3 retries (observed: 744s for one turn). Tiny direct-chat
+                  #   prompts prefill instantly, which is why manual chat felt fast. Keep
+                  #   it defined in LocalAI for direct chat, but NOT as the agent model.
+                  # - Qwen3-8B runs FULLY on GPU (fast prefill on big agent prompts) and
+                  #   has reliable tool calling — the validated agent default.
+                  default: qwen3-8b
                   # Named custom provider — definition is in the `providers:` block below.
                   # Using `provider: custom` (without an entry) means Hermes can't pull the
                   # API key from OPENAI_API_KEY env reliably (it sends "no-key-required"
