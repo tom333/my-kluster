@@ -50,19 +50,26 @@ Dès que l'addon bascule sur Traefik, les annotations nginx tombent. **9 hosts p
 | `mlflow.tgu.ovh` | `argocd/argocd-apps/mlflow-app.yaml` | rien (juste className) |
 | `freshrss.tgu.ovh` | `config/freshrss-ingress.yaml` | nettoyer `nginx.org/*` (inerte) |
 
-### Inventaire élargi (snapshot live 2026-06-10 — ~28 ingress)
+### Inventaire élargi (snapshot + annotations live 2026-06-10 — ~28 ingress)
 
-Le grep repo ratait les ingress générés par chart. Liste live complète à migrer (className `nginx` **et** `public` routent via nginx aujourd'hui). Les hosts ci-dessous **en plus** des 14 du tableau, **sans auth ni whitelist** → migration = **simple changement de className**, aucun middleware :
+Le grep repo ratait les ingress chart-managed. ⚠️ **Correction : ce n'est PAS que du className** — selfhost cache 5 hosts oauth2. Annotations live vérifiées :
 
-| Namespace | Hosts | Traitement |
+| Host (ns) | className | À porter |
 |---|---|---|
-| `selfhost` | cleanuparr, jellyfin, prowlarr, qbittorrent, radarr, seerr, sonarr (+ freshrss) | className seul (+ timeouts éventuels à vérifier par host) |
-| `cv` | cv, chatbot, dynamic | className seul |
-| `accidents` | meteo-des-accidents | className seul |
-| `portfolio` | portfolio | className seul |
-| `smoke` | hello (test) | à supprimer si obsolète |
+| cleanuparr, qbittorrent, radarr, seerr, sonarr (`selfhost`) | nginx | **ForwardAuth** (oauth2) → Middleware ajouté en ns `selfhost` |
+| jellyfin (`selfhost`) | nginx | `proxy-body-size: 0` → Traefik illimité par défaut, **drop** |
+| prowlarr (`selfhost`) | nginx | className seul |
+| freshrss (`selfhost`) | public | `nginx.org/*` **inerte** → drop |
+| cv, chatbot, dynamic (`cv`) | public | className seul |
+| meteo-des-accidents (`accidents`) | nginx | `force-ssl-redirect`+`ssl-redirect` → `redirectScheme` middleware ou redirect entrypoint ; body 50m + timeouts 300s |
+| portfolio (`portfolio`) | nginx | `configuration-snippet` WebSocket → **Traefik gère WS nativement, drop snippet** ; `proxy-http-version 1.1` = défaut ; timeouts 3600s → ServersTransport |
+| hello (`smoke`) | public | test — **à supprimer si obsolète** |
 
-> Ces hosts sont chart-managed ou dépôts externes → la migration className se fait dans leur chart/values respectif. À énumérer précisément en début de P2 (même logique « un host à la fois »). **Impact estimation : +2-3h** sur le total (passe de ~6-8h à ~9-11h), mais ce sont des changements triviaux (className), pas des middlewares.
+**Bilan oauth2 global révisé : 9 hosts** (dagster, kubetail, chat, dashboard + cleanuparr, qbittorrent, radarr, seerr, sonarr). Namespaces ForwardAuth : `kube-system`, `dagster`, `openwebui`, **`selfhost`**.
+
+> **Prépa oauth2-proxy validée (2026-06-10) :** config live = `reverse_proxy=true`, `whitelist_domains=*.tgu.ovh`, `cookie_domains=.tgu.ovh` → pattern ForwardAuth rd-less compatible, SSO partagé. P3 dérisqué.
+
+> ⚠️ Points spéciaux à traiter par-host en P2/P4 : `force-ssl-redirect` (accidents — vérifier si l'addon Traefik redirige http→https par défaut, sinon `redirectScheme`), WebSocket portfolio (natif Traefik, juste retirer le snippet). **Impact estimation : +2-3h** → total ~9-11h.
 
 ---
 
