@@ -21,6 +21,11 @@ argo-cd:
       ingressClassName: nginx
       annotations:
         cert-manager.io/cluster-issuer: "letsencrypt-prod"
+        # argocd-server tourne en --insecure (h2c/HTTP2 cleartext sur 8080).
+        # Le backend ingress cible le port service 443 (nommé "https") → Traefik
+        # appliquerait l'heuristique HTTPS et parlerait TLS à un backend cleartext
+        # (502). serversscheme=h2c force le bon schéma (gère UI + gRPC argocd).
+        traefik.ingress.kubernetes.io/service.serversscheme: h2c
       extraTls:
         - hosts:
           - argocd.tgu.ovh
