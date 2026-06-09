@@ -70,7 +70,10 @@ spec:
                       initialDelaySeconds: 5
                       periodSeconds: 10
                 resources:
-                  requests: { cpu: "500m", memory: 1Gi }
+                  # Node CPU-requests are near-saturated (single node ~5 CPU). Keep the
+                  # request tiny — Chromium is bursty and idle most of the time — and let
+                  # the limit absorb spikes.
+                  requests: { cpu: "100m", memory: 1Gi }
                   limits:   { cpu: "2",    memory: 4Gi }
         service:
           app:
