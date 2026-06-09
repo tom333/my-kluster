@@ -44,6 +44,11 @@ spec:
                 env:
                   # No TOKEN → tokenless (cluster-internal only). Sizing for a
                   # single-user homelab; HEALTH rejects new sessions under pressure.
+                  # EXTERNAL_URL: /json/version advertises webSocketDebuggerUrl using
+                  # this host. Without it browserless reports ws://0.0.0.0:3000, which
+                  # Hermes' CDP discovery uses verbatim → unconnectable. Must match the
+                  # in-cluster Service DNS the agent dials.
+                  EXTERNAL_URL: "http://browserless.hermes.svc.cluster.local:3000"
                   CONCURRENT: "3"
                   QUEUED: "5"
                   TIMEOUT: "120000"
