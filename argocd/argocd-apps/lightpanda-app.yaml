@@ -45,16 +45,23 @@ spec:
                   # IfNotPresent keeps the pulled build stable until a manual bump.
                   tag: "nightly"
                   pullPolicy: IfNotPresent
-                # Keep the image ENTRYPOINT (tini) — override only args (CMD).
-                # --advertise-host is the load-bearing flag: it sets the host in
-                # /json/version's webSocketDebuggerUrl so the agent connects to the
-                # Service DNS, not 0.0.0.0.
+                # Keep the image ENTRYPOINT (tini `/usr/bin/tini --`) — override only
+                # args (CMD). tini execs args[0], so args MUST start with the binary
+                # path (the image CMD is ["/bin/lightpanda","serve",...]); starting at
+                # "serve" makes tini exec a nonexistent "serve" → crashloop.
+                # --advertise-host sets the host in /json/version's webSocketDebuggerUrl
+                # so the agent connects to the Service DNS, not 0.0.0.0.
                 args:
+                  - /bin/lightpanda
                   - serve
-                  - --host=0.0.0.0
-                  - --port=9222
-                  - --advertise-host=lightpanda.hermes.svc.cluster.local
-                  - --log-level=info
+                  - --host
+                  - 0.0.0.0
+                  - --port
+                  - "9222"
+                  - --advertise-host
+                  - lightpanda.hermes.svc.cluster.local
+                  - --log-level
+                  - info
                 env:
                   LIGHTPANDA_DISABLE_TELEMETRY: "true"
                 securityContext:
