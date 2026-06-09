@@ -70,7 +70,7 @@ spec:
             annotations:
               cert-manager.io/cluster-issuer: letsencrypt-prod
               # LAN-only (cf. localai/beszel/hermes pattern).
-              nginx.ingress.kubernetes.io/whitelist-source-range: "192.168.88.0/24,10.1.0.0/16"
+              traefik.ingress.kubernetes.io/router.middlewares: searxng-lan-only@kubernetescrd
             hosts:
               - host: searxng.tgu.ovh
                 paths:

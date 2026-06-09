@@ -185,15 +185,9 @@ spec:
             annotations:
               cert-manager.io/cluster-issuer: letsencrypt-prod
               # LAN-only (192.168.88.0/24 home + 10.1.0.0/16 k8s pod CIDR).
-              nginx.ingress.kubernetes.io/whitelist-source-range: "192.168.88.0/24,10.1.0.0/16"
-              # WebSocket + long-lived streams: Socket.IO chat (/socket.io/), the web
-              # terminal (/api/hermes/terminal) and kanban events. NGINX auto-upgrades
-              # WS; bump read/send timeouts so chat runs + compression (up to minutes)
-              # don't get cut at the 60s default.
-              nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
-              nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
-              # Uploads/downloads (avatars, files) — server allows up to ~200MB.
-              nginx.ingress.kubernetes.io/proxy-body-size: "200m"
+              # WebSocket/streams longs (Socket.IO chat, terminal, kanban) : Traefik
+              # gère le WS nativement et ne coupe pas sur timeout read/send comme nginx@60s.
+              traefik.ingress.kubernetes.io/router.middlewares: hermes-lan-only@kubernetescrd
             hosts:
               - host: hermes.tgu.ovh
                 paths:
