@@ -250,49 +250,44 @@ spec:
                 # this block on EVERY boot. Edit HERE (Git) only — live edits via
                 # kubectl/UI to the PVC copy are clobbered on the next restart.
                 model:
-                  # 2026-06-02: switched Qwen2.5-7B → Hermes-3-Llama-3.1-8B → Qwen3-8B.
-                  # 2026-06-06: tried qwen3.6-35b-a3b → REVERTED to qwen3-8b for the agent.
+                  # 2026-06-10: agent moved to a PAID, reliable OpenRouter model.
                   #
-                  # - Qwen 2.5 7B (Q4) emits tool_calls JSON on small isolated prompts
-                  #   but hallucinates free text under Hermes' 16k+ system prompt.
-                  # - Hermes-3-Llama-3.1-8B (Nous Research) FAILED tool calling even on
-                  #   the small isolated test — likely a LocalAI tool-parser mismatch
-                  #   with Hermes-3's XML grammar under automatic_tool_parsing_fallback.
-                  # - qwen3.6-35b-a3b (MoE) is FAST in direct chat but UNUSABLE for the
-                  #   agent here: its experts are offloaded to CPU RAM (override_tensor
-                  #   ffn_exps=CPU, RTX 3060 12GB can't hold them), so PREFILL of Hermes'
-                  #   large prompts (system prompt + tool schemas + history, 5-16k tokens)
-                  #   is CPU-bound and blows past the OpenAI client timeout → APITimeout
-                  #   after 3 retries (observed: 744s for one turn). Tiny direct-chat
-                  #   prompts prefill instantly, which is why manual chat felt fast. Keep
-                  #   it defined in LocalAI for direct chat, but NOT as the agent model.
-                  # - Qwen3-8B runs full-GPU but NARRATES instead of calling tools under
-                  #   Hermes' heavy load (19k system prompt + 31 tool schemas + multi-step):
-                  #   an 8B capacity ceiling — confirmed NOT a LocalAI/format issue (it emits
-                  #   correct structured tool_calls on simple prompts; the test proved it).
-                  #   Reliable agentic tool-calling needs ~14-32B+, which won't fit/run fast
-                  #   on the RTX 3060 12GB. Backend swap (vLLM/Ollama) doesn't help: same wall,
-                  #   and vLLM can't run the MoE offload.
-                  # 2026-06-06: agent moved OFF local inference to OpenRouter FREE models.
-                  #   z-ai/glm-4.5-air:free (~100B MoE, agent-built, 131k ctx) is large enough
-                  #   to DECIDE+CALL tools under load. $0/token. Requires: prompt-training ON in
-                  #   OpenRouter privacy settings (else 404 data-policy) + a one-time $10 unlock
-                  #   already done (1000 req/day vs 50). LocalAI/qwen3-8b stays defined below for
-                  #   direct chat / embeddings / fallback — just not the agent default anymore.
-                  default: z-ai/glm-4.5-air:free
+                  # Why (full history below): local inference is a dead end on the RTX
+                  # 3060 12GB — Qwen3-8B NARRATES instead of tool-calling under Hermes'
+                  # ~19k system prompt + 31 tool schemas; reliable agentic tool-calling
+                  # needs 14-32B+, which won't fit/run fast on 12GB. The OpenRouter
+                  # ":free" tier then caused a 503/429/timeout STORM (no SLA,
+                  # deprioritized): observed 90×503 + 49×429, agent loops aborting at
+                  # max_turns → "doesn't meet expectations / loses results".
+                  #
+                  # Gemini 2.5 Flash: ~$0.15/$0.60 per 1M, reliable tool-calling, huge
+                  # context, strong multilingual (FR). For a personal assistant (a few
+                  # dozen runs/day) this is cents/month but STABLE — the whole point.
+                  # Cheaper alt: deepseek/deepseek-chat ($0.14/$0.28). Both draw from
+                  # the OpenRouter credit balance (BYOK).
+                  #
+                  # Local-inference history (kept for context):
+                  # - Qwen2.5-7B/Hermes-3-8B: tool_calls on tiny prompts, hallucinate under load.
+                  # - qwen3.6-35b-a3b (MoE): experts offloaded to CPU on 12GB → prefill
+                  #   CPU-bound → 744s/turn → APITimeout. Fine for direct chat only.
+                  # - Qwen3-8B: full-GPU but narrates under load (8B ceiling).
+                  # LocalAI/qwen3-8b stays defined below for direct chat / embeddings.
+                  default: google/gemini-2.5-flash
                   provider: openrouter
-                  # GLM-4.5-Air real context = 131k, well above Hermes' 64k hard floor.
+                  # Declared window for compression math; well above Hermes' 64k floor.
+                  # (Gemini 2.5 Flash real context is ~1M; we don't need it all.)
                   context_length: 131072
                 # Named providers: Hermes resolves api_key from the env var named in key_env.
-                # OPENROUTER_API_KEY + OPENAI_API_KEY both come from the hermes-secrets
-                # SealedSecret (envFrom). :free IDs rotate/deprecate — if glm-4.5-air:free
-                # 404s, swap default to openai/gpt-oss-120b:free or qwen/qwen3-next-80b-a3b-instruct:free.
+                # OPENROUTER_API_KEY + OPENAI_API_KEY come from the hermes-secrets SealedSecret.
                 providers:
                   openrouter:
                     name: openrouter
                     base_url: https://openrouter.ai/api/v1
                     key_env: OPENROUTER_API_KEY
-                    default_model: z-ai/glm-4.5-air:free
+                    default_model: google/gemini-2.5-flash
+                    # Cap per-request time so a slow upstream fails fast (OpenRouter
+                    # retries another route) instead of hanging the whole turn.
+                    request_timeout_seconds: 120
                   # Kept for direct chat / embeddings / fallback (NOT the agent default).
                   localai:
                     name: localai
@@ -329,20 +324,24 @@ spec:
                 # POST. `search_backend` is the explicit per-capability picker;
                 # `backend` is the shared fallback (both set for clarity).
                 web:
+                  # Search: self-hosted SearXNG (free, no key).
                   search_backend: searxng
                   backend: searxng
+                  # Extract (read page content): SearXNG CANNOT extract — this was the
+                  # root cause of "finds links but returns no job offers" (web_extract
+                  # erroring every call). Tavily free tier = 1000 searches/mo + extract.
+                  # Requires TAVILY_API_KEY in the hermes-secrets SealedSecret.
+                  # (No-SaaS alt: drop this and let the agent read pages via the browser
+                  #  tool — browser_navigate + browser_snapshot — over lightpanda.)
+                  extract_backend: tavily
                 compression:
                   enabled: true
-                  # Threshold MUST be tuned to LocalAI's real ceiling (32k for Qwen 2.5 7B),
-                  # NOT to the declared context_length (65536). At 0.5 * 65536 = 32k,
-                  # compression triggers exactly at the LocalAI overflow point, too late.
-                  # 0.35 * 65536 = ~22.9k → compression starts well below the 32k ceiling,
-                  # leaving ~9k of headroom for the new user turn + tool calls.
-                  threshold: 0.35
-                  # Tighter target_ratio: after compaction, transcript settles at
-                  # 0.15 * 65536 = ~9.8k tokens (was ~13k), giving more room for the
-                  # ~16k baseline system prompt + skills index.
-                  target_ratio: 0.15
+                  # Now on a large-context model (Gemini 2.5 Flash, ~1M). Compress LATE
+                  # so tool results (e.g. job listings) aren't summarized away mid-task —
+                  # this was contributing to "loses findings". 0.6 * 131072 ≈ 79k before
+                  # compaction, settling back to ~0.35.
+                  threshold: 0.6
+                  target_ratio: 0.35
                   protect_last_n: 10
                   protect_first_n: 1
                 # Restrict Telegram toolset: drop tts/image_gen/vision/messaging to
