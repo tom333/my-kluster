@@ -435,15 +435,60 @@ modelsConfigs:
     f16: true
     low_vram: true
 
+  # gemma-4-12B QAT (dense) — quantization-aware-trained q4_0, qualité ≈ bf16.
+  # Collection officielle Google `gemma-4-qat-q4-0` (sortie 2026-06-05).
+  # Choix « simple » : 6.98 GB de poids → TIENT FULL-GPU sur la RTX 3060 12 GB
+  # SANS offload MoE/RAM (contrairement aux MoE A3B/A4B). Le plus fiable à déployer.
+  # 128k natif, sliding-window (KV léger), vision native via mmproj.
+  #
+  # VRAM : 6.98 GB poids + KV q8_0 (~2.3 GB @ 64k grâce au sliding-window) + ~1 GB
+  # overhead ≈ ~10 GB → marge confortable. Peut monter à 128k si besoin.
+  # ⚠️ Repo Google potentiellement gated → HF_TOKEN (déjà câblé via secretEnv) requis.
+  # ⚠️ Tool-calling day-1 (template jinja gemma-4) À VALIDER avant usage agent.
+  # Cf. charts/localai/MOE-DEPLOY.md.
+  gemma-4-12b-qat: |
+    name: gemma-4-12b-qat
+    backend: llama-cpp
+    known_usecases:
+      - chat
+    context_size: 65536          # 128k natif dispo ; 64k = marge sûre sur 12 GB
+    gpu_layers: 99               # full-GPU, pas d'override_tensor (modèle dense)
+    f16: true
+    flash_attention: true
+    mmap: true
+    # KV q8_0 (near-lossless) ; requiert flash_attention sinon downgrade FP16 -> OOM.
+    cache_type_k: q8_0
+    cache_type_v: q8_0
+    # Vision native : mmproj QAT (0.18 GB). Commenter ce champ pour désactiver.
+    mmproj: mmproj-gemma-4-12b-it-qat-q4_0.gguf
+    parameters:
+      model: gemma-4-12b-it-qat-q4_0.gguf
+      temperature: 1.0           # défauts Gemma
+      top_p: 0.95
+      top_k: 64
+    download_files:
+      - filename: gemma-4-12b-it-qat-q4_0.gguf
+        uri: https://huggingface.co/google/gemma-4-12B-it-qat-q4_0-gguf/resolve/main/gemma-4-12b-it-qat-q4_0.gguf
+      - filename: mmproj-gemma-4-12b-it-qat-q4_0.gguf
+        uri: https://huggingface.co/google/gemma-4-12B-it-qat-q4_0-gguf/resolve/main/mmproj-gemma-4-12b-it-qat-q4_0.gguf
+    options:
+      - use_jinja:true
+    template:
+      use_tokenizer_template: true
+    function:
+      automatic_tool_parsing_fallback: true
+      grammar:
+        disable: true
+    stopwords:
+      - "<end_of_turn>"
+      - "<eos>"
+
 ingress:
   enabled: true
   className: nginx
   annotations:
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
-    nginx.ingress.kubernetes.io/whitelist-source-range: "192.168.88.0/24,10.1.0.0/16"
-    nginx.ingress.kubernetes.io/proxy-body-size: "100m"
-    nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
-    nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+    traefik.ingress.kubernetes.io/router.middlewares: localai-lan-only@kubernetescrd
   hosts:
     - host: localai.tgu.ovh
       paths:
