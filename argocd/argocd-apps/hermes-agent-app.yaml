@@ -317,6 +317,12 @@ spec:
                   inactivity_timeout: 120
                   command_timeout: 30
                   allow_private_urls: false
+                  # Remote headless Chromium over CDP (browserless-app.yaml) — the
+                  # EKKOLearn image has no usable local Chromium. Hermes GETs
+                  # /json/version on this URL, reads webSocketDebuggerUrl, connects.
+                  # Tokenless (ClusterIP only). browser_tool precedence:
+                  # BROWSER_CDP_URL env → browser.cdp_url (here) → local/Browserbase.
+                  cdp_url: http://browserless.hermes.svc.cluster.local:3000
                 # Route the web_search tool through self-hosted SearXNG.
                 # SEARXNG_URL env (set in deployment spec) tells the plugin where to
                 # POST. `search_backend` is the explicit per-capability picker;
