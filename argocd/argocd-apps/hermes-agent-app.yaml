@@ -162,6 +162,9 @@ spec:
                   WHATSAPP_ENABLED: "false"
                   SEARXNG_URL: "http://searxng.searxng.svc.cluster.local:8080"
                   OPENAI_BASE_URL: "http://localai.localai.svc.cluster.local:8080/v1"
+                  # CRW (fastCRW) — Firecrawl-compatible scrape/search backend (crw-app.yaml).
+                  # Hermes' firecrawl web backend talks here; no API key in self-host mode.
+                  FIRECRAWL_API_URL: "http://crw.hermes.svc.cluster.local:3000"
                 envFrom:
                   - secretRef:
                       name: hermes-secrets   # OPENAI_API_KEY + TELEGRAM_BOT_TOKEN + API_SERVER_KEY
@@ -324,16 +327,16 @@ spec:
                 # POST. `search_backend` is the explicit per-capability picker;
                 # `backend` is the shared fallback (both set for clarity).
                 web:
-                  # Search: self-hosted SearXNG (free, no key).
-                  search_backend: searxng
-                  backend: searxng
-                  # Extract (read page content): SearXNG CANNOT extract — this was the
-                  # root cause of "finds links but returns no job offers" (web_extract
-                  # erroring every call). Tavily free tier = 1000 searches/mo + extract.
-                  # Requires TAVILY_API_KEY in the hermes-secrets SealedSecret.
-                  # (No-SaaS alt: drop this and let the agent read pages via the browser
-                  #  tool — browser_navigate + browser_snapshot — over lightpanda.)
-                  extract_backend: tavily
+                  # Search + extract both routed through CRW / fastCRW — a self-hosted,
+                  # Firecrawl-compatible API (crw-app.yaml). CRW runs search via our
+                  # SearXNG and renders JS pages via our lightpanda, returning clean
+                  # markdown for web_extract. Fixes "finds links but returns no job
+                  # offers" (SearXNG alone can search but NOT extract) with ZERO SaaS or
+                  # API key. FIRECRAWL_API_URL (container env) points the firecrawl
+                  # backend at CRW.
+                  search_backend: firecrawl
+                  backend: firecrawl
+                  extract_backend: firecrawl
                 compression:
                   enabled: true
                   # Now on a large-context model (Gemini 2.5 Flash, ~1M). Compress LATE

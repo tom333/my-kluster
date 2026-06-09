@@ -1,0 +1,93 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  # CRW (fastCRW) — self-hosted, Firecrawl-compatible scrape/search API.
+  # Single static Rust binary (~50 MB RAM idle), no Redis/Node/Chromium in the
+  # request path. Backs Hermes' web_search + web_extract: in hermes-agent-app
+  # config.yaml, web.{search,extract}_backend: firecrawl + FIRECRAWL_API_URL
+  # → this service.
+  #
+  # Reuses EXISTING cluster services instead of bundling its own (the whole
+  # point vs official Firecrawl's 5-service stack):
+  #   - search    → SearXNG (ns searxng)  via CRW_SEARCH__SEARXNG_URL
+  #   - JS render → lightpanda (ns hermes) via renderer.lightpanda ws_url
+  #
+  # Stateless (scrape/search are request-scoped) → no PVC, no ingress
+  # (cluster-internal only, reached at crw.hermes.svc:3000).
+  #
+  # Renderer ladder here is HTTP → LightPanda. Chrome failover is NOT deployed.
+  # lightpanda is known-flaky on heavy SPAs (segfaults / CDP drops); if real
+  # job boards fail to render, add a chromedp/headless-shell sidecar + set
+  # CRW_RENDERER__CHROME__WS_URL to enable the chrome failover tier.
+  name: crw
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: hermes
+    server: https://kubernetes.default.svc
+  project: infra-project
+  source:
+    repoURL: https://bjw-s-labs.github.io/helm-charts
+    chart: app-template
+    targetRevision: 5.0.1
+    helm:
+      values: |
+        controllers:
+          crw:
+            type: deployment
+            containers:
+              main:
+                image:
+                  repository: ghcr.io/us/crw
+                  # ghcr tags drop the leading "v" (git tag v0.14.0 → image 0.14.0).
+                  # Renovate can track docker tags for this image.
+                  tag: "0.14.0"
+                  pullPolicy: IfNotPresent
+                env:
+                  RUST_LOG: "info"
+                  # Built-in docker config profile (renderer failover ladder +
+                  # search defaults). We override the two endpoints below to point
+                  # at the cluster's existing services (env wins over the file).
+                  CRW_CONFIG: "config.docker"
+                  # /v1/search → existing SearXNG (ns searxng). The config-file
+                  # default assumes a same-network "searxng" host, which does NOT
+                  # resolve from ns hermes — so the FQDN override is required.
+                  CRW_SEARCH__SEARXNG_URL: "http://searxng.searxng.svc.cluster.local:8080"
+                  # JS rendering → existing lightpanda (ns hermes). FQDN to be
+                  # explicit; the config default ws://lightpanda:9222/ also resolves
+                  # here since CRW runs in the same namespace as lightpanda.
+                  CRW_RENDERER__LIGHTPANDA__WS_URL: "ws://lightpanda.hermes.svc.cluster.local:9222/"
+                probes:
+                  liveness:
+                    enabled: true
+                    custom: true
+                    spec:
+                      tcpSocket: { port: 3000 }
+                      initialDelaySeconds: 10
+                      periodSeconds: 20
+                  readiness:
+                    enabled: true
+                    custom: true
+                    spec:
+                      tcpSocket: { port: 3000 }
+                      initialDelaySeconds: 5
+                      periodSeconds: 10
+                resources:
+                  requests: { cpu: "50m",  memory: 64Mi }
+                  limits:   { cpu: "1",    memory: 512Mi }
+        service:
+          app:
+            controller: crw
+            ports:
+              http:
+                port: 3000
+                targetPort: 3000
+                protocol: TCP
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      selfHeal: true
+      prune: true
