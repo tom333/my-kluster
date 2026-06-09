@@ -11,12 +11,9 @@ metadata:
   namespace: openwebui
   annotations:
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
-    nginx.ingress.kubernetes.io/whitelist-source-range: "192.168.88.0/24,10.1.0.0/16"
-    nginx.ingress.kubernetes.io/proxy-body-size: "100m"
-    nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
-    nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+    traefik.ingress.kubernetes.io/router.middlewares: openwebui-lan-only@kubernetescrd
 spec:
-  ingressClassName: nginx
+  ingressClassName: public
   tls:
     - hosts:
         - chat-lan.tgu.ovh
@@ -29,6 +26,6 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: open-webui
+                name: openwebui-open-webui
                 port:
                   number: 80
