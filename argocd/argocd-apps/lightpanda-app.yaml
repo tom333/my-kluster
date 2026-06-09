@@ -1,0 +1,103 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  # Lightweight headless browser (lightpanda) as a remote CDP backend for the
+  # Hermes agent's browser/scraping tool. Replaces a browserless attempt that
+  # couldn't work cross-pod: browserless v2's /json/version advertises
+  # ws://0.0.0.0:3000 and the CDP client only rewrites loopback (not 0.0.0.0),
+  # so discovery yields an unconnectable URL. lightpanda's `--advertise-host`
+  # flag exists exactly for this — it controls the host returned in
+  # /json/version, so a discovery-based client gets a connectable ws URL.
+  #
+  # Hermes connects via browser.cdp_url=http://lightpanda.hermes.svc.cluster.local:9222
+  # (see hermes-agent-app.yaml). Tokenless, ClusterIP only (CDP ≈ RCE, never expose).
+  # lightpanda is DOM+JS only (no pixel rendering) — fine for Hermes' text/aria
+  # scraping; if a heavy SPA job board fails, switch to browserless + an nginx
+  # /json/version host-rewrite sidecar (keeps full Chromium). lightpanda is Beta.
+  name: lightpanda
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: hermes
+    server: https://kubernetes.default.svc
+  project: infra-project
+  source:
+    repoURL: https://bjw-s-labs.github.io/helm-charts
+    chart: app-template
+    targetRevision: 5.0.1
+    helm:
+      values: |
+        controllers:
+          lightpanda:
+            type: deployment
+            pod:
+              securityContext:
+                runAsNonRoot: true
+                runAsUser: 10010
+                fsGroup: 10010
+            containers:
+              main:
+                image:
+                  repository: lightpanda/browser
+                  # Beta project — no semver tags, only rolling nightly/latest.
+                  # IfNotPresent keeps the pulled build stable until a manual bump.
+                  tag: "nightly"
+                  pullPolicy: IfNotPresent
+                # Keep the image ENTRYPOINT (tini) — override only args (CMD).
+                # --advertise-host is the load-bearing flag: it sets the host in
+                # /json/version's webSocketDebuggerUrl so the agent connects to the
+                # Service DNS, not 0.0.0.0.
+                args:
+                  - serve
+                  - --host=0.0.0.0
+                  - --port=9222
+                  - --advertise-host=lightpanda.hermes.svc.cluster.local
+                  - --log-level=info
+                env:
+                  LIGHTPANDA_DISABLE_TELEMETRY: "true"
+                securityContext:
+                  allowPrivilegeEscalation: false
+                  readOnlyRootFilesystem: true
+                  capabilities:
+                    drop: ["ALL"]
+                probes:
+                  readiness:
+                    enabled: true
+                    custom: true
+                    spec:
+                      httpGet:
+                        path: /json/version
+                        port: 9222
+                      initialDelaySeconds: 2
+                      periodSeconds: 10
+                  liveness:
+                    enabled: true
+                    custom: true
+                    spec:
+                      tcpSocket:
+                        port: 9222
+                      periodSeconds: 20
+                resources:
+                  requests: { cpu: 100m, memory: 128Mi }
+                  limits:   { cpu: "1",  memory: 512Mi }
+        service:
+          app:
+            controller: lightpanda
+            ports:
+              cdp:
+                port: 9222
+                targetPort: 9222
+        persistence:
+          # readOnlyRootFilesystem → give it a writable /tmp.
+          tmp:
+            type: emptyDir
+            globalMounts:
+              - path: /tmp
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      selfHeal: true
+      prune: true
