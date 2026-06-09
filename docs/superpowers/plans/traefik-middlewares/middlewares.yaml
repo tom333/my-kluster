@@ -1,0 +1,145 @@
+# Traefik Middlewares — STAGING (NON synché par ArgoCD)
+# ----------------------------------------------------------------------------
+# Ces manifestes utilisent les CRD traefik.io/v1alpha1 qui N'EXISTENT PAS
+# tant que MicroK8s n'est pas en >= 1.35 (addon Traefik). NE PAS les placer
+# dans un path synché (config/, sealed/, argocd-apps/) avant la Phase 1 :
+# ArgoCD échouerait au sync ("no matches for kind Middleware").
+#
+# Workflow :
+#   - P0 : rédigés ici, version-contrôlés, prêts.
+#   - P1 : après upgrade 1.35 (CRD Traefik présentes), les déplacer vers le
+#          path/chart de chaque app (dans le ns cible), un service à la fois.
+#
+# Référencement depuis un Ingress (annotation) :
+#   traefik.ingress.kubernetes.io/router.middlewares: <ns>-<name>@kubernetescrd
+# Le Middleware DOIT vivre dans le ns de l'app (cross-namespace interdit par défaut).
+# ============================================================================
+
+# ─── IPAllowList LAN (whitelist-source-range → ipAllowList) ──────────────────
+# Un exemplaire par namespace consommateur : searxng, monitoring, hermes,
+# localai, openwebui (chat-lan).
+#
+# ⚠️ ipStrategy À VALIDER en P2 sur le 1er host (searxng) :
+#    le snapshot pré-migration montre ADDRESS=127.0.0.1 sur tous les ingress
+#    (controller en hostNetwork). Sous Traefik, vérifier que la VRAIE IP
+#    cliente est vue. Si Traefik est derrière un hop qui masque l'IP, ajouter :
+#      ipAllowList:
+#        sourceRange: [...]
+#        ipStrategy:
+#          depth: 1            # ou excludedIPs selon la topologie
+#    Sinon le 403 bloquera tout (ou ne bloquera rien).
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: lan-only
+  namespace: searxng
+spec:
+  ipAllowList:
+    sourceRange:
+      - 192.168.88.0/24
+      - 10.1.0.0/16
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: lan-only
+  namespace: monitoring
+spec:
+  ipAllowList:
+    sourceRange:
+      - 192.168.88.0/24
+      - 10.1.0.0/16
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: lan-only
+  namespace: hermes
+spec:
+  ipAllowList:
+    sourceRange:
+      - 192.168.88.0/24
+      - 10.1.0.0/16
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: lan-only
+  namespace: localai
+spec:
+  ipAllowList:
+    sourceRange:
+      - 192.168.88.0/24
+      - 10.1.0.0/16
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: lan-only
+  namespace: openwebui
+spec:
+  ipAllowList:
+    sourceRange:
+      - 192.168.88.0/24
+      - 10.1.0.0/16
+
+# ─── ForwardAuth oauth2-proxy (auth-url/auth-signin → forwardAuth) ───────────
+# Un exemplaire par namespace consommateur : dagster, kube-system (dashboard +
+# kubetail), openwebui (chat).
+#
+# Pattern robuste multi-host SANS rd par-host :
+#   - address  → endpoint /oauth2/auth de oauth2-proxy
+#   - authSigninURL → /oauth2/start SANS rd : oauth2-proxy (mode --reverse-proxy)
+#     reconstruit la redirection depuis X-Forwarded-Host/Uri que Traefik propage.
+#     => un seul Middleware par ns sert tous ses hosts (ex. dashboard+kubetail).
+#
+# ⚠️ PRÉ-REQUIS P3 : oauth2-proxy doit tourner avec --reverse-proxy=true.
+# ⚠️ À VALIDER sur dashboard (host témoin) avant de migrer les 3 autres :
+#    si la redirection ne revient pas au bon host, fallback = un Middleware par
+#    host avec authSigninURL figé (?rd=https://<host>.tgu.ovh) comme aujourd'hui.
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: oauth2-forwardauth
+  namespace: kube-system
+spec:
+  forwardAuth:
+    address: https://auth.tgu.ovh/oauth2/auth
+    trustForwardHeader: true
+    authResponseHeaders:
+      - X-Auth-Request-User
+      - X-Auth-Request-Email
+      - Authorization
+    authSigninURL: https://auth.tgu.ovh/oauth2/start
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: oauth2-forwardauth
+  namespace: dagster
+spec:
+  forwardAuth:
+    address: https://auth.tgu.ovh/oauth2/auth
+    trustForwardHeader: true
+    authResponseHeaders:
+      - X-Auth-Request-User
+      - X-Auth-Request-Email
+      - Authorization
+    authSigninURL: https://auth.tgu.ovh/oauth2/start
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: oauth2-forwardauth
+  namespace: openwebui
+spec:
+  forwardAuth:
+    address: https://auth.tgu.ovh/oauth2/auth
+    trustForwardHeader: true
+    authResponseHeaders:
+      - X-Auth-Request-User
+      - X-Auth-Request-Email
+      - Authorization
+    authSigninURL: https://auth.tgu.ovh/oauth2/start

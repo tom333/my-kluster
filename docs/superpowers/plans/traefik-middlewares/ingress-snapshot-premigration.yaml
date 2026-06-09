@@ -1,0 +1,1089 @@
+apiVersion: v1
+items:
+- apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"networking.k8s.io/v1","kind":"Ingress","metadata":{"annotations":{"cert-manager.io/cluster-issuer":"letsencrypt-prod","nginx.ingress.kubernetes.io/force-ssl-redirect":"true","nginx.ingress.kubernetes.io/proxy-body-size":"50m","nginx.ingress.kubernetes.io/proxy-read-timeout":"300","nginx.ingress.kubernetes.io/proxy-send-timeout":"300","nginx.ingress.kubernetes.io/ssl-redirect":"true"},"name":"accidents-ingress","namespace":"accidents"},"spec":{"ingressClassName":"nginx","rules":[{"host":"meteo-des-accidents.tgu.ovh","http":{"paths":[{"backend":{"service":{"name":"accidents-service","port":{"number":80}}},"path":"/","pathType":"Prefix"}]}}],"tls":[{"hosts":["meteo-des-accidents.tgu.ovh"],"secretName":"accidents-tls-cert"}]}}
+      nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+      nginx.ingress.kubernetes.io/proxy-body-size: 50m
+      nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+      nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
+      nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    creationTimestamp: "2026-01-23T05:20:54Z"
+    generation: 1
+    name: accidents-ingress
+    namespace: accidents
+    resourceVersion: "38943787"
+    uid: edb17780-3884-4c3c-823e-696b91e9ca71
+  spec:
+    ingressClassName: nginx
+    rules:
+    - host: meteo-des-accidents.tgu.ovh
+      http:
+        paths:
+        - backend:
+            service:
+              name: accidents-service
+              port:
+                number: 80
+          path: /
+          pathType: Prefix
+    tls:
+    - hosts:
+      - meteo-des-accidents.tgu.ovh
+      secretName: accidents-tls-cert
+  status:
+    loadBalancer:
+      ingress:
+      - ip: 127.0.0.1
+- apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    annotations:
+      argocd.argoproj.io/tracking-id: argocd:networking.k8s.io/Ingress:argocd/argocd-server
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"networking.k8s.io/v1","kind":"Ingress","metadata":{"annotations":{"argocd.argoproj.io/tracking-id":"argocd:networking.k8s.io/Ingress:argocd/argocd-server","cert-manager.io/cluster-issuer":"letsencrypt-prod"},"labels":{"app.kubernetes.io/component":"server","app.kubernetes.io/instance":"argocd","app.kubernetes.io/managed-by":"Helm","app.kubernetes.io/name":"argocd-server","app.kubernetes.io/part-of":"argocd","app.kubernetes.io/version":"v3.4.3","helm.sh/chart":"argo-cd-9.5.20"},"name":"argocd-server","namespace":"argocd"},"spec":{"ingressClassName":"nginx","rules":[{"host":"argocd.tgu.ovh","http":{"paths":[{"backend":{"service":{"name":"argocd-server","port":{"number":443}}},"path":"/","pathType":"Prefix"}]}}],"tls":[{"hosts":["argocd.tgu.ovh"],"secretName":"argocd-tls"}]}}
+    creationTimestamp: "2025-10-29T04:16:28Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/component: server
+      app.kubernetes.io/instance: argocd
+      app.kubernetes.io/managed-by: Helm
+      app.kubernetes.io/name: argocd-server
+      app.kubernetes.io/part-of: argocd
+      app.kubernetes.io/version: v3.4.3
+      helm.sh/chart: argo-cd-9.5.20
+    name: argocd-server
+    namespace: argocd
+    resourceVersion: "40367315"
+    uid: afe264d9-44cf-4ce4-b141-2db3fc757623
+  spec:
+    ingressClassName: nginx
+    rules:
+    - host: argocd.tgu.ovh
+      http:
+        paths:
+        - backend:
+            service:
+              name: argocd-server
+              port:
+                number: 443
+          path: /
+          pathType: Prefix
+    tls:
+    - hosts:
+      - argocd.tgu.ovh
+      secretName: argocd-tls
+  status:
+    loadBalancer:
+      ingress:
+      - ip: 127.0.0.1
+- apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    annotations:
+      argocd.argoproj.io/tracking-id: cv:networking.k8s.io/Ingress:cv/chatbot
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"networking.k8s.io/v1","kind":"Ingress","metadata":{"annotations":{"argocd.argoproj.io/tracking-id":"cv:networking.k8s.io/Ingress:cv/chatbot","cert-manager.io/cluster-issuer":"letsencrypt-prod"},"name":"chatbot","namespace":"cv"},"spec":{"rules":[{"host":"chatbot.tgu.ovh","http":{"paths":[{"backend":{"service":{"name":"chatbot","port":{"number":8000}}},"path":"/","pathType":"Prefix"}]}}],"tls":[{"hosts":["chatbot.tgu.ovh"],"secretName":"chatbot-tls"}]}}
+    creationTimestamp: "2025-10-29T03:40:48Z"
+    generation: 1
+    name: chatbot
+    namespace: cv
+    resourceVersion: "38943779"
+    uid: b732310f-7a5f-46ed-9592-b2bdd7140872
+  spec:
+    ingressClassName: public
+    rules:
+    - host: chatbot.tgu.ovh
+      http:
+        paths:
+        - backend:
+            service:
+              name: chatbot
+              port:
+                number: 8000
+          path: /
+          pathType: Prefix
+    tls:
+    - hosts:
+      - chatbot.tgu.ovh
+      secretName: chatbot-tls
+  status:
+    loadBalancer:
+      ingress:
+      - ip: 127.0.0.1
+- apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    annotations:
+      argocd.argoproj.io/tracking-id: cv:networking.k8s.io/Ingress:cv/cv
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"networking.k8s.io/v1","kind":"Ingress","metadata":{"annotations":{"argocd.argoproj.io/tracking-id":"cv:networking.k8s.io/Ingress:cv/cv","cert-manager.io/cluster-issuer":"letsencrypt-prod"},"name":"cv","namespace":"cv"},"spec":{"rules":[{"host":"cv.tgu.ovh","http":{"paths":[{"backend":{"service":{"name":"cv","port":{"number":80}}},"path":"/","pathType":"Prefix"}]}}],"tls":[{"hosts":["cv.tgu.ovh"],"secretName":"cv-tls"}]}}
+    creationTimestamp: "2025-10-29T03:40:48Z"
+    generation: 1
+    name: cv
+    namespace: cv
+    resourceVersion: "38943782"
+    uid: 3aea7b1c-10d6-4fae-a714-0351b08b1317
+  spec:
+    ingressClassName: public
+    rules:
+    - host: cv.tgu.ovh
+      http:
+        paths:
+        - backend:
+            service:
+              name: cv
+              port:
+                number: 80
+          path: /
+          pathType: Prefix
+    tls:
+    - hosts:
+      - cv.tgu.ovh
+      secretName: cv-tls
+  status:
+    loadBalancer:
+      ingress:
+      - ip: 127.0.0.1
+- apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    annotations:
+      argocd.argoproj.io/tracking-id: cv:networking.k8s.io/Ingress:cv/dynamic
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"networking.k8s.io/v1","kind":"Ingress","metadata":{"annotations":{"argocd.argoproj.io/tracking-id":"cv:networking.k8s.io/Ingress:cv/dynamic","cert-manager.io/cluster-issuer":"letsencrypt-prod"},"name":"dynamic","namespace":"cv"},"spec":{"rules":[{"host":"dynamic.tgu.ovh","http":{"paths":[{"backend":{"service":{"name":"dynamic","port":{"number":8501}}},"path":"/","pathType":"Prefix"}]}}],"tls":[{"hosts":["dynamic.tgu.ovh"],"secretName":"dynamic-tls"}]}}
+    creationTimestamp: "2025-10-29T03:40:47Z"
+    generation: 1
+    name: dynamic
+    namespace: cv
+    resourceVersion: "38943789"
+    uid: aab2314e-de90-4917-a3ba-4300ae36150a
+  spec:
+    ingressClassName: public
+    rules:
+    - host: dynamic.tgu.ovh
+      http:
+        paths:
+        - backend:
+            service:
+              name: dynamic
+              port:
+                number: 8501
+          path: /
+          pathType: Prefix
+    tls:
+    - hosts:
+      - dynamic.tgu.ovh
+      secretName: dynamic-tls
+  status:
+    loadBalancer:
+      ingress:
+      - ip: 127.0.0.1
+- apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    annotations:
+      argocd.argoproj.io/tracking-id: dagster:networking.k8s.io/Ingress:dagster/dagster-ingress
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"networking.k8s.io/v1","kind":"Ingress","metadata":{"annotations":{"argocd.argoproj.io/tracking-id":"dagster:networking.k8s.io/Ingress:dagster/dagster-ingress","cert-manager.io/cluster-issuer":"letsencrypt-prod","nginx.ingress.kubernetes.io/auth-signin":"https://auth.tgu.ovh/oauth2/start?rd=https://dagster.tgu.ovh","nginx.ingress.kubernetes.io/auth-url":"https://auth.tgu.ovh/oauth2/auth"},"labels":{"app.kubernetes.io/instance":"dagster","app.kubernetes.io/managed-by":"Helm","app.kubernetes.io/name":"dagster","app.kubernetes.io/version":"1.13.8","helm.sh/chart":"dagster-1.13.8"},"name":"dagster-ingress","namespace":"dagster"},"spec":{"rules":[{"host":"dagster.tgu.ovh","http":{"paths":[{"backend":{"service":{"name":"dagster-dagster-webserver","port":{"number":80}}},"path":"/","pathType":"Prefix"}]}}],"tls":[{"hosts":["dagster.tgu.ovh"],"secretName":"dagster-tls"}]}}
+      nginx.ingress.kubernetes.io/auth-signin: https://auth.tgu.ovh/oauth2/start?rd=https://dagster.tgu.ovh
+      nginx.ingress.kubernetes.io/auth-url: https://auth.tgu.ovh/oauth2/auth
+    creationTimestamp: "2026-01-30T05:43:22Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/instance: dagster
+      app.kubernetes.io/managed-by: Helm
+      app.kubernetes.io/name: dagster
+      app.kubernetes.io/version: 1.13.8
+      helm.sh/chart: dagster-1.13.8
+    name: dagster-ingress
+    namespace: dagster
+    resourceVersion: "39765283"
+    uid: bbc89be8-e70a-4330-a026-10d9b4d36228
+  spec:
+    ingressClassName: public
+    rules:
+    - host: dagster.tgu.ovh
+      http:
+        paths:
+        - backend:
+            service:
+              name: dagster-dagster-webserver
+              port:
+                number: 80
+          path: /
+          pathType: Prefix
+    tls:
+    - hosts:
+      - dagster.tgu.ovh
+      secretName: dagster-tls
+  status:
+    loadBalancer:
+      ingress:
+      - ip: 127.0.0.1
+- apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    annotations:
+      argocd.argoproj.io/tracking-id: hermes-agent:networking.k8s.io/Ingress:hermes/hermes-agent
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"networking.k8s.io/v1","kind":"Ingress","metadata":{"annotations":{"argocd.argoproj.io/tracking-id":"hermes-agent:networking.k8s.io/Ingress:hermes/hermes-agent","cert-manager.io/cluster-issuer":"letsencrypt-prod","nginx.ingress.kubernetes.io/proxy-body-size":"200m","nginx.ingress.kubernetes.io/proxy-read-timeout":"3600","nginx.ingress.kubernetes.io/proxy-send-timeout":"3600","nginx.ingress.kubernetes.io/whitelist-source-range":"192.168.88.0/24,10.1.0.0/16"},"labels":{"app.kubernetes.io/instance":"hermes-agent","app.kubernetes.io/managed-by":"Helm","app.kubernetes.io/name":"hermes-agent","helm.sh/chart":"app-template-5.0.1"},"name":"hermes-agent","namespace":"hermes"},"spec":{"ingressClassName":"nginx","rules":[{"host":"hermes.tgu.ovh","http":{"paths":[{"backend":{"service":{"name":"hermes-agent","port":{"number":6060}}},"path":"/","pathType":"Prefix"}]}}],"tls":[{"hosts":["hermes.tgu.ovh"],"secretName":"hermes-tls"}]}}
+      nginx.ingress.kubernetes.io/proxy-body-size: 200m
+      nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+      nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+      nginx.ingress.kubernetes.io/whitelist-source-range: 192.168.88.0/24,10.1.0.0/16
+    creationTimestamp: "2026-06-05T04:41:05Z"
+    generation: 2
+    labels:
+      app.kubernetes.io/instance: hermes-agent
+      app.kubernetes.io/managed-by: Helm
+      app.kubernetes.io/name: hermes-agent
+      helm.sh/chart: app-template-5.0.1
+    name: hermes-agent
+    namespace: hermes
+    resourceVersion: "39890997"
+    uid: 166fc5d8-e4d2-4dac-84c1-1474a9f14c6c
+  spec:
+    ingressClassName: nginx
+    rules:
+    - host: hermes.tgu.ovh
+      http:
+        paths:
+        - backend:
+            service:
+              name: hermes-agent
+              port:
+                number: 6060
+          path: /
+          pathType: Prefix
+    tls:
+    - hosts:
+      - hermes.tgu.ovh
+      secretName: hermes-tls
+  status:
+    loadBalancer:
+      ingress:
+      - ip: 127.0.0.1
+- apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    annotations:
+      argocd.argoproj.io/tracking-id: mlflow:networking.k8s.io/Ingress:ia-lab/mlflow
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+    creationTimestamp: "2026-01-29T04:18:14Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/instance: mlflow
+      app.kubernetes.io/managed-by: Helm
+      app.kubernetes.io/name: mlflow
+      helm.sh/chart: app-template-5.0.1
+    name: mlflow
+    namespace: ia-lab
+    resourceVersion: "38943828"
+    uid: b8e2573d-0b02-4f4e-8556-14095a4837d2
+  spec:
+    ingressClassName: nginx
+    rules:
+    - host: mlflow.tgu.ovh
+      http:
+        paths:
+        - backend:
+            service:
+              name: mlflow
+              port:
+                number: 5000
+          path: /
+          pathType: Prefix
+    tls:
+    - hosts:
+      - mlflow.tgu.ovh
+      secretName: mlflow-tls
+  status:
+    loadBalancer:
+      ingress:
+      - ip: 127.0.0.1
+- apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    annotations:
+      argocd.argoproj.io/tracking-id: rustfs:networking.k8s.io/Ingress:ia-lab/rustfs
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+      nginx.ingress.kubernetes.io/affinity: cookie
+      nginx.ingress.kubernetes.io/proxy-body-size: "0"
+      nginx.ingress.kubernetes.io/proxy-connect-timeout: "300"
+      nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+      nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+      nginx.ingress.kubernetes.io/session-cookie-expires: "3600"
+      nginx.ingress.kubernetes.io/session-cookie-hash: sha1
+      nginx.ingress.kubernetes.io/session-cookie-max-age: "3600"
+      nginx.ingress.kubernetes.io/session-cookie-name: rustfs
+    creationTimestamp: "2026-01-29T03:18:09Z"
+    generation: 2
+    labels:
+      app.kubernetes.io/instance: rustfs
+      app.kubernetes.io/managed-by: Helm
+      app.kubernetes.io/name: rustfs
+      app.kubernetes.io/version: 1.0.0-beta.3
+      helm.sh/chart: rustfs-0.3.0
+    name: rustfs
+    namespace: ia-lab
+    resourceVersion: "38943783"
+    uid: f883b94d-927f-46d5-b1e2-6e4256554795
+  spec:
+    ingressClassName: nginx
+    rules:
+    - host: rustfs.tgu.ovh
+      http:
+        paths:
+        - backend:
+            service:
+              name: rustfs-svc
+              port:
+                name: console
+          path: /
+          pathType: ImplementationSpecific
+    tls:
+    - hosts:
+      - rustfs.tgu.ovh
+      secretName: rustfs-tls
+  status:
+    loadBalancer:
+      ingress:
+      - ip: 127.0.0.1
+- apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    annotations:
+      argocd.argoproj.io/tracking-id: config:networking.k8s.io/Ingress:kube-system/dashboard
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"networking.k8s.io/v1","kind":"Ingress","metadata":{"annotations":{"argocd.argoproj.io/tracking-id":"config:networking.k8s.io/Ingress:kube-system/dashboard","cert-manager.io/cluster-issuer":"letsencrypt-prod","nginx.ingress.kubernetes.io/auth-signin":"https://auth.tgu.ovh/oauth2/start?rd=https://dashboard.tgu.ovh","nginx.ingress.kubernetes.io/auth-url":"https://auth.tgu.ovh/oauth2/auth"},"name":"dashboard","namespace":"kube-system"},"spec":{"rules":[{"host":"dashboard.tgu.ovh","http":{"paths":[{"backend":{"service":{"name":"kubernetes-dashboard","port":{"number":443}}},"path":"/","pathType":"ImplementationSpecific"}]}}],"tls":[{"hosts":["dashboard.tgu.ovh"],"secretName":"dashboard.tgu.ovh-tls"}]}}
+      nginx.ingress.kubernetes.io/auth-signin: https://auth.tgu.ovh/oauth2/start?rd=https://dashboard.tgu.ovh
+      nginx.ingress.kubernetes.io/auth-url: https://auth.tgu.ovh/oauth2/auth
+    creationTimestamp: "2025-10-29T03:41:02Z"
+    generation: 1
+    name: dashboard
+    namespace: kube-system
+    resourceVersion: "38943797"
+    uid: c554419b-dd95-473b-843f-d98b55b8b0d0
+  spec:
+    ingressClassName: public
+    rules:
+    - host: dashboard.tgu.ovh
+      http:
+        paths:
+        - backend:
+            service:
+              name: kubernetes-dashboard
+              port:
+                number: 443
+          path: /
+          pathType: ImplementationSpecific
+    tls:
+    - hosts:
+      - dashboard.tgu.ovh
+      secretName: dashboard.tgu.ovh-tls
+  status:
+    loadBalancer:
+      ingress:
+      - ip: 127.0.0.1
+- apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    annotations:
+      argocd.argoproj.io/tracking-id: kubetail:networking.k8s.io/Ingress:kube-system/kubetail-dashboard
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"networking.k8s.io/v1","kind":"Ingress","metadata":{"annotations":{"argocd.argoproj.io/tracking-id":"kubetail:networking.k8s.io/Ingress:kube-system/kubetail-dashboard","cert-manager.io/cluster-issuer":"letsencrypt-prod","nginx.ingress.kubernetes.io/auth-signin":"https://auth.tgu.ovh/oauth2/start?rd=https://kubetail.tgu.ovh","nginx.ingress.kubernetes.io/auth-url":"https://auth.tgu.ovh/oauth2/auth"},"labels":{"app.kubernetes.io/component":"dashboard","app.kubernetes.io/instance":"kubetail","app.kubernetes.io/managed-by":"Helm","app.kubernetes.io/name":"kubetail","app.kubernetes.io/version":"0.24.1","helm.sh/chart":"kubetail-0.25.1"},"name":"kubetail-dashboard","namespace":"kube-system"},"spec":{"rules":[{"host":"kubetail.tgu.ovh","http":{"paths":[{"backend":{"service":{"name":"kubetail-dashboard","port":{"name":"http"}}},"path":"/","pathType":"Prefix"}]}}],"tls":[{"hosts":["kubetail.tgu.ovh"],"secretName":"kubetail-tls"}]}}
+      nginx.ingress.kubernetes.io/auth-signin: https://auth.tgu.ovh/oauth2/start?rd=https://kubetail.tgu.ovh
+      nginx.ingress.kubernetes.io/auth-url: https://auth.tgu.ovh/oauth2/auth
+    creationTimestamp: "2025-10-29T03:41:01Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/component: dashboard
+      app.kubernetes.io/instance: kubetail
+      app.kubernetes.io/managed-by: Helm
+      app.kubernetes.io/name: kubetail
+      app.kubernetes.io/version: 0.24.1
+      helm.sh/chart: kubetail-0.25.1
+    name: kubetail-dashboard
+    namespace: kube-system
+    resourceVersion: "38943784"
+    uid: 3d24932f-ce26-404e-a774-a2ecdaee3b5d
+  spec:
+    ingressClassName: public
+    rules:
+    - host: kubetail.tgu.ovh
+      http:
+        paths:
+        - backend:
+            service:
+              name: kubetail-dashboard
+              port:
+                name: http
+          path: /
+          pathType: Prefix
+    tls:
+    - hosts:
+      - kubetail.tgu.ovh
+      secretName: kubetail-tls
+  status:
+    loadBalancer:
+      ingress:
+      - ip: 127.0.0.1
+- apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    annotations:
+      argocd.argoproj.io/tracking-id: oauth2-proxy:networking.k8s.io/Ingress:kube-system/oauth2-proxy
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"networking.k8s.io/v1","kind":"Ingress","metadata":{"annotations":{"argocd.argoproj.io/tracking-id":"oauth2-proxy:networking.k8s.io/Ingress:kube-system/oauth2-proxy","cert-manager.io/cluster-issuer":"letsencrypt-prod"},"labels":{"app":"oauth2-proxy","app.kubernetes.io/component":"authentication-proxy","app.kubernetes.io/instance":"oauth2-proxy","app.kubernetes.io/managed-by":"Helm","app.kubernetes.io/name":"oauth2-proxy","app.kubernetes.io/part-of":"oauth2-proxy","app.kubernetes.io/version":"7.15.2","helm.sh/chart":"oauth2-proxy-10.6.0"},"name":"oauth2-proxy","namespace":"kube-system"},"spec":{"ingressClassName":"nginx","rules":[{"host":"auth.tgu.ovh","http":{"paths":[{"backend":{"service":{"name":"oauth2-proxy","port":{"number":80}}},"path":"/oauth2","pathType":"Prefix"}]}}],"tls":[{"hosts":["auth.tgu.ovh"],"secretName":"oauth2-proxy-tls"}]}}
+    creationTimestamp: "2025-10-29T03:40:05Z"
+    generation: 1
+    labels:
+      app: oauth2-proxy
+      app.kubernetes.io/component: authentication-proxy
+      app.kubernetes.io/instance: oauth2-proxy
+      app.kubernetes.io/managed-by: Helm
+      app.kubernetes.io/name: oauth2-proxy
+      app.kubernetes.io/part-of: oauth2-proxy
+      app.kubernetes.io/version: 7.15.2
+      helm.sh/chart: oauth2-proxy-10.6.0
+    name: oauth2-proxy
+    namespace: kube-system
+    resourceVersion: "38943788"
+    uid: d252c575-7be9-4a65-b04c-7380dcdd0aec
+  spec:
+    ingressClassName: nginx
+    rules:
+    - host: auth.tgu.ovh
+      http:
+        paths:
+        - backend:
+            service:
+              name: oauth2-proxy
+              port:
+                number: 80
+          path: /oauth2
+          pathType: Prefix
+    tls:
+    - hosts:
+      - auth.tgu.ovh
+      secretName: oauth2-proxy-tls
+  status:
+    loadBalancer:
+      ingress:
+      - ip: 127.0.0.1
+- apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    annotations:
+      argocd.argoproj.io/tracking-id: localai:networking.k8s.io/Ingress:localai/localai
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"networking.k8s.io/v1","kind":"Ingress","metadata":{"annotations":{"argocd.argoproj.io/tracking-id":"localai:networking.k8s.io/Ingress:localai/localai","cert-manager.io/cluster-issuer":"letsencrypt-prod","nginx.ingress.kubernetes.io/proxy-body-size":"100m","nginx.ingress.kubernetes.io/proxy-read-timeout":"600","nginx.ingress.kubernetes.io/proxy-send-timeout":"600","nginx.ingress.kubernetes.io/whitelist-source-range":"192.168.88.0/24,10.1.0.0/16"},"labels":{"app.kubernetes.io/instance":"localai","app.kubernetes.io/managed-by":"Helm","app.kubernetes.io/name":"localai","app.kubernetes.io/version":"4.1.3","helm.sh/chart":"localai-1.0.0"},"name":"localai","namespace":"localai"},"spec":{"ingressClassName":"nginx","rules":[{"host":"localai.tgu.ovh","http":{"paths":[{"backend":{"service":{"name":"localai","port":{"number":8080}}},"path":"/","pathType":"Prefix"}]}}],"tls":[{"hosts":["localai.tgu.ovh"],"secretName":"localai-tls"}]}}
+      nginx.ingress.kubernetes.io/proxy-body-size: 100m
+      nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+      nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+      nginx.ingress.kubernetes.io/whitelist-source-range: 192.168.88.0/24,10.1.0.0/16
+    creationTimestamp: "2026-05-15T00:28:59Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/instance: localai
+      app.kubernetes.io/managed-by: Helm
+      app.kubernetes.io/name: localai
+      app.kubernetes.io/version: 4.1.3
+      helm.sh/chart: localai-1.0.0
+    name: localai
+    namespace: localai
+    resourceVersion: "38943851"
+    uid: 070da1b0-8c7d-429c-b85d-d8fafc9d5e1f
+  spec:
+    ingressClassName: nginx
+    rules:
+    - host: localai.tgu.ovh
+      http:
+        paths:
+        - backend:
+            service:
+              name: localai
+              port:
+                number: 8080
+          path: /
+          pathType: Prefix
+    tls:
+    - hosts:
+      - localai.tgu.ovh
+      secretName: localai-tls
+  status:
+    loadBalancer:
+      ingress:
+      - ip: 127.0.0.1
+- apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    annotations:
+      argocd.argoproj.io/tracking-id: beszel:networking.k8s.io/Ingress:monitoring/beszel
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"networking.k8s.io/v1","kind":"Ingress","metadata":{"annotations":{"argocd.argoproj.io/tracking-id":"beszel:networking.k8s.io/Ingress:monitoring/beszel","cert-manager.io/cluster-issuer":"letsencrypt-prod","nginx.ingress.kubernetes.io/proxy-body-size":"10m","nginx.ingress.kubernetes.io/whitelist-source-range":"192.168.88.0/24,10.1.0.0/16"},"labels":{"app.kubernetes.io/instance":"beszel","app.kubernetes.io/managed-by":"Helm","app.kubernetes.io/name":"beszel","helm.sh/chart":"app-template-5.0.1"},"name":"beszel","namespace":"monitoring"},"spec":{"ingressClassName":"nginx","rules":[{"host":"beszel.tgu.ovh","http":{"paths":[{"backend":{"service":{"name":"beszel","port":{"number":8090}}},"path":"/","pathType":"Prefix"}]}}],"tls":[{"hosts":["beszel.tgu.ovh"],"secretName":"beszel-tls"}]}}
+      nginx.ingress.kubernetes.io/proxy-body-size: 10m
+      nginx.ingress.kubernetes.io/whitelist-source-range: 192.168.88.0/24,10.1.0.0/16
+    creationTimestamp: "2026-05-24T09:10:38Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/instance: beszel
+      app.kubernetes.io/managed-by: Helm
+      app.kubernetes.io/name: beszel
+      helm.sh/chart: app-template-5.0.1
+    name: beszel
+    namespace: monitoring
+    resourceVersion: "38943876"
+    uid: 26f6f984-8216-4054-8bf3-e9a97941c160
+  spec:
+    ingressClassName: nginx
+    rules:
+    - host: beszel.tgu.ovh
+      http:
+        paths:
+        - backend:
+            service:
+              name: beszel
+              port:
+                number: 8090
+          path: /
+          pathType: Prefix
+    tls:
+    - hosts:
+      - beszel.tgu.ovh
+      secretName: beszel-tls
+  status:
+    loadBalancer:
+      ingress:
+      - ip: 127.0.0.1
+- apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    annotations:
+      argocd.argoproj.io/tracking-id: config:networking.k8s.io/Ingress:openwebui/openwebui-lan
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"networking.k8s.io/v1","kind":"Ingress","metadata":{"annotations":{"argocd.argoproj.io/tracking-id":"config:networking.k8s.io/Ingress:openwebui/openwebui-lan","cert-manager.io/cluster-issuer":"letsencrypt-prod","nginx.ingress.kubernetes.io/proxy-body-size":"100m","nginx.ingress.kubernetes.io/proxy-read-timeout":"600","nginx.ingress.kubernetes.io/proxy-send-timeout":"600","nginx.ingress.kubernetes.io/whitelist-source-range":"192.168.88.0/24,10.1.0.0/16"},"name":"openwebui-lan","namespace":"openwebui"},"spec":{"ingressClassName":"nginx","rules":[{"host":"chat-lan.tgu.ovh","http":{"paths":[{"backend":{"service":{"name":"open-webui","port":{"number":80}}},"path":"/","pathType":"Prefix"}]}}],"tls":[{"hosts":["chat-lan.tgu.ovh"],"secretName":"chat-lan-tls"}]}}
+      nginx.ingress.kubernetes.io/proxy-body-size: 100m
+      nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+      nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+      nginx.ingress.kubernetes.io/whitelist-source-range: 192.168.88.0/24,10.1.0.0/16
+    creationTimestamp: "2026-05-15T00:30:15Z"
+    generation: 1
+    name: openwebui-lan
+    namespace: openwebui
+    resourceVersion: "38943858"
+    uid: 9c2c243a-4b70-4ddc-967b-7dc410896251
+  spec:
+    ingressClassName: nginx
+    rules:
+    - host: chat-lan.tgu.ovh
+      http:
+        paths:
+        - backend:
+            service:
+              name: open-webui
+              port:
+                number: 80
+          path: /
+          pathType: Prefix
+    tls:
+    - hosts:
+      - chat-lan.tgu.ovh
+      secretName: chat-lan-tls
+  status:
+    loadBalancer:
+      ingress:
+      - ip: 127.0.0.1
+- apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    annotations:
+      argocd.argoproj.io/tracking-id: openwebui:networking.k8s.io/Ingress:openwebui/openwebui-open-webui
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"networking.k8s.io/v1","kind":"Ingress","metadata":{"annotations":{"argocd.argoproj.io/tracking-id":"openwebui:networking.k8s.io/Ingress:openwebui/openwebui-open-webui","cert-manager.io/cluster-issuer":"letsencrypt-prod","nginx.ingress.kubernetes.io/auth-signin":"https://auth.tgu.ovh/oauth2/start?rd=https://chat.tgu.ovh","nginx.ingress.kubernetes.io/auth-url":"https://auth.tgu.ovh/oauth2/auth","nginx.ingress.kubernetes.io/proxy-body-size":"100m","nginx.ingress.kubernetes.io/proxy-read-timeout":"600","nginx.ingress.kubernetes.io/proxy-send-timeout":"600"},"labels":{"app.kubernetes.io/component":"open-webui","app.kubernetes.io/instance":"openwebui","app.kubernetes.io/managed-by":"Helm","app.kubernetes.io/name":"open-webui","app.kubernetes.io/version":"0.9.6","helm.sh/chart":"open-webui-14.8.0"},"name":"openwebui-open-webui","namespace":"openwebui"},"spec":{"ingressClassName":"nginx","rules":[{"host":"chat.tgu.ovh","http":{"paths":[{"backend":{"service":{"name":"openwebui-open-webui","port":{"name":"http"}}},"path":"/","pathType":"Prefix"}]}}],"tls":[{"hosts":["chat.tgu.ovh"],"secretName":"chat-tls"}]}}
+      nginx.ingress.kubernetes.io/auth-signin: https://auth.tgu.ovh/oauth2/start?rd=https://chat.tgu.ovh
+      nginx.ingress.kubernetes.io/auth-url: https://auth.tgu.ovh/oauth2/auth
+      nginx.ingress.kubernetes.io/proxy-body-size: 100m
+      nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+      nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+    creationTimestamp: "2026-05-15T00:29:03Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/component: open-webui
+      app.kubernetes.io/instance: openwebui
+      app.kubernetes.io/managed-by: Helm
+      app.kubernetes.io/name: open-webui
+      app.kubernetes.io/version: 0.9.6
+      helm.sh/chart: open-webui-14.8.0
+    name: openwebui-open-webui
+    namespace: openwebui
+    resourceVersion: "39049376"
+    uid: da8b6814-d575-4364-bbd0-80a55bbf563f
+  spec:
+    ingressClassName: nginx
+    rules:
+    - host: chat.tgu.ovh
+      http:
+        paths:
+        - backend:
+            service:
+              name: openwebui-open-webui
+              port:
+                name: http
+          path: /
+          pathType: Prefix
+    tls:
+    - hosts:
+      - chat.tgu.ovh
+      secretName: chat-tls
+  status:
+    loadBalancer:
+      ingress:
+      - ip: 127.0.0.1
+- apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"networking.k8s.io/v1","kind":"Ingress","metadata":{"annotations":{"cert-manager.io/cluster-issuer":"letsencrypt-prod","nginx.ingress.kubernetes.io/configuration-snippet":"proxy_set_header Upgrade $http_upgrade;\nproxy_set_header Connection \"upgrade\";\n","nginx.ingress.kubernetes.io/proxy-http-version":"1.1","nginx.ingress.kubernetes.io/proxy-read-timeout":"3600","nginx.ingress.kubernetes.io/proxy-send-timeout":"3600"},"name":"portfolio","namespace":"portfolio"},"spec":{"ingressClassName":"nginx","rules":[{"host":"portfolio.tgu.ovh","http":{"paths":[{"backend":{"service":{"name":"portfolio","port":{"name":"http"}}},"path":"/","pathType":"Prefix"}]}}],"tls":[{"hosts":["portfolio.tgu.ovh"],"secretName":"portfolio-tls"}]}}
+      nginx.ingress.kubernetes.io/configuration-snippet: |
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+      nginx.ingress.kubernetes.io/proxy-http-version: "1.1"
+      nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+      nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    creationTimestamp: "2026-03-17T23:08:35Z"
+    generation: 1
+    name: portfolio
+    namespace: portfolio
+    resourceVersion: "38943825"
+    uid: a5ccee50-0320-4a2c-840d-af568d80b1f5
+  spec:
+    ingressClassName: nginx
+    rules:
+    - host: portfolio.tgu.ovh
+      http:
+        paths:
+        - backend:
+            service:
+              name: portfolio
+              port:
+                name: http
+          path: /
+          pathType: Prefix
+    tls:
+    - hosts:
+      - portfolio.tgu.ovh
+      secretName: portfolio-tls
+  status:
+    loadBalancer:
+      ingress:
+      - ip: 127.0.0.1
+- apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    annotations:
+      argocd.argoproj.io/tracking-id: searxng:networking.k8s.io/Ingress:searxng/searxng
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"networking.k8s.io/v1","kind":"Ingress","metadata":{"annotations":{"argocd.argoproj.io/tracking-id":"searxng:networking.k8s.io/Ingress:searxng/searxng","cert-manager.io/cluster-issuer":"letsencrypt-prod","nginx.ingress.kubernetes.io/whitelist-source-range":"192.168.88.0/24,10.1.0.0/16"},"labels":{"app.kubernetes.io/instance":"searxng","app.kubernetes.io/managed-by":"Helm","app.kubernetes.io/name":"searxng","helm.sh/chart":"app-template-5.0.1"},"name":"searxng","namespace":"searxng"},"spec":{"ingressClassName":"nginx","rules":[{"host":"searxng.tgu.ovh","http":{"paths":[{"backend":{"service":{"name":"searxng","port":{"number":8080}}},"path":"/","pathType":"Prefix"}]}}],"tls":[{"hosts":["searxng.tgu.ovh"],"secretName":"searxng-tls"}]}}
+      nginx.ingress.kubernetes.io/whitelist-source-range: 192.168.88.0/24,10.1.0.0/16
+    creationTimestamp: "2026-06-01T13:10:30Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/instance: searxng
+      app.kubernetes.io/managed-by: Helm
+      app.kubernetes.io/name: searxng
+      helm.sh/chart: app-template-5.0.1
+    name: searxng
+    namespace: searxng
+    resourceVersion: "38943872"
+    uid: 40d9432f-64bc-4386-9c1f-02d042e9e9d9
+  spec:
+    ingressClassName: nginx
+    rules:
+    - host: searxng.tgu.ovh
+      http:
+        paths:
+        - backend:
+            service:
+              name: searxng
+              port:
+                number: 8080
+          path: /
+          pathType: Prefix
+    tls:
+    - hosts:
+      - searxng.tgu.ovh
+      secretName: searxng-tls
+  status:
+    loadBalancer:
+      ingress:
+      - ip: 127.0.0.1
+- apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    annotations:
+      argocd.argoproj.io/tracking-id: arr-stack:networking.k8s.io/Ingress:selfhost/cleanuparr
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+      nginx.ingress.kubernetes.io/auth-signin: https://auth.tgu.ovh/oauth2/start?rd=https://cleanuparr.tgu.ovh
+      nginx.ingress.kubernetes.io/auth-url: https://auth.tgu.ovh/oauth2/auth
+    creationTimestamp: "2026-04-15T03:53:16Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/instance: arr-stack
+      app.kubernetes.io/managed-by: Helm
+      app.kubernetes.io/name: cleanuparr
+      helm.sh/chart: cleanuparr-5.0.0
+    name: cleanuparr
+    namespace: selfhost
+    resourceVersion: "38943831"
+    uid: 1047c618-a539-432f-8fb2-f0ce96ceadfa
+  spec:
+    ingressClassName: nginx
+    rules:
+    - host: cleanuparr.tgu.ovh
+      http:
+        paths:
+        - backend:
+            service:
+              name: cleanuparr
+              port:
+                number: 11011
+          path: /
+          pathType: Prefix
+    tls:
+    - hosts:
+      - cleanuparr.tgu.ovh
+      secretName: cleanuparr-tls
+  status:
+    loadBalancer:
+      ingress:
+      - ip: 127.0.0.1
+- apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    annotations:
+      argocd.argoproj.io/tracking-id: config:networking.k8s.io/Ingress:selfhost/freshrss
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"networking.k8s.io/v1","kind":"Ingress","metadata":{"annotations":{"argocd.argoproj.io/tracking-id":"config:networking.k8s.io/Ingress:selfhost/freshrss","cert-manager.io/cluster-issuer":"letsencrypt-prod","nginx.org/proxy-connect-timeout":"120s","nginx.org/proxy-read-timeout":"120s"},"name":"freshrss","namespace":"selfhost"},"spec":{"rules":[{"host":"freshrss.tgu.ovh","http":{"paths":[{"backend":{"service":{"name":"freshrss","port":{"number":80}}},"path":"/","pathType":"ImplementationSpecific"}]}}],"tls":[{"hosts":["freshrss.tgu.ovh"],"secretName":"freshrss.tgu.ovh-tls"}]}}
+      nginx.org/proxy-connect-timeout: 120s
+      nginx.org/proxy-read-timeout: 120s
+    creationTimestamp: "2025-10-29T03:41:02Z"
+    generation: 1
+    name: freshrss
+    namespace: selfhost
+    resourceVersion: "38943780"
+    uid: adb3c09b-049b-4dc8-8939-2ee1c042e500
+  spec:
+    ingressClassName: public
+    rules:
+    - host: freshrss.tgu.ovh
+      http:
+        paths:
+        - backend:
+            service:
+              name: freshrss
+              port:
+                number: 80
+          path: /
+          pathType: ImplementationSpecific
+    tls:
+    - hosts:
+      - freshrss.tgu.ovh
+      secretName: freshrss.tgu.ovh-tls
+  status:
+    loadBalancer:
+      ingress:
+      - ip: 127.0.0.1
+- apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    annotations:
+      argocd.argoproj.io/tracking-id: arr-stack:networking.k8s.io/Ingress:selfhost/jellyfin
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+      nginx.ingress.kubernetes.io/proxy-body-size: "0"
+    creationTimestamp: "2026-04-14T00:41:50Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/instance: arr-stack
+      app.kubernetes.io/managed-by: Helm
+      app.kubernetes.io/name: jellyfin
+      helm.sh/chart: jellyfin-5.0.0
+    name: jellyfin
+    namespace: selfhost
+    resourceVersion: "38943824"
+    uid: 15c95c58-aff8-4f28-9998-bf4449efd82a
+  spec:
+    ingressClassName: nginx
+    rules:
+    - host: jellyfin.tgu.ovh
+      http:
+        paths:
+        - backend:
+            service:
+              name: jellyfin
+              port:
+                number: 8096
+          path: /
+          pathType: Prefix
+    tls:
+    - hosts:
+      - jellyfin.tgu.ovh
+      secretName: jellyfin-tls
+  status:
+    loadBalancer:
+      ingress:
+      - ip: 127.0.0.1
+- apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    annotations:
+      argocd.argoproj.io/tracking-id: arr-stack:networking.k8s.io/Ingress:selfhost/prowlarr
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+    creationTimestamp: "2026-04-14T00:41:53Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/instance: arr-stack
+      app.kubernetes.io/managed-by: Helm
+      app.kubernetes.io/name: prowlarr
+      helm.sh/chart: prowlarr-5.0.0
+    name: prowlarr
+    namespace: selfhost
+    resourceVersion: "38943832"
+    uid: 0b7f4439-c6e4-42b1-896b-8cabc2b7e45b
+  spec:
+    ingressClassName: nginx
+    rules:
+    - host: prowlarr.tgu.ovh
+      http:
+        paths:
+        - backend:
+            service:
+              name: prowlarr
+              port:
+                number: 9696
+          path: /
+          pathType: Prefix
+    tls:
+    - hosts:
+      - prowlarr.tgu.ovh
+      secretName: prowlarr-tls
+  status:
+    loadBalancer:
+      ingress:
+      - ip: 127.0.0.1
+- apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    annotations:
+      argocd.argoproj.io/tracking-id: arr-stack:networking.k8s.io/Ingress:selfhost/qbittorrent
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+      nginx.ingress.kubernetes.io/auth-signin: https://auth.tgu.ovh/oauth2/start?rd=https://qbittorrent.tgu.ovh
+      nginx.ingress.kubernetes.io/auth-url: https://auth.tgu.ovh/oauth2/auth
+    creationTimestamp: "2026-04-14T00:41:57Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/instance: arr-stack
+      app.kubernetes.io/managed-by: Helm
+      app.kubernetes.io/name: qbittorrent
+      helm.sh/chart: qbittorrent-5.0.0
+    name: qbittorrent
+    namespace: selfhost
+    resourceVersion: "38943833"
+    uid: 37d1913e-0656-4957-9ed5-fb369e91e7d6
+  spec:
+    ingressClassName: nginx
+    rules:
+    - host: qbittorrent.tgu.ovh
+      http:
+        paths:
+        - backend:
+            service:
+              name: qbittorrent
+              port:
+                number: 8080
+          path: /
+          pathType: Prefix
+    tls:
+    - hosts:
+      - qbittorrent.tgu.ovh
+      secretName: qbittorrent-tls
+  status:
+    loadBalancer:
+      ingress:
+      - ip: 127.0.0.1
+- apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    annotations:
+      argocd.argoproj.io/tracking-id: arr-stack:networking.k8s.io/Ingress:selfhost/radarr
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+      nginx.ingress.kubernetes.io/auth-signin: https://auth.tgu.ovh/oauth2/start?rd=https://radarr.tgu.ovh
+      nginx.ingress.kubernetes.io/auth-url: https://auth.tgu.ovh/oauth2/auth
+    creationTimestamp: "2026-04-14T00:41:53Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/instance: arr-stack
+      app.kubernetes.io/managed-by: Helm
+      app.kubernetes.io/name: radarr
+      helm.sh/chart: radarr-5.0.0
+    name: radarr
+    namespace: selfhost
+    resourceVersion: "38943841"
+    uid: bfbd6dcd-b856-4ebf-b4ae-717cbd9167dc
+  spec:
+    ingressClassName: nginx
+    rules:
+    - host: radarr.tgu.ovh
+      http:
+        paths:
+        - backend:
+            service:
+              name: radarr
+              port:
+                number: 7878
+          path: /
+          pathType: Prefix
+    tls:
+    - hosts:
+      - radarr.tgu.ovh
+      secretName: radarr-tls
+  status:
+    loadBalancer:
+      ingress:
+      - ip: 127.0.0.1
+- apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    annotations:
+      argocd.argoproj.io/tracking-id: arr-stack:networking.k8s.io/Ingress:selfhost/seerr
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+      nginx.ingress.kubernetes.io/auth-signin: https://auth.tgu.ovh/oauth2/start?rd=https://seerr.tgu.ovh
+      nginx.ingress.kubernetes.io/auth-url: https://auth.tgu.ovh/oauth2/auth
+    creationTimestamp: "2026-04-14T06:56:07Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/instance: arr-stack
+      app.kubernetes.io/managed-by: Helm
+      app.kubernetes.io/name: seerr
+      helm.sh/chart: seerr-5.0.0
+    name: seerr
+    namespace: selfhost
+    resourceVersion: "38943830"
+    uid: 26f72d3e-1bad-4282-9a24-86c68c3738c3
+  spec:
+    ingressClassName: nginx
+    rules:
+    - host: seerr.tgu.ovh
+      http:
+        paths:
+        - backend:
+            service:
+              name: seerr
+              port:
+                number: 5055
+          path: /
+          pathType: Prefix
+    tls:
+    - hosts:
+      - seerr.tgu.ovh
+      secretName: seerr-tls
+  status:
+    loadBalancer:
+      ingress:
+      - ip: 127.0.0.1
+- apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    annotations:
+      argocd.argoproj.io/tracking-id: arr-stack:networking.k8s.io/Ingress:selfhost/sonarr
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+      nginx.ingress.kubernetes.io/auth-signin: https://auth.tgu.ovh/oauth2/start?rd=https://sonarr.tgu.ovh
+      nginx.ingress.kubernetes.io/auth-url: https://auth.tgu.ovh/oauth2/auth
+    creationTimestamp: "2026-04-14T00:41:52Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/instance: arr-stack
+      app.kubernetes.io/managed-by: Helm
+      app.kubernetes.io/name: sonarr
+      helm.sh/chart: sonarr-5.0.0
+    name: sonarr
+    namespace: selfhost
+    resourceVersion: "38943835"
+    uid: 1c41acf5-2c03-48dd-9be4-eb9c82cf8d53
+  spec:
+    ingressClassName: nginx
+    rules:
+    - host: sonarr.tgu.ovh
+      http:
+        paths:
+        - backend:
+            service:
+              name: sonarr
+              port:
+                number: 8989
+          path: /
+          pathType: Prefix
+    tls:
+    - hosts:
+      - sonarr.tgu.ovh
+      secretName: sonarr-tls
+  status:
+    loadBalancer:
+      ingress:
+      - ip: 127.0.0.1
+- apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"networking.k8s.io/v1","kind":"Ingress","metadata":{"annotations":{},"labels":{"app.kubernetes.io/managed-by":"tilt"},"name":"hello","namespace":"smoke"},"spec":{"rules":[{"host":"hello.localtest.me","http":{"paths":[{"backend":{"service":{"name":"hello","port":{"number":80}}},"path":"/","pathType":"Prefix"}]}}]}}
+    creationTimestamp: "2026-06-04T22:52:50Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/managed-by: tilt
+    name: hello
+    namespace: smoke
+    resourceVersion: "39637750"
+    uid: 937cd70e-2fe0-403e-a201-e3fdacbd67e6
+  spec:
+    ingressClassName: public
+    rules:
+    - host: hello.localtest.me
+      http:
+        paths:
+        - backend:
+            service:
+              name: hello
+              port:
+                number: 80
+          path: /
+          pathType: Prefix
+  status:
+    loadBalancer:
+      ingress:
+      - ip: 127.0.0.1
+kind: List
+metadata:
+  resourceVersion: ""
