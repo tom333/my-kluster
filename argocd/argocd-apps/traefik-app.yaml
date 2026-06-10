@@ -124,14 +124,24 @@ spec:
             # Plugin validé sain (pull LAPI OK) avant cette attache (sinon 404 global).
             middlewares:
               - ingress-crowdsec@kubernetescrd
+        # IP statique recopiée dans status.loadBalancer de TOUTES les Ingress
+        # (node single-node 192.168.88.250). Remplace publishedService (LB sans IP).
+        # → ArgoCD juge les Ingress Healthy (sinon "Progressing"/pending perpétuel).
+        # Exclusif avec providers.kubernetesIngress.publishedService (désactivé).
+        additionalArguments:
+          - "--providers.kubernetesingress.ingressendpoint.ip=192.168.88.250"
         providers:
           kubernetesGateway:
             enabled: true
           kubernetesIngress:
             allowEmptyServices: true
             enabled: true
+            # publishedService désactivé : le Service traefik est LoadBalancer mais
+            # sans IP externe (single-node, pas de MetalLB) → status.loadBalancer vide
+            # → rien à recopier sur les Ingress → ArgoCD les voit "Progressing" à vie.
+            # On publie une IP statique (node) via additionalArguments (cf. bas du fichier).
             publishedService:
-              enabled: true
+              enabled: false
           # Désactivé : sinon routers dupliqués non-protégés (bypass auth).
           kubernetesIngressNginx:
             enabled: false
