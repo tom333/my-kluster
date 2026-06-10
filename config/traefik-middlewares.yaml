@@ -164,3 +164,40 @@ spec:
         displayName: Dagster
         theme: ghost
         refreshFrequency: 5s
+---
+# portfolio (Streamlit, ns portfolio, déployé manuellement). Site public → page
+# d'attente au réveil. Ingress géré dans le repo portfolio (k8s/ingress.yaml).
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: portfolio-sablier
+  namespace: portfolio
+spec:
+  plugin:
+    sablier:
+      names: deployment_portfolio_portfolio_1
+      sablierUrl: http://sablier.kube-system:10000
+      sessionDuration: 20m
+      dynamic:
+        displayName: Portfolio
+        theme: ghost
+        refreshFrequency: 5s
+---
+# accidents (Helm chart meteo-accidents-nc, déployé manuellement). Réveil de GROUPE :
+# accidents-app (ingress meteo) + accidents-api + streamlit-app (deps internes
+# ClusterIP) montent ENSEMBLE, sinon l'app réveillée appelle une api endormie.
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: accidents-sablier
+  namespace: accidents
+spec:
+  plugin:
+    sablier:
+      names: deployment_accidents_accidents-app_1,deployment_accidents_accidents-api_1,deployment_accidents_streamlit-app_1
+      sablierUrl: http://sablier.kube-system:10000
+      sessionDuration: 20m
+      dynamic:
+        displayName: Météo des accidents
+        theme: ghost
+        refreshFrequency: 5s
