@@ -120,3 +120,13 @@ Les apps suivantes ont des charts upstream bien maintenus — **ne pas remplacer
 - `rustfs` (chart dans le dépôt upstream)
 - `freshrss`, `komga`, `kubetail`, `jupyter`, `code-server`
 - `localai` — chart custom récent et stable, Renovate déjà géré via `customManager` regex (suffixe `-gpu-nvidia-cuda-12`), patterns atypiques (GPU exclusif, ConfigMap seed via initContainer, multi-modèles à venir avec la RTX 3060)
+
+---
+
+## Traefik — possibilités à exploiter (post-migration 2026-06, notées pour plus tard)
+
+Débloquées par la bascule ingress-nginx → Traefik (cf. `docs/superpowers/plans/2026-06-09-traefik-ingress-migration.md`).
+
+1. **CrowdSec** (plugin Traefik via `experimental.plugins`, comme Sablier) — IPS/WAF communautaire sur les ingress publics (bannit scans/brute-force). Priorité sécu maintenant que le WAN est ouvert. Impossible avec ingress-nginx.
+2. **File provider → exposer NAS / services LAN** (192.168.88.103, autres machines) sous `*.tgu.ovh` avec le même TLS + oauth + Sablier. Traefik route k8s ET hors-cluster simultanément.
+3. **redirectScheme http→https global** — redirect propre (accidents/portfolio l'avaient perdu en migrant ; entrypoint redirect ou middleware).
