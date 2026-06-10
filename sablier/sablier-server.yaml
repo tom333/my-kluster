@@ -1,0 +1,91 @@
+# Serveur Sablier — scale-to-zero / réveil à la demande (provider kubernetes).
+# Déployé par l'app ArgoCD "sablier" (argocd/argocd-apps/sablier-app.yaml).
+# Le plugin Traefik (sablier-traefik-plugin, cf. traefik-app.yaml) interroge ce
+# serveur (http://sablier.kube-system:10000) pour réveiller/endormir les workloads.
+# Découverte : workloads labellisés sablier.enable/sablier.group, OU middleware
+# avec names=deployment_<ns>_<name>_<replicas>.
+# Doc : https://sablierapp.dev / github.com/sablierapp/sablier
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: sablier
+  namespace: kube-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: sablier
+rules:
+  - apiGroups: ["apps", ""]
+    resources: ["deployments", "statefulsets"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["apps", ""]
+    resources: ["deployments/scale", "statefulsets/scale"]
+    verbs: ["patch", "update", "get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: sablier
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: sablier
+subjects:
+  - kind: ServiceAccount
+    name: sablier
+    namespace: kube-system
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sablier
+  namespace: kube-system
+  labels:
+    app: sablier
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sablier
+  template:
+    metadata:
+      labels:
+        app: sablier
+    spec:
+      serviceAccountName: sablier
+      containers:
+        - name: sablier
+          image: sablierapp/sablier:1.10.1
+          args:
+            - start
+            - --provider.name=kubernetes
+          ports:
+            - name: http
+              containerPort: 10000
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              memory: 96Mi
+          livenessProbe:
+            tcpSocket:
+              port: 10000
+            initialDelaySeconds: 5
+            periodSeconds: 30
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sablier
+  namespace: kube-system
+spec:
+  selector:
+    app: sablier
+  ports:
+    - name: http
+      protocol: TCP
+      port: 10000
+      targetPort: 10000

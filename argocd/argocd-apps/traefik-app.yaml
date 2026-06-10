@@ -31,6 +31,13 @@ spec:
     helm:
       releaseName: traefik
       values: |
+        # Plugin Sablier (scale-to-zero) : chargé au boot depuis github (egress requis).
+        # Le roll Traefik déclenché est propre grâce à updateStrategy (cf. plus bas).
+        experimental:
+          plugins:
+            sablier:
+              moduleName: github.com/sablierapp/sablier-traefik-plugin
+              version: v1.3.0
         deployment:
           kind: DaemonSet
         # DaemonSet en hostPort 80/443 : le défaut maxSurge=1/maxUnavailable=0 deadlock

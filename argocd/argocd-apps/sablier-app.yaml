@@ -1,0 +1,25 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: sablier
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  # Serveur Sablier (scale-to-zero). Manifestes raw dans sablier/ de ce repo.
+  # Le plugin Traefik (cf. traefik-app.yaml experimental.plugins.sablier) l'interroge.
+  destination:
+    namespace: kube-system
+    server: https://kubernetes.default.svc
+  project: infra-project
+  source:
+    path: sablier/
+    repoURL: https://github.com/tom333/my-kluster.git
+    targetRevision: HEAD
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=false
+    automated:
+      selfHeal: true
+      prune: true
+      allowEmpty: true
