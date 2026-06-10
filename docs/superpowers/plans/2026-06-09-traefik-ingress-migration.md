@@ -297,3 +297,39 @@ kubectl get ingress -A   # tous les hosts présents et Ready
 **Première tâche Phase 6 (à l'exécution) :** énumérer service par service les namespaces `selfhost` / `accidents` / `dagster` / … → produire la liste nominative des Deployments à onboarder (avec leur ingress), puis les traiter un par un.
 
 **Gisement réel :** localai (gros poste GPU/requests) reste up par choix → mais avec un périmètre candidat aussi large (selfhost + accidents + dagster + UIs), le gain CPU-request cumulé devient **significatif**, pas juste les 3-4 UI légères du noyau. À chiffrer une fois la liste nominative établie.
+
+---
+
+# JOURNAL D'EXÉCUTION — P1 réalisé le 2026-06-10
+
+**Statut : Traefik en place et fonctionnel. Sécurité re-appliquée et durable (GitOps). 3 follow-ups ouverts.**
+
+## Déroulé réel (déviations vs plan)
+
+1. **Upgrade snap** 1.33→1.34→1.35 : OK, sans coupure (workloads survivent au restart control-plane).
+2. **Bascule addon = piège** : `microk8s enable ingress` a redéployé **nginx** 2× car la copie persistante des addons (`/var/snap/microk8s/common/addons/core/`) était **stale**. Fix : `sudo microk8s addons repo update core` (resync depuis le snap), PUIS disable/enable.
+3. **Wrapper enable no-op** ("already enabled") après update repo → installé Traefik **directement via helm** (`microk8s helm3 upgrade --install traefik traefik/traefik --version 37.4.0 -n ingress --values /var/snap/.../ingress/values.yaml`). A fallu **supprimer les IngressClass `public`/`nginx` orphelines** (controller nginx) pour que Helm crée les siennes.
+4. **Découverte values.yaml addon** : active **2 providers** (`kubernetesIngress` + `kubernetesIngressNginx` compat). Le compat ne porte PAS l'auth → bypass. **Désactivé** `kubernetesIngressNginx` via `helm upgrade --reuse-values --set providers.kubernetesIngressNginx.enabled=false`.
+5. **Deadlock DaemonSet** : Traefik DS = `maxSurge=1, maxUnavailable=0` + hostPort 80/443 → le nouveau pod reste Pending (port pris), l'ancien ne meurt pas. **Toutes les modifs de config statique restaient inappliquées.** Résolu en `kubectl delete pod` de l'ancien (blip, WAN bloqué).
+6. **`authSigninURL` n'existe pas** dans le CRD Traefik OSS v3.6 (Hub-only) → retiré. ForwardAuth = **401 si non-auth** (sécurisé) mais **pas de redirect login** (dette).
+7. **Sécu re-appliquée** : 9 Middleware (5 ipAllowList + 4 forwardAuth) dans `config/traefik-middlewares.yaml` + annotations `router.middlewares` portées dans chaque app/chart. Vérifié : oauth=401, whitelist=200(LAN).
+8. **Bonus** : `chat-lan` réparé (service `open-webui`→`openwebui-open-webui`, 503→200).
+9. **arr-stack** (repo externe) : 5 hosts oauth migrés en cherry-pick sur v0.22.0 → **tag v0.22.1**, bump `targetRevision`. Durable.
+
+## Config NON-GitOps (fragile — à réappliquer si l'addon ingress est ré-enable)
+- `providers.kubernetesIngressNginx.enabled=false` (sinon routers dupliqués non-protégés)
+- DS `updateStrategy` deadlock hostPort : prochain upgrade Traefik nécessitera `kubectl delete pod` manuel, ou passer `maxSurge=0/maxUnavailable=1`.
+- Ces overrides vivent sur le release Helm `traefik` (ns ingress), pas dans Git.
+
+## Commits my-kluster
+`f91b54eb` plan+middlewares staging · `22931e82` prépas · `ab8c7202` solver cert-manager public · `551cfd4b` wave1 (middlewares config + dashboard/chat-lan) · `f9a05d8f` wave2 (6 apps) · `1b9112d0` localai · `83851d23`+`63842459` argocd serversscheme (h2c→http, **ne fixe pas**) · `cfb8136c` bump arr-stack v0.22.1. arr-stack repo : tag **v0.22.1**.
+
+## FOLLOW-UPS ouverts
+1. **argocd 502** (PRIORITÉ) — backend joignable depuis ns ingress (curl 200) mais Traefik 502 même en http/h2c/port80 avec pod propre + provider unique. Annotation `serversscheme` posée. Piste : ingress raw vers port **80** (http), ou recette argocd+traefik dédiée. **Non-bloquant** : auth propre, controller sync, WAN bloqué.
+2. **Login redirect oauth** — 401 brut au lieu de redirect GitHub (authSigninURL absent CRD OSS). Recette oauth2-proxy+Traefik OSS (ForwardAuth + gestion 401→/oauth2/start) à appliquer. **Bloque l'usage navigateur des hosts oauth publics si WAN rouvert.**
+3. **freshrss 404** — `config/freshrss-ingress.yaml` : service ref cassé + `nginx.org/*` inerte à nettoyer.
+4. **Cleanups non-sécu** : rustfs sticky session (annotation Service Traefik), mlflow/cv/accidents/portfolio className/timeouts, dashboard backend HTTPS (si dashboard ré-activé).
+5. **WAN** : sécurité restaurée (oauth=401, whitelist OK) → réouverture possible côté sécu, MAIS fixer le **login redirect** (#2) d'abord pour l'usage navigateur des hosts publics oauth. argocd restera 502 jusqu'à #1.
+
+## Doc CLAUDE.md à mettre à jour (post-stabilisation)
+Section "Ingress et TLS" + "Spécificités MicroK8s" : nginx→Traefik, pattern Middleware, addon 1.35, config non-GitOps.
