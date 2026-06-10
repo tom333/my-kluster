@@ -124,6 +124,12 @@ spec:
             # Plugin validé sain (pull LAPI OK) avant cette attache (sinon 404 global).
             middlewares:
               - ingress-crowdsec@kubernetescrd
+        # Service en ClusterIP (défaut chart = LoadBalancer) : sur single-node
+        # hostPort, le trafic externe entre par le port 80/443 du node, PAS par le
+        # Service. Un type LoadBalancer reste sans IP externe (pas de MetalLB) →
+        # ArgoCD juge le Service "Progressing" à vie → app traefik jamais Healthy.
+        service:
+          type: ClusterIP
         # IP statique recopiée dans status.loadBalancer de TOUTES les Ingress
         # (node single-node 192.168.88.250). Remplace publishedService (LB sans IP).
         # → ArgoCD juge les Ingress Healthy (sinon "Progressing"/pending perpétuel).
