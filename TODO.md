@@ -129,4 +129,4 @@ Débloquées par la bascule ingress-nginx → Traefik (cf. `docs/superpowers/pla
 
 1. ✅ **CrowdSec FAIT (2026-06-10)** — IPS communautaire. App `crowdsec` (agent+LAPI) lit les access logs Traefik (JSON) ; bouncer plugin attaché **globalement** (entrypoint websecure) → 403 sur IPs bannies + blocklist communautaire CAPI. Clés en SealedSecret. AppSec (WAF inline) PAS activé (activable plus tard via `appsec.enabled` + middleware `crowdsecAppsecEnabled`). Cf. CLAUDE.md (apps) + plan migration.
 2. **File provider → exposer NAS / services LAN** (192.168.88.103, autres machines) sous `*.tgu.ovh` avec le même TLS + oauth + Sablier. Traefik route k8s ET hors-cluster simultanément.
-3. **redirectScheme http→https global** — redirect propre (accidents/portfolio l'avaient perdu en migrant ; entrypoint redirect ou middleware).
+3. ✅ **redirect http→https global FAIT (2026-06-10)** — `ports.web.redirections.entryPoint` (→ websecure, 301 permanent) dans traefik-app.yaml + `allowACMEByPass: true` (préserve les challenges HTTP-01 cert-manager). Tous les hosts redirigent http→https.
