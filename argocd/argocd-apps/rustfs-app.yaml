@@ -62,13 +62,11 @@ spec:
                   pathType: ImplementationSpecific
           nginxAnnotations:
             cert-manager.io/cluster-issuer: "letsencrypt-prod"
-            nginx.ingress.kubernetes.io/proxy-connect-timeout: "300"
-            nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
-            nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
-            nginx.ingress.kubernetes.io/affinity: "cookie"
-            nginx.ingress.kubernetes.io/session-cookie-name: "rustfs"
-            nginx.ingress.kubernetes.io/session-cookie-expires: "3600"
-            nginx.ingress.kubernetes.io/session-cookie-max-age: "3600"
+            # Annotations nginx retirées (migration Traefik 2026-06) :
+            # - sticky session (affinity/session-cookie) inutile → rustfs = 1 replica
+            # - proxy timeouts inutiles → Traefik ne coupe pas les uploads longs par
+            #   défaut (contrairement au 60s nginx). À porter en ServersTransport
+            #   seulement si un cas réel de coupure apparaît.
           tls:
             enabled: true
             # Skip le template secret-tls.yaml du chart (qui crée un Secret bidon
