@@ -212,7 +212,7 @@ kubectl get secret -n kube-system \
 - **Open WebUI** expose **2 ingress** pointant sur le même service :
   - `chat.tgu.ovh` : public + oauth2-proxy ForwardAuth (chart Helm, `openwebui-app.yaml`)
   - `chat-lan.tgu.ovh` : `ipAllowList` LAN (manifest brut `config/openwebui-lan-ingress.yaml`)
-- **argocd** (`argocd.tgu.ovh`) : ⚠️ **502 connu** sous Traefik (backend `--insecure`/gRPC) — follow-up ouvert.
+- **argocd** (`argocd.tgu.ovh`) : `server.insecure: true` en **`configs.params`** (PAS `extraArgs --insecure`) → le chart cible le port backend **http (80)**. Viser le port `https` (443) faisait parler TLS à un backend cleartext sous Traefik → 502.
 - ⚠️ **Config Traefik NON-GitOps** (release Helm `traefik`, ns `ingress`, à réappliquer si addon ré-enable) : `providers.kubernetesIngressNginx.enabled=false` (sinon routers dupliqués non-protégés = bypass auth) ; **deadlock DaemonSet hostPort** au prochain upgrade Traefik → supprimer l'ancien pod manuellement.
 - **Gotcha addon** : après `snap refresh`, faire `sudo microk8s addons repo update core` AVANT `microk8s enable ingress` (sinon la copie persistante stale redéploie nginx).
 - **Hermes** (`hermes.tgu.ovh`) : `ipAllowList` LAN (Middleware `hermes-lan-only`), pas d'oauth2-proxy. Agent + UI `hermes-workspace` dans **un seul Pod** (pattern sidecar, calqué sur le docker-compose upstream). Seul le port 3000 (workspace) est exposé ; agent (`8642`/`9119`) en loopback intra-Pod. PVC `hermes-agent-data` (HERMES_HOME partagé `/opt/data` ↔ `/home/workspace/.hermes`) + `hermes-agent-files` (file browser `/workspace`, `terminal.cwd` de l'agent). `fsGroup: 10010` + `HERMES_UID: 10010` pour l'écriture partagée. L'ancienne app séparée `hermes-workspace-app.yaml` est `.disable`.
