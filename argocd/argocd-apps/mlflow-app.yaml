@@ -112,6 +112,10 @@ spec:
             className: nginx
             annotations:
               cert-manager.io/cluster-issuer: "letsencrypt-prod"
+              # Sablier scale-to-zero (Phase 6 pilote). Middleware ia-lab/mlflow-sablier
+              # (config/traefik-middlewares.yaml) : réveille mlflow 0→1 à la requête,
+              # page d'attente, scale-to-zero après 10m d'inactivité.
+              traefik.ingress.kubernetes.io/router.middlewares: ia-lab-mlflow-sablier@kubernetescrd
             hosts:
               - host: mlflow.tgu.ovh
                 paths:
