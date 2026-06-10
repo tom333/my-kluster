@@ -146,6 +146,28 @@ spec:
         theme: ghost
         refreshFrequency: 5s
 ---
+# ─── CrowdSec bouncer (IPS) ──────────────────────────────────────────────────
+# Bloque (403) les IPs bannies par CrowdSec (scans/bruteforce détectés sur les
+# access logs Traefik + blocklist communautaire CAPI). Mode stream (pull
+# périodique des décisions, faible latence). Clé lue depuis le fichier monté.
+# Attaché GLOBALEMENT via ports.websecure.middlewares (cf. traefik-app.yaml) en
+# Phase C, une fois ce middleware validé sain.
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: crowdsec
+  namespace: ingress
+spec:
+  plugin:
+    bouncer:
+      enabled: true
+      crowdsecMode: stream
+      crowdsecLapiScheme: http
+      crowdsecLapiHost: crowdsec-service.crowdsec.svc.cluster.local:8080
+      crowdsecLapiPath: "/"
+      crowdsecLapiKeyFile: /etc/traefik/crowdsec/BOUNCER_KEY_traefik
+---
 # dagster : SEULEMENT le webserver (UI). Le daemon reste up (schedules/runs).
 # NE PAS scale-to-zero dagster-user-deployment-accidents (poll gRPC interne du
 # daemon → Sablier ne peut pas le réveiller, code-location casse).
