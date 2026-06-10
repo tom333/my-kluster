@@ -1,0 +1,15 @@
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  creationTimestamp: null
+  name: ttyd-ssh-key
+  namespace: shell
+spec:
+  encryptedData:
+    id_ed25519: AgAGOJzxOqUqLyN2iA1fdZGMDBbp0fMPHhDZWTTmn17X4Td4/Wmg+BBVO2MMIHb3JmydCETKcVoQ1FpgRYQllZ7k3Z+L964ezrbkRLzL/rsM7cJ5gFX1LV8yqTnVy8YkDM+QuMwCU0qoof58qqgF2PGIe+RYkDRV8YEx1pLdM2Igh4LI2WKfbTKRROOAZCS21VjDOmcN8Rk36oGGQLOI2IcEqScDP9cWuxjhXCymHhlYBGk/wHKH9h/BYLa65Qr+XWoKuueEB+POvu1p3K7koq1rtis/MKaEEI8bixaBiStXqYf96nf/BDDPa7wplevPBKuPGuTRH7cVdrF14DOJxLTmLTPuCWmCJtkecsxx9f4Vr9b3EuQUCcP4EfqgS0jVjNLx08Pz4qlvUYGgd5BR0DZaVQrZ+0jBwnCb55N0WE+71Vd3yLbZhtm+ICJ+N1pG2X25snlk3Khj6ktt4OujpoLzr7Qj4SiQLxdej+Dj1uZ/LIJalZ9u8wQ3Jvy6KEgct33U6NKQL2nELWd1vsK7x7y+YbMPNQEkEKhDsT32H7thXGEeiEkO3flQPUEkBaK2UY9BzAIuI3YOeNPxVNl7QQKtIUN4dhKQa/Opqkvt52ChwcA//diFBe6AMgzhCfYhfM+DM5SFf8NSRRhCigoVNabwxRuKxLB2ukYbtRfzrmZt03N6Dx6vylXfgxuh+5HYYH+mNCfOHz6KlRjGv9vP/WIMFsS7C9FOUVqNh0zEVXrbBXkSTE7pC79KB1iTdRyxfdbNeYqVM1bBqi86t3Mf8k2n3NH8XkXOVAezcqn22xjAq4/lbjyz87fBhNzDBmXBzZ++RRd4N8r5oeFjVDx9Mc0/fumICXMDDaA4GNlRt395YVlHVyVe3YbJHkobyN2IijsbaRDjgHnjEKwCb49iqoff1Dr+/ZquXzJHJviCkWZaz3oOml+OqZLIliNE8adZRImKTM+zuwbPmDQMV/z0cLNnLeaIssCOCi1WvbJcQGl0QAvMG+lDxpMpgpl2BKKEm3M38gq90mum/coB0voHb+IJyy5AjpVjpDa8SLnpY0NEl4MdPi6u5AS/+Uh3MFwJSg9zLJOggcWYct81LXGphenMgnISuVyrjmfh2Scj/o8jyq9HbLcA1G+CpFGL/lnsXA/vBNUhPO0Sd52mMG0MNePYuKE4axOzrg2+1jVg7gygRdbttMk9rBbKmj+GfOaVj94oL5vT1gXzwkq6mzWPPjaZp4R7FSNqiC0Hlj4=
+  template:
+    metadata:
+      creationTimestamp: null
+      name: ttyd-ssh-key
+      namespace: shell

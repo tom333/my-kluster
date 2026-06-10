@@ -1,0 +1,86 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ttyd
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  # Terminal web "shell.tgu.ovh" : navigateur -> URL -> shell sur le host (option B).
+  # Le pod ttyd se connecte en SSH au node (moi@192.168.88.250, hop LAN interne ;
+  # le port SSH n'est JAMAIS exposé en WAN). Clé SSH dédiée via SealedSecret
+  # (sealed/ttyd-ssh-key.yaml), pubkey restreinte from=cluster/LAN dans authorized_keys.
+  # Image custom localhost:32000/ttyd-ssh (ttyd + openssh-client, cf. images/ttyd-ssh/).
+  #
+  # SÉCURITÉ : aucun shell servi sans login GitHub (Middleware oauth2-forwardauth,
+  # whitelist tom333/tguyader) + CrowdSec global (websecure) + TLS cert-manager.
+  destination:
+    namespace: shell
+    server: https://kubernetes.default.svc
+  project: infra-project
+  source:
+    repoURL: https://bjw-s-labs.github.io/helm-charts
+    chart: app-template
+    targetRevision: 5.0.1
+    helm:
+      values: |
+        controllers:
+          ttyd:
+            type: deployment
+            strategy: Recreate
+            containers:
+              main:
+                image:
+                  repository: localhost:32000/ttyd-ssh
+                  tag: "1.0"
+                  pullPolicy: IfNotPresent
+                # Copie la clé en 0600 (un mount secret peut ne pas satisfaire le
+                # contrôle de permissions strict de ssh), puis lance ttyd -> ssh host.
+                command: ["/bin/sh", "-c"]
+                args:
+                  - >
+                    install -m 600 /etc/ttyd-key/id_ed25519 /tmp/key &&
+                    exec ttyd -W -p 7681 ssh -i /tmp/key
+                    -o StrictHostKeyChecking=accept-new
+                    -o UserKnownHostsFile=/tmp/known_hosts
+                    moi@192.168.88.250
+                resources:
+                  limits:   { cpu: "200m", memory: 128Mi }
+                  requests: { cpu: "50m",  memory: 64Mi }
+        service:
+          app:
+            controller: ttyd
+            ports:
+              http:
+                port: 7681
+        ingress:
+          app:
+            className: public
+            annotations:
+              cert-manager.io/cluster-issuer: "letsencrypt-prod"
+              traefik.ingress.kubernetes.io/router.middlewares: shell-oauth2-forwardauth@kubernetescrd
+            hosts:
+              - host: shell.tgu.ovh
+                paths:
+                  - path: /
+                    pathType: Prefix
+                    service:
+                      identifier: app
+                      port: http
+            tls:
+              - secretName: shell-tls
+                hosts:
+                  - shell.tgu.ovh
+        persistence:
+          ssh-key:
+            type: secret
+            name: ttyd-ssh-key
+            globalMounts:
+              - path: /etc/ttyd-key
+                readOnly: true
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      selfHeal: true
+      prune: true
