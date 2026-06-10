@@ -269,13 +269,18 @@ kubectl get ingress -A   # tous les hosts présents et Ready
 3. Commit + push, refresh parent `applications` (inline values) + l'app, sync.
 4. Valider : `kubectl scale deploy <x> --replicas=0` → requête → page d'attente + réveil.
 
-## Candidats restants (6c) — à onboarder un par un
-- [ ] **kubetail** (kube-system) — `deployment_kube-system_kubetail-...` (vérifier nom exact)
-- [ ] **openwebui** (openwebui) — chat-lan ; chat public a déjà oauth (chaîner sablier+forwardauth)
-- [ ] **dagster** — UI/webserver SEULEMENT (le daemon reste up sinon plus de schedules)
-- [ ] selfhost (cleanuparr/jellyfin/prowlarr/radarr/seerr/sonarr — PAS qbittorrent/arrconf) → repo externe arr-stack
-- [ ] accidents, autres UIs
-- **Restent UP** (rappel) : infra, oauth2-proxy, postgresql/qdrant/rustfs, beszel, hermes (Telegram), localai (usage courant), searxng/lightpanda.
+## Candidats — état rollout (2026-06-10)
+- [x] **mlflow** (ia-lab) — pilote, testé ✓
+- [x] **openwebui** (StatefulSet) — chaîné après oauth (chat) + whitelist (chat-lan), 30m ✓
+- [x] **dagster webserver** (UI) — chaîné après oauth, 15m. Daemon reste up ✓
+- [x] **portfolio** (Streamlit public) — testé ✓. Ingress dans repo portfolio (k8s/ingress.yaml, appliqué).
+- [x] **accidents** — réveil de GROUPE (accidents-app + accidents-api + streamlit-app), testé ✓. ⚠️ ingress `accidents-ingress` annoté en **kubectl live** (non-ArgoCD) → à reporter dans la source manuelle de cet ingress pour durabilité rebuild.
+- [ ] **dagster-user-deployment-accidents** — **SKIPPÉ** : poll gRPC interne du daemon (pas via ingress) → Sablier ne le réveille pas pour le daemon + code-location casse à zéro. Levier alternatif = kube-green (sieste) si on veut récupérer ses 2Gi.
+- [ ] **kubetail** — candidat mais footprint ~0 (gain symbolique), non fait.
+- [ ] selfhost (arr-stack) — repo externe, non fait.
+- **Restent UP** : infra, oauth2-proxy, postgresql/qdrant/rustfs, beszel, hermes, localai, searxng/lightpanda, wyoming (voix, pas Sablier-able → kube-green).
+
+**Durabilité externes** : middlewares portfolio/accidents en GitOps (my-kluster config/). Ingress portfolio = repo portfolio (édité). Ingress accidents = annotation kubectl live (source manuelle à mettre à jour côté user).
 
 > Note exécution P6 : à acter ci-dessous —
 
