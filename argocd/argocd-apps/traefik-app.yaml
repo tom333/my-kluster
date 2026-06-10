@@ -109,12 +109,11 @@ spec:
             # (renouvellement des certs) continue de fonctionner sur http.
             allowACMEByPass: true
             # Redirect global http→https (301 permanent). Tout le reste passe en TLS.
-            http:
-              redirections:
-                entryPoint:
-                  to: websecure
-                  scheme: https
-                  permanent: true
+            redirections:
+              entryPoint:
+                to: websecure
+                scheme: https
+                permanent: true
           websecure:
             exposedPort: 443
             hostPort: 443
