@@ -127,6 +127,6 @@ Les apps suivantes ont des charts upstream bien maintenus — **ne pas remplacer
 
 Débloquées par la bascule ingress-nginx → Traefik (cf. `docs/superpowers/plans/2026-06-09-traefik-ingress-migration.md`).
 
-1. **CrowdSec** (plugin Traefik via `experimental.plugins`, comme Sablier) — IPS/WAF communautaire sur les ingress publics (bannit scans/brute-force). Priorité sécu maintenant que le WAN est ouvert. Impossible avec ingress-nginx.
+1. ✅ **CrowdSec FAIT (2026-06-10)** — IPS communautaire. App `crowdsec` (agent+LAPI) lit les access logs Traefik (JSON) ; bouncer plugin attaché **globalement** (entrypoint websecure) → 403 sur IPs bannies + blocklist communautaire CAPI. Clés en SealedSecret. AppSec (WAF inline) PAS activé (activable plus tard via `appsec.enabled` + middleware `crowdsecAppsecEnabled`). Cf. CLAUDE.md (apps) + plan migration.
 2. **File provider → exposer NAS / services LAN** (192.168.88.103, autres machines) sous `*.tgu.ovh` avec le même TLS + oauth + Sablier. Traefik route k8s ET hors-cluster simultanément.
 3. **redirectScheme http→https global** — redirect propre (accidents/portfolio l'avaient perdu en migrant ; entrypoint redirect ou middleware).

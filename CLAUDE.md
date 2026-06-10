@@ -92,6 +92,7 @@ Les fichiers `.disable` sont ignorés. Pour désactiver une app, suffixe son fic
 | `config`           | `infra`        | ce dépôt → `config/`           | HEAD      | Manifestes bruts (issuer, ingress...)  |
 | `oauth2-proxy`     | `kube-system`  | oauth2-proxy.github.io          | 10.1.4    | GitHub OAuth, `.tgu.ovh`, sans Redis   |
 | `kubetail`         | `kube-system`  | kubetail-org.github.io          | 0.18.2    | Logs agrégés, protégé oauth2-proxy     |
+| `crowdsec`         | `crowdsec`     | crowdsecurity.github.io/helm-charts | 0.18.1 | IPS communautaire (gratuit). Agent lit les access logs Traefik (JSON) → bans ; bouncer = plugin Traefik attaché **globalement** (entrypoint websecure) → 403. Clé bouncer SealedSecret (crowdsec-keys ns crowdsec + crowdsec-bouncer-key ns ingress). ⚠️ si agent `Init:Error` "user already exist" après restart LAPI → `kubectl delete pod` de l'agent (DaemonSet recrée avec nouveau nom). |
 
 ### Data / ML (namespace `ia-lab` ou `datalab`)
 
