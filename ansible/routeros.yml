@@ -1,0 +1,103 @@
+---
+# Capture READ-ONLY de la conf MikroTik RouterOS via l'API (community.routeros).
+# AUCUNE écriture sur le routeur — uniquement des `print` (api) + api_facts.
+#
+# Pourquoi l'API (pas network_cli) : bug amont #229 — la détection de prompt SSH
+# casse car l'identity du routeur contient `@`/`.` (`guyader466281@mls.nc`, re-set
+# à chaque connexion par ppp:FTTH/script:onup).
+# https://github.com/ansible-collections/community.routeros/issues/229
+#
+# Prérequis :
+#   - Service API activé + LAN autorisé :
+#       /ip service set api address=...,192.168.88.0/24
+#   - librouteros dans le venv ansible :  pipx inject ansible librouteros
+#   - Secret vault `vault_routeros_password`.
+#
+# Usage :
+#   cd ansible/
+#   ansible-playbook -i inventory.yml routeros.yml \
+#     --vault-password-file ~/.vault-password.txt
+#
+# Sortie : un JSON par section dans routeros/exports/ (dossier gitignored).
+# Sert de baseline avant toute future gestion (api_modify / api_find_and_modify).
+- name: Capture RouterOS configuration (READ-ONLY)
+  hosts: routeros_hosts
+  gather_facts: false
+  vars_files:
+    - group_vars/vault.yml
+  vars:
+    # Chemins capturés. Certains peuvent ne pas exister selon le modèle/firmware
+    # → failed_when: false ci-dessous, on n'écrit que ceux qui répondent.
+    routeros_capture_paths:
+      - ip firewall nat
+      - ip firewall filter
+      - ip firewall mangle
+      - ip firewall address-list
+      - ip firewall raw
+      - ip address
+      - ip route
+      - ip pool
+      - ip dns
+      - ip dns static
+      - ip dhcp-server
+      - ip dhcp-server network
+      - ip dhcp-server lease
+      - ip dhcp-client
+      - ip service
+      - ip cloud
+      - interface list
+      - interface list member
+      - interface ethernet
+      - interface bridge
+      - interface bridge port
+      - interface vlan
+      - system identity
+      - system clock
+      - system ntp client
+      - system scheduler
+      - system script
+      - snmp
+  module_defaults:
+    group/community.routeros.api:
+      hostname: "{{ ansible_host }}"
+      username: "{{ routeros_api_username }}"
+      password: "{{ routeros_api_password }}"
+      tls: false
+  tasks:
+    - name: Gather RouterOS facts (read-only)
+      community.routeros.api_facts:
+
+    - name: Print each config path (read-only)
+      community.routeros.api:
+        path: "{{ item }}"
+      loop: "{{ routeros_capture_paths }}"
+      loop_control:
+        label: "{{ item }}"
+      register: caps
+      # Un chemin absent ne doit pas casser la capture des autres.
+      failed_when: false
+      changed_when: false
+
+    - name: Ensure export dir exists
+      delegate_to: localhost
+      ansible.builtin.file:
+        path: "{{ playbook_dir }}/routeros/exports"
+        state: directory
+        mode: "0700"
+
+    - name: Write one JSON per captured path
+      delegate_to: localhost
+      ansible.builtin.copy:
+        content: "{{ item.msg | default([]) | to_nice_json }}\n"
+        dest: "{{ playbook_dir }}/routeros/exports/{{ item.item | replace(' ', '_') | replace('/', '_') }}.json"
+        mode: "0600"
+      loop: "{{ caps.results }}"
+      loop_control:
+        label: "{{ item.item }}"
+      when: item.msg is defined
+
+    - name: Summary
+      ansible.builtin.debug:
+        msg: >-
+          Capturé {{ caps.results | selectattr('msg', 'defined') | list | length }}
+          sections dans routeros/exports/ (+ router-full.rsc via /export si lancé).

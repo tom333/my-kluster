@@ -1,0 +1,68 @@
+---
+# Formalisation déclarative des règles NAT MikroTik vers le node k8s (.250).
+# community.routeros via API.
+#
+# SÛRETÉ — ce playbook utilise api_find_and_modify :
+#   - il ne MODIFIE que les règles dont le `comment` matche `find` ;
+#   - il N'AJOUTE NI NE SUPPRIME jamais de règle ;
+#   - require_matches_min/max: 1 → exige EXACTEMENT 1 règle par comment,
+#     sinon il ERREURE (aucune action silencieuse).
+#   - check_mode (--check) supporté pleinement → dry-run ne touche à rien.
+#
+# Dry-run (NE MODIFIE RIEN, montre le diff) :
+#   cd ansible/
+#   ansible-playbook -i inventory.yml routeros-nat.yml \
+#     --vault-password-file ~/.vault-password.txt --check --diff
+#
+# Application réelle (UNIQUEMENT après validation du dry-run + accord explicite) :
+#   ... routeros-nat.yml --vault-password-file ~/.vault-password.txt
+#
+# Prérequis : service API actif + LAN autorisé, librouteros, vault_routeros_password.
+- name: Formalize RouterOS NAT rules (k8s node forwards)
+  hosts: routeros_hosts
+  gather_facts: false
+  vars_files:
+    - group_vars/vault.yml
+  vars:
+    # IP publique WAN (déjà publique via DNS *.tgu.ovh). Déplaçable en vault si tu
+    # juges l'exposition gênante sur un repo public.
+    routeros_wan_ip: "118.179.232.95"
+    routeros_k8s_node_ip: "192.168.88.250"
+    # Règles NAT formalisées. `comment` = clé d'identification (unique par règle).
+    # `values` = état désiré complet de la règle (tel qu'en place actuellement).
+    routeros_nat_rules:
+      - comment: "redirect 443 pour *.tgu.ovh"
+        fields:
+          chain: dstnat
+          action: dst-nat
+          protocol: tcp
+          dst-address: "{{ routeros_wan_ip }}"
+          dst-port: "443"
+          to-addresses: "{{ routeros_k8s_node_ip }}"
+          to-ports: "443"
+      - comment: "80 pour *.tgu.ovh"
+        fields:
+          chain: dstnat
+          action: dst-nat
+          protocol: tcp
+          dst-address: "{{ routeros_wan_ip }}"
+          dst-port: "80"
+          to-addresses: "{{ routeros_k8s_node_ip }}"
+  module_defaults:
+    group/community.routeros.api:
+      hostname: "{{ ansible_host }}"
+      username: "{{ routeros_api_username }}"
+      password: "{{ routeros_api_password }}"
+      tls: false
+  tasks:
+    - name: Ensure NAT rule matches desired state (non-destructive, exactly 1 match)
+      community.routeros.api_find_and_modify:
+        path: ip firewall nat
+        find:
+          comment: "{{ item.comment }}"
+        values: "{{ item.fields }}"
+        require_matches_min: 1
+        require_matches_max: 1
+      loop: "{{ routeros_nat_rules }}"
+      loop_control:
+        label: "{{ item.comment }}"

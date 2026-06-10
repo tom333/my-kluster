@@ -5,3 +5,6 @@ secrets/
 **/.vault-password*
 **/*.vault-password
 ansible/*.retry
+
+# Ansible — exports RouterOS (peut contenir des données sensibles, hors Git)
+ansible/routeros/exports/
