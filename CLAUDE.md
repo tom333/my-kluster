@@ -213,8 +213,10 @@ kubectl get secret -n kube-system \
   - `chat.tgu.ovh` : public + oauth2-proxy ForwardAuth (chart Helm, `openwebui-app.yaml`)
   - `chat-lan.tgu.ovh` : `ipAllowList` LAN (manifest brut `config/openwebui-lan-ingress.yaml`)
 - **argocd** (`argocd.tgu.ovh`) : `server.insecure: true` en **`configs.params`** (PAS `extraArgs --insecure`) → le chart cible le port backend **http (80)**. Viser le port `https` (443) faisait parler TLS à un backend cleartext sous Traefik → 502.
-- ⚠️ **Config Traefik NON-GitOps** (release Helm `traefik`, ns `ingress`, à réappliquer si addon ré-enable) : `providers.kubernetesIngressNginx.enabled=false` (sinon routers dupliqués non-protégés = bypass auth) ; **deadlock DaemonSet hostPort** au prochain upgrade Traefik → supprimer l'ancien pod manuellement.
-- **Gotcha addon** : après `snap refresh`, faire `sudo microk8s addons repo update core` AVANT `microk8s enable ingress` (sinon la copie persistante stale redéploie nginx).
+- **Traefik est sous GitOps** : app ArgoCD `traefik` (`argocd/argocd-apps/traefik-app.yaml`, chart traefik 37.4.0, ns `ingress`, release `traefik`). Toute la config Traefik vit là (providers `kubernetesIngressNginx.enabled=false`, `updateStrategy maxUnavailable=1/maxSurge=0` anti-deadlock hostPort, IngressClasses, dashboard, ports).
+  - ⚠️ **NE PLUS faire `microk8s enable ingress`** : ArgoCD possède le release ; l'addon et ArgoCD se battraient.
+  - ⚠️ **Ne pas `kubectl delete application traefik`** à la légère : l'app gère les ~30 CRDs Traefik → prune cascaderait sur tous les Middleware/IngressRoute du cluster.
+  - **Gateway API CRDs** : installées hors-release (`standard-install.yaml` v1.4.0). À ré-appliquer manuellement en cas de rebuild cluster.
 - **Hermes** (`hermes.tgu.ovh`) : `ipAllowList` LAN (Middleware `hermes-lan-only`), pas d'oauth2-proxy. Agent + UI `hermes-workspace` dans **un seul Pod** (pattern sidecar, calqué sur le docker-compose upstream). Seul le port 3000 (workspace) est exposé ; agent (`8642`/`9119`) en loopback intra-Pod. PVC `hermes-agent-data` (HERMES_HOME partagé `/opt/data` ↔ `/home/workspace/.hermes`) + `hermes-agent-files` (file browser `/workspace`, `terminal.cwd` de l'agent). `fsGroup: 10010` + `HERMES_UID: 10010` pour l'écriture partagée. L'ancienne app séparée `hermes-workspace-app.yaml` est `.disable`.
 
 ### GPU NVIDIA (workloads ML)
