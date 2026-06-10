@@ -110,6 +110,11 @@ spec:
             hostPort: 443
             port: 8443
             protocol: TCP
+            # Attache GLOBALE du bouncer CrowdSec : bloque les IPs bannies sur TOUT
+            # le trafic HTTPS, avant les middlewares par-router (oauth/whitelist/sablier).
+            # Plugin validé sain (pull LAPI OK) avant cette attache (sinon 404 global).
+            middlewares:
+              - ingress-crowdsec@kubernetescrd
         providers:
           kubernetesGateway:
             enabled: true
