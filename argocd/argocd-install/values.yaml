@@ -14,19 +14,14 @@ argo-cd:
     replicas: 1
   server:
     replicas: 1
-    extraArgs:
-      - --insecure
+    # insecure géré via configs.params.server.insecure (cf. plus bas) — PAS via
+    # extraArgs : le chart pilote le port backend de l'ingress sur ce param
+    # (templates/argocd-server/ingress.yaml : servicePort = insecure ? http(80) : https(443)).
     ingress:
       enabled: true
       ingressClassName: nginx
       annotations:
         cert-manager.io/cluster-issuer: "letsencrypt-prod"
-        # argocd-server tourne en --insecure → sert HTTP/1.1 cleartext sur 8080.
-        # Le backend ingress cible le port service 443 (nommé "https") → Traefik
-        # appliquerait l'heuristique HTTPS et parlerait TLS à un backend cleartext
-        # (502). serversscheme=http force le HTTP/1.1 cleartext (le backend ne
-        # parle pas h2c sur ce port ; UI OK, CLI via --grpc-web).
-        traefik.ingress.kubernetes.io/service.serversscheme: http
       extraTls:
         - hosts:
           - argocd.tgu.ovh
@@ -41,5 +36,11 @@ argo-cd:
   configs:
     cm:
       kustomize.buildOptions: "--enable-helm --load-restrictor=LoadRestrictionsNone"
+    params:
+      # argocd-server sert en HTTP cleartext (TLS terminé par Traefik/cert-manager).
+      # Pilote AUSSI le port backend de l'ingress vers "http" (80) au lieu de "https"
+      # (443). Sous Traefik, viser 443 (nommé https) faisait parler TLS à un backend
+      # cleartext → 502. Cf. docs/superpowers/plans/2026-06-09-traefik-ingress-migration.md.
+      server.insecure: true
 
 
