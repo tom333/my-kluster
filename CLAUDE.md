@@ -204,8 +204,8 @@ kubectl get secret -n kube-system \
   ```yaml
   traefik.ingress.kubernetes.io/router.middlewares: <ns>-<name>@kubernetescrd
   ```
-- **oauth2-proxy** (Dagster, kubetail, dashboard, chat, + les *arr selfhost sonarr/radarr/qbittorrent/cleanuparr/seerr) : Middleware **`<ns>-oauth2-forwardauth`** (`ForwardAuth` → `https://auth.tgu.ovh/oauth2/auth`).
-  ⚠️ Pas de `authSigninURL` (champ absent du CRD Traefik OSS v3.6) → non-authentifié = **HTTP 401** (bloqué), **pas de redirect login GitHub**. Redirect = follow-up ouvert.
+- **oauth2-proxy** (Dagster, kubetail, dashboard, chat, + les *arr selfhost sonarr/radarr/qbittorrent/cleanuparr/seerr) : Middleware **`<ns>-oauth2-forwardauth`** (`ForwardAuth`).
+  **Login redirect** : `address` = **racine du service** `http://oauth2-proxy.kube-system.svc.cluster.local/` (PAS `/oauth2/auth`) + `upstreams=static://202` + **`skip_provider_button=true`** côté oauth2-proxy → authentifié=202 (accès), non-auth navigateur=**302 vers GitHub**. (Le ForwardAuth vers `/oauth2/auth` renvoie 401 sans redirect ; la middleware `errors` ne catche pas le 401 d'un middleware. Cf. doc oauth2-proxy "ForwardAuth with static upstreams".)
 - **Whitelist LAN** (beszel, searxng, hermes, localai, chat-lan) : Middleware **`<ns>-lan-only`** (`ipAllowList`, `192.168.88.0/24` + `10.1.0.0/16`) au lieu de `whitelist-source-range`.
 - **MLflow** et **RustFS** ne sont PAS protégés (accès réseau direct ou auth interne).
 - **LocalAI** (`localai.tgu.ovh`) : `ipAllowList` LAN + token `Authorization: Bearer <api-key>` (secret `localai-api-key`).
