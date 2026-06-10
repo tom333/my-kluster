@@ -302,7 +302,7 @@ kubectl get ingress -A   # tous les hosts présents et Ready
 
 # JOURNAL D'EXÉCUTION — P1 réalisé le 2026-06-10
 
-**Statut : Traefik en place et fonctionnel. Sécurité re-appliquée et durable (GitOps). 3 follow-ups ouverts.**
+**Statut : ✅ MIGRATION COMPLÈTE (2026-06-10).** Traefik en place, sécurité durable (GitOps), oauth login-redirect OK, argocd OK, cleanups faits. Smoke test 21 hosts : tous OK (oauth→302 login, whitelist→200, public→200). WAN réouvrable. Reste seulement du bruit inerte non-bloquant (cf. bas).
 
 ## Déroulé réel (déviations vs plan)
 
@@ -327,8 +327,8 @@ kubectl get ingress -A   # tous les hosts présents et Ready
 ## FOLLOW-UPS ouverts
 1. ~~**argocd 502**~~ **RÉSOLU (2026-06-10)** — Root cause (via api Traefik `/api/http/services`) : le service résolvait `https://POD:8080` car l'ingress ciblait le port service nommé `https` (443) → Traefik faisait du TLS sur le backend cleartext (`--insecure` sur 8080) → 502. L'annotation `serversscheme: http` n'est PAS honorée (l'heuristique port-name gagne). Fix : `configs.params."server.insecure": true` (le chart pilote le port backend sur ce param via ternary http:https dans `templates/argocd-server/ingress.yaml`) → ingress port 80 → 200. Retiré `extraArgs --insecure` + l'annotation serversscheme inutile. Commit `b7738ec3`.
 2. ~~**Login redirect oauth**~~ **RÉSOLU (2026-06-10, commit 7fee6bf5)** — Pattern doc oauth2-proxy "ForwardAuth with static upstreams" : `address` ForwardAuth = **racine du service** oauth2-proxy (`http://oauth2-proxy.kube-system.svc.cluster.local/`, pas `/oauth2/auth`) + `upstreams=static://202` + **`skip_provider_button=true`** → authentifié=202, non-auth navigateur=302 vers GitHub. Pas besoin de la middleware `errors` (qui ne catche PAS le 401 d'un middleware frère sur Traefik v3.6, testé) ni de cross-namespace. Vérifié : chat/kubetail/dagster/sonarr/qbittorrent → 302 github avec `rd` = host d'origine. *(À confirmer par un vrai login navigateur que l'accès authentifié=202 passe.)*
-3. **freshrss 404** — `config/freshrss-ingress.yaml` : service ref cassé + `nginx.org/*` inerte à nettoyer.
-4. **Cleanups non-sécu** : rustfs sticky session (annotation Service Traefik), mlflow/cv/accidents/portfolio className/timeouts, dashboard backend HTTPS (si dashboard ré-activé).
+3. ~~**freshrss 404**~~ **RÉSOLU** : `config/freshrss-ingress.yaml` était un ingress orphelin (app `.old`, aucun service) → supprimé (commit e4210248).
+4. ~~**Cleanups non-sécu**~~ **FAIT** : rustfs timeouts nginx retirés (commit 2e967f67) ; sticky/body-size restants = générés par le chart rustfs, **inertes sous Traefik**, non nettoyés (faible valeur, 1 replica). mlflow/cv/portfolio/meteo = 200 sans action (className alias OK). dashboard backend HTTPS = N/A (addon dashboard désactivé). **À surveiller** : accidents/portfolio (repos externes) avaient `force-ssl-redirect`/WebSnippet nginx — inertes sous Traefik ; WS marche nativement, mais pas de redirect http→https auto (accès https OK).
 5. **WAN** : sécurité restaurée (oauth=401, whitelist OK) → réouverture possible côté sécu, MAIS fixer le **login redirect** (#2) d'abord pour l'usage navigateur des hosts publics oauth. argocd restera 502 jusqu'à #1.
 
 ## Doc CLAUDE.md à mettre à jour (post-stabilisation)
