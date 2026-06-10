@@ -33,6 +33,15 @@ spec:
       values: |
         deployment:
           kind: DaemonSet
+        # DaemonSet en hostPort 80/443 : le défaut maxSurge=1/maxUnavailable=0 deadlock
+        # au rolling-update (nouveau pod Pending car port pris, ancien ne meurt pas).
+        # Recreate (delete old → new) → upgrades Traefik (ex. futur plugin Sablier)
+        # sans delete pod manuel. Bref blip ingress par upgrade (single-node), pas de deadlock.
+        updateStrategy:
+          type: RollingUpdate
+          rollingUpdate:
+            maxUnavailable: 1
+            maxSurge: 0
         extraObjects:
           - apiVersion: networking.k8s.io/v1
             kind: IngressClass
