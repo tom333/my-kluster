@@ -133,6 +133,7 @@ Documentation déploiement : `docs/superpowers/specs/2026-05-24-beszel-monitorin
 |---------------|------------|---------------------------------|-----------|------------------------------------------------|
 | `code-server` | `coder`    | github.com/coder/code-server    | v4.111.0  | VSCode web + DinD, image custom `tom333/coder` |
 | `cv`          | `cv`       | github.com/tom333/cv            | main      | CV personnel (dépôt externe)                   |
+| `ttyd`        | `shell`    | bjw-s app-template 5.0.1        | image 1.0 | **Terminal web** `shell.tgu.ovh` → shell host. Pod (image custom `localhost:32000/ttyd-ssh` = ttyd + openssh-client, `images/ttyd-ssh/`) se connecte en SSH `moi@192.168.88.250` (hop LAN, port SSH jamais WAN). Clé SealedSecret `ttyd-ssh-key` (montée 0600), pubkey restreinte `from=cluster/LAN` dans authorized_keys du host. **oauth2-proxy obligatoire** (Middleware `shell-oauth2-forwardauth`) → aucun shell sans login GitHub. + CrowdSec global + TLS. |
 
 ---
 
