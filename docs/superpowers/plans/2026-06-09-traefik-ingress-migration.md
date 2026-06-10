@@ -255,9 +255,29 @@ kubectl get ingress -A   # tous les hosts présents et Ready
 
 ---
 
-# PHASE 6 — Scale-to-zero Sablier (DIFFÉRÉ, hors scope migration)
+# PHASE 6 — Scale-to-zero Sablier
 
-> Phase séparée, à attaquer **après** que Traefik soit stable. Documentée ici pour acter le chemin et les décisions de classification. Pas de code dans ce plan.
+> **✅ 6a (infra) + 6b (pilote mlflow) FAITS le 2026-06-10. Mécanisme prouvé bout-en-bout.** Reste : rollout des autres candidats (6c, un par un).
+
+## État d'exécution
+- **6a infra** ✅ : Traefik sous GitOps (`traefik-app.yaml`) → plugin `sablier-traefik-plugin v1.3.0` (`experimental.plugins`) ; serveur Sablier `1.10.1` (`sablier/` + `sablier-app.yaml`, ns kube-system, RBAC scale, Service :10000). Plugin chargé (logs `Plugins loaded [sablier]`).
+- **6b pilote mlflow** ✅ : middleware `ia-lab/mlflow-sablier` (`names=deployment_ia-lab_mlflow_1`, dynamic ghost, sessionDuration 10m) + annotation sur l'ingress mlflow. **Testé** : mlflow scalé 0 → requête → page d'attente Sablier + scale 0→1 → sert l'app. Scale-to-zero auto après 10m.
+
+## Recette d'onboarding (par service, un à la fois)
+1. Middleware Sablier dans `config/traefik-middlewares.yaml` (ns du service) : `plugin.sablier.names=deployment_<ns>_<deploy>_<replicas>`, `sablierUrl=http://sablier.kube-system:10000`, `sessionDuration`, `dynamic` (UI) ou `blocking` (API).
+2. Annotation `traefik.ingress.kubernetes.io/router.middlewares: <ns>-<name>-sablier@kubernetescrd` sur l'ingress (chaîner APRÈS oauth/whitelist si présents).
+3. Commit + push, refresh parent `applications` (inline values) + l'app, sync.
+4. Valider : `kubectl scale deploy <x> --replicas=0` → requête → page d'attente + réveil.
+
+## Candidats restants (6c) — à onboarder un par un
+- [ ] **kubetail** (kube-system) — `deployment_kube-system_kubetail-...` (vérifier nom exact)
+- [ ] **openwebui** (openwebui) — chat-lan ; chat public a déjà oauth (chaîner sablier+forwardauth)
+- [ ] **dagster** — UI/webserver SEULEMENT (le daemon reste up sinon plus de schedules)
+- [ ] selfhost (cleanuparr/jellyfin/prowlarr/radarr/seerr/sonarr — PAS qbittorrent/arrconf) → repo externe arr-stack
+- [ ] accidents, autres UIs
+- **Restent UP** (rappel) : infra, oauth2-proxy, postgresql/qdrant/rustfs, beszel, hermes (Telegram), localai (usage courant), searxng/lightpanda.
+
+> Note exécution P6 : à acter ci-dessous —
 
 **Pré-requis :** Traefik en place (Phases 0-5). Sablier = intégration native Traefik (plugin middleware). Le plugin se charge via la **config statique** de Traefik (`experimental.plugins.sablier`) → à injecter dans les values Helm de l'addon ingress, + déployer le serveur Sablier (Deployment + RBAC pour scaler les Deployments).
 
