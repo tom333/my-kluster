@@ -58,6 +58,19 @@ spec:
                 # owned, which is consistent since the agent+gateway also run
                 # as root in this image.
                 {}
+              # Force Telegram over IPv4. The pod resolves api.telegram.org to BOTH
+              # an A record (149.154.166.110) and an AAAA (2001:67c:4e8:f004::9), but
+              # the cluster has NO IPv6 egress — so python-telegram-bot's IPv6-first
+              # attempt times out (~10-20s) → "Primary api.telegram.org connection
+              # failed" → flaky/failed cron delivery ("Telegram send failed: Timed
+              # out"). Verified: curl over IPv4 returns 200 in ~1s every time. Pinning
+              # the hostname to Telegram's stable IPv4 (the same IP Hermes uses as its
+              # hardcoded fallback) removes the AAAA from /etc/hosts and skips the dead
+              # IPv6 path entirely.
+              hostAliases:
+                - ip: "149.154.166.110"
+                  hostnames:
+                    - "api.telegram.org"
             initContainers:
               # Sync config.yaml into HERMES_HOME from the ConfigMap on EVERY boot.
               # Git (this chart's values) is the SOURCE OF TRUTH. The bundled agent
