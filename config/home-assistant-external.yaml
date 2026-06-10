@@ -1,0 +1,82 @@
+# Exposition d'un backend HORS-CLUSTER sous *.tgu.ovh (backlog Traefik point 2).
+# Cible : Home Assistant OS @ 192.168.88.201:8123 → https://ha.tgu.ovh
+#
+# Pattern k8s-natif (préféré au file provider Traefik pour un host unique) :
+#   Service SANS selector + EndpointSlice manuel pointant sur l'IP:port externe.
+#   Traefik route l'Ingress vers ces endpoints comme n'importe quel Service.
+#   → réutilise TLS cert-manager, CrowdSec global, annotations middleware standard.
+#   Pas de mount file provider, pas de restart Traefik.
+#
+# Accès : PUBLIC, protégé par l'auth native Home Assistant (pas de middleware
+#   d'accès). Le bouncer CrowdSec global (entrypoint websecure) s'applique quand même.
+#   Sablier N/A : backend externe, non scalable par le cluster.
+#
+# ⚠️ CONFIG REQUISE CÔTÉ HOME ASSISTANT (configuration.yaml) — sinon HTTP 400 :
+#   http:
+#     use_x_forwarded_for: true
+#     trusted_proxies:
+#       - 192.168.88.250    # IP du node k8s (Traefik DaemonSet hostNetwork → IP source vue par HA)
+#   Redémarrer HA après modif. WebSockets gérés automatiquement par Traefik.
+# ============================================================================
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: external
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: home-assistant
+  namespace: external
+spec:
+  # Pas de selector : endpoints fournis manuellement via l'EndpointSlice ci-dessous.
+  ports:
+    - name: http
+      port: 8123
+      targetPort: 8123
+      protocol: TCP
+---
+apiVersion: discovery.k8s.io/v1
+kind: EndpointSlice
+metadata:
+  name: home-assistant-1
+  namespace: external
+  labels:
+    # Lien EndpointSlice → Service (obligatoire pour que le Service les adopte).
+    kubernetes.io/service-name: home-assistant
+addressType: IPv4
+ports:
+  - name: http          # doit matcher le nom du port du Service
+    port: 8123
+    protocol: TCP
+endpoints:
+  - addresses:
+      - 192.168.88.201
+    conditions:
+      ready: true
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: home-assistant
+  namespace: external
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  ingressClassName: public
+  rules:
+    - host: ha.tgu.ovh
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: home-assistant
+                port:
+                  number: 8123
+  tls:
+    - hosts:
+        - ha.tgu.ovh
+      secretName: ha.tgu.ovh-tls
