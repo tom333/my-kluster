@@ -1,0 +1,98 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: traefik
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  # Controller ingress Traefik, sorti de l'addon MicroK8s pour passer sous GitOps
+  # (2026-06). Avant : géré par `microk8s enable ingress` (release Helm hors-Git),
+  # ce qui rendait fragiles les overrides (provider compat off, updateStrategy,
+  # futur plugin Sablier) — effacés à chaque disable/enable de l'addon.
+  #
+  # ⚠️ NE PLUS faire `microk8s enable ingress` : ArgoCD possède désormais ce release
+  # `traefik` (ns ingress). L'addon et ArgoCD se battraient.
+  #
+  # Valeurs = copie EXACTE des user-supplied values du release adopté (helm get
+  # values traefik -n ingress) → adoption sans diff ni downtime.
+  #
+  # Gateway API CRDs : installées hors-release (standard-install.yaml v1.4.0, via
+  # l'ancien addon). Non gérées ici. À ré-appliquer manuellement en cas de rebuild
+  # cluster (kubectl apply -f .../gateway-api/v1.4.0/standard-install.yaml).
+  destination:
+    namespace: ingress
+    server: https://kubernetes.default.svc
+  project: infra-project
+  source:
+    repoURL: https://traefik.github.io/charts
+    chart: traefik
+    targetRevision: 37.4.0
+    helm:
+      releaseName: traefik
+      values: |
+        deployment:
+          kind: DaemonSet
+        extraObjects:
+          - apiVersion: networking.k8s.io/v1
+            kind: IngressClass
+            metadata:
+              name: public
+              annotations:
+                ingressclass.kubernetes.io/is-default-class: "true"
+            spec:
+              controller: traefik.io/ingress-controller
+          - apiVersion: networking.k8s.io/v1
+            kind: IngressClass
+            metadata:
+              name: nginx
+            spec:
+              controller: traefik.io/ingress-controller
+        gateway:
+          listeners:
+            web:
+              namespacePolicy:
+                from: All
+        ingressClass:
+          enabled: true
+          isDefaultClass: false
+          name: traefik
+        ingressRoute:
+          dashboard:
+            enabled: true
+            entryPoints:
+              - web
+            matchRule: Host(`dashboard.localhost`)
+        logs:
+          general:
+            level: INFO
+        ports:
+          web:
+            exposedPort: 80
+            hostPort: 80
+            port: 8000
+            protocol: TCP
+          websecure:
+            exposedPort: 443
+            hostPort: 443
+            port: 8443
+            protocol: TCP
+        providers:
+          kubernetesGateway:
+            enabled: true
+          kubernetesIngress:
+            allowEmptyServices: true
+            enabled: true
+            publishedService:
+              enabled: true
+          # Désactivé : sinon routers dupliqués non-protégés (bypass auth).
+          kubernetesIngressNginx:
+            enabled: false
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=false
+      - ServerSideApply=true
+    automated:
+      selfHeal: true
+      prune: true
+      allowEmpty: true
