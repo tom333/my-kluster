@@ -20,7 +20,7 @@ spec:
           enabled: true
           annotations:
             cert-manager.io/cluster-issuer: "letsencrypt-prod"
-            traefik.ingress.kubernetes.io/router.middlewares: dagster-oauth2-forwardauth@kubernetescrd,dagster-sablier@kubernetescrd
+            traefik.ingress.kubernetes.io/router.middlewares: dagster-oauth2-forwardauth@kubernetescrd,dagster-dagster-sablier@kubernetescrd
           dagsterWebserver:
             host: dagster.tgu.ovh
             path: /

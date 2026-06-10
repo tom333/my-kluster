@@ -11,7 +11,7 @@ metadata:
   namespace: openwebui
   annotations:
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
-    traefik.ingress.kubernetes.io/router.middlewares: openwebui-lan-only@kubernetescrd,openwebui-sablier@kubernetescrd
+    traefik.ingress.kubernetes.io/router.middlewares: openwebui-lan-only@kubernetescrd,openwebui-openwebui-sablier@kubernetescrd
 spec:
   ingressClassName: public
   tls:
