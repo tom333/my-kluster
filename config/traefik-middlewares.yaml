@@ -127,3 +127,40 @@ spec:
         displayName: MLflow
         theme: ghost
         refreshFrequency: 5s
+---
+# openwebui = StatefulSet (names statefulset_...). Chaîné APRÈS oauth/whitelist
+# sur les 2 ingress (chat + chat-lan) → seuls les requêtes autorisées réveillent.
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: openwebui-sablier
+  namespace: openwebui
+spec:
+  plugin:
+    sablier:
+      names: statefulset_openwebui_openwebui-open-webui_1
+      sablierUrl: http://sablier.kube-system:10000
+      sessionDuration: 30m
+      dynamic:
+        displayName: Open WebUI
+        theme: ghost
+        refreshFrequency: 5s
+---
+# dagster : SEULEMENT le webserver (UI). Le daemon reste up (schedules/runs).
+# NE PAS scale-to-zero dagster-user-deployment-accidents (poll gRPC interne du
+# daemon → Sablier ne peut pas le réveiller, code-location casse).
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: dagster-sablier
+  namespace: dagster
+spec:
+  plugin:
+    sablier:
+      names: deployment_dagster_dagster-dagster-webserver_1
+      sablierUrl: http://sablier.kube-system:10000
+      sessionDuration: 15m
+      dynamic:
+        displayName: Dagster
+        theme: ghost
+        refreshFrequency: 5s

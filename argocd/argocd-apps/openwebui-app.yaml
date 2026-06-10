@@ -55,7 +55,7 @@ spec:
           existingSecret: chat-tls
           annotations:
             cert-manager.io/cluster-issuer: "letsencrypt-prod"
-            traefik.ingress.kubernetes.io/router.middlewares: openwebui-oauth2-forwardauth@kubernetescrd
+            traefik.ingress.kubernetes.io/router.middlewares: openwebui-oauth2-forwardauth@kubernetescrd,openwebui-sablier@kubernetescrd
 
         extraEnvVars:
           - name: OPENAI_API_BASE_URLS
