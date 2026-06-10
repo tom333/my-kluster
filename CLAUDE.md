@@ -11,7 +11,7 @@ Ce dépôt contient la configuration GitOps d'un cluster **MicroK8s** single-nod
 L'infrastructure est entièrement déclarative : toute modification doit passer par ce dépôt.
 
 - **Domaine principal** : `*.tgu.ovh`
-- **Ingress controller** : NGINX (installé via MicroK8s addon)
+- **Ingress controller** : **Traefik** v3.6 (addon MicroK8s ≥ 1.35 ; migré depuis ingress-nginx EOL le 2026-06-10, cf. `docs/superpowers/plans/2026-06-09-traefik-ingress-migration.md`). IngressClass `public`(défaut)/`nginx`/`traefik` → toutes le controller `traefik.io`. Comportements (auth, whitelist…) portés par des **Middleware CRD** Traefik, plus par des annotations `nginx.ingress.kubernetes.io/*` (ignorées).
 - **TLS** : cert-manager + Let's Encrypt (`letsencrypt-prod`)
 - **Authentification** : oauth2-proxy (GitHub OAuth, whitelist : `tom333`, `tguyader`)
 - **Secrets management** : **Sealed Secrets** (Bitnami) — tous les secrets sont chiffrés dans `sealed/` et committés dans Git. Le controller `sealed-secrets-controller` (ns `kube-system`) les déchiffre à la volée vers des Secrets K8s natifs.
@@ -200,17 +200,22 @@ kubectl get secret -n kube-system \
 ### Ingress et TLS
 
 - Toutes les routes exposées utilisent `cert-manager.io/cluster-issuer: "letsencrypt-prod"`.
-- Les applications sensibles (Dagster, code-server, kubetail, dashboard) sont protégées par oauth2-proxy :
+- Les comportements ingress sont des **Middleware Traefik** (`traefik.io/v1alpha1`), déclarés dans `config/traefik-middlewares.yaml` (app `config`), **un par namespace consommateur** (cross-namespace interdit par défaut), attachés via annotation :
   ```yaml
-  nginx.ingress.kubernetes.io/auth-url: "https://auth.tgu.ovh/oauth2/auth"
-  nginx.ingress.kubernetes.io/auth-signin: "https://auth.tgu.ovh/oauth2/start?rd=https://<service>.tgu.ovh"
+  traefik.ingress.kubernetes.io/router.middlewares: <ns>-<name>@kubernetescrd
   ```
-- **MLflow** et **RustFS** ne sont PAS protégés par oauth2-proxy (accès réseau direct ou auth interne).
-- **LocalAI** (`localai.tgu.ovh`) : pas d'oauth2-proxy, accès restreint via `nginx.ingress.kubernetes.io/whitelist-source-range: "192.168.88.0/24,10.1.0.0/16"` + token `Authorization: Bearer <api-key>` (secret `localai-api-key`).
+- **oauth2-proxy** (Dagster, kubetail, dashboard, chat, + les *arr selfhost sonarr/radarr/qbittorrent/cleanuparr/seerr) : Middleware **`<ns>-oauth2-forwardauth`** (`ForwardAuth` → `https://auth.tgu.ovh/oauth2/auth`).
+  ⚠️ Pas de `authSigninURL` (champ absent du CRD Traefik OSS v3.6) → non-authentifié = **HTTP 401** (bloqué), **pas de redirect login GitHub**. Redirect = follow-up ouvert.
+- **Whitelist LAN** (beszel, searxng, hermes, localai, chat-lan) : Middleware **`<ns>-lan-only`** (`ipAllowList`, `192.168.88.0/24` + `10.1.0.0/16`) au lieu de `whitelist-source-range`.
+- **MLflow** et **RustFS** ne sont PAS protégés (accès réseau direct ou auth interne).
+- **LocalAI** (`localai.tgu.ovh`) : `ipAllowList` LAN + token `Authorization: Bearer <api-key>` (secret `localai-api-key`).
 - **Open WebUI** expose **2 ingress** pointant sur le même service :
-  - `chat.tgu.ovh` : public + oauth2-proxy (managé par le chart Helm, dans `openwebui-app.yaml`)
-  - `chat-lan.tgu.ovh` : whitelist LAN sans oauth (manifest brut dans `config/openwebui-lan-ingress.yaml`)
-- **Hermes** (`hermes.tgu.ovh`) : whitelist LAN, pas d'oauth2-proxy. Agent + UI `hermes-workspace` dans **un seul Pod** (pattern sidecar, calqué sur le docker-compose upstream). Seul le port 3000 (workspace) est exposé ; agent (`8642`/`9119`) en loopback intra-Pod. PVC `hermes-agent-data` (HERMES_HOME partagé `/opt/data` ↔ `/home/workspace/.hermes`) + `hermes-agent-files` (file browser `/workspace`, `terminal.cwd` de l'agent). `fsGroup: 10010` + `HERMES_UID: 10010` pour l'écriture partagée. L'ancienne app séparée `hermes-workspace-app.yaml` est `.disable`.
+  - `chat.tgu.ovh` : public + oauth2-proxy ForwardAuth (chart Helm, `openwebui-app.yaml`)
+  - `chat-lan.tgu.ovh` : `ipAllowList` LAN (manifest brut `config/openwebui-lan-ingress.yaml`)
+- **argocd** (`argocd.tgu.ovh`) : ⚠️ **502 connu** sous Traefik (backend `--insecure`/gRPC) — follow-up ouvert.
+- ⚠️ **Config Traefik NON-GitOps** (release Helm `traefik`, ns `ingress`, à réappliquer si addon ré-enable) : `providers.kubernetesIngressNginx.enabled=false` (sinon routers dupliqués non-protégés = bypass auth) ; **deadlock DaemonSet hostPort** au prochain upgrade Traefik → supprimer l'ancien pod manuellement.
+- **Gotcha addon** : après `snap refresh`, faire `sudo microk8s addons repo update core` AVANT `microk8s enable ingress` (sinon la copie persistante stale redéploie nginx).
+- **Hermes** (`hermes.tgu.ovh`) : `ipAllowList` LAN (Middleware `hermes-lan-only`), pas d'oauth2-proxy. Agent + UI `hermes-workspace` dans **un seul Pod** (pattern sidecar, calqué sur le docker-compose upstream). Seul le port 3000 (workspace) est exposé ; agent (`8642`/`9119`) en loopback intra-Pod. PVC `hermes-agent-data` (HERMES_HOME partagé `/opt/data` ↔ `/home/workspace/.hermes`) + `hermes-agent-files` (file browser `/workspace`, `terminal.cwd` de l'agent). `fsGroup: 10010` + `HERMES_UID: 10010` pour l'écriture partagée. L'ancienne app séparée `hermes-workspace-app.yaml` est `.disable`.
 
 ### GPU NVIDIA (workloads ML)
 
@@ -224,7 +229,7 @@ kubectl get secret -n kube-system \
 
 - **StorageClass par défaut** : `microk8s-hostpath` (single-node, pas HA)
 - **Registry locale** : `localhost:32000/<image>:<tag>` — images buildées en local
-- **Ingress** : NGINX activé via addon MicroK8s (`microk8s enable ingress`)
+- **Ingress** : **Traefik** via addon MicroK8s (`microk8s enable ingress`, défaut Traefik depuis 1.35). Anciennement nginx (< 1.35).
 - **NAS** : `192.168.88.103` (NFS v3, share `/Public`)
 
 ### Ansible (déploiement multi-machines)
