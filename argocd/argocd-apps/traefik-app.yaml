@@ -82,9 +82,13 @@ spec:
         logs:
           general:
             level: INFO
-          # Access logs requis pour l'acquisition CrowdSec (parser traefik).
+            # JSON : enlève les codes couleur ANSI (\x1b) qui cassaient le parser CrowdSec.
+            format: json
+          # Access logs requis pour l'acquisition CrowdSec. Format JSON : le parser
+          # crowdsecurity/traefik fait un UnmarshalJSON → exige du JSON (pas du CLF).
           access:
             enabled: true
+            format: json
         ports:
           web:
             exposedPort: 80
