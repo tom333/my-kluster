@@ -29,6 +29,11 @@ spec:
             cookie_domains = ".tgu.ovh"
             redirect_url = "https://auth.tgu.ovh/oauth2/callback"
             whitelist_domains = "*.tgu.ovh"
+            # Saute la page bouton "Sign in" → redirect direct vers GitHub. Permet au
+            # ForwardAuth Traefik (address = racine du service, upstreams=static://202) de
+            # renvoyer un 302 au navigateur non-authentifié (sinon 403 + page). Cf.
+            # docs oauth2-proxy "Traefik ForwardAuth with static upstreams".
+            skip_provider_button = true
         ingress:
           enabled: true
           path: /oauth2

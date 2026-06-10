@@ -7,8 +7,10 @@
 #
 # ipAllowList  : remplace nginx whitelist-source-range (LAN-only)
 # forwardAuth  : remplace nginx auth-url/auth-signin (oauth2-proxy)
-#   NB: pas de authSigninURL (champ absent du CRD Traefik OSS v3.6) → non
-#   authentifié = HTTP 401 (bloqué). Redirection login à ajouter ultérieurement.
+#   address = RACINE du service oauth2-proxy (pas /oauth2/auth) + upstreams=static://202
+#   + skip_provider_button=true côté oauth2-proxy → authentifié=202 (accès),
+#   non-authentifié navigateur=302 vers GitHub (ForwardAuth transmet le redirect).
+#   Pattern doc oauth2-proxy "Traefik ForwardAuth with static upstreams".
 # ============================================================================
 
 # ─── IPAllowList LAN : searxng, monitoring, hermes, localai, openwebui ───────
@@ -67,7 +69,7 @@ metadata:
   namespace: kube-system
 spec:
   forwardAuth:
-    address: https://auth.tgu.ovh/oauth2/auth
+    address: http://oauth2-proxy.kube-system.svc.cluster.local/
     trustForwardHeader: true
     authResponseHeaders: ["X-Auth-Request-User", "X-Auth-Request-Email", "Authorization"]
 ---
@@ -78,7 +80,7 @@ metadata:
   namespace: dagster
 spec:
   forwardAuth:
-    address: https://auth.tgu.ovh/oauth2/auth
+    address: http://oauth2-proxy.kube-system.svc.cluster.local/
     trustForwardHeader: true
     authResponseHeaders: ["X-Auth-Request-User", "X-Auth-Request-Email", "Authorization"]
 ---
@@ -89,7 +91,7 @@ metadata:
   namespace: openwebui
 spec:
   forwardAuth:
-    address: https://auth.tgu.ovh/oauth2/auth
+    address: http://oauth2-proxy.kube-system.svc.cluster.local/
     trustForwardHeader: true
     authResponseHeaders: ["X-Auth-Request-User", "X-Auth-Request-Email", "Authorization"]
 ---
@@ -100,6 +102,6 @@ metadata:
   namespace: selfhost
 spec:
   forwardAuth:
-    address: https://auth.tgu.ovh/oauth2/auth
+    address: http://oauth2-proxy.kube-system.svc.cluster.local/
     trustForwardHeader: true
     authResponseHeaders: ["X-Auth-Request-User", "X-Auth-Request-Email", "Authorization"]
