@@ -82,6 +82,9 @@ spec:
         logs:
           general:
             level: INFO
+          # Access logs requis pour l'acquisition CrowdSec (parser traefik).
+          access:
+            enabled: true
         ports:
           web:
             exposedPort: 80

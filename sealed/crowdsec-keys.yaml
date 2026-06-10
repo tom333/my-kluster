@@ -1,0 +1,22 @@
+# Namespace crowdsec créé ici (par l'app "sealed") pour que le SealedSecret →
+# Secret puisse être déchiffré dedans avant que l'app crowdsec ne démarre.
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: crowdsec
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  creationTimestamp: null
+  name: crowdsec-keys
+  namespace: crowdsec
+spec:
+  encryptedData:
+    BOUNCER_KEY_traefik: AgBhNUScljU3a0CFqZN2kmAX+TRmGzTR9QFxo7FdbZozCg9sNuJ6WAZ/Sv12Mx0u3/hprLpEPqRxPm1jdd7/v5oQcmTroaTqtS0Xatb+vMTSvpQ+1XEqT+GWi0d5+ieRbfkKzRMItv0e1DVhCgBn+2sUWIB9jjX5bJcCvfK2lZp30ZI0I8B3TbwCweuTxz1qVsSwQDZZjGQxUQ1tdLnE1yPXbJBjHEIS/CK/FciGoSvXpbPu5h6tDCwN/Oj7NVnIEaWmq0Vg9XlrBwnT7SLPrNvqoO0zQHskci8ecR9Ksfa9WcQULvtkSTtujo+OcqIV7x6ISkKZOnQRD0hU0upm0o6Qw8WEuuHO+0/LtLtFSBR5OAXjuZOhmqcB7r5kld36YGViPJGZrkrNtDgQlpB5AyE8UfKhS+JYAFF8iLRlyWF2FD9wF67NveJyH4/8UjhEVg5Ono7b9Utb+CnPpyBpD/aHm5cPQBQ6wqjwPOr6RhvOpth3BmEqQ5mLSvrjKSE1cqtVzpVQOLNG6OD+mUggDrHt83FLqMBftjZwT5cKn2bF90+qJPNnjNJQsmwaAzoALPAlwlukMG8/CZ4SSmPy/HO6vIOUrdBUMRMi9aFlwPSz44t2Dn03sQdqozUz8LOJftM7C9VVtw8gBZVG7qYZpTBZcJ9FR40nyzv9dHMV9GvQKE09VJNQN6Et1jUBx83zz41g7TlyLMDFm04Bc5cPDBzNuv4rrL+dI6kuiYKtXm+wtUMsorsAhdWO
+  template:
+    metadata:
+      creationTimestamp: null
+      name: crowdsec-keys
+      namespace: crowdsec

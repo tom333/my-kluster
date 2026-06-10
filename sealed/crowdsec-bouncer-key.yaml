@@ -1,0 +1,15 @@
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  creationTimestamp: null
+  name: crowdsec-bouncer-key
+  namespace: ingress
+spec:
+  encryptedData:
+    BOUNCER_KEY_traefik: AgBNTYNaZ4h+5bXAfEW4cUiObJfzTqiz715dCX4WEC0R9eESFP0f7rt7WTAucI5UsG9AQd6qOgchc5M9Kh+my/H+/kcXlCJmwtGwcb/IFlc4fWFDS975aZ6cdN+ZKsveLvxH43XdAwgDlORQNWqEhMOjL26HolNK35O5bKBd/ZX7AvC6c3RgfChZU+R2AgtAoF8qShGKipqiUNFSSRAgNkHkvBk7Ys0l9Ug8twRSiBuzDVDp8vY8VIphVDiFxUenXC8DkKViwj+NOzOqzLAoiXtDKtWqGhLRCMYihA1ulNvah+d7NuWNlX5Q8V+IT/rUzbVvpAYouDE0rmlStix45LL47WyItCQiJfFHXliLz/ksntpZv+HYbMxNRVh6y9V+8wOYjyFs5xoHwttis8GYVxgifHvCfFykq9uP5Pt9U0QF4o6v6cv5K6a4aGx0sOnlE7xsxgcBiIcxv2SAi82eC6arvC1JLWRfrvl6/aQrqgD8PN2q72Wdj23Wvh6bstHBfF73Q0y2lOVOt7pdsEqmAOucY5koF2+axJXsxTyVUev5XwAR++eqvyg5AD761tl7kIOi2X2v1uSZC+oA05MkkKpSVJIU11fjI48C5SXjWyT0PaRzJjymmVPcnu5srUnby0mjFe9ceKCM76/OcRsBeDZMloWNhRTfSsIV5jLZhlo5ed9Fz5zN1B8qt9oHyo0jt3e+4aA31lMD4MXMX9lEBhMh6+ZBDmsXrz6P364Dbt3EGiVNoVNmN5/G
+  template:
+    metadata:
+      creationTimestamp: null
+      name: crowdsec-bouncer-key
+      namespace: ingress

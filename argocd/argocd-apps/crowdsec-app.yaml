@@ -1,0 +1,69 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: crowdsec
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  # CrowdSec — IPS/WAF communautaire (open-source, gratuit). Agent + LAPI.
+  # L'agent lit les ACCESS LOGS du pod Traefik (ns ingress) → détecte scans,
+  # brute-force, probing → décisions de ban. Le plugin bouncer Traefik
+  # (cf. traefik-app.yaml experimental.plugins.bouncer) interroge la LAPI et
+  # bloque les IPs bannies (403). Blocklist communautaire via CAPI (auto, gratuit).
+  # Clé bouncer : SealedSecret crowdsec-keys (ns crowdsec) côté LAPI +
+  # crowdsec-bouncer-key (ns ingress, fichier monté) côté Traefik.
+  destination:
+    namespace: crowdsec
+    server: https://kubernetes.default.svc
+  project: infra-project
+  source:
+    repoURL: https://crowdsecurity.github.io/helm-charts
+    chart: crowdsec
+    targetRevision: 0.18.1
+    helm:
+      releaseName: crowdsec
+      values: |
+        # microk8s = containerd
+        container_runtime: containerd
+        agent:
+          # Acquisition : logs du pod Traefik (ns ingress), parser "traefik"
+          acquisition:
+            - namespace: ingress
+              podName: traefik-*
+              program: traefik
+          env:
+            - name: COLLECTIONS
+              value: "crowdsecurity/traefik crowdsecurity/base-http-scenarios"
+          # single-node : pas de tolérations/affinités spéciales
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              memory: 256Mi
+        lapi:
+          # Enregistre le bouncer "traefik" avec la clé partagée (SealedSecret)
+          env:
+            - name: BOUNCER_KEY_traefik
+              valueFrom:
+                secretKeyRef:
+                  name: crowdsec-keys
+                  key: BOUNCER_KEY_traefik
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              memory: 256Mi
+        # AppSec (WAF inline) désactivé pour démarrer (IP reputation + comportemental only)
+        appsec:
+          enabled: false
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+    automated:
+      selfHeal: true
+      prune: true
+      allowEmpty: true
