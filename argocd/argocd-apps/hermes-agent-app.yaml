@@ -282,10 +282,11 @@ spec:
                   #   CPU-bound → 744s/turn → APITimeout. Fine for direct chat only.
                   # - Qwen3-8B: full-GPU but narrates under load (8B ceiling).
                   # LocalAI/qwen3-8b stays defined below for direct chat / embeddings.
-                  default: google/gemini-2.5-flash
+                  default: deepseek/deepseek-v4-flash
                   provider: openrouter
                   # Declared window for compression math; well above Hermes' 64k floor.
-                  # (Gemini 2.5 Flash real context is ~1M; we don't need it all.)
+                  # DeepSeek V4 Flash: 284B MoE (13B active), 1M ctx, agentic index 62.3
+                  # (#1 Hermes app on OpenRouter by token volume, 10x cheaper than Gemini 2.5 Flash)
                   context_length: 131072
                 # Named providers: Hermes resolves api_key from the env var named in key_env.
                 # OPENROUTER_API_KEY + OPENAI_API_KEY come from the hermes-secrets SealedSecret.
@@ -294,7 +295,7 @@ spec:
                     name: openrouter
                     base_url: https://openrouter.ai/api/v1
                     key_env: OPENROUTER_API_KEY
-                    default_model: google/gemini-2.5-flash
+                    default_model: deepseek/deepseek-v4-flash
                     # Cap per-request time so a slow upstream fails fast (OpenRouter
                     # retries another route) instead of hanging the whole turn.
                     request_timeout_seconds: 120
