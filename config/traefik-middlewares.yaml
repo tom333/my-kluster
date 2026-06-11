@@ -106,7 +106,7 @@ spec:
     trustForwardHeader: true
     authResponseHeaders: ["X-Auth-Request-User", "X-Auth-Request-Email", "Authorization"]
 ---
-# ns shell : terminal web ttyd (shell.tgu.ovh) — aucun shell servi sans login GitHub.
+# ns shell : terminal web Termix (shell.tgu.ovh) — aucun shell servi sans login GitHub.
 apiVersion: traefik.io/v1alpha1
 kind: Middleware
 metadata:
