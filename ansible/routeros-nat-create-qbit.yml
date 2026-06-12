@@ -1,0 +1,67 @@
+---
+# ONE-SHOT additive : crée les 2 règles dst-nat qBittorrent (TCP+UDP 6881) si absentes.
+#
+# Le playbook principal routeros-nat.yml est volontairement MODIFY-ONLY (ne crée jamais).
+# Ce one-shot comble le besoin de création initiale, de façon idempotente et guardée :
+#   - query EXISTANTE par comment d'abord ;
+#   - add UNIQUEMENT si la règle est absente (when: ... | length == 0) ;
+#   - relançable sans créer de doublon.
+# Après exécution, routeros-nat.yml gère ces règles en modify-only (elles y sont formalisées).
+#
+# Dry-run (montre ce qui serait créé, ne touche rien) :
+#   cd ansible/
+#   ansible-playbook -i inventory.yml routeros-nat-create-qbit.yml \
+#     --vault-password-file ~/.vault-password.txt --check
+#
+# Application réelle (après dry-run + accord) :
+#   ansible-playbook -i inventory.yml routeros-nat-create-qbit.yml \
+#     --vault-password-file ~/.vault-password.txt
+#
+# Prérequis : NodePort 6881 (TCP+UDP) exposé côté k8s (chart arr-stack) AVANT,
+# sinon le forward pointe dans le vide.
+- name: Create qBittorrent dst-nat rules (additive, idempotent, guarded)
+  hosts: routeros_hosts
+  gather_facts: false
+  vars_files:
+    - group_vars/vault.yml
+  vars:
+    routeros_wan_ip: "118.179.232.95"
+    routeros_k8s_node_ip: "192.168.88.250"
+    qbit_rules:
+      - comment: "qbittorrent 6881 tcp"
+        protocol: tcp
+      - comment: "qbittorrent 6881 udp"
+        protocol: udp
+  module_defaults:
+    group/community.routeros.api:
+      hostname: "{{ ansible_host }}"
+      username: "{{ routeros_api_username }}"
+      password: "{{ routeros_api_password }}"
+      tls: false
+  tasks:
+    - name: Check whether each qBit NAT rule already exists
+      community.routeros.api:
+        path: ip firewall nat
+        query: ".id WHERE comment == {{ item.comment }}"
+      register: qbit_rule_lookup
+      loop: "{{ qbit_rules }}"
+      loop_control:
+        label: "{{ item.comment }}"
+      check_mode: false
+
+    - name: Add missing qBit dst-nat rule (skips if already present)
+      community.routeros.api:
+        path: ip firewall nat
+        add: >-
+          chain=dstnat
+          action=dst-nat
+          protocol={{ item.item.protocol }}
+          dst-address={{ routeros_wan_ip }}
+          dst-port=6881
+          to-addresses={{ routeros_k8s_node_ip }}
+          to-ports=6881
+          comment={{ item.item.comment }}
+      loop: "{{ qbit_rule_lookup.results }}"
+      loop_control:
+        label: "{{ item.item.comment }}"
+      when: item.msg | default([]) | length == 0

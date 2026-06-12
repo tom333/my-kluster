@@ -48,6 +48,28 @@
           dst-address: "{{ routeros_wan_ip }}"
           dst-port: "80"
           to-addresses: "{{ routeros_k8s_node_ip }}"
+      # qBittorrent incoming peer port (TCP+UDP). Forwarded to the k8s node where
+      # the arr-stack chart exposes qBit via NodePort 6881 (TCP+UDP). Restores
+      # BitTorrent peer connectivity (qBit was non-connectable: no inbound port).
+      # Create once via routeros-nat-create-qbit.yml, then this formalizes them.
+      - comment: "qbittorrent 6881 tcp"
+        fields:
+          chain: dstnat
+          action: dst-nat
+          protocol: tcp
+          dst-address: "{{ routeros_wan_ip }}"
+          dst-port: "6881"
+          to-addresses: "{{ routeros_k8s_node_ip }}"
+          to-ports: "6881"
+      - comment: "qbittorrent 6881 udp"
+        fields:
+          chain: dstnat
+          action: dst-nat
+          protocol: udp
+          dst-address: "{{ routeros_wan_ip }}"
+          dst-port: "6881"
+          to-addresses: "{{ routeros_k8s_node_ip }}"
+          to-ports: "6881"
   module_defaults:
     group/community.routeros.api:
       hostname: "{{ ansible_host }}"
