@@ -1,0 +1,15 @@
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  creationTimestamp: null
+  name: openrouter-api-key
+  namespace: cv
+spec:
+  encryptedData:
+    api-key: AgC434zmdCzj6tyxoTjlZqMqVhTiONnqnFSHG1Om9Y6w6HKmbduwOtJzCiYv9VUOq19wAnGsiwiH8ibd1hxhPHA8Gy1NjDGrQ2phjRchEp1y6dYzZPBchZL9CTFCtnYF2h2DE+bWoty6nTQkIDb9I3q+qNyNOm/z0IuHda1Cn1WLC3rheOH/0XRkRnCn8hHdC46ktrk2AXCxutsNBUFt1t4+UXq9ESWW5pGHcVCHTws3g/68Ia+kYisjrb2nG8R9l3QkIS0g3M2RdH8/wY/A7k7UNj/Qz681NJYUExxKjaVrdQIrL9eNzGBpegsmDolyVWbLY1+48EvnHxHOHuwWhHb/5Ec11Jny7Pn/S/54nmG2P1gf9H1l+LNvGg1LvPyJ+2bNl3rvKohDTmfSI7rDCe1CFjIdzsB2V2orZ/NO85fO9JnqfLQnnbjNz58aG94a4lFEVG98xCjAqHnPyjkb3tA48UF+fGiHP+MpyhQLKIZSYUn8txEGK9xEZRzcDQb13WTVqYAGCDxFyWAJagU8ifLUb8PSmdWLeWFE2ikFb/nshMjbXnfV0Dlwi6MDFFt0bRb9KwkT28hytARdYsxyysdsHwkh8y5FmjeFsdPKpncFfV6Y9cl5qrUDVZVPaadHft6axo365saaQ9ymeeSKu2FG2VSecJXyMkfBdQSK7BkXo8Z46AohHdovJkocZ9WClDDsERmiwpkmaNZksDOwld5xRdeT34ify0w++EAoDe1yeptseMZ/vDA0yb5eKts6EgXHcfNDTO8Q7ZQckOBfGp/gri+ylEP2YVw=
+  template:
+    metadata:
+      creationTimestamp: null
+      name: openrouter-api-key
+      namespace: cv

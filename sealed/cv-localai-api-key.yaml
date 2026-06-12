@@ -1,0 +1,15 @@
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  creationTimestamp: null
+  name: localai-api-key
+  namespace: cv
+spec:
+  encryptedData:
+    api-key: AgBegXQqmucdjUvqNLVbdOydccstwW42yzc0Sc87lfm2dLWR2k7hiYLCcT/DHMjv1rZrDlG0L5+RSt5zjaZJbPOk3VUQvJAXdvS5msRHkvIojHiULmgwDG/HE5bUbQSRKOSHGRjd/juTqmWfkq+qV8IVeOvtXQeV+EneIhUrQDDgJDUbDr1e0HTEgBtIE1+QjkUfa8piEtRvNrwauSIeAcwHgndkKcH9kpdZwdAwFPW7kCzeerK8IVDWXak0SOKCbRQ6zKeKKUelPukUmDo0pdi2lxFX1p1X2fGOWg+Q6y6xjdg2xPgvVfw7XK2flwVw3qZqg0dNG3WVH1MCecGZn9lz2xA5REiuF7mZEoXnKjopeUk0ZW9ks3zG84hzWHOekTRmuFIoVSxyLVTWWO233CRoYlqrETtTdKYiJs+pk2EjaoMsel9f1P66C2eHWYJl85seNaBzaoI9vGynA/XXGa647X5CzyNzaxkG3mROxW2ySLC/OKx3W++LvaIelOf/ClZWgSupEYqgsRsaFUaShrqJ1qOOFNfMWlD5bf3+cdQzsoQWOsNGpaGr5n6Rh80+pVDjksZDzJ8KOIoeRmweghR2XzrhOeWY0GSrhSO0aRrsvrcW534Aipw5LTkL6qqFuuoYZQxpytuurFoLma9CLORzAJZxUcKwJfvL2+XzFJy7XwKnfQfCmmMpGZ/TLUJMXxY8ndDbZy5eiudW11UMmxWr2jNXBFSvmWaFmJPYGuvDrQ8A2oG4KOazFJ7Dmg==
+  template:
+    metadata:
+      creationTimestamp: null
+      name: localai-api-key
+      namespace: cv
