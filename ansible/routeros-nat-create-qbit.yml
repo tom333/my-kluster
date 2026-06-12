@@ -28,9 +28,9 @@
     routeros_wan_ip: "118.179.232.95"
     routeros_k8s_node_ip: "192.168.88.250"
     qbit_rules:
-      - comment: "qbittorrent 6881 tcp"
+      - comment: "qbittorrent-6881-tcp"
         protocol: tcp
-      - comment: "qbittorrent 6881 udp"
+      - comment: "qbittorrent-6881-udp"
         protocol: udp
   module_defaults:
     group/community.routeros.api:
@@ -39,29 +39,33 @@
       password: "{{ routeros_api_password }}"
       tls: false
   tasks:
-    - name: Check whether each qBit NAT rule already exists
+    # Fetch comments of all dstnat rules (chain==dstnat is space-free so the
+    # query mini-language parses it; values WITH spaces can't go in a WHERE,
+    # so we filter the desired comments in Jinja instead).
+    - name: Fetch existing dstnat rule comments
       community.routeros.api:
         path: ip firewall nat
-        query: ".id WHERE comment == {{ item.comment }}"
-      register: qbit_rule_lookup
-      loop: "{{ qbit_rules }}"
-      loop_control:
-        label: "{{ item.comment }}"
+        query: "comment"
+      register: nat_existing
       check_mode: false
 
-    - name: Add missing qBit dst-nat rule (skips if already present)
+    - name: Compute the set of existing dstnat comments
+      ansible.builtin.set_fact:
+        existing_dstnat_comments: "{{ nat_existing.msg | default([]) | selectattr('comment', 'defined') | map(attribute='comment') | list }}"
+
+    - name: Add missing qBit dst-nat rule (skips if comment already present)
       community.routeros.api:
         path: ip firewall nat
         add: >-
           chain=dstnat
           action=dst-nat
-          protocol={{ item.item.protocol }}
+          protocol={{ item.protocol }}
           dst-address={{ routeros_wan_ip }}
           dst-port=6881
           to-addresses={{ routeros_k8s_node_ip }}
           to-ports=6881
-          comment={{ item.item.comment }}
-      loop: "{{ qbit_rule_lookup.results }}"
+          comment={{ item.comment }}
+      loop: "{{ qbit_rules }}"
       loop_control:
-        label: "{{ item.item.comment }}"
-      when: item.msg | default([]) | length == 0
+        label: "{{ item.comment }}"
+      when: item.comment not in existing_dstnat_comments
