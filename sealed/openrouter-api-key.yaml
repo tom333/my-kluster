@@ -1,0 +1,15 @@
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  creationTimestamp: null
+  name: openrouter-api-key
+  namespace: localai
+spec:
+  encryptedData:
+    api-key: AgBYhRyp3GWJnERmYutvin+C7puFHBXD7fMXJ4UCHfNQpm5KU/yM9mQVsP3LFw5THhnXaqVOMFs+SQF8nYSiJhtstVL6YGTlygEVso2LwUfS+gZZb+GioVTzi7CFjV+NfSlMuH1i33RHQody3Py29V8n9idaqeeHLToWQVllz/06+ZHe6StH0xj7rG7sx94DrKi4tO6rDgR5x7me/DR3iF0hqGUfPXL1EQPDCq2LeKJqOh0nHjTZhz9uQzCHtZc/x1Ft02rqDpzTXIn9JT/2lphKi7vJHVySlrOlZg+8XLi4YySKTz3slOOH5dlKYNS7qsbVU/wBqR9+EuUI7NREHwPtndZZDOdrnyx6+OZf/stqlSCIElaX3O/GCjnKSSHK5Rc2B3GzZfMD8Yt+75MjloZU3XWBwZJMXJcUyEh7SzGp/UhLC+zomJpa/WOCcEY+krdkn/Yyx8sLSfm/h8DCBU9QJ8TPd27aO3ztFz4osAPg+qUr0FUIJYPj9L/6dYWFwnVf/6yhAmsfjZMvRS0ENLgVFAy3YF2SpW17aZWZsqRtO5anUbYdXOZS1p+28uz5uIwnTwI2NzzFa7dX02cA6VsNfHpAPnO1XyOseVqkx7LNqbNGAcCZXamUPNSWcFck6rbX+Wmzz6KFeaOxm/KPSsm+I4qmlslnlejtA+Qj8kKBi2N/opUKCP5IFc9+HoOzScVWiti4FI1nzdsPkwxtLEO/JRIKrN6ausBHTNvyXwiMEuLGEaFZaDGSUW5rTHa5iL/DQWlAabqJ2iBQYPwYNtbrysjT78SVvZ4=
+  template:
+    metadata:
+      creationTimestamp: null
+      name: openrouter-api-key
+      namespace: localai

@@ -91,6 +91,12 @@ secretEnv:
       secretKeyRef:
         name: huggingface-token
         key: token
+  # OpenRouter key consumed by the cloud-proxy backend (deepseek-v4-flash model).
+  - name: OPENROUTER_API_KEY
+    valueFrom:
+      secretKeyRef:
+        name: openrouter-api-key
+        key: api-key
 
 # Probes — generous startupProbe lets the pod download the model (1+ GB) and
 # warm up CUDA on first boot without being killed by liveness. Once startup
@@ -405,6 +411,33 @@ modelsConfigs:
     stopwords:
       - "<|end▁of▁sentence|>"
       - "<|EOT|>"
+
+  # DeepSeek-V4-Flash via OpenRouter — backend cloud-proxy (passthrough).
+  # PAS de modèle local : LocalAI forwarde le body client tel quel vers
+  # OpenRouter (wire format OpenAI chat-completions). Bypasse templating /
+  # MCP / loader local. Ne consomme NI GPU NI RAM du nœud — coexiste sans
+  # conflit avec le MoE qwen3.6 et les modèles llama-cpp.
+  #
+  # Usage : fallback gros modèle distant sous le même endpoint OpenAI que nos
+  # modèles GPU (base_url localai.tgu.ovh inchangé côté client / Hermes).
+  # Le backend cloud-proxy est compilé dans l'image LocalAI (pas une install
+  # gallery) — dispo depuis v4.3.6.
+  #
+  # Clé : OPENROUTER_API_KEY (secretEnv ci-dessus → SealedSecret
+  # openrouter-api-key). upstream_model = slug canonique OpenRouter.
+  # Filtre PII activé par défaut sur le flux SSE upstream.
+  deepseek-v4-flash: |
+    name: deepseek-v4-flash
+    backend: cloud-proxy
+    proxy:
+      mode: passthrough
+      provider: openai
+      upstream_url: https://openrouter.ai/api/v1/chat/completions
+      api_key_env: OPENROUTER_API_KEY
+      upstream_model: deepseek/deepseek-v4-flash
+      request_timeout_seconds: 120
+    pii:
+      enabled: true
 
   # Black Forest Labs Flux.2 Klein, smaller 4B variant.
   # Chosen over the 9B variants because:
