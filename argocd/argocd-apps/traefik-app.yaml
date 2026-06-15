@@ -156,11 +156,13 @@ spec:
             # (renouvellement des certs) continue de fonctionner sur http.
             allowACMEByPass: true
             # Redirect global http→https (301 permanent). Tout le reste passe en TLS.
-            redirections:
-              entryPoint:
-                to: websecure
-                scheme: https
-                permanent: true
+            # v40 : redirections déplacé sous ports.web.http (était ports.web.redirections).
+            http:
+              redirections:
+                entryPoint:
+                  to: websecure
+                  scheme: https
+                  permanent: true
           websecure:
             exposedPort: 443
             hostPort: 443
@@ -169,8 +171,10 @@ spec:
             # Attache GLOBALE du bouncer CrowdSec : bloque les IPs bannies sur TOUT
             # le trafic HTTPS, avant les middlewares par-router (oauth/whitelist/sablier).
             # Plugin validé sain (pull LAPI OK) avant cette attache (sinon 404 global).
-            middlewares:
-              - ingress-crowdsec@kubernetescrd
+            # v40 : middlewares déplacé sous ports.websecure.http (était ports.websecure.middlewares).
+            http:
+              middlewares:
+                - ingress-crowdsec@kubernetescrd
         # Service en ClusterIP (défaut chart = LoadBalancer) : sur single-node
         # hostPort, le trafic externe entre par le port 80/443 du node, PAS par le
         # Service. Un type LoadBalancer reste sans IP externe (pas de MetalLB) →
@@ -195,9 +199,9 @@ spec:
             # On publie une IP statique (node) via additionalArguments (cf. bas du fichier).
             publishedService:
               enabled: false
-          # Désactivé : sinon routers dupliqués non-protégés (bypass auth).
-          kubernetesIngressNginx:
-            enabled: false
+          # v40 : provider kubernetesIngressNginx RETIRÉ du chart (n'existe plus dans
+          # le schéma). Était déjà enabled:false → aucun router nginx-compat généré,
+          # rien à migrer. (La clé déclenchait une ComparisonError schema sur le bump v40.)
   syncPolicy:
     syncOptions:
       - CreateNamespace=false
