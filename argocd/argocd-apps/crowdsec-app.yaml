@@ -42,6 +42,19 @@ spec:
               memory: 128Mi
             limits:
               memory: 256Mi
+        # csLapiSecret + registrationToken PINNÉS via SealedSecret externe (clé
+        # top-level `secrets.externalSecret`, cf. helper lapi.*SecretName).
+        # Sinon le chart génère ces clés en lookup→randAlphaNum ; le repo-server
+        # ArgoCD rend `helm template` SANS accès cluster → lookup vide → random
+        # RÉGÉNÉRÉ à chaque rendu de manifest (hard-refresh / restart repo-server /
+        # expiry cache) → rotation du registrationToken+csLapiSecret → casse l'auth
+        # des agents (register "user already exist" en boucle, CrashLoop). Pin =
+        # déterministe. Valeurs figées dans sealed/crowdsec-lapi-secrets-ext.yaml.
+        secrets:
+          externalSecret:
+            name: crowdsec-lapi-secrets-ext
+            csLapiSecretKey: csLapiSecret
+            registrationTokenKey: registrationToken
         lapi:
           # Enregistre le bouncer "traefik" avec la clé partagée (SealedSecret)
           env:
