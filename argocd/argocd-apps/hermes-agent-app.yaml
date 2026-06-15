@@ -314,6 +314,16 @@ spec:
                     base_url: http://localai.localai.svc.cluster.local:8080/v1
                     key_env: OPENAI_API_KEY
                     default_model: qwen3-8b
+                mcp_servers:
+                  # arrconf-mcp: in-cluster ClusterIP MCP (read-only, 10 tools) for the media stack.
+                  # Bearer token = MCP_AUTH_TOKEN (also in arrconf-env sealed secret on the server side).
+                  arrconf:
+                    url: "http://arrconf-mcp.selfhost.svc.cluster.local:8080/mcp"
+                    headers:
+                      Authorization: "Bearer b05d23972ee9db5c20c75dafa328971e5fdcf9f846dd8c92c760e58b5f18f76c"
+                    timeout: 60
+                    connect_timeout: 10
+                    enabled: true
                 agent:
                   max_turns: 90
                   gateway_timeout: 1800
