@@ -34,6 +34,12 @@ spec:
         # Plugin Sablier (scale-to-zero) : chargé au boot depuis github (egress requis).
         # Le roll Traefik déclenché est propre grâce à updateStrategy (cf. plus bas).
         experimental:
+          # Fail-closed : si un plugin n'arrive pas à charger (ex. timeout download
+          # depuis plugins.traefik.io pendant un restart), Traefik REFUSE de démarrer
+          # → pod CrashLoop + retry auto, au lieu de booter "Plugins are disabled"
+          # (middleware globale ingress-crowdsec absente → 404 sur TOUTES les routes
+          # + bouncer CrowdSec désactivé = bypass sécu). Incident 2026-06-15.
+          abortOnPluginFailure: true
           plugins:
             sablier:
               moduleName: github.com/sablierapp/sablier-traefik-plugin
@@ -50,6 +56,30 @@ spec:
             type: secret
         deployment:
           kind: DaemonSet
+          # Cache plugins sur PVC : /plugins-storage en emptyDir = re-download des
+          # plugins (bouncer/sablier) depuis plugins.traefik.io à CHAQUE recréation
+          # de pod → un timeout réseau pendant ce download a tué tout l'ingress
+          # (incident 2026-06-15). Sur PVC, après le 1er download les restarts sont
+          # offline (plus de SPOF réseau). Volume nommé "plugins" → le chart skippe
+          # son emptyDir (helper traefik.hasPluginsVolume) et utilise ce PVC.
+          additionalVolumes:
+            - name: plugins
+              persistentVolumeClaim:
+                claimName: traefik-plugins
+          # microk8s-hostpath ignore fsGroup → PVC neuf reste root:root → Traefik
+          # (uid 65532 nonroot, readOnlyRootFilesystem) ne peut pas écrire dans
+          # /plugins-storage. Init root chown le mount (pattern volume-permissions,
+          # traefik-helm-chart#396).
+          initContainers:
+            - name: volume-permissions
+              image: busybox:1.37.0
+              command: ["sh", "-c", "chown -R 65532:65532 /plugins-storage"]
+              securityContext:
+                runAsUser: 0
+                runAsNonRoot: false
+              volumeMounts:
+                - name: plugins
+                  mountPath: /plugins-storage
         # DaemonSet en hostPort 80/443 : le défaut maxSurge=1/maxUnavailable=0 deadlock
         # au rolling-update (nouveau pod Pending car port pris, ancien ne meurt pas).
         # Recreate (delete old → new) → upgrades Traefik (ex. futur plugin Sablier)
@@ -59,7 +89,24 @@ spec:
           rollingUpdate:
             maxUnavailable: 1
             maxSurge: 0
+        # Monte le PVC plugins (déclaré dans deployment.additionalVolumes) sur le
+        # chemin de stockage des plugins. Clé top-level (PAS sous deployment).
+        additionalVolumeMounts:
+          - name: plugins
+            mountPath: /plugins-storage
         extraObjects:
+          # PVC du cache plugins Traefik (cf. deployment.additionalVolumes).
+          - apiVersion: v1
+            kind: PersistentVolumeClaim
+            metadata:
+              name: traefik-plugins
+              namespace: ingress
+            spec:
+              accessModes: [ReadWriteOnce]
+              storageClassName: microk8s-hostpath
+              resources:
+                requests:
+                  storage: 256Mi
           - apiVersion: networking.k8s.io/v1
             kind: IngressClass
             metadata:
