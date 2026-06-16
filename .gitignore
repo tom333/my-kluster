@@ -8,3 +8,9 @@ ansible/*.retry
 
 # Ansible — exports RouterOS (peut contenir des données sensibles, hors Git)
 ansible/routeros/exports/
+
+# Ansible — configs clients WireGuard (CONTIENNENT la clé privée du client)
+ansible/routeros/wg-clients/
+
+# Backups locaux (ex. vault.yml.bak lors d'une réencryption) — jamais commiter
+**/*.bak

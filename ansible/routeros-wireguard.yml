@@ -1,0 +1,148 @@
+---
+# WireGuard server sur le MikroTik (accès out-of-band, indépendant de k8s/ingress).
+# Chemin recovery : client WG -> tunnel -> LAN -> `ssh moi@192.168.88.250` -> microk8s.
+#
+# community.routeros via API (cf. routeros.yml pour le pourquoi : bug amont #229).
+#
+# SÛRETÉ :
+#   - interface / ip / peers : api_modify (check_mode + diff OK),
+#     handle_absent_entries=ignore + handle_entries_content=ignore
+#     -> gère UNIQUEMENT les entrées déclarées (clé primaire), ne supprime ni ne
+#        réinitialise jamais le reste de la conf.
+#   - firewall : query READ-ONLY (check_mode:false -> tourne même en --check) pour
+#     localiser les .id, puis `add` CONDITIONNEL (when: règle absente) avec
+#     place-before=<.id du drop> -> placement correct + idempotent. Le module `api`
+#     ne supporte pas check_mode -> les `add` sont SKIPPÉS en --check (donc sûrs).
+#   - clés privées (routeur + clients) dans le vault ; seules les pubkeys sont ici.
+#
+# Dry-run (NE MODIFIE RIEN) :
+#   cd ansible/
+#   ansible-playbook -i inventory.yml routeros-wireguard.yml \
+#     --vault-password-file ~/.vault-password.txt --check --diff
+#
+# Application réelle (UNIQUEMENT après dry-run validé + accord explicite) :
+#   ... routeros-wireguard.yml --vault-password-file ~/.vault-password.txt
+#
+# Les .conf clients sont rendus dans routeros/wg-clients/ (gitignored) à chaque run.
+- name: WireGuard server on MikroTik (out-of-band access)
+  hosts: routeros_hosts
+  gather_facts: false
+  vars_files:
+    - group_vars/vault.yml
+  vars:
+    wg_interface: wg-vpn
+    wg_listen_port: 13231
+    # Subnet WG — évite EXPRÈS 192.168.88.0/24 (LAN) et 10.1.0.0/16 (pods k8s cni0).
+    wg_address: "10.20.20.1/24"
+    wg_network: "10.20.20.0/24"
+    wg_lan_subnet: "192.168.88.0/24"
+    # Endpoint = sous le wildcard *.tgu.ovh (résout vers l'IP publique WAN, absorbe
+    # le PPPoE dynamique).
+    wg_endpoint: "vpn.tgu.ovh"
+    # Split-tunnel côté client : seuls le LAN + le subnet WG passent dans le tunnel.
+    wg_client_allowed_ips: "{{ wg_lan_subnet }}, {{ wg_network }}"
+    # Clé PUBLIQUE du routeur (dérivée de vault_wg_router_private_key). Publique = OK.
+    wg_router_public_key: "0I68tHPeCftqsEAQnkhRPr7vqIg9O7Rxu7Z21LBsvAk="  # gitleaks:allow (clé PUBLIQUE WireGuard, pas un secret)
+    # Clients. pubkey ici (publique) ; privée dans vault_wg_client_<name>_private_key.
+    wg_clients:
+      - name: laptop
+        address: "10.20.20.2/32"
+        public_key: "Dmw2NVr7IB6Y/RHYYYjlJ0D4NLkoJizQ5Pc09HWCQ04="  # gitleaks:allow (clé PUBLIQUE WireGuard, pas un secret)
+    # Règles firewall WG (comments SANS espaces : le parser `add` split sur espaces).
+    wg_input_comment: "allow-WireGuard"
+    wg_forward_comment: "wg-vpn-to-LAN"
+    # Ancres (comments par défaut Mikrotik) avant lesquelles insérer.
+    wg_fw_input_drop_comment: "drop all not coming from LAN"
+    wg_fw_forward_drop_comment: "drop all from WAN not DSTNATed"
+  module_defaults:
+    group/community.routeros.api:
+      hostname: "{{ ansible_host }}"
+      username: "{{ routeros_api_username }}"
+      password: "{{ routeros_api_password }}"
+      tls: false
+  tasks:
+    # ---- Interface WireGuard (clé privée pinnée depuis le vault) ----
+    - name: Ensure WireGuard interface
+      community.routeros.api_modify:
+        path: interface wireguard
+        handle_absent_entries: ignore
+        handle_entries_content: ignore
+        data:
+          - name: "{{ wg_interface }}"
+            listen-port: "{{ wg_listen_port }}"
+            private-key: "{{ vault_wg_router_private_key }}"
+
+    - name: Ensure IP address on WireGuard interface
+      community.routeros.api_modify:
+        path: ip address
+        handle_absent_entries: ignore
+        handle_entries_content: ignore
+        data:
+          - address: "{{ wg_address }}"
+            interface: "{{ wg_interface }}"
+
+    # ---- Peers (un par client) ----
+    - name: Build peer entries
+      ansible.builtin.set_fact:
+        wg_peer_data: "{{ wg_peer_data | default([]) + [{'interface': wg_interface, 'public-key': item.public_key, 'allowed-address': item.address}] }}"
+      loop: "{{ wg_clients }}"
+      loop_control:
+        label: "{{ item.name }}"
+
+    - name: Ensure WireGuard peers
+      community.routeros.api_modify:
+        path: interface wireguard peers
+        handle_absent_entries: ignore
+        handle_entries_content: ignore
+        data: "{{ wg_peer_data }}"
+
+    # ---- Firewall : lecture seule (tourne même en --check) ----
+    - name: Read firewall filter rules (read-only)
+      community.routeros.api:
+        path: ip firewall filter
+      register: fw_rules
+      changed_when: false
+      check_mode: false
+
+    - name: Locate anchors + existing WG rules
+      ansible.builtin.set_fact:
+        wg_input_present: "{{ fw_rules.msg | selectattr('comment', 'defined') | selectattr('comment', 'equalto', wg_input_comment) | list | length > 0 }}"
+        wg_forward_present: "{{ fw_rules.msg | selectattr('comment', 'defined') | selectattr('comment', 'equalto', wg_forward_comment) | list | length > 0 }}"
+        wg_input_drop_id: "{{ (fw_rules.msg | selectattr('comment', 'defined') | selectattr('comment', 'equalto', wg_fw_input_drop_comment) | list | first | default({}))['.id'] | default('') }}"
+        wg_forward_drop_id: "{{ (fw_rules.msg | selectattr('comment', 'defined') | selectattr('comment', 'equalto', wg_fw_forward_drop_comment) | list | first | default({}))['.id'] | default('') }}"
+
+    - name: Sanity — input drop anchor found
+      ansible.builtin.assert:
+        that: wg_input_drop_id | length > 0
+        fail_msg: "Règle '{{ wg_fw_input_drop_comment }}' introuvable — placement WG input impossible, abandon (firewall non standard ?)."
+
+    # ---- Firewall : ajout conditionnel placé AVANT le drop (skippé en --check) ----
+    - name: Add input accept for WireGuard (before LAN-drop)
+      community.routeros.api:
+        path: ip firewall filter
+        add: "chain=input action=accept protocol=udp dst-port={{ wg_listen_port }} comment={{ wg_input_comment }} place-before={{ wg_input_drop_id }}"
+      when: not wg_input_present
+
+    - name: Add forward accept wg-vpn -> LAN (before WAN-drop)
+      community.routeros.api:
+        path: ip firewall filter
+        add: "chain=forward action=accept in-interface={{ wg_interface }} comment={{ wg_forward_comment }}{{ (' place-before=' + wg_forward_drop_id) if (wg_forward_drop_id | length > 0) else '' }}"
+      when: not wg_forward_present
+
+    # ---- Rendu des configs clients (local, gitignored) ----
+    - name: Ensure client output dir
+      delegate_to: localhost
+      ansible.builtin.file:
+        path: "{{ playbook_dir }}/routeros/wg-clients"
+        state: directory
+        mode: "0700"
+
+    - name: Render client configs
+      delegate_to: localhost
+      ansible.builtin.template:
+        src: templates/wg-client.conf.j2
+        dest: "{{ playbook_dir }}/routeros/wg-clients/{{ item.name }}.conf"
+        mode: "0600"
+      loop: "{{ wg_clients }}"
+      loop_control:
+        label: "{{ item.name }}"

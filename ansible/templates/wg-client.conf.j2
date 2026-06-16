@@ -1,0 +1,13 @@
+# WireGuard client — {{ item.name }}
+# Généré par routeros-wireguard.yml. NE PAS commiter (contient la clé privée).
+# Importer tel quel dans l'app WireGuard (ou /etc/wireguard/{{ item.name }}.conf).
+[Interface]
+PrivateKey = {{ lookup('vars', 'vault_wg_client_' + item.name + '_private_key') }}
+Address = {{ item.address }}
+
+[Peer]
+PublicKey = {{ wg_router_public_key }}
+Endpoint = {{ wg_endpoint }}:{{ wg_listen_port }}
+# Split-tunnel : seuls le LAN + le subnet WG passent dans le tunnel.
+AllowedIPs = {{ wg_client_allowed_ips }}
+PersistentKeepalive = 25
