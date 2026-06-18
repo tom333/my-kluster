@@ -412,6 +412,62 @@ modelsConfigs:
       - "<|end▁of▁sentence|>"
       - "<|EOT|>"
 
+  # gemma-4-12B-it QAT — DENSE 12B multimodal, full-GPU (PAS d'offload RAM,
+  # contraste avec le MoE qwen3.6). QAT (quant-aware training Google) → qualité
+  # ≈ bf16 à la taille d'un Q4. Tient sur la 3060 : 6.72GB (Q4_K_XL) + 0.25GB
+  # draft MTP + 0.18GB mmproj + KV ≈ 8-9GB.
+  #
+  # MTP (multi-token prediction / speculative decoding) : drafter dans un fichier
+  # SÉPARÉ (≠ schéma Qwen embarqué). draft_model pointe le GGUF MTP Q4_0
+  # (near-lossless, recommandé par le README unsloth). Requiert un build llama.cpp
+  # post-2026-06-07 (PR ggml-org/llama.cpp#23398) — notre backend cuda12-llama-cpp
+  # `latest` installé le 18-06 le couvre ; le core v4.3.6 expose déjà draft_model.
+  #
+  # Vision native via mmproj (passer screenshots browser en image).
+  # ⚠️ tool-calling gemma = "day-1" (moins mûr que Qwen pour les crons Hermes) :
+  # plutôt modèle général + vision que workhorse agent.
+  # Format chat : gemma (<start_of_turn> / <end_of_turn>).
+  gemma-4-12b-it-qat: |
+    name: gemma-4-12b-it-qat
+    backend: llama-cpp
+    known_usecases:
+      - chat
+    context_size: 32768          # gemma-4 = 128k natif ; capé pour la VRAM
+    gpu_layers: 99
+    f16: true
+    flash_attention: true
+    mmap: false
+    cache_type_k: q8_0
+    cache_type_v: q8_0
+    mmproj: mmproj-BF16.gguf                    # projecteur vision
+    draft_model: gemma-4-12B-it-Q4_0-MTP.gguf   # drafter MTP séparé (near-lossless, 0.25GB)
+    parameters:
+      model: gemma-4-12B-it-qat-UD-Q4_K_XL.gguf
+      temperature: 1.0           # défauts gemma
+      top_p: 0.95
+      top_k: 64
+    download_files:
+      - filename: gemma-4-12B-it-qat-UD-Q4_K_XL.gguf
+        uri: https://huggingface.co/unsloth/gemma-4-12B-it-qat-GGUF/resolve/main/gemma-4-12B-it-qat-UD-Q4_K_XL.gguf
+      - filename: gemma-4-12B-it-Q4_0-MTP.gguf
+        uri: https://huggingface.co/unsloth/gemma-4-12B-it-qat-GGUF/resolve/main/MTP/gemma-4-12B-it-Q4_0-MTP.gguf
+      - filename: mmproj-BF16.gguf
+        uri: https://huggingface.co/unsloth/gemma-4-12B-it-qat-GGUF/resolve/main/mmproj-BF16.gguf
+    options:
+      - use_jinja:true
+      # MTP / speculative decoding (drafter = draft_model ci-dessus)
+      - spec_type:draft-mtp
+      - draft_max:4
+    template:
+      use_tokenizer_template: true
+    function:
+      automatic_tool_parsing_fallback: true
+      grammar:
+        disable: true
+    stopwords:
+      - "<end_of_turn>"
+      - "<eos>"
+
   # DeepSeek-V4-Flash via OpenRouter — backend cloud-proxy (passthrough).
   # PAS de modèle local : LocalAI forwarde le body client tel quel vers
   # OpenRouter (wire format OpenAI chat-completions). Bypasse templating /
