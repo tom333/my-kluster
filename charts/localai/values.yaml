@@ -63,7 +63,7 @@ env:
   # Default context window for models that don't override it in their YAML.
   # The 7B and Coder configs below specify their own context_size.
   CONTEXT_SIZE: "16384"
-  DEBUG: "true"   # TEMPORAIRE : diag MTP gemma (acceptation/offload/device). À revert.
+  DEBUG: "false"
   MODELS_PATH: "/models"
   LOCALAI_WATCHDOG_IDLE: "true"
   LOCALAI_WATCHDOG_IDLE_TIMEOUT: "5m"
@@ -456,10 +456,13 @@ modelsConfigs:
     options:
       - use_jinja:true
       # MTP / speculative decoding (drafter = draft_model ci-dessus)
-      # MTP drafte n_max tokens en 1 forward → monter n_max ~gratuit côté draft.
-      # Sweep en cours : n_max=2 → 34.6 tok/s (accept 0.525). Test n_max=4.
+      # Sweep mesuré sur RTX 3060 (acceptation MTP ~0.525) :
+      #   n_max=2 → 46 tok/s interne (34.6 wall)  ← optimal
+      #   n_max=4 → 42.87 tok/s interne (31.4 wall) — pire (têtes MTP gemma
+      #             prédisent ~2 tokens fiables ; au-delà = drafts rejetés).
+      # MTP donne ~1.5x vs baseline ; le >2x annoncé suppose un GPU datacenter.
       - spec_type:draft-mtp
-      - draft_max:4
+      - draft_max:2
     template:
       use_tokenizer_template: true
     function:
