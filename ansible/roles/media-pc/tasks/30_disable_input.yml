@@ -1,0 +1,26 @@
+---
+# Disable broken/unwanted X input devices at the X server level via an
+# xorg.conf.d InputClass drop-in. Replaces the old per-user autostart approach,
+# which never ran under Enlightenment (no XDG ~/.config/autostart support).
+
+- name: Install xorg InputClass to disable broken input devices
+  ansible.builtin.template:
+    src: disable-broken-input.conf.j2
+    dest: /etc/X11/xorg.conf.d/99-disable-broken-input.conf
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Find obsolete per-user xinput autostart entries (superseded by InputClass)
+  ansible.builtin.find:
+    paths: "/home/{{ ansible_user }}/.config/autostart"
+    patterns: "disable-input-*.desktop"
+  register: media_old_autostart
+
+- name: Remove obsolete xinput autostart entries
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: absent
+  loop: "{{ media_old_autostart.files }}"
+  loop_control:
+    label: "{{ item.path }}"

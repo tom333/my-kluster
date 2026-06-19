@@ -1,0 +1,13 @@
+# Managed by Ansible (media-pc role). Disable broken/unwanted X input devices
+# at the X server level — works regardless of the desktop environment.
+# (Enlightenment, the DE on gaming-pc, does not honour ~/.config/autostart, so
+# the previous xinput-in-autostart approach never ran.) One InputClass per
+# configured device; "Ignore" makes the X server skip the device entirely,
+# including at the LightDM greeter, and survives unplug/replug.
+{% for dev in media_xinput_disable_devices %}
+Section "InputClass"
+    Identifier "Disable broken input - {{ dev }}"
+    MatchProduct "{{ dev }}"
+    Option "Ignore" "on"
+EndSection
+{% endfor %}

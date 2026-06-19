@@ -12,6 +12,6 @@
   tags: [media, gaming]
   when: media_apply_gaming_optims | bool
 
-- ansible.builtin.import_tasks: 30_xinput_autostart.yml
+- ansible.builtin.import_tasks: 30_disable_input.yml
   tags: [media, xinput]
   when: media_xinput_disable_devices | length > 0
