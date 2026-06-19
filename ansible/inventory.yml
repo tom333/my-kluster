@@ -90,7 +90,9 @@ all:
     media_pcs:
       hosts:
         gaming-pc:
-          ansible_host: 192.168.88.199
+          # Filaire (enp2s0f2). WiFi désactivé (coexistence 2.4GHz buggue le BT)
+          # → IP DHCP non garantie ; mDNS jeux.local stable tant qu'avahi répond.
+          ansible_host: jeux.local
           ansible_user: moi
           beszel_arch: amd64
           # Per-host: touchpad cassé Raydium à désactiver au login graphique
