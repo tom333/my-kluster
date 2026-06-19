@@ -99,6 +99,13 @@ all:
         # work-laptop : réutilise les vars définies dans dev_workstations
         work-laptop: {}
 
+    # Gaming PCs — game launchers (Lutris + Wine). Séparé de media_pcs : un media
+    # PC n'est pas forcément une machine de jeu (work-laptop n'y est PAS).
+    # gaming-pc est aussi dans media_pcs (def canonique) → ref nue ici.
+    gaming_pcs:
+      hosts:
+        gaming-pc: {}
+
   hosts:
     # Machines monitorées uniquement — reçoivent seulement beszel-agent.
     # Décommenter et adapter quand une machine est ajoutée.

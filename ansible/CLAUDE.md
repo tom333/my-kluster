@@ -7,8 +7,8 @@ Guide concis pour agents IA travaillant dans ce dossier. Pour la doc humaine, vo
 ```
 ansible/
 ├── ansible.cfg                  # config Ansible globale (host_key_checking off, etc.)
-├── inventory.yml                # 5 groupes : k8s_nodes / dev_workstations / media_pcs / libreelec_hosts / pihole_hosts
-├── playbook.yml                 # 5 plays (1 par groupe + 1 catch-all pour Beszel-only)
+├── inventory.yml                # groupes : k8s_nodes / dev_workstations / media_pcs / gaming_pcs / libreelec_hosts / pihole_hosts / voice_satellites / routeros_hosts
+├── playbook.yml                 # 8 plays (1 par groupe + 1 catch-all pour Beszel-only)
 ├── group_vars/
 │   ├── all.yml                  # vars non-sensibles globales (refs vault, age pubkey)
 │   └── vault.yml                # Ansible Vault — token Telegram, pubkey SSH Beszel hub
@@ -20,6 +20,7 @@ ansible/
     ├── k8s-node-bootstrap/      # provisioning k8s host (NVIDIA, NFS, MicroK8s, addons)
     ├── dev-workstation/         # pipx + uv/ruff + VS Code + wezterm + lazygit + chezmoi + nerd-fonts + git config
     ├── media-pc/                # Jellyfin client + gamemode + sysctl + xinput autostart
+    ├── gaming/                  # Lutris (apt natif) + libs GL i386 — game launchers
     ├── kodi-backup/             # backup hebdo Kodi userdata vers NAS
     └── pihole-maintenance/      # timer hebdo `pihole -up` + Telegram on failure
 ```
@@ -27,7 +28,7 @@ ansible/
 ## Conventions
 
 ### Variables
-- **Préfixes par rôle** : `beszel_*`, `dev_*`, `media_*`, `cli_*`, `kodi_backup_*`, `pihole_maint_*`.
+- **Préfixes par rôle** : `beszel_*`, `dev_*`, `media_*`, `gaming_*`, `cli_*`, `kodi_backup_*`, `pihole_maint_*`.
 - **Versions hardcodées en defaults** : suffixe `_version`, format `"X.Y.Z"` sans `v` (cohérent avec les tags Docker/GitHub).
 - **Refs vault** : depuis `group_vars/all.yml`, exposer via `{{ vault_xxx }}` (jamais directement).
 - **NE PAS dupliquer** des vars entre `group_vars/all.yml` et `defaults/main.yml` d'un rôle — l'override silencieux empêche les bumps du rôle de se propager (incident lors du bump Beszel 0.10→0.18).
@@ -36,6 +37,7 @@ ansible/
 - `bootstrap` : k8s-node-bootstrap + common-cli-tools (sur k8s_nodes)
 - `dev` : dev-workstation + common-cli-tools (sur dev_workstations)
 - `media` : media-pc + common-cli-tools (sur media_pcs)
+- `games` : gaming (Lutris + Wine) (sur gaming_pcs) — distinct du sous-tag `gaming` (= optims gamemode/sysctl du rôle media-pc)
 - `cli-tools` : common-cli-tools partout
 - Sous-tags rôle-spécifiques : `filesystem`, `microk8s`, `nvidia`, `gpu_operator`, `pipx`, `deb-get-extras`, `chezmoi`, `lazygit`, `git`, `fonts`, `jellyfin`, `gaming`, `xinput`, etc.
 

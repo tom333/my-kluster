@@ -1,0 +1,53 @@
+---
+# gaming — game launchers for gaming PCs.
+#
+# Lutris is installed natively from the upstream GitHub release .deb (NOT Flatpak,
+# NOT apt universe): the host uses a legacy NVIDIA driver (470, Kepler GeForce
+# 920M) and the native install talks to the real system driver directly — no
+# Flatpak GL-extension version to match, no sandbox filesystem grants.
+# Ubuntu 22.04 universe only carries 0.5.9.1, and strycore dropped the Ubuntu
+# OBS/PPA builds (only Debian/openSUSE remain), so the arch-independent
+# `lutris_<ver>_all.deb` is the way to a current version. Its deps are all in
+# the jammy archive, so `apt: deb=<url>` resolves them automatically.
+#
+# Lutris downloads its own Wine-GE runner on first launch via the GUI. The first
+# target game (Tomb Raider I-III Remastered) is an OpenGL 3.2 title, so plain
+# Wine with OpenGL passthrough is enough — no DXVK/vkd3d needed.
+
+- name: Preflight — supported distro on x86_64
+  ansible.builtin.assert:
+    that:
+      - ansible_distribution in gaming_allowed_distros
+      - ansible_architecture in ["x86_64", "amd64"]
+    fail_msg: "gaming role requires {{ gaming_allowed_distros | join('/') }} on x86_64 (got {{ ansible_distribution }} {{ ansible_architecture }})"
+
+- name: Preflight — i386 multiarch must be enabled (needed for 32-bit Wine libs)
+  ansible.builtin.command: dpkg --print-foreign-architectures
+  register: gaming_foreign_arch
+  changed_when: false
+  check_mode: false
+
+- name: Preflight — assert i386 multiarch present
+  ansible.builtin.assert:
+    that:
+      - "'i386' in gaming_foreign_arch.stdout_lines"
+    fail_msg: "i386 multiarch missing. Run: sudo dpkg --add-architecture i386 && sudo apt update"
+  when: gaming_nvidia_gl_i386_package | length > 0
+
+- name: Update apt cache (tolerant — host may carry a broken repo)
+  ansible.builtin.apt:
+    update_cache: true
+  failed_when: false
+  changed_when: false
+
+- name: Install Lutris from upstream GitHub release .deb (deps resolved by apt)
+  ansible.builtin.apt:
+    deb: "https://github.com/lutris/lutris/releases/download/v{{ gaming_lutris_version }}/lutris_{{ gaming_lutris_version }}_all.deb"
+  when: gaming_install_lutris | bool
+
+- name: Install 32-bit NVIDIA GL libs (for 32-bit Wine installers/games)
+  ansible.builtin.apt:
+    name: "{{ gaming_nvidia_gl_i386_package }}"
+    state: present
+    update_cache: false
+  when: gaming_nvidia_gl_i386_package | length > 0
