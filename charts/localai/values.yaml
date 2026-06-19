@@ -63,7 +63,7 @@ env:
   # Default context window for models that don't override it in their YAML.
   # The 7B and Coder configs below specify their own context_size.
   CONTEXT_SIZE: "16384"
-  DEBUG: "false"
+  DEBUG: "true"   # TEMPORAIRE : diag MTP gemma (acceptation/offload/device). À revert.
   MODELS_PATH: "/models"
   LOCALAI_WATCHDOG_IDLE: "true"
   LOCALAI_WATCHDOG_IDLE_TIMEOUT: "5m"
@@ -440,7 +440,7 @@ modelsConfigs:
     cache_type_k: q8_0
     cache_type_v: q8_0
     mmproj: mmproj-BF16.gguf                    # projecteur vision
-    draft_model: gemma-4-12B-it-Q4_0-MTP.gguf   # drafter MTP séparé (near-lossless, 0.25GB)
+    draft_model: mtp-gemma-4-12B-it.gguf        # drafter MTP canonique (docs Unsloth)
     parameters:
       model: gemma-4-12B-it-qat-UD-Q4_K_XL.gguf
       temperature: 1.0           # défauts gemma
@@ -449,15 +449,17 @@ modelsConfigs:
     download_files:
       - filename: gemma-4-12B-it-qat-UD-Q4_K_XL.gguf
         uri: https://huggingface.co/unsloth/gemma-4-12B-it-qat-GGUF/resolve/main/gemma-4-12B-it-qat-UD-Q4_K_XL.gguf
-      - filename: gemma-4-12B-it-Q4_0-MTP.gguf
-        uri: https://huggingface.co/unsloth/gemma-4-12B-it-qat-GGUF/resolve/main/MTP/gemma-4-12B-it-Q4_0-MTP.gguf
+      - filename: mtp-gemma-4-12B-it.gguf
+        uri: https://huggingface.co/unsloth/gemma-4-12B-it-qat-GGUF/resolve/main/mtp-gemma-4-12B-it.gguf
       - filename: mmproj-BF16.gguf
         uri: https://huggingface.co/unsloth/gemma-4-12B-it-qat-GGUF/resolve/main/mmproj-BF16.gguf
     options:
       - use_jinja:true
       # MTP / speculative decoding (drafter = draft_model ci-dessus)
+      # draft_max:2 = point de départ recommandé Unsloth (hardware-dependent,
+      # sweep 1-6 selon le taux d'acceptation mesuré).
       - spec_type:draft-mtp
-      - draft_max:4
+      - draft_max:2
     template:
       use_tokenizer_template: true
     function:
