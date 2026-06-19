@@ -456,10 +456,10 @@ modelsConfigs:
     options:
       - use_jinja:true
       # MTP / speculative decoding (drafter = draft_model ci-dessus)
-      # draft_max:2 = point de départ recommandé Unsloth (hardware-dependent,
-      # sweep 1-6 selon le taux d'acceptation mesuré).
+      # MTP drafte n_max tokens en 1 forward → monter n_max ~gratuit côté draft.
+      # Sweep en cours : n_max=2 → 34.6 tok/s (accept 0.525). Test n_max=4.
       - spec_type:draft-mtp
-      - draft_max:2
+      - draft_max:4
     template:
       use_tokenizer_template: true
     function:
