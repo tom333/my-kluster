@@ -114,7 +114,10 @@ spec:
               http:
                 port: 3000
                 targetPort: 3000
-          piped-postgres:
+          # identifier 'postgres' (not 'piped-postgres') → service name resolves
+          # to '<release>-<identifier>' = piped-postgres, matching the host used
+          # in config.properties (hibernate url) and the wait-db initContainer.
+          postgres:
             controller: piped-postgres
             ports:
               postgres:
