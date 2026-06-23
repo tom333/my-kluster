@@ -1,34 +1,49 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  # ALL-IN-ONE Hermes stack on the EKKOLearnAI/hermes-web-ui image.
+  # OFFICIAL Hermes stack on nousresearch/hermes-agent + its built-in web dashboard.
   #
-  # 2026-06: migrated from the previous two-container sidecar (nousresearch/
-  # hermes-agent + outsourc-e/hermes-workspace) to a SINGLE container running
-  # ekkoye8888/hermes-web-ui. That image is `FROM nousresearch/hermes-agent`
-  # plus Node + the web admin UI, so ONE container now provides:
-  #   agent runtime + gateway + Telegram bot + cron + web admin UI (port 6060).
-  # Chat is driven in-process via the image's Python agent-bridge; the UI also
-  # manages the gateway lifecycle itself (no s6 supervision in this image —
-  # the entrypoint is `node dist/server/index.js`, which spawns
-  # `hermes gateway run --replace`).
+  # 2026-06: migrated OFF the third-party ekkoye8888/hermes-web-ui (EKKOLearnAI)
+  # image onto the upstream NousResearch image. Rationale:
+  #   - the agent now ships its OWN full admin web dashboard (port 9119, the
+  #     "Surface Release" v2026.6.5+): config form (150+ fields), MCP catalog
+  #     w/ toggles, cron-job manager, channels/pairing, credentials, webhooks,
+  #     memory, sessions, analytics, gateway controls. This is exactly the admin
+  #     surface we used EKKO for — but first-party, so the bus-factor-1 risk of
+  #     the third-party UI disappears.
+  #   - chat stays on TELEGRAM (no chat UI needed); the dashboard is admin-only.
   #
-  # Why single-container: EKKOLearn is architected to BE the agent host (it
-  # spawns the agent in-process), so a separate agent container would mean two
-  # AIAgent processes on one state.db. The all-in-one is the upstream-intended
-  # topology and collapses the stack to one image.
+  # TOPOLOGY: still ONE container. The official image runs the gateway via the
+  # `gateway run` command (Telegram bot + cron), and the dashboard is a separate
+  # s6-supervised service inside the SAME container, enabled by HERMES_DASHBOARD=1
+  # (no second command, no second pod — the coupling that made past split-deploy
+  # attempts fail does not exist: gateway + dashboard ship in one image).
   #
-  # Runtime user: this image runs as ROOT (its Dockerfile sets USER root and
-  # overrides the base entrypoint, so the base image's HERMES_UID step-down is
-  # bypassed). Root reads/writes the existing PVC (data created by the old
-  # nousresearch image as uid 10010) without trouble. HERMES_ALLOW_ROOT_GATEWAY
-  # =1 lets the gateway start as root.
+  # STATE / PVC: release name kept "hermes-agent" so the bjw-s PVC stays
+  # "hermes-agent-data" → the EXISTING HERMES_HOME PVC (config.yaml, sessions,
+  # skills, memory, state.db) is reused IN PLACE. HERMES_HOME overridden to
+  # /opt/data to match the existing layout.
   #
-  # Name kept as "hermes-agent": the bjw-s PVC is <release>-<key> =
-  # "hermes-agent-data", so reusing this release name PRESERVES the existing
-  # HERMES_HOME PVC (config.yaml, sessions, skills, memory, state.db) across the
-  # migration. EKKOLearn reads $HERMES_HOME/config.yaml exactly like upstream;
-  # existing sessions appear (read-only) in the History tab.
+  # OWNERSHIP: the official image steps the process down to HERMES_UID (10010),
+  # unlike EKKO which ran as root. The PVC now holds a MIX of 10010-owned (nous
+  # era) and root-owned (EKKO era) files; a `fix-ownership` initContainer chowns
+  # everything back to 10010:10000 each boot so the agent (10010) can write
+  # state.db/sessions regardless of who wrote them last. Idempotent, cheap
+  # (metadata only). microk8s-hostpath ignores fsGroup (known quirk), hence chown.
+  #
+  # MIGRATION SAFETY (v0.6.x EKKO → v2026.6.x official): the official agent will
+  # read/migrate $HERMES_HOME/config.yaml on first boot. We RE-SEED config.yaml
+  # from the ConfigMap every boot (Git = source of truth), so the migration runs
+  # against OUR declared config, deterministically. ROLLBACK is git revert of
+  # this file + restore of the PVC backup taken before the first official boot
+  # (the schema migration is the one irreversible step — back up /opt/data first).
+  #
+  # UI-MANAGED vs GIT-MANAGED: because bootstrap clobbers config.yaml every boot,
+  # dashboard edits to config/MCP/providers are EPHEMERAL — declare those HERE in
+  # Git. What the dashboard persistently manages: CRON JOBS (jobs.json on the PVC,
+  # NOT clobbered), pairing/credentials, sessions, analytics. If you'd rather make
+  # the dashboard the source of truth for config too, remove the `bootstrap`
+  # initContainer + ConfigMap mount (you then lose declarative config).
   name: hermes-agent
   namespace: argocd
   finalizers:
@@ -47,39 +62,23 @@ spec:
         controllers:
           hermes:
             type: deployment
-            strategy: Recreate                      # state in PVC, single writer
+            strategy: Recreate                      # state in PVC, single writer; RWO hostpath needs old pod gone before new mounts
             pod:
-              securityContext:
-                # EKKOLearn runs as ROOT (entrypoint bypasses the base image's
-                # HERMES_UID step-down). The existing PVC is owned 10010:10000
-                # from the old nousresearch agent; root accesses it regardless,
-                # and microk8s-hostpath ignores fsGroup anyway (known quirk), so
-                # no fsGroup/uid juggling is needed here. New files land root-
-                # owned, which is consistent since the agent+gateway also run
-                # as root in this image.
-                {}
               # Force Telegram over IPv4. The pod resolves api.telegram.org to BOTH
-              # an A record (149.154.166.110) and an AAAA (2001:67c:4e8:f004::9), but
-              # the cluster has NO IPv6 egress — so python-telegram-bot's IPv6-first
-              # attempt times out (~10-20s) → "Primary api.telegram.org connection
-              # failed" → flaky/failed cron delivery ("Telegram send failed: Timed
-              # out"). Verified: curl over IPv4 returns 200 in ~1s every time. Pinning
-              # the hostname to Telegram's stable IPv4 (the same IP Hermes uses as its
-              # hardcoded fallback) removes the AAAA from /etc/hosts and skips the dead
-              # IPv6 path entirely.
+              # an A record (149.154.166.110) and an AAAA, but the cluster has NO
+              # IPv6 egress — so the bot's IPv6-first attempt times out (~10-20s) →
+              # flaky/failed cron delivery. Pinning to Telegram's stable IPv4 (its
+              # own hardcoded fallback IP) removes the AAAA path entirely.
               hostAliases:
                 - ip: "149.154.166.110"
                   hostnames:
                     - "api.telegram.org"
             initContainers:
               # Sync config.yaml into HERMES_HOME from the ConfigMap on EVERY boot.
-              # Git (this chart's values) is the SOURCE OF TRUTH. The bundled agent
-              # reads $HERMES_HOME/config.yaml exactly like upstream hermes-agent
-              # (model/providers/telegram toolsets/compression/web). Live UI edits to
-              # the PVC copy are intentionally clobbered on restart; declare MCP
-              # servers, providers, skills config etc. HERE, not live.
-              # NOTE: EKKOLearn strips any legacy `platforms.api_server` block from
-              # config.yaml on startup — we don't ship one, so this is a no-op.
+              # Git (this chart's values) is the SOURCE OF TRUTH. The official agent
+              # reads $HERMES_HOME/config.yaml (model/providers/mcp_servers/toolsets/
+              # web/compression). Live UI/PVC edits are clobbered on restart — declare
+              # config HERE, not live (see header note on UI- vs Git-managed config).
               bootstrap:
                 image:
                   repository: busybox
@@ -92,10 +91,8 @@ spec:
                     cp -f /bootstrap/config.yaml /opt/data/config.yaml
               # Install static CLI extras (jq, yq) into the PVC so the agent's
               # terminal tool can pipe HTTP/JSON workflows without an image rebuild.
-              # /opt/data/.local/bin is on the base image's $PATH. The agent+gateway
-              # run as root in this image, so no chown is required (root owns what it
-              # downloads and reads everything). Image alpine/curl has HTTPS.
-              # Idempotent: skips download if binary already present + executable.
+              # /opt/data/.local/bin is on $PATH. Binaries are world +x so the agent
+              # (uid 10010) executes them regardless of ownership. Idempotent.
               install-cli-extras:
                 image:
                   repository: alpine
@@ -126,61 +123,88 @@ spec:
 
                     echo "Installed CLI extras:"
                     ls -la /opt/data/.local/bin/
+              # Normalize PVC ownership to 10010:10000 (the uid the official image
+              # steps down to). The PVC mixes nous-era 10010 files and EKKO-era root
+              # files; without this, the agent (10010) can't write state.db/sessions
+              # that EKKO wrote as root → CrashLoop/data errors. Runs as root, chowns
+              # both volumes. Order-independent: even after bootstrap/cli-extras add
+              # root files (config.yaml read-only, jq/yq exec-only), the agent state
+              # ends up 10010-writable. Cheap metadata op, idempotent.
+              fix-ownership:
+                image:
+                  repository: busybox
+                  tag: "1.36"
+                command: ["sh", "-c"]
+                args:
+                  - |
+                    set -e
+                    echo "Normalizing /opt/data + /workspace ownership to 10010:10000"
+                    chown -R 10010:10000 /opt/data /workspace
+                securityContext:
+                  runAsUser: 0
+                  runAsGroup: 0
             containers:
-              # SINGLE container — agent + gateway + Telegram + cron + web admin UI.
+              # SINGLE container — official agent: gateway (Telegram + cron) via the
+              # `gateway run` command + dashboard (s6 service) via HERMES_DASHBOARD=1.
               main:
                 image:
-                  repository: ekkoye8888/hermes-web-ui
-                  # Pin a semver tag (NOT latest). amd64 multi-arch confirmed.
+                  repository: nousresearch/hermes-agent
+                  # Date-scheme tags. v2026.6.19 = latest stable, post "Surface
+                  # Release" (v2026.6.5) which shipped the full admin dashboard.
                   # Renovate can track docker tags for this image.
-                  tag: "v0.6.10"
+                  tag: "v2026.6.19"
                   pullPolicy: IfNotPresent
+                # Keep the image's s6 entrypoint; pass `gateway run` as args so the
+                # gateway runs AND s6 supervises the dashboard (HERMES_DASHBOARD=1).
+                # --replace clears a stale gateway.lock/pid left on the PVC by the
+                # previous (EKKO) gateway, otherwise `gateway run` can refuse to start
+                # ("gateway already running"). fix-ownership chowns the lock to 10010
+                # first so --replace can remove it.
+                args: ["gateway", "run", "--replace"]
                 env:
-                  # --- Web UI server ---
-                  PORT: "6060"                          # UI listen port (Docker default)
-                  BIND_HOST: "0.0.0.0"
-                  CORS_ORIGINS: "https://hermes.tgu.ovh" # not "*"; matches the ingress host
                   # --- Hermes data home: reuse the EXISTING PVC layout ---
-                  # Override the image default (/home/agent/.hermes) to /opt/data so the
-                  # bundled agent reads the same config.yaml/sessions/skills/state.db the
-                  # old nousresearch agent wrote. Both the web-ui and the spawned gateway
-                  # honor HERMES_HOME.
                   HERMES_HOME: "/opt/data"
-                  # The web UI's OWN state (its SQLite DBs, auth .token, logs, uploads).
-                  # Kept on the same PVC, in a distinct subdir. The auto-generated auth
-                  # token persists here across restarts (so logins/links stay stable).
-                  HERMES_WEB_UI_HOME: "/opt/data/hermes-web-ui"
-                  # File-browser root (own PVC, shared with the agent terminal cwd).
-                  WORKSPACE_BASE: "/workspace"
-                  # --- Gateway / Telegram / cron lifecycle ---
-                  # Managed-gateway mode: the UI starts `hermes gateway run` itself.
-                  # This is what runs the Telegram bot + cron. Do NOT set
-                  # HERMES_WEB_UI_DISABLE_GATEWAY_AUTOSTART (that would kill them).
-                  HERMES_WEB_UI_MANAGED_GATEWAY: "1"
-                  # Gateway refuses to start as root unless this is set; image is root.
-                  HERMES_ALLOW_ROOT_GATEWAY: "1"
-                  # Don't overwrite our seeded/custom skills with EKKOLearn's bundled
-                  # skill set on startup. Drop this if you WANT its bundled skills.
-                  HERMES_WEB_UI_DISABLE_SKILL_INJECTION: "1"
-                  # --- Agent config (best-effort container env) ---
-                  # NOTE: EKKOLearn passes the spawned gateway a FILTERED env (allowlist),
-                  # so these are not guaranteed to reach the agent process. The robust
-                  # path is $HERMES_HOME/.env + config.yaml — the reused PVC's existing
-                  # /opt/data/.env should already carry the agent secrets. VERIFY after
-                  # deploy that Telegram connects and inference works; if not, seed
-                  # /opt/data/.env via an initContainer.
+                  # --- Built-in web dashboard (admin panel, port 9119) ---
+                  HERMES_DASHBOARD: "1"
+                  # --- API server: REQUIRED for the dashboard to function (it talks
+                  #     to the gateway's REST API); also the OpenAI-compatible endpoint
+                  #     on 8642. Key from hermes-secrets (envFrom). ---
+                  API_SERVER_ENABLED: "true"
+                  API_SERVER_HOST: "0.0.0.0"
+                  # --- Dashboard auth gate: bind 0.0.0.0 → fail-closed, the dashboard
+                  #     REFUSES to start without auth configured. Basic-auth creds from
+                  #     the hermes-dashboard-auth SealedSecret (defense-in-depth on top
+                  #     of the LAN-only ingress middleware). ---
+                  HERMES_DASHBOARD_BASIC_AUTH_USERNAME:
+                    valueFrom:
+                      secretKeyRef:
+                        name: hermes-dashboard-auth
+                        key: username
+                  HERMES_DASHBOARD_BASIC_AUTH_PASSWORD:
+                    valueFrom:
+                      secretKeyRef:
+                        name: hermes-dashboard-auth
+                        key: password
+                  HERMES_DASHBOARD_BASIC_AUTH_SECRET:
+                    valueFrom:
+                      secretKeyRef:
+                        name: hermes-dashboard-auth
+                        key: session-secret
+                  # --- Telegram access control. VERIFY post-deploy that allowed-users
+                  #     carries over; pairing state lives on the PVC so it should. If
+                  #     not, set it from the dashboard Channels/Pairing tab. ---
                   TELEGRAM_ALLOWED_USERS: "843341688"
                   TELEGRAM_HOME_CHANNEL: "843341688"
                   GATEWAY_ALLOW_ALL_USERS: "false"
                   WHATSAPP_ENABLED: "false"
+                  # --- Web integrations (in-cluster, no keys) ---
                   SEARXNG_URL: "http://searxng.searxng.svc.cluster.local:8080"
                   OPENAI_BASE_URL: "http://localai.localai.svc.cluster.local:8080/v1"
-                  # CRW (fastCRW) — Firecrawl-compatible scrape/search backend (crw-app.yaml).
-                  # Hermes' firecrawl web backend talks here; no API key in self-host mode.
+                  # CRW (fastCRW) — Firecrawl-compatible scrape/search backend.
                   FIRECRAWL_API_URL: "http://crw.hermes.svc.cluster.local:3000"
                 envFrom:
                   - secretRef:
-                      name: hermes-secrets   # OPENAI_API_KEY + TELEGRAM_BOT_TOKEN + API_SERVER_KEY
+                      name: hermes-secrets   # OPENAI_API_KEY + OPENROUTER_API_KEY + TELEGRAM_BOT_TOKEN + API_SERVER_KEY
                 resources:
                   limits:   { cpu: "2",    memory: 3Gi }
                   requests: { cpu: "300m", memory: 768Mi }
@@ -189,8 +213,10 @@ spec:
             controller: hermes
             ports:
               http:
-                port: 6060
-                targetPort: 6060
+                # Web admin dashboard. (Gateway OpenAI API on 8642 stays intra-pod /
+                # localhost for the dashboard; not exposed externally — chat is Telegram.)
+                port: 9119
+                targetPort: 9119
                 protocol: TCP
         ingress:
           app:
@@ -198,8 +224,7 @@ spec:
             annotations:
               cert-manager.io/cluster-issuer: letsencrypt-prod
               # LAN-only (192.168.88.0/24 home + 10.1.0.0/16 k8s pod CIDR).
-              # WebSocket/streams longs (Socket.IO chat, terminal, kanban) : Traefik
-              # gère le WS nativement et ne coupe pas sur timeout read/send comme nginx@60s.
+              # Traefik handles long WS/streams (dashboard live logs/chat) natively.
               traefik.ingress.kubernetes.io/router.middlewares: hermes-lan-only@kubernetescrd
             hosts:
               - host: hermes.tgu.ovh
@@ -216,7 +241,7 @@ spec:
         persistence:
           # HERMES_HOME — the existing agent PVC (claim "hermes-agent-data"),
           # reused as-is so config.yaml/sessions/skills/memory/state.db survive the
-          # migration. Also holds the web UI's own state under /opt/data/hermes-web-ui.
+          # migration off EKKO. Mounted on the init + main containers.
           data:
             type: persistentVolumeClaim
             storageClass: microk8s-hostpath
@@ -228,9 +253,11 @@ spec:
                   - path: /opt/data
                 install-cli-extras:
                   - path: /opt/data
+                fix-ownership:
+                  - path: /opt/data
                 main:
                   - path: /opt/data
-          # File-browser root (WORKSPACE_BASE), separate PVC.
+          # Agent terminal cwd / file workspace (config.yaml terminal.cwd: /workspace).
           files:
             type: persistentVolumeClaim
             storageClass: microk8s-hostpath
@@ -238,6 +265,8 @@ spec:
             size: 5Gi
             advancedMounts:
               hermes:
+                fix-ownership:
+                  - path: /workspace
                 main:
                   - path: /workspace
           bootstrap:
@@ -245,7 +274,6 @@ spec:
             # bjw-s 5.0.1 merges all configMaps.* entries into a single CM
             # named after the release (here: hermes-agent), not <release>-<key>.
             name: hermes-agent
-            # Mount only on the bootstrap initContainer of the hermes controller.
             advancedMounts:
               hermes:
                 bootstrap:
@@ -331,7 +359,7 @@ spec:
                   tool_use_enforcement: auto
                 terminal:
                   backend: local
-                  # Shared file-browser root (persistence.files = WORKSPACE_BASE).
+                  # Shared file-browser root (persistence.files = /workspace).
                   # Agent tool output here is visible live in the UI "Files" tab.
                   cwd: /workspace
                   timeout: 180
@@ -343,50 +371,37 @@ spec:
                   command_timeout: 30
                   allow_private_urls: false
                   # Remote headless browser over CDP (lightpanda-app.yaml) — the
-                  # EKKOLearn image has no usable local Chromium. Hermes GETs
-                  # /json/version on this URL, reads webSocketDebuggerUrl (lightpanda
-                  # advertises the Service host, not 0.0.0.0), connects.
-                  # Tokenless (ClusterIP only). browser_tool precedence:
-                  # BROWSER_CDP_URL env → browser.cdp_url (here) → local/Browserbase.
+                  # image has no usable local Chromium. Hermes GETs /json/version on
+                  # this URL, reads webSocketDebuggerUrl (lightpanda advertises the
+                  # Service host, not 0.0.0.0), connects. Tokenless (ClusterIP only).
                   cdp_url: http://lightpanda.hermes.svc.cluster.local:9222
-                # Route the web_search tool through self-hosted SearXNG.
-                # SEARXNG_URL env (set in deployment spec) tells the plugin where to
-                # POST. `search_backend` is the explicit per-capability picker;
-                # `backend` is the shared fallback (both set for clarity).
+                # Search + extract both routed through CRW / fastCRW — a self-hosted,
+                # Firecrawl-compatible API (crw-app.yaml). CRW runs search via our
+                # SearXNG and renders JS pages via our lightpanda, returning clean
+                # markdown for web_extract. FIRECRAWL_API_URL (container env) points
+                # the firecrawl backend at CRW.
                 web:
-                  # Search + extract both routed through CRW / fastCRW — a self-hosted,
-                  # Firecrawl-compatible API (crw-app.yaml). CRW runs search via our
-                  # SearXNG and renders JS pages via our lightpanda, returning clean
-                  # markdown for web_extract. Fixes "finds links but returns no job
-                  # offers" (SearXNG alone can search but NOT extract) with ZERO SaaS or
-                  # API key. FIRECRAWL_API_URL (container env) points the firecrawl
-                  # backend at CRW.
                   search_backend: firecrawl
                   backend: firecrawl
                   extract_backend: firecrawl
                 compression:
                   enabled: true
-                  # Now on a large-context model (Gemini 2.5 Flash, ~1M). Compress LATE
-                  # so tool results (e.g. job listings) aren't summarized away mid-task —
-                  # this was contributing to "loses findings". 0.6 * 131072 ≈ 79k before
-                  # compaction, settling back to ~0.35.
+                  # Large-context model → compress LATE so tool results aren't
+                  # summarized away mid-task. 0.6 * 131072 ≈ 79k before compaction.
                   threshold: 0.6
                   target_ratio: 0.35
                   protect_last_n: 10
                   protect_first_n: 1
                 # Restrict Telegram toolset: drop tts/image_gen/vision/messaging to
-                # shrink the tool-schema portion of the system prompt (~2-3k tokens saved).
-                # Keep web (search), browser (page fetch), file, todo, cronjob, skills,
-                # terminal (curl/jq/awk/sed shell pipelines), code_execution (Python
-                # sandbox: requests/httpx/json/yaml).
+                # shrink the tool-schema portion of the system prompt (~2-3k tokens).
+                # Keep web, browser, file, todo, cronjob, skills, terminal, code_execution.
                 # Security: TELEGRAM_ALLOWED_USERS pins the bot to user 843341688 only;
-                # k8s container is non-privileged, no host mount, no sudo — terminal
-                # access cannot escape the container.
+                # container is non-privileged, no host mount, no sudo — terminal access
+                # cannot escape the container.
                 platform_toolsets:
                   telegram: [web, browser, file, todo, cronjob, skills, terminal, code_execution]
                 # Disable Nous Portal as auxiliary fallback — no subscription, every
-                # call returns 402 and floods logs. Hermes already throttles it after
-                # the first failure (60s); this just silences the noise.
+                # call returns 402 and floods logs.
                 fallback:
                   exclude: ["nous", "nous-api"]
                 security:
