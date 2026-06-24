@@ -42,8 +42,10 @@ spec:
                   - "--beam-size"
                   - "1"                         # Plus rapide, OK pour commandes courtes
                 resources:
-                  limits:   { cpu: "4",    memory: 4Gi }
-                  requests: { cpu: "500m", memory: 2Gi }
+                  # large-v3-turbo (809M params) load peaks >4Gi on CPU → OOMKilled.
+                  # cpu request kept low: idle most of the time, bursts to limit only while transcribing.
+                  limits:   { cpu: "4",    memory: 8Gi }
+                  requests: { cpu: "250m", memory: 3Gi }
         service:
           app:
             controller: whisper
