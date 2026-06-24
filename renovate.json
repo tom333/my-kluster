@@ -50,7 +50,7 @@
         "^argocd/argocd-apps/hermes-agent-app\\.yaml$"
       ],
       "matchStrings": [
-        "repository:\\s*(?<depName>nousresearch/hermes-agent)\\s*\\n\\s*tag:\\s*\"(?<currentValue>v\\d{4}\\.\\d+\\.\\d+(\\.\\d+)?)\""
+        "repository:\\s*(?<depName>nousresearch/hermes-agent)\\s*\\n(?:\\s*#.*\\n)*\\s*tag:\\s*\"(?<currentValue>v\\d{4}\\.\\d+\\.\\d+(\\.\\d+)?)\""
       ],
       "datasourceTemplate": "docker",
       "versioningTemplate": "loose"
