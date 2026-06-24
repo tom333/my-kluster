@@ -40,3 +40,14 @@
     name: nvidia-persistenced
     enabled: true
     state: started
+
+# Ubuntu 26.04+ dropped the dpkg diversion that provided /sbin/ldconfig.real.
+# The gpu-operator toolkit regenerates a config.toml pinned to "@/sbin/ldconfig.real",
+# so its prestart hook fails with "ldcache error: /sbin/ldconfig.real: no such file".
+# A symlink satisfies the path and survives daemonset config regeneration.
+- name: Restore /sbin/ldconfig.real symlink (gpu-operator prestart hook, Ubuntu 26.04+)
+  ansible.builtin.file:
+    src: /sbin/ldconfig
+    dest: /sbin/ldconfig.real
+    state: link
+    force: false
