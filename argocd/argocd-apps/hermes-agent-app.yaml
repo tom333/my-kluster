@@ -24,12 +24,13 @@ metadata:
   # skills, memory, state.db) is reused IN PLACE. HERMES_HOME overridden to
   # /opt/data to match the existing layout.
   #
-  # OWNERSHIP: the official image steps the process down to HERMES_UID (10010),
-  # unlike EKKO which ran as root. The PVC now holds a MIX of 10010-owned (nous
-  # era) and root-owned (EKKO era) files; a `fix-ownership` initContainer chowns
-  # everything back to 10010:10000 each boot so the agent (10010) can write
-  # state.db/sessions regardless of who wrote them last. Idempotent, cheap
-  # (metadata only). microk8s-hostpath ignores fsGroup (known quirk), hence chown.
+  # OWNERSHIP: the official v2026.6 image runs gateway + dashboard as uid 10000
+  # (verified via /proc), unlike EKKO which ran as root and the older nous image
+  # which used 10010. The PVC holds a MIX of nous-era 10010 files and EKKO-era
+  # root files; a `fix-ownership` initContainer chowns everything to 10000:10000
+  # each boot so the agent (10000) can write gateway-locks/kanban.db/sessions
+  # regardless of who wrote them last. Idempotent, cheap (metadata only).
+  # microk8s-hostpath ignores fsGroup (known quirk), hence the explicit chown.
   #
   # MIGRATION SAFETY (v0.6.x EKKO → v2026.6.x official): the official agent will
   # read/migrate $HERMES_HOME/config.yaml on first boot. We RE-SEED config.yaml
@@ -123,13 +124,14 @@ spec:
 
                     echo "Installed CLI extras:"
                     ls -la /opt/data/.local/bin/
-              # Normalize PVC ownership to 10010:10000 (the uid the official image
-              # steps down to). The PVC mixes nous-era 10010 files and EKKO-era root
-              # files; without this, the agent (10010) can't write state.db/sessions
-              # that EKKO wrote as root → CrashLoop/data errors. Runs as root, chowns
-              # both volumes. Order-independent: even after bootstrap/cli-extras add
-              # root files (config.yaml read-only, jq/yq exec-only), the agent state
-              # ends up 10010-writable. Cheap metadata op, idempotent.
+              # Normalize PVC ownership to 10000:10000 — the uid the official
+              # v2026.6 agent runs `gateway run` AND `hermes dashboard` as (verified
+              # via /proc; it chowns HERMES_HOME root to 10000:10000 0700 at boot but
+              # NOT recursively). The PVC mixes nous-era 10010 files and EKKO-era root
+              # files; without this the agent (10000) is "other" on gateway-locks/,
+              # kanban.db, telegram lock → EACCES → Telegram/kanban fail to start.
+              # NB: the OLD nous image used uid 10010; this official image uses 10000.
+              # Runs as root, chowns both volumes. Cheap metadata op, idempotent.
               fix-ownership:
                 image:
                   repository: busybox
@@ -138,8 +140,8 @@ spec:
                 args:
                   - |
                     set -e
-                    echo "Normalizing /opt/data + /workspace ownership to 10010:10000"
-                    chown -R 10010:10000 /opt/data /workspace
+                    echo "Normalizing /opt/data + /workspace ownership to 10000:10000"
+                    chown -R 10000:10000 /opt/data /workspace
                 securityContext:
                   runAsUser: 0
                   runAsGroup: 0
