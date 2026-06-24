@@ -124,6 +124,38 @@ spec:
 
                     echo "Installed CLI extras:"
                     ls -la /opt/data/.local/bin/
+              # Install firecrawl-py into the PVC (consumed via PYTHONPATH on main).
+              # The official image registers the web-firecrawl PLUGIN but does NOT
+              # bundle the firecrawl-py client package, and lazy-install is blocked
+              # (security.allow_lazy_installs=false) → web_search/web_extract fail →
+              # the agent falls back to the OOM-flaky browser (lightpanda) → burns
+              # max_turns(90) → cron scheduler treats max-iterations as a failure
+              # (RuntimeError) → NO Telegram delivery. The venv lives on the ephemeral
+              # image layer (not the PVC), so a cross-container venv install is
+              # impossible; we install to a PVC dir on PYTHONPATH instead. Idempotent.
+              # NB: the python3.13 path is pinned — bump if the base image's python
+              # minor version changes. Shared deps (websockets/aiohttp) shadow the
+              # venv by minor versions only; Hermes core imports verified OK.
+              install-py-extras:
+                image:
+                  repository: nousresearch/hermes-agent
+                  tag: "v2026.6.19"
+                  pullPolicy: IfNotPresent
+                command: ["sh", "-c"]
+                args:
+                  - |
+                    set -e
+                    TGT=/opt/data/.local/lib/python3.13/site-packages
+                    if [ -d "$TGT/firecrawl" ]; then
+                      echo "firecrawl-py already present in $TGT, skip"
+                    else
+                      echo "Installing firecrawl-py==4.17.0 -> $TGT"
+                      /usr/local/bin/uv pip install --target "$TGT" --python /opt/hermes/.venv/bin/python3 "firecrawl-py==4.17.0"
+                    fi
+                    chown -R 10000:10000 "$TGT"
+                securityContext:
+                  runAsUser: 0
+                  runAsGroup: 0
               # Normalize PVC ownership to 10000:10000 — the uid the official
               # v2026.6 agent runs `gateway run` AND `hermes dashboard` as (verified
               # via /proc; it chowns HERMES_HOME root to 10000:10000 0700 at boot but
@@ -166,6 +198,9 @@ spec:
                 env:
                   # --- Hermes data home: reuse the EXISTING PVC layout ---
                   HERMES_HOME: "/opt/data"
+                  # firecrawl-py (+ other pip extras) installed on the PVC by the
+                  # install-py-extras initContainer — restores web_search/web_extract.
+                  PYTHONPATH: "/opt/data/.local/lib/python3.13/site-packages"
                   # --- Built-in web dashboard (admin panel, port 9119) ---
                   HERMES_DASHBOARD: "1"
                   # --- API server: REQUIRED for the dashboard to function (it talks
@@ -254,6 +289,8 @@ spec:
                 bootstrap:
                   - path: /opt/data
                 install-cli-extras:
+                  - path: /opt/data
+                install-py-extras:
                   - path: /opt/data
                 fix-ownership:
                   - path: /opt/data

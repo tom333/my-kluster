@@ -87,8 +87,13 @@ spec:
                         port: 9222
                       periodSeconds: 20
                 resources:
-                  requests: { cpu: 100m, memory: 128Mi }
-                  limits:   { cpu: "1",  memory: 512Mi }
+                  # 2026-06-24: bumped 512Mi -> 2Gi after 25 OOMKills (exit 137) in
+                  # 14d. Headless Chromium/CDP spikes well past 512Mi on heavier pages;
+                  # the crash-loop made it Hermes' web-research bottleneck (cron jobs
+                  # burned max_turns when the browser tool was down). hostpath single
+                  # node has RAM headroom.
+                  requests: { cpu: 100m, memory: 256Mi }
+                  limits:   { cpu: "1",  memory: 2Gi }
         service:
           app:
             controller: lightpanda
