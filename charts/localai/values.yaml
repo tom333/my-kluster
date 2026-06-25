@@ -473,16 +473,21 @@ modelsConfigs:
       - "<end_of_turn>"
       - "<eos>"
 
-  # gemma-4-12B abliterated (huihui-ai) — variante "uncensored" (refus retirés)
-  # du gemma-4-12B QAT. Même archi/déploiement que gemma-4-12b-it-qat ci-dessus :
-  # dense 12B full-GPU, MTP (draft séparé) + vision (mmproj). Q4_K 7.38GB +
-  # draft 0.86GB + mmproj 0.18GB + KV ≈ ~10GB sur la 3060.
-  # n_max=2 (optimal mesuré pour gemma-4 MTP sur 3060, cf. gemma-4-12b-it-qat).
-  # Noms de fichiers locaux préfixés (les noms upstream mmproj-model-bf16/
-  # mtp-ggml-model-bf16 sont génériques → collision possible dans /models).
-  # ⚠️ Modèle sans garde-fous : à réserver aux usages où c'est voulu.
-  gemma-4-12b-abliterated: |
-    name: gemma-4-12b-abliterated
+  # gemma-4-26B-A4B heretic (SC117) — MoE 26B / 4B actifs, "uncensored" via
+  # Heretic (abliteration optimisée p-e-w : retire les refus avec moins de dégâts
+  # de capacité que l'abliteration brute). Remplace l'ancien gemma-4-12b-abliterated.
+  #
+  # MoE → experts offloadés en RAM (override_tensor, comme qwen3.6-35b-a3b) ;
+  # attention/denses sur GPU. UD-Q4_K_XL 14.25GB (quant Unsloth Dynamic → atténue
+  # le creux qualité MoE-Q4) + mmproj 1.19GB. Tient en RAM (62GB), fit GPU via --fit.
+  #
+  # ⚠️ PAS de MTP : aucun repo heretic ne fournit le draft `gemma4_assistant`
+  # (seul l'unsloth officiel l'a). Donc pas de spec-decode ici.
+  # ⚠️ Débit attendu MODESTE sur ce nœud : MoE offloadé = CPU/RAM-bound, et notre
+  # i5-9400F + DDR4 est faible (~15-25 tok/s estimé, vs ~30 sur i7-12700KF+DDR5).
+  # ⚠️ Modèle sans garde-fous (RP/usage voulu). Vision native (mmproj).
+  gemma-4-26b-a4b-heretic: |
+    name: gemma-4-26b-a4b-heretic
     backend: llama-cpp
     known_usecases:
       - chat
@@ -493,24 +498,23 @@ modelsConfigs:
     mmap: false
     cache_type_k: q8_0
     cache_type_v: q8_0
-    mmproj: Huihui-gemma-4-12B-abliterated-mmproj.gguf
-    draft_model: Huihui-gemma-4-12B-abliterated-mtp.gguf
+    mmproj: gemma-4-26b-a4b-heretic-mmproj.gguf
     parameters:
-      model: Huihui-gemma-4-12B-abliterated-Q4_K.gguf
+      model: gemma-4-26b-a4b-heretic-UD-Q4_K_XL.gguf
       temperature: 1.0
       top_p: 0.95
       top_k: 64
     download_files:
-      - filename: Huihui-gemma-4-12B-abliterated-Q4_K.gguf
-        uri: https://huggingface.co/huihui-ai/Huihui-gemma-4-12B-it-qat-q4_0-unquantized-abliterated-GGUF/resolve/main/Huihui-gemma-4-12B-it-qat-q4_0-unquantized-abliterated-Q4_K.gguf
-      - filename: Huihui-gemma-4-12B-abliterated-mtp.gguf
-        uri: https://huggingface.co/huihui-ai/Huihui-gemma-4-12B-it-qat-q4_0-unquantized-abliterated-GGUF/resolve/main/mtp-ggml-model-bf16.gguf
-      - filename: Huihui-gemma-4-12B-abliterated-mmproj.gguf
-        uri: https://huggingface.co/huihui-ai/Huihui-gemma-4-12B-it-qat-q4_0-unquantized-abliterated-GGUF/resolve/main/mmproj-model-bf16.gguf
+      - filename: gemma-4-26b-a4b-heretic-UD-Q4_K_XL.gguf
+        uri: https://huggingface.co/SC117/gemma-4-26B-A4B-it-qat-heretic-GGUF/resolve/main/gemma-4-26B-A4B-it-qat-heretic-UD-Q4_K_XL.gguf
+      - filename: gemma-4-26b-a4b-heretic-mmproj.gguf
+        uri: https://huggingface.co/SC117/gemma-4-26B-A4B-it-qat-heretic-GGUF/resolve/main/mmproj-gemma-4-26B-A4B-it-qat-heretic-F16.gguf
     options:
       - use_jinja:true
-      - spec_type:draft-mtp
-      - draft_max:2
+      # MoE : tous les experts en RAM, reste sur GPU (cf. qwen3.6-35b-a3b)
+      - "override_tensor:\\.ffn_.*_exps\\.=CPU"
+      - fit:on
+      - fit_target:512
     template:
       use_tokenizer_template: true
     function:
