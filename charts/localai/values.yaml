@@ -525,6 +525,47 @@ modelsConfigs:
       - "<end_of_turn>"
       - "<eos>"
 
+  # Qwen3.5-9B — dense, gen Qwen3.5 (la plus récente, ≫ 2.5 et ≫ Qwen3).
+  # Successeur "instruct" de qwen2.5-7b : full-GPU (Q4_K_M 5.68GB → tient large
+  # sur la 3060, pas d'offload → rapide), cerveau 9B. Candidat pour marmite
+  # (extraction JSON) et usage instruct général.
+  # Arch qwen3_5 (gérée par le backend, cf. qwen3.6 MoE). Hybride thinking comme
+  # Qwen3 → enable_thinking:false par défaut (mode instruct direct, pas de CoT
+  # qui brûle des tokens). Le client peut réactiver via extra_body si besoin.
+  # ChatML (<|im_start|>/<|im_end|>). À valider puis on retire les anciens.
+  qwen3.5-9b: |
+    name: qwen3.5-9b
+    backend: llama-cpp
+    known_usecases:
+      - chat
+    context_size: 32768
+    gpu_layers: 99
+    f16: true
+    flash_attention: true
+    mmap: true
+    cache_type_k: q8_0
+    cache_type_v: q8_0
+    parameters:
+      model: Qwen3.5-9B-Q4_K_M.gguf
+      temperature: 0.7
+      top_p: 0.8
+      top_k: 20
+    download_files:
+      - filename: Qwen3.5-9B-Q4_K_M.gguf
+        uri: https://huggingface.co/unsloth/Qwen3.5-9B-GGUF/resolve/main/Qwen3.5-9B-Q4_K_M.gguf
+    options:
+      - use_jinja:true
+      - "chat_template_kwargs:{\"enable_thinking\":false}"
+    template:
+      use_tokenizer_template: true
+    function:
+      automatic_tool_parsing_fallback: true
+      grammar:
+        disable: true
+    stopwords:
+      - "<|im_end|>"
+      - "<|endoftext|>"
+
   # DeepSeek-V4-Flash via OpenRouter — backend cloud-proxy (passthrough).
   # PAS de modèle local : LocalAI forwarde le body client tel quel vers
   # OpenRouter (wire format OpenAI chat-completions). Bypasse templating /
