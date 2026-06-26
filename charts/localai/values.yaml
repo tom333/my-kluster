@@ -63,7 +63,7 @@ env:
   # Default context window for models that don't override it in their YAML.
   # The 7B and Coder configs below specify their own context_size.
   CONTEXT_SIZE: "16384"
-  DEBUG: "true"
+  DEBUG: "false"
   MODELS_PATH: "/models"
   LOCALAI_WATCHDOG_IDLE: "true"
   LOCALAI_WATCHDOG_IDLE_TIMEOUT: "5m"
