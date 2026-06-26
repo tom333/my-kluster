@@ -236,7 +236,10 @@ spec:
                   WHATSAPP_ENABLED: "false"
                   # --- Web integrations (in-cluster, no keys) ---
                   SEARXNG_URL: "http://searxng.searxng.svc.cluster.local:8080"
-                  OPENAI_BASE_URL: "http://localai.localai.svc.cluster.local:8080/v1"
+                  # NB: pas de OPENAI_BASE_URL ici. La var GÉNÉRIQUE détournait les clients
+                  # auxiliaires (web_extract/session_search/compression) vers LocalAI alors que
+                  # le provider agent est openrouter (warning agent.auxiliary_client). Le provider
+                  # nommé `localai` ci-dessous porte son propre base_url → reste joignable sans la var.
                   # CRW (fastCRW) — Firecrawl-compatible scrape/search backend.
                   FIRECRAWL_API_URL: "http://crw.hermes.svc.cluster.local:3000"
                 envFrom:
@@ -381,6 +384,13 @@ spec:
                     base_url: http://localai.localai.svc.cluster.local:8080/v1
                     key_env: OPENAI_API_KEY
                     default_model: qwen3-8b
+                # Chaîne de repli quand le modèle primaire échoue APRÈS ses retries
+                # (ex: OpenRouter renvoie un SSE vide/malformé sur deepseek-v4-flash,
+                # ~1×/jour, flakiness streaming upstream). gemini-2.5-flash = fiable,
+                # ne se déclenche que sur l'événement rare → coût négligeable, erreur invisible.
+                fallback_providers:
+                  - provider: openrouter
+                    model: google/gemini-2.5-flash
                 mcp_servers:
                   # arrconf-mcp: in-cluster ClusterIP MCP (read-only, 10 tools) for the media stack.
                   # Bearer token = MCP_AUTH_TOKEN (also in arrconf-env sealed secret on the server side).
