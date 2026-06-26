@@ -556,6 +556,15 @@ modelsConfigs:
     options:
       - use_jinja:true
       - "chat_template_kwargs:{\"enable_thinking\":false}"
+      # reasoning_format:none → le parser chat llama.cpp ne SÉPARE PAS le bloc
+      # reasoning. Sans ça, le template qwen3.5 déclenche le parser "auto" qui
+      # route toute la sortie (y compris notre JSON contraint) vers
+      # reasoning_content, laissant `content` vide → 5 retries LocalAI à vide.
+      # Avec none, le JSON atterrit dans `content` (correct + 1 seule génération).
+      - "reasoning_format:none"
+    # Ceinture+bretelles côté LocalAI : pas d'extraction reasoning non plus.
+    reasoning:
+      disable: true
     template:
       use_tokenizer_template: true
     function:
