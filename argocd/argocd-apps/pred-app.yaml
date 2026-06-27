@@ -1,14 +1,16 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  # Marmite du Caillou — planif de repas + suivi de régime (Django + HTMX), foyer 2 pers.
+  # Pred — planif de repas + suivi de régime (Django + HTMX), foyer 2 pers.
   # Image custom buildée localement → registry localhost:32000 (pas de CI distante : le
   # registry n'est joignable que sur le LAN). SQLite mono-fichier persistant sur PVC
   # microk8s-hostpath (local : pas de locking NFS). La base seed (catalogue CIQUAL + plats
   # + classif) est embarquée dans l'image ; l'entrypoint la copie sur le PVC au 1er boot.
   # Auth = login Django (un compte par mangeur) → PAS d'oauth2-proxy devant.
   # LLM (décompo de plats, admin) → service LocalAI in-cluster.
-  name: marmite
+  # NB : le package Django interne reste « marmite » (app_label / tables marmite_*) ; seul
+  # l'habillage produit + l'infra sont « Pred ».
+  name: pred
   namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
@@ -24,24 +26,24 @@ spec:
     helm:
       values: |
         controllers:
-          marmite:
+          pred:
             type: deployment
             containers:
               main:
                 image:
-                  repository: localhost:32000/marmite
+                  repository: localhost:32000/pred
                   tag: "0.2.0"
                   pullPolicy: IfNotPresent
                 env:
                   DEBUG: "0"
-                  ALLOWED_HOSTS: marmite.tgu.ovh
-                  CSRF_TRUSTED_ORIGINS: https://marmite.tgu.ovh
+                  ALLOWED_HOSTS: pred.tgu.ovh
+                  CSRF_TRUSTED_ORIGINS: https://pred.tgu.ovh
                   DB_PATH: /data/db.sqlite3
                   # LLM (décompo plats) → LocalAI in-cluster (ns localai, port 8080).
                   LLM_BASE_URL: http://localai.localai:8080/v1
                 envFrom:
                   - secretRef:
-                      name: marmite-secrets   # SECRET_KEY (scellé)
+                      name: pred-secrets   # SECRET_KEY (scellé)
                 probes:
                   # Host header des probes = IP du pod (hors ALLOWED_HOSTS) → probe TCP, pas HTTP.
                   liveness:
@@ -63,7 +65,7 @@ spec:
                   limits:   { cpu: "1",    memory: 512Mi }
         service:
           main:
-            controller: marmite
+            controller: pred
             ports:
               http:
                 port: 8000
@@ -74,7 +76,7 @@ spec:
             annotations:
               cert-manager.io/cluster-issuer: letsencrypt-prod
             hosts:
-              - host: marmite.tgu.ovh
+              - host: pred.tgu.ovh
                 paths:
                   - path: /
                     pathType: Prefix
@@ -82,8 +84,8 @@ spec:
                       identifier: main
                       port: http
             tls:
-              - hosts: [marmite.tgu.ovh]
-                secretName: marmite-tls
+              - hosts: [pred.tgu.ovh]
+                secretName: pred-tls
         persistence:
           # SQLite mono-fichier : volume LOCAL (hostpath) → pas de locking NFS. Survit aux
           # redéploiements ; seedé au 1er boot par l'entrypoint si vide.
@@ -93,7 +95,7 @@ spec:
             size: 1Gi
             storageClass: microk8s-hostpath
             advancedMounts:
-              marmite:
+              pred:
                 main:
                   - path: /data
   syncPolicy:
