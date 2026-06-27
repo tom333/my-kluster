@@ -32,7 +32,7 @@ spec:
               main:
                 image:
                   repository: localhost:32000/pred
-                  tag: "0.2.0"
+                  tag: "0.2.1"
                   pullPolicy: IfNotPresent
                 env:
                   DEBUG: "0"
