@@ -1,0 +1,36 @@
+---
+# Bluetooth stability fix for the RTL8723BE combo card (gaming-pc).
+#
+# Symptom (kernel log): hci0 "command tx timeout" -> "Resetting usb device" loop
+# -> the USB Bluetooth controller drops off the bus -> impossible to reconnect
+# without a reboot. Known RTL8723BE flakiness, aggravated by the WiFi/BT 2.4GHz
+# coexistence (shared antenna) even when WiFi is soft-blocked.
+
+- name: Disable USB autosuspend for the Bluetooth controller (btusb)
+  ansible.builtin.copy:
+    dest: /etc/modprobe.d/btusb-noautosuspend.conf
+    owner: root
+    group: root
+    mode: '0644'
+    content: |
+      # Managed by Ansible (gaming role). The RTL8723B BT controller drops off
+      # the USB bus when it autosuspends; keep it powered.
+      options btusb enable_autosuspend=0
+  when: gaming_btusb_disable_autosuspend | bool
+  notify: update initramfs (gaming)
+
+- name: Blacklist rtl8723be WiFi + btcoexist (WiFi unused; stops coexistence meddling)
+  ansible.builtin.copy:
+    dest: /etc/modprobe.d/blacklist-rtl8723.conf
+    owner: root
+    group: root
+    mode: '0644'
+    content: |
+      # Managed by Ansible (gaming role). WiFi is unused on this host (disabled
+      # for BT coexistence); the rtl8723be driver + btcoexist mismanage the
+      # shared 2.4GHz antenna and destabilise the USB Bluetooth controller.
+      # WARNING: this disables WiFi on the host.
+      blacklist rtl8723be
+      blacklist btcoexist
+  when: gaming_blacklist_rtl8723_wifi | bool
+  notify: update initramfs (gaming)

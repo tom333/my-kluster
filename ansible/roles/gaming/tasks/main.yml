@@ -51,3 +51,6 @@
     state: present
     update_cache: false
   when: gaming_nvidia_gl_i386_package | length > 0
+
+- ansible.builtin.import_tasks: 50_bluetooth_fix.yml
+  tags: [games, bluetooth]

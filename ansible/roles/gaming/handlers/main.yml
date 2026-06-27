@@ -1,0 +1,5 @@
+---
+- name: update initramfs (gaming)
+  ansible.builtin.command: update-initramfs -u
+  changed_when: true
+  when: not ansible_check_mode
