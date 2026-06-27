@@ -1,0 +1,104 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  # Marmite du Caillou — planif de repas + suivi de régime (Django + HTMX), foyer 2 pers.
+  # Image custom buildée localement → registry localhost:32000 (pas de CI distante : le
+  # registry n'est joignable que sur le LAN). SQLite mono-fichier persistant sur PVC
+  # microk8s-hostpath (local : pas de locking NFS). La base seed (catalogue CIQUAL + plats
+  # + classif) est embarquée dans l'image ; l'entrypoint la copie sur le PVC au 1er boot.
+  # Auth = login Django (un compte par mangeur) → PAS d'oauth2-proxy devant.
+  # LLM (décompo de plats, admin) → service LocalAI in-cluster.
+  name: marmite
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: selfhost
+    server: https://kubernetes.default.svc
+  project: selfhost-project
+  source:
+    repoURL: https://bjw-s-labs.github.io/helm-charts
+    chart: app-template
+    targetRevision: 5.0.1
+    helm:
+      values: |
+        controllers:
+          marmite:
+            type: deployment
+            containers:
+              main:
+                image:
+                  repository: localhost:32000/marmite
+                  tag: "0.2.0"
+                  pullPolicy: IfNotPresent
+                env:
+                  DEBUG: "0"
+                  ALLOWED_HOSTS: marmite.tgu.ovh
+                  CSRF_TRUSTED_ORIGINS: https://marmite.tgu.ovh
+                  DB_PATH: /data/db.sqlite3
+                  # LLM (décompo plats) → LocalAI in-cluster (ns localai, port 8080).
+                  LLM_BASE_URL: http://localai.localai:8080/v1
+                envFrom:
+                  - secretRef:
+                      name: marmite-secrets   # SECRET_KEY (scellé)
+                probes:
+                  # Host header des probes = IP du pod (hors ALLOWED_HOSTS) → probe TCP, pas HTTP.
+                  liveness:
+                    enabled: true
+                    custom: true
+                    spec:
+                      tcpSocket: { port: 8000 }
+                      initialDelaySeconds: 15
+                      periodSeconds: 20
+                  readiness:
+                    enabled: true
+                    custom: true
+                    spec:
+                      tcpSocket: { port: 8000 }
+                      initialDelaySeconds: 10
+                      periodSeconds: 10
+                resources:
+                  requests: { cpu: "100m", memory: 256Mi }
+                  limits:   { cpu: "1",    memory: 512Mi }
+        service:
+          main:
+            controller: marmite
+            ports:
+              http:
+                port: 8000
+                targetPort: 8000
+        ingress:
+          main:
+            className: nginx
+            annotations:
+              cert-manager.io/cluster-issuer: letsencrypt-prod
+            hosts:
+              - host: marmite.tgu.ovh
+                paths:
+                  - path: /
+                    pathType: Prefix
+                    service:
+                      identifier: main
+                      port: http
+            tls:
+              - hosts: [marmite.tgu.ovh]
+                secretName: marmite-tls
+        persistence:
+          # SQLite mono-fichier : volume LOCAL (hostpath) → pas de locking NFS. Survit aux
+          # redéploiements ; seedé au 1er boot par l'entrypoint si vide.
+          data:
+            type: persistentVolumeClaim
+            accessMode: ReadWriteOnce
+            size: 1Gi
+            storageClass: microk8s-hostpath
+            advancedMounts:
+              marmite:
+                main:
+                  - path: /data
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      selfHeal: true
+      prune: true
