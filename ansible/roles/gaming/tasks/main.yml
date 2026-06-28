@@ -52,5 +52,19 @@
     update_cache: false
   when: gaming_nvidia_gl_i386_package | length > 0
 
+- name: Install native apt games (universe — Lutris entries reference /usr/games/<bin>)
+  ansible.builtin.apt:
+    name: "{{ gaming_apt_games }}"
+    state: present
+    update_cache: false
+  when: gaming_apt_games | length > 0
+
+- name: Install Steam (multiverse)
+  ansible.builtin.apt:
+    name: steam-installer
+    state: present
+    update_cache: false
+  when: gaming_install_steam | bool
+
 - ansible.builtin.import_tasks: 50_bluetooth_fix.yml
   tags: [games, bluetooth]

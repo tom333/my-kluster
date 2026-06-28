@@ -11,6 +11,7 @@
       - lxappearance    # GTK theme (light)
       - pcmanfm         # file manager (occasionnel)
       - x11-xserver-utils  # xset/xrandr
+      - flatpak         # apps flatpak (OpenSurge, Scratch) restaurées via migration
     state: present
     update_cache: true
   # NOTE: aucun compositeur installé volontairement (picom/compton) -> pas de

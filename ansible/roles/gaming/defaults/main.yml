@@ -17,6 +17,24 @@ gaming_nvidia_gl_i386_package: "libnvidia-gl-470:i386"
 # OS guard.
 gaming_allowed_distros: ["Ubuntu", "Linux Mint", "Bodhi"]
 
+# Jeux natifs apt (universe). Les entrées Lutris restaurées pointent
+# /usr/games/<bin> -> ces paquets DOIVENT être présents.
+gaming_apt_games:
+  - 0ad
+  - openarena
+  - supertux        # binaire /usr/games/supertux2
+  - warzone2100
+  - hedgewars
+  - supertuxkart
+  - lincity-ng
+  - widelands
+  - jumpnbump
+  - gcompris-qt     # éducatif
+  - tuxmath
+  - tuxpaint
+# Steam (multiverse). Game launcher.
+gaming_install_steam: true
+
 # --- Bluetooth stability (RTL8723BE combo card on gaming-pc) ---
 # BT firmware hangs (hci tx timeout) -> USB reset loop -> controller vanishes.
 # Keep the USB BT controller from autosuspending (harmless everywhere).
