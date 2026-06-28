@@ -1,0 +1,91 @@
+---
+# Optimisations Ubuntu — retire le bloat serveur/cloud + tweaks perf.
+
+- name: Purge snapd (aucun snap utilisé)
+  ansible.builtin.apt:
+    name: snapd
+    state: absent
+    purge: true
+    autoremove: true
+  when: desktop_purge_snapd | bool
+
+- name: Hold snapd (empêche la réinstall via dépendances)
+  ansible.builtin.dpkg_selections:
+    name: snapd
+    selection: hold
+  when: desktop_purge_snapd | bool
+
+- name: Disable cloud-init (flag file)
+  ansible.builtin.copy:
+    dest: /etc/cloud/cloud-init.disabled
+    content: ""
+    force: false
+    owner: root
+    group: root
+    mode: '0644'
+  when: desktop_disable_cloud_init | bool
+
+- name: Disable + mask systemd-oomd (évite de tuer un jeu sous pression mémoire)
+  ansible.builtin.systemd:
+    name: systemd-oomd
+    enabled: false
+    state: stopped
+    masked: true
+  when:
+    - desktop_disable_oomd | bool
+    - not ansible_check_mode
+
+- name: Mask les timers apt en arrière-plan (protège kernel pinné + pas de MAJ en jeu)
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    enabled: false
+    state: stopped
+    masked: true
+  loop:
+    - apt-daily.timer
+    - apt-daily-upgrade.timer
+  when:
+    - desktop_disable_auto_upgrades | bool
+    - not ansible_check_mode
+
+- name: Disable motd-news
+  ansible.builtin.copy:
+    dest: /etc/default/motd-news
+    content: "ENABLED=0\n"
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Install zram-tools (swap compressé)
+  ansible.builtin.apt:
+    name: zram-tools
+    state: present
+    update_cache: false
+  when: desktop_enable_zram | bool
+
+- name: Configure zram (zstd, {{ desktop_zram_percent }}% RAM)
+  ansible.builtin.copy:
+    dest: /etc/default/zramswap
+    owner: root
+    group: root
+    mode: '0644'
+    content: |
+      # Managed by Ansible (desktop role).
+      ALGO=zstd
+      PERCENT={{ desktop_zram_percent }}
+  when: desktop_enable_zram | bool
+  notify: restart zramswap
+
+- name: GRUB — timeout court
+  ansible.builtin.lineinfile:
+    path: /etc/default/grub
+    regexp: '^GRUB_TIMEOUT='
+    line: "GRUB_TIMEOUT={{ desktop_grub_timeout }}"
+  notify: update grub
+
+- name: GRUB — cmdline (quiet + mitigations selon toggle)
+  ansible.builtin.lineinfile:
+    path: /etc/default/grub
+    regexp: '^GRUB_CMDLINE_LINUX_DEFAULT='
+    line: 'GRUB_CMDLINE_LINUX_DEFAULT="quiet splash{{ " mitigations=off" if desktop_disable_cpu_mitigations | bool else "" }}"'
+  notify: update grub

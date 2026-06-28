@@ -22,6 +22,18 @@ desktop_install_bluetooth: true    # bluez + blueman + BT audio
 # CPU governor — i3-5005U brides en powersave par défaut ; performance pour le jeu/vidéo.
 desktop_cpu_governor: "performance"
 
+# --- Optimisations Ubuntu (dé-bloat serveur/cloud + perf) ---
+desktop_purge_snapd: true            # aucun snap utilisé (Brave/Lutris/jeux = deb/AppImage/flatpak)
+desktop_disable_cloud_init: true     # inutile sur machine physique, ralentit le boot
+desktop_disable_oomd: true           # systemd-oomd peut tuer un jeu sous pression (8 Go)
+desktop_disable_auto_upgrades: true  # pas de MAJ en pleine partie + protège le kernel GA pinné
+desktop_enable_zram: true            # swap compressé (Ubuntu ne l'active pas par défaut)
+desktop_zram_percent: 50
+desktop_grub_timeout: 2
+# Compromis sécu ASSUMÉ : désactive les mitigations CPU (gain réel sur Broadwell i3-5005U,
+# PC enfant isolé LAN sans données sensibles).
+desktop_disable_cpu_mitigations: true
+
 # tint2 launchers (.desktop basenames in /usr/share/applications or ~/.local/share/applications).
 desktop_launchers:
   - net.lutris.Lutris

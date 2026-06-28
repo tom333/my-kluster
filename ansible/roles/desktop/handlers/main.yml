@@ -8,3 +8,14 @@
 - name: reload systemd (desktop)
   ansible.builtin.systemd:
     daemon_reload: true
+
+- name: update grub
+  ansible.builtin.command: update-grub
+  changed_when: true
+  when: not ansible_check_mode
+
+- name: restart zramswap
+  ansible.builtin.systemd:
+    name: zramswap
+    state: restarted
+  when: not ansible_check_mode
