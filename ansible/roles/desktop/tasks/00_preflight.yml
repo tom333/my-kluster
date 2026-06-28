@@ -1,0 +1,11 @@
+---
+- name: Preflight — Ubuntu 24.04 (noble) on x86_64
+  ansible.builtin.assert:
+    that:
+      - ansible_distribution == "Ubuntu"
+      - ansible_distribution_release == desktop_required_release
+      - ansible_architecture in ["x86_64", "amd64"]
+    fail_msg: >
+      desktop role targets Ubuntu 24.04 (noble) x86_64
+      (got {{ ansible_distribution }} {{ ansible_distribution_release }} {{ ansible_architecture }}).
+      Note: 22.04 = glibc trop vieux (apps modernes cassent) ; 26.04 = pas de nvidia-470 (Kepler).

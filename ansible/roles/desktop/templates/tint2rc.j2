@@ -1,0 +1,26 @@
+# Managed by Ansible (desktop role). Minimal bottom panel with big launchers.
+panel_items = LTSC
+panel_size = 100% 56
+panel_margin = 0 0
+panel_padding = 8 6 8
+panel_background_id = 1
+wm_menu = 1
+panel_position = bottom center horizontal
+
+rounded = 0
+background_color = #15151f 100
+border_width = 0
+
+# Launchers
+launcher_padding = 10 6 10
+launcher_background_id = 0
+launcher_icon_size = 44
+launcher_icon_asb = 100 0 0
+{% for app in desktop_launchers %}
+launcher_item_app = /usr/share/applications/{{ app }}.desktop
+{% endfor %}
+
+# Clock
+time1_format = %H:%M
+time1_font = sans 12
+clock_padding = 8 0

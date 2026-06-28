@@ -20,6 +20,7 @@ ansible/
     ├── k8s-node-bootstrap/      # provisioning k8s host (NVIDIA, NFS, MicroK8s, addons)
     ├── dev-workstation/         # pipx + uv/ruff + VS Code + wezterm + lazygit + chezmoi + nerd-fonts + git config
     ├── media-pc/                # Jellyfin client + gamemode + sysctl + xinput autostart
+    ├── desktop/                 # Ubuntu Server 24.04 -> bureau mini : Xorg+Openbox+LightDM autologin, nvidia-470 (kernel GA pinné), Brave, tint2, gouverneur CPU perf
     ├── gaming/                  # Lutris (apt natif) + libs GL i386 — game launchers
     ├── kodi-backup/             # backup hebdo Kodi userdata vers NAS
     └── pihole-maintenance/      # timer hebdo `pihole -up` + Telegram on failure
@@ -28,7 +29,7 @@ ansible/
 ## Conventions
 
 ### Variables
-- **Préfixes par rôle** : `beszel_*`, `dev_*`, `media_*`, `gaming_*`, `cli_*`, `kodi_backup_*`, `pihole_maint_*`.
+- **Préfixes par rôle** : `beszel_*`, `dev_*`, `media_*`, `gaming_*`, `desktop_*`, `cli_*`, `kodi_backup_*`, `pihole_maint_*`.
 - **Versions hardcodées en defaults** : suffixe `_version`, format `"X.Y.Z"` sans `v` (cohérent avec les tags Docker/GitHub).
 - **Refs vault** : depuis `group_vars/all.yml`, exposer via `{{ vault_xxx }}` (jamais directement).
 - **NE PAS dupliquer** des vars entre `group_vars/all.yml` et `defaults/main.yml` d'un rôle — l'override silencieux empêche les bumps du rôle de se propager (incident lors du bump Beszel 0.10→0.18).

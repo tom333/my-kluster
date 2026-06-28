@@ -1,0 +1,47 @@
+---
+- name: Install minimal Xorg + Openbox + panel
+  ansible.builtin.apt:
+    name:
+      - xserver-xorg
+      - xinit
+      - openbox
+      - obconf
+      - tint2
+      - feh             # wallpaper / set root
+      - lxappearance    # GTK theme (light)
+      - pcmanfm         # file manager (occasionnel)
+      - x11-xserver-utils  # xset/xrandr
+    state: present
+    update_cache: true
+  # NOTE: aucun compositeur installé volontairement (picom/compton) -> pas de
+  # compositing -> FPS max sur le 920M. Openbox ne composite pas par défaut.
+
+- name: Install audio stack (PipeWire)
+  ansible.builtin.apt:
+    name:
+      - pipewire
+      - pipewire-pulse
+      - wireplumber
+      - pavucontrol
+    state: present
+    update_cache: false
+  when: desktop_install_audio | bool
+
+- name: Install Bluetooth stack (bluez + GUI + BT audio)
+  ansible.builtin.apt:
+    name:
+      - bluez
+      - blueman
+      - libspa-0.2-bluetooth
+    state: present
+    update_cache: false
+  when: desktop_install_bluetooth | bool
+
+- name: Enable + start bluetooth service
+  ansible.builtin.systemd:
+    name: bluetooth
+    enabled: true
+    state: started
+  when:
+    - desktop_install_bluetooth | bool
+    - not ansible_check_mode

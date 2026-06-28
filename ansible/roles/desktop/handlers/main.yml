@@ -1,0 +1,10 @@
+---
+- name: restart lightdm
+  ansible.builtin.systemd:
+    name: lightdm
+    state: restarted
+  when: not ansible_check_mode
+
+- name: reload systemd (desktop)
+  ansible.builtin.systemd:
+    daemon_reload: true

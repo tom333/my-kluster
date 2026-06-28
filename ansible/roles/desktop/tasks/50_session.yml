@@ -1,0 +1,46 @@
+---
+# Openbox session (user autostart + tint2 launchers) + CPU governor.
+
+- name: Ensure user config dirs
+  ansible.builtin.file:
+    path: "/home/{{ ansible_user }}/{{ item }}"
+    state: directory
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: '0755'
+  loop:
+    - .config/openbox
+    - .config/tint2
+
+- name: Openbox autostart (tint2 + bg + no blank)
+  ansible.builtin.template:
+    src: openbox-autostart.j2
+    dest: "/home/{{ ansible_user }}/.config/openbox/autostart"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: '0755'
+
+- name: tint2 panel + launchers
+  ansible.builtin.template:
+    src: tint2rc.j2
+    dest: "/home/{{ ansible_user }}/.config/tint2/tint2rc"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: '0644'
+
+- name: CPU governor service (performance)
+  ansible.builtin.template:
+    src: cpu-governor.service.j2
+    dest: /etc/systemd/system/cpu-governor.service
+    owner: root
+    group: root
+    mode: '0644'
+  notify: reload systemd (desktop)
+
+- name: Enable + start CPU governor service
+  ansible.builtin.systemd:
+    name: cpu-governor.service
+    enabled: true
+    state: started
+    daemon_reload: true
+  when: not ansible_check_mode

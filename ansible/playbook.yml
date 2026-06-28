@@ -4,7 +4,7 @@
 # - dev_workstations : CLI tools + dev tooling + monitoring
 # - voice_satellites : Linux-Voice-Assistant (docker, ESPHome protocol) — tag `voice`
 # - media_pcs : Jellyfin client + gaming optims + xinput disable
-# - gaming_pcs : game launchers (Lutris + Wine) — tag `games`
+# - gaming_pcs : bureau minimal (Openbox/nvidia-470, tag `desktop`) + jeux (tag `games`)
 # - pihole_hosts : monitoring + weekly upgrade + custom DNS
 # - libreelec_hosts : appliance-friendly monitoring (no apt, paths under /storage)
 # - others : just monitoring (vanilla apt + beszel-agent)
@@ -68,7 +68,7 @@
     - { role: media-pc, tags: [media] }
     - beszel-agent
 
-- name: Gaming PCs — game launchers (Lutris + Wine)
+- name: Gaming PCs — minimal desktop (Openbox/nvidia-470) + game launchers
   hosts: gaming_pcs
   become: true
   gather_facts: true
@@ -79,6 +79,8 @@
       ansible.builtin.debug:
         msg: "Gaming play on {{ inventory_hostname }} ({{ ansible_host }}) — arch={{ beszel_arch }}"
   roles:
+    # desktop d'abord : pose Xorg/Openbox/nvidia-470 + active i386 (requis par gaming).
+    - { role: desktop, tags: [desktop] }
     - { role: gaming, tags: [games] }
 
 - name: PiHole boxes — monitoring + weekly core update + custom DNS

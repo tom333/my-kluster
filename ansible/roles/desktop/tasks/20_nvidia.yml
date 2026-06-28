@@ -1,0 +1,39 @@
+---
+# NVIDIA 470 legacy (Kepler 920M) + GA-kernel pin.
+
+- name: Enable i386 multiarch (32-bit Wine/Steam GL)
+  ansible.builtin.command: dpkg --add-architecture i386
+  register: desktop_i386
+  changed_when: "'already' not in (desktop_i386.stderr | default(''))"
+  when: desktop_enable_i386 | bool
+
+- name: apt update (after multiarch)
+  ansible.builtin.apt:
+    update_cache: true
+  failed_when: false
+  changed_when: false
+
+- name: Ensure GA kernel + headers present (470 ne build PAS sur HWE 6.11+)
+  ansible.builtin.apt:
+    name:
+      - linux-generic
+      - linux-headers-generic
+    state: present
+    update_cache: false
+
+- name: Hold HWE kernel metapackages (sinon kernel 6.11 casse nvidia-470)
+  ansible.builtin.dpkg_selections:
+    name: "{{ item }}"
+    selection: hold
+  loop:
+    - linux-generic-hwe-24.04
+    - linux-image-generic-hwe-24.04
+    - linux-headers-generic-hwe-24.04
+  when: desktop_hold_hwe_kernel | bool
+
+- name: Install NVIDIA 470 legacy driver
+  ansible.builtin.apt:
+    name: "{{ desktop_nvidia_driver }}"
+    state: present
+    update_cache: false
+  # Le paquet blackliste nouveau + build le module DKMS contre le kernel GA.

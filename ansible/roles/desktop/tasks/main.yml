@@ -1,0 +1,22 @@
+---
+# desktop — minimal Xorg + Openbox desktop tuned for max performance on the
+# gaming-pc (Ubuntu Server 24.04 base). No compositor (max FPS on the 920M).
+
+- ansible.builtin.import_tasks: 00_preflight.yml
+  tags: [desktop, preflight]
+
+- ansible.builtin.import_tasks: 10_packages.yml
+  tags: [desktop, packages]
+
+- ansible.builtin.import_tasks: 20_nvidia.yml
+  tags: [desktop, nvidia]
+
+- ansible.builtin.import_tasks: 30_brave.yml
+  tags: [desktop, brave]
+  when: desktop_install_brave | bool
+
+- ansible.builtin.import_tasks: 40_lightdm_autologin.yml
+  tags: [desktop, lightdm]
+
+- ansible.builtin.import_tasks: 50_session.yml
+  tags: [desktop, session]

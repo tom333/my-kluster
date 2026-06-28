@@ -1,0 +1,42 @@
+---
+# LightDM + autologin into Openbox (kid -> direct dans la session).
+
+- name: Install LightDM
+  ansible.builtin.apt:
+    name:
+      - lightdm
+      - lightdm-gtk-greeter
+    state: present
+    update_cache: false
+
+- name: Ensure autologin group exists
+  ansible.builtin.group:
+    name: autologin
+    state: present
+
+- name: Add user to autologin (+ nopasswdlogin) groups
+  ansible.builtin.user:
+    name: "{{ ansible_user }}"
+    groups: autologin,nopasswdlogin
+    append: true
+
+- name: Configure LightDM autologin -> Openbox
+  ansible.builtin.copy:
+    dest: /etc/lightdm/lightdm.conf.d/50-autologin.conf
+    owner: root
+    group: root
+    mode: '0644'
+    content: |
+      # Managed by Ansible (desktop role).
+      [Seat:*]
+      autologin-user={{ ansible_user }}
+      autologin-user-timeout=0
+      autologin-session=openbox
+      user-session=openbox
+  notify: restart lightdm
+
+- name: Set graphical target as default boot
+  ansible.builtin.command: systemctl set-default graphical.target
+  register: desktop_default_target
+  changed_when: "'Created symlink' in desktop_default_target.stdout or 'Removed' in desktop_default_target.stdout"
+  when: not ansible_check_mode

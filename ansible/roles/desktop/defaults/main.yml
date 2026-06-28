@@ -1,0 +1,29 @@
+---
+# desktop role — minimal max-perf desktop on Ubuntu Server 24.04 for gaming-pc.
+# Use case: Brave (YouTube), Jellyfin Media Player, Lutris. No heavy DE.
+
+# OS guard — this role targets Ubuntu 24.04 (noble) only (glibc 2.39 + nvidia-470).
+desktop_required_release: "noble"
+
+# NVIDIA legacy driver for the Kepler GeForce 920M. 470 is the LAST branch for
+# Kepler; it only builds against the GA kernel (6.8), NOT the HWE kernel (6.11+)
+# — so we pin GA and hold HWE. 26.04 dropped 470 entirely; do not upgrade.
+desktop_nvidia_driver: "nvidia-driver-470"
+desktop_hold_hwe_kernel: true
+
+# Enable i386 multiarch (32-bit Wine/Steam GL libs; gaming role asserts it).
+desktop_enable_i386: true
+
+# Components (toggle off per-host if needed).
+desktop_install_brave: true
+desktop_install_audio: true        # pipewire + wireplumber
+desktop_install_bluetooth: true    # bluez + blueman + BT audio
+
+# CPU governor — i3-5005U brides en powersave par défaut ; performance pour le jeu/vidéo.
+desktop_cpu_governor: "performance"
+
+# tint2 launchers (.desktop basenames in /usr/share/applications or ~/.local/share/applications).
+desktop_launchers:
+  - net.lutris.Lutris
+  - com.github.iwalton3.jellyfin-media-player
+  - brave-browser
