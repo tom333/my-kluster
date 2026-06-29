@@ -33,7 +33,7 @@ spec:
               main:
                 image:
                   repository: localhost:32000/pred
-                  tag: "0.2.3"
+                  tag: "0.2.4"
                   pullPolicy: IfNotPresent
                 env:
                   DEBUG: "0"
@@ -79,7 +79,7 @@ spec:
               main:
                 image:
                   repository: localhost:32000/pred
-                  tag: "0.2.3"
+                  tag: "0.2.4"
                   pullPolicy: IfNotPresent
                 command: ["python", "manage.py", "import_garmin"]
                 env:
