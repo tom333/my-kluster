@@ -8,6 +8,7 @@ metadata:
   # + classif) est embarquée dans l'image ; l'entrypoint la copie sur le PVC au 1er boot.
   # Auth = login Django (un compte par mangeur) → PAS d'oauth2-proxy devant.
   # LLM (décompo de plats, admin) → service LocalAI in-cluster.
+  # CronJob garmin-import : ingestion quotidienne Garmin Connect (SP4) → mêmes PVC/image.
   # NB : le package Django interne reste « marmite » (app_label / tables marmite_*) ; seul
   # l'habillage produit + l'infra sont « Pred ».
   name: pred
@@ -32,7 +33,7 @@ spec:
               main:
                 image:
                   repository: localhost:32000/pred
-                  tag: "0.2.2"
+                  tag: "0.2.3"
                   pullPolicy: IfNotPresent
                 env:
                   DEBUG: "0"
@@ -63,6 +64,36 @@ spec:
                 resources:
                   requests: { cpu: "100m", memory: 256Mi }
                   limits:   { cpu: "1",    memory: 512Mi }
+          # Ingestion Garmin quotidienne (SP4). Incrémental : utilise le GarminAccount
+          # existant (créé au 1er backfill manuel). Jeton garth réutilisé depuis /data/garth.
+          garmin-import:
+            type: cronjob
+            cronjob:
+              schedule: "0 5 * * *"
+              timeZone: Pacific/Noumea
+              concurrencyPolicy: Forbid
+              backoffLimit: 1
+              successfulJobsHistory: 3
+              failedJobsHistory: 3
+            containers:
+              main:
+                image:
+                  repository: localhost:32000/pred
+                  tag: "0.2.3"
+                  pullPolicy: IfNotPresent
+                command: ["python", "manage.py", "import_garmin"]
+                env:
+                  DEBUG: "0"
+                  DB_PATH: /data/db.sqlite3
+                  GARMIN_TOKEN_DIR: /data/garth
+                envFrom:
+                  - secretRef:
+                      name: pred-secrets   # SECRET_KEY (settings Django)
+                  - secretRef:
+                      name: pred-garmin    # GARMIN_EMAIL / GARMIN_PASSWORD (à sceller, cf. README)
+                resources:
+                  requests: { cpu: "50m", memory: 128Mi }
+                  limits:   { cpu: "1",   memory: 512Mi }
         service:
           main:
             controller: pred
@@ -88,7 +119,8 @@ spec:
                 secretName: pred-tls
         persistence:
           # SQLite mono-fichier : volume LOCAL (hostpath) → pas de locking NFS. Survit aux
-          # redéploiements ; seedé au 1er boot par l'entrypoint si vide.
+          # redéploiements ; seedé au 1er boot par l'entrypoint si vide. Monté aussi par le
+          # CronJob garmin-import (même nœud single-node → RWO OK) : SQLite + jeton garth.
           data:
             type: persistentVolumeClaim
             accessMode: ReadWriteOnce
@@ -96,6 +128,9 @@ spec:
             storageClass: microk8s-hostpath
             advancedMounts:
               pred:
+                main:
+                  - path: /data
+              garmin-import:
                 main:
                   - path: /data
   syncPolicy:
