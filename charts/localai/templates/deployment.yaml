@@ -7,6 +7,9 @@ metadata:
     {{- include "localai.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}
+  # Limite les vieux ReplicaSets (rollouts fréquents via Renovate) : ils gardent
+  # des pods zombies ContainerStatusUnknown après les reboots du node.
+  revisionHistoryLimit: 2
   strategy:
     type: Recreate
   selector:
