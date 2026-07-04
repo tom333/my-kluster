@@ -167,6 +167,20 @@ def build_scenarios() -> dict[str, Scenario]:
     # run the identical prompt. (Real crons can exceed this; see README finding.)
     snap_30k = _browser_snapshot(15_000)
     return {
+        # S0: tiny prompt + long generation -> total ≈ pure decode. The only
+        # honest speed metric for models LocalAI buffers (gemma reasoning, tools),
+        # where streaming gives TTFT==total and decode_tps can't be isolated.
+        # Compare gen_tps (= completion_tokens / total_s) across configs.
+        "S0": Scenario(
+            id="S0",
+            desc="tiny prompt, long generation (decode proxy via total wall-clock)",
+            messages=[
+                {"role": "system", "content": "Tu es un assistant concis."},
+                {"role": "user", "content":
+                    "Écris une courte histoire de 400 mots sur un robot jardinier en Nouvelle-Calédonie."},
+            ],
+            max_tokens=512,
+        ),
         # S1: short tool-call -> decode speed + tool JSON validity
         "S1": Scenario(
             id="S1",
@@ -459,7 +473,11 @@ def append_history(path: str, summary: dict, endpoints: dict, note: str, seed: i
                     "ts": ts, "git_sha": sha, "note": note, "seed": seed,
                     "endpoint": ename, "model": endpoints[ename].model, "scenario": sid,
                     "decode_tps": s.get("decode_tps"), "prefill_tps": s.get("prefill_tps"),
-                    "ttft_s": s.get("ttft_s"), "prompt_tokens": s.get("prompt_tokens"),
+                    "ttft_s": s.get("ttft_s"), "total_s": s.get("total_s"),
+                    # gen_tps = completion/total ≈ decode on S0 (tiny prompt), robust to buffering
+                    "gen_tps": (s.get("completion_tokens") / s.get("total_s"))
+                               if s.get("total_s") else None,
+                    "prompt_tokens": s.get("prompt_tokens"),
                     "completion_tokens": s.get("completion_tokens"),
                     "tool_ok_rate": s.get("tool_ok_rate"), "n_ok": s.get("n_ok"),
                     "server_timed": s.get("server_timed"),
