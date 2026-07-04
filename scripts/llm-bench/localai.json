@@ -1,0 +1,115 @@
+{
+  "summary": {
+    "localai": {
+      "S1": {
+        "n_ok": 2,
+        "ttft_s": 3.416677596003865,
+        "total_s": 3.4168559804966208,
+        "prefill_tps": 51.219513615462844,
+        "decode_tps": null,
+        "prompt_tokens": 174.0,
+        "completion_tokens": 116.0,
+        "tool_ok_rate": 1.0,
+        "server_timed": false
+      },
+      "S2": {
+        "n_ok": 2,
+        "ttft_s": 12.617165387491696,
+        "total_s": 15.07841367799847,
+        "prefill_tps": 1516.638457230862,
+        "decode_tps": 84.28110028042198,
+        "prompt_tokens": 12695.0,
+        "completion_tokens": 207.0,
+        "tool_ok_rate": null,
+        "server_timed": false
+      },
+      "S3": {
+        "n_ok": 2,
+        "ttft_s": 37.87301191200095,
+        "total_s": 37.87318708800012,
+        "prefill_tps": 894.6350795283329,
+        "decode_tps": null,
+        "prompt_tokens": 33882.0,
+        "completion_tokens": 729.5,
+        "tool_ok_rate": 1.0,
+        "server_timed": false
+      }
+    }
+  },
+  "raw": {
+    "localai": {
+      "S1": [
+        {
+          "ttft": 3.6750266360177193,
+          "total": 3.675187863991596,
+          "prompt_tokens": 174,
+          "completion_tokens": 118,
+          "server_prefill_tps": null,
+          "server_decode_tps": null,
+          "tool_ok": true,
+          "error": null,
+          "text_chars": 0
+        },
+        {
+          "ttft": 3.1583285559900105,
+          "total": 3.1585240970016457,
+          "prompt_tokens": 174,
+          "completion_tokens": 114,
+          "server_prefill_tps": null,
+          "server_decode_tps": null,
+          "tool_ok": true,
+          "error": null,
+          "text_chars": 0
+        }
+      ],
+      "S2": [
+        {
+          "ttft": 19.937074148998363,
+          "total": 22.469845974002965,
+          "prompt_tokens": 12695,
+          "completion_tokens": 198,
+          "server_prefill_tps": null,
+          "server_decode_tps": null,
+          "tool_ok": null,
+          "error": null,
+          "text_chars": 315
+        },
+        {
+          "ttft": 5.297256625985028,
+          "total": 7.686981381993974,
+          "prompt_tokens": 12695,
+          "completion_tokens": 216,
+          "server_prefill_tps": null,
+          "server_decode_tps": null,
+          "tool_ok": null,
+          "error": null,
+          "text_chars": 282
+        }
+      ],
+      "S3": [
+        {
+          "ttft": 37.723927757993806,
+          "total": 37.72414560400648,
+          "prompt_tokens": 33882,
+          "completion_tokens": 729,
+          "server_prefill_tps": null,
+          "server_decode_tps": null,
+          "tool_ok": true,
+          "error": null,
+          "text_chars": 0
+        },
+        {
+          "ttft": 38.02209606600809,
+          "total": 38.022228571993764,
+          "prompt_tokens": 33882,
+          "completion_tokens": 730,
+          "server_prefill_tps": null,
+          "server_decode_tps": null,
+          "tool_ok": true,
+          "error": null,
+          "text_chars": 0
+        }
+      ]
+    }
+  }
+}
