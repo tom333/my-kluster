@@ -59,7 +59,7 @@ resources:
     nvidia.com/gpu: 1
 
 env:
-  THREADS: "4"
+  THREADS: "5"   # i5-9400F 6c ; +1 pour le compute CPU des experts MoE offloadés (laisse 1c système)
   # Default context window for models that don't override it in their YAML.
   # The 7B and Coder configs below specify their own context_size.
   CONTEXT_SIZE: "16384"
@@ -511,10 +511,13 @@ modelsConfigs:
         uri: https://huggingface.co/SC117/gemma-4-26B-A4B-it-qat-heretic-GGUF/resolve/main/mmproj-gemma-4-26B-A4B-it-qat-heretic-F16.gguf
     options:
       - use_jinja:true
-      # MoE : tous les experts en RAM, reste sur GPU (cf. qwen3.6-35b-a3b)
-      - "override_tensor:\\.ffn_.*_exps\\.=CPU"
+      # MoE placement : fit garde un MAX d'experts sur GPU (ceux qui rentrent),
+      # n'offload que le débordement en RAM. PAS de override_tensor forçant TOUS
+      # les experts CPU (bridait le GPU → cf. bench carteakey.dev : fit seul = ~44
+      # tok/s sur 12GB vs bien moins tout-CPU). fit_target:2048 = headroom mmproj
+      # vision (fit:512 OOM le mmproj sur 12GB, gotcha du même bench).
       - fit:on
-      - fit_target:512
+      - fit_target:2048
     template:
       use_tokenizer_template: true
     function:
