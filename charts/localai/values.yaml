@@ -511,11 +511,13 @@ modelsConfigs:
         uri: https://huggingface.co/SC117/gemma-4-26B-A4B-it-qat-heretic-GGUF/resolve/main/mmproj-gemma-4-26B-A4B-it-qat-heretic-F16.gguf
     options:
       - use_jinja:true
-      # MoE placement : fit garde un MAX d'experts sur GPU (ceux qui rentrent),
-      # n'offload que le débordement en RAM. PAS de override_tensor forçant TOUS
-      # les experts CPU (bridait le GPU → cf. bench carteakey.dev : fit seul = ~44
-      # tok/s sur 12GB vs bien moins tout-CPU). fit_target:2048 = headroom mmproj
-      # vision (fit:512 OOM le mmproj sur 12GB, gotcha du même bench).
+      # MoE : experts offloadés RAM via override_tensor — REQUIS sur notre LocalAI.
+      # Testé 2026-07-04 : fit:on SEUL (sans -ot) tente un full-GPU load ~13.5GB →
+      # cudaMalloc OOM (GPU ~10.6GB libre, desktop KDE prend 1.4GB). Le "fit-only
+      # ~44 tok/s" du bench carteakey.dev suppose mainline llama-server headless +
+      # full-12GB, NON reproductible sur ce wrapper LocalAI + GPU partagé desktop.
+      # Baseline mesurée avec -ot : ~16.2 tok/s (S0). fit_target:2048 = headroom mmproj.
+      - "override_tensor:\\.ffn_.*_exps\\.=CPU"
       - fit:on
       - fit_target:2048
     template:
