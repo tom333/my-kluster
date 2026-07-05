@@ -329,7 +329,10 @@ modelsConfigs:
     context_size: 8192
     gpu_layers: 99
     f16: true
-    flash_attention: true
+    # flash_attention OFF : arch deepseek2 (MLA) crashe le backend au load avec
+    # flash-attn (exit -1 sans OOM, testé 2026-07-05). MLA a un KV compressé natif
+    # → FA peu utile ici. Pas de cache_type quantifié (KV fp16, n'exige pas FA).
+    flash_attention: false
     mmap: true
     parameters:
       model: deepseek-coder-v2-lite-instruct-q4_k_m.gguf
