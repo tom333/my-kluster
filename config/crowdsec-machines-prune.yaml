@@ -1,0 +1,85 @@
+# Prune automatique des machines CrowdSec périmées.
+#
+# Pourquoi : l'agent s'enregistre auprès du LAPI sous le nom du pod. La liste des
+# machines est PERSISTÉE côté LAPI (PVC), mais les creds locaux de l'agent sont
+# ÉPHÉMÈRES (emptyDir). Au restart d'un pod agent (même nom), l'init
+# `wait-for-lapi-and-register` refait `cscli lapi register` → 403 "user already
+# exist" → CrashLoopBackOff. Les vieux pods laissent aussi des machines mortes.
+#
+# Fix durable : prune périodique des machines silencieuses > 1h. Auto-répare le
+# crashloop (machine périmée supprimée → le register suivant réussit) et nettoie
+# l'accumulation. Les agents actifs heartbeat toutes les qq s → jamais pruned.
+# (auto_registration est déjà activé côté LAPI mais n'empêche pas ce conflit, car
+#  l'init utilise `cscli lapi register` explicite.)
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: crowdsec-machines-pruner
+  namespace: crowdsec
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: crowdsec-machines-pruner
+  namespace: crowdsec
+rules:
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list"]
+  - apiGroups: [""]
+    resources: ["pods/exec"]
+    verbs: ["create"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: crowdsec-machines-pruner
+  namespace: crowdsec
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: crowdsec-machines-pruner
+subjects:
+  - kind: ServiceAccount
+    name: crowdsec-machines-pruner
+    namespace: crowdsec
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: crowdsec-machines-prune
+  namespace: crowdsec
+spec:
+  schedule: "*/30 * * * *"        # toutes les 30 min
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 2
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      ttlSecondsAfterFinished: 600
+      template:
+        spec:
+          serviceAccountName: crowdsec-machines-pruner
+          restartPolicy: Never
+          containers:
+            - name: prune
+              image: rancher/kubectl:v1.35.6   # image minimale : pas de shell, on appelle kubectl direct
+              command: ["kubectl"]
+              args:
+                - -n
+                - crowdsec
+                - exec
+                - deploy/crowdsec-lapi
+                - -c
+                - crowdsec-lapi
+                - --
+                - cscli
+                - machines
+                - prune
+                - --duration
+                - "1h"
+                - --force
+              resources:
+                requests: { cpu: 10m, memory: 32Mi }
+                limits: { memory: 64Mi }
