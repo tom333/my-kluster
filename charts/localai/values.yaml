@@ -63,7 +63,7 @@ env:
   # Default context window for models that don't override it in their YAML.
   # The 7B and Coder configs below specify their own context_size.
   CONTEXT_SIZE: "16384"
-  DEBUG: "false"
+  DEBUG: "true"   # TEMP : diag crash deepseek-coder (stderr backend). À revert.
   MODELS_PATH: "/models"
   # Single GPU (12GB) → un seul modèle résident à la fois. Sans ça, charger un 2e
   # modèle pendant que le 1er occupe la VRAM → cudaMalloc OOM (constaté 2026-07-05
