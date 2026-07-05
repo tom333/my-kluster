@@ -65,6 +65,11 @@ env:
   CONTEXT_SIZE: "16384"
   DEBUG: "false"
   MODELS_PATH: "/models"
+  # Single GPU (12GB) → un seul modèle résident à la fois. Sans ça, charger un 2e
+  # modèle pendant que le 1er occupe la VRAM → cudaMalloc OOM (constaté 2026-07-05
+  # au sweep multi-modèles). SINGLE_ACTIVE_BACKEND évince le modèle courant au
+  # chargement du suivant (le watchdog idle ne suffit pas : délai 5min).
+  LOCALAI_SINGLE_ACTIVE_BACKEND: "true"
   LOCALAI_WATCHDOG_IDLE: "true"
   LOCALAI_WATCHDOG_IDLE_TIMEOUT: "5m"
   # NOTE: LOCALAI_EXTERNAL_BACKENDS volontairement non défini.
