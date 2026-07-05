@@ -409,6 +409,10 @@ modelsConfigs:
         uri: https://huggingface.co/unsloth/gemma-4-12B-it-qat-GGUF/resolve/main/mmproj-BF16.gguf
     options:
       - use_jinja:true
+      # Thinking OFF : gemma-4 a un mode reasoning (préambule) togglable via le
+      # chat template (comme Qwen3). On le coupe → réponse/tool_call direct, pas de
+      # tokens brûlés en raisonnement (fixe le content-vide, plus propre en agent).
+      - "chat_template_kwargs:{\"enable_thinking\":false}"
       # MTP / speculative decoding (drafter = draft_model ci-dessus)
       # Sweep mesuré sur RTX 3060 (acceptation MTP ~0.525) :
       #   n_max=2 → 46 tok/s interne (34.6 wall)  ← optimal
