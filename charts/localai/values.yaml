@@ -63,7 +63,7 @@ env:
   # Default context window for models that don't override it in their YAML.
   # The 7B and Coder configs below specify their own context_size.
   CONTEXT_SIZE: "16384"
-  DEBUG: "true"   # TEMP : diag crash deepseek-coder (stderr backend). À revert.
+  DEBUG: "false"
   MODELS_PATH: "/models"
   # Single GPU (12GB) → un seul modèle résident à la fois. Sans ça, charger un 2e
   # modèle pendant que le 1er occupe la VRAM → cudaMalloc OOM (constaté 2026-07-05
@@ -342,6 +342,14 @@ modelsConfigs:
     download_files:
       - filename: deepseek-coder-v2-lite-instruct-q4_k_m.gguf
         uri: https://huggingface.co/bartowski/DeepSeek-Coder-V2-Lite-Instruct-GGUF/resolve/main/DeepSeek-Coder-V2-Lite-Instruct-Q4_K_M.gguf
+    # Q4_K_M (9.7GB) + KV(8192, ~2.2GB) = ~11.9GB > ~10.6GB libre (desktop) →
+    # OOM au KV cache, crash backend (diag DEBUG 2026-07-05). Offload des experts
+    # MoE (deepseek2, 2.4B actifs) en RAM comme les autres MoE → libère la VRAM
+    # pour poids GPU + KV → tient. Contrepartie : débit MoE offloadé (CPU-bound).
+    options:
+      - "override_tensor:\\.ffn_.*_exps\\.=CPU"
+      - fit:on
+      - fit_target:2048
     template:
       chat_message: |
         {{- if eq .RoleName "system" -}}{{.Content}}
