@@ -53,8 +53,13 @@ resources:
     cpu: "6"
     memory: 56Gi
     nvidia.com/gpu: 1
+    # cpu request = plancher de scheduling seulement (la limite ci-dessus reste 6c
+    # pour l'offload MoE). Baissé 1→0.5 le 2026-07-06 : le nœud mono (i5-9400F 6c)
+    # est à ~80% de requests CPU par les autres charges ; à 1c LocalAI ne se
+    # schedulait plus (Pending "Insufficient cpu") après un incident node. 0.5c
+    # rentre dans le libre ; LocalAI burste jusqu'à la limite quand du CPU est dispo.
   requests:
-    cpu: "1"
+    cpu: "500m"
     memory: 32Gi
     nvidia.com/gpu: 1
 
