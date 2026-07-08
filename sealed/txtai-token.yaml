@@ -1,0 +1,15 @@
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  creationTimestamp: null
+  name: txtai-token
+  namespace: txtai
+spec:
+  encryptedData:
+    TOKEN: AgCQlUi/jaz8h5M4GZ5dL8ySajre4b4zvNwdqLVZie3ziQSTJr5eGB4qZo5Wcrk464UpFkQTfR+F9+SsF0dfmDTIYXui1m9raJ0DxiyYnSyhRpLtV/3hFHDt6udvnPseYIAESeDTRUFmgSaU2AxOQESTfVd7P3scqp6qkqMoxVXxo7BEp5A2eAeDsshQkqDX4mF6nKSDWud7/4lnSIkA57cuNj/gPssAmaPzD1zaD0LVsR/NiVd6q4WWnicaRW5ZaCuFbtV7Hz84unUJprK+z11mDfpaTmGmODzBmvJzzWqHy4v5avrfqFl1RB0552q1FO9672EeAHuqEqQZcFPno6Cx4A2qmftowbQaRO05kQXDviLDsrYv9ucITyVGhSZG23k0Su9dpwCL+T9F3AsNNKPtO1JL1+R/NjiKbMuvm3Ed3p4zXvZaygvPlON0SATfM2nt/W4LD9wmvRzSaaYrhzS1Lo7t7WIu6V9PGi46QK5DQiGWW9M0uf0+uwzyperzSTofAOPkR/oyNAJQZpQARWz/q0R6pruqM8d5VOddXhbBPWKhRrkM9aEfTslccZdXQpCCXhXjckGqhYcTt8+JyLcdH9qXqH6AvbesAg7vb90gKSsCUCjP6rIzQw/NZJUwa9FRLM8D/LZ0My6gIH8mNAp/Q+xxWYAuJMX6lmkXyXd5Fx+NQXbwejt6tlhKPN/v14HlvAktdHaQ9fri7tn+j/aNLP8RumFUjAvx/rk0+CsF7u6nwBxEaWdczaEmN6cTJdmCAf53CrAwpr4L1klqWUgJ
+  template:
+    metadata:
+      creationTimestamp: null
+      name: txtai-token
+      namespace: txtai

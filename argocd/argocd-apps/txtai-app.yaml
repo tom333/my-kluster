@@ -1,0 +1,124 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  # txtai — moteur de recherche sémantique self-hosted (embeddings LOCAUX CPU).
+  # Phase 1 du "second-brain multi-surface" : indexe les transcripts Claude Code
+  # (script scripts/claude-session-indexer/) et sera interrogé par Hermes via MCP
+  # (SSE, transport: sse) depuis Telegram.
+  #
+  # Image neuml/txtai-cpu = base (pas d'entrypoint API) → on lance uvicorn nous-mêmes.
+  # Auth : env TOKEN = sha256(token) (SealedSecret txtai-token) ; le client envoie
+  # le token EN CLAIR dans Authorization: Bearer <token>. MCP hérite de cette auth
+  # globale. Ingress LAN-only + TLS ; le token = 2e couche (comme LocalAI).
+  name: txtai
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: txtai
+    server: https://kubernetes.default.svc
+  project: datalab-project
+  source:
+    repoURL: https://bjw-s-labs.github.io/helm-charts
+    chart: app-template
+    targetRevision: 5.0.1
+    helm:
+      values: |
+        controllers:
+          txtai:
+            type: deployment
+            strategy: Recreate            # index sur PVC, un seul writer
+            containers:
+              main:
+                image:
+                  repository: neuml/txtai-cpu
+                  tag: "latest"
+                  pullPolicy: IfNotPresent
+                # neuml/txtai-cpu = image de base sans entrypoint API → on lance uvicorn.
+                command: ["uvicorn", "--host", "0.0.0.0", "--port", "8000", "txtai.api:app"]
+                env:
+                  CONFIG: /app/config.yml
+                  # Persiste le modèle HF (all-MiniLM ~90Mo) sur le PVC → pas de
+                  # re-download à chaque boot.
+                  HF_HOME: /data/hf
+                  TOKEN:
+                    valueFrom:
+                      secretKeyRef:
+                        name: txtai-token
+                        key: TOKEN
+                resources:
+                  # cpu request minuscule (nœud à ~85% de requests) ; burst sur la
+                  # limite pendant l'indexation (embeddings CPU).
+                  requests: { cpu: "100m", memory: 768Mi }
+                  limits:   { cpu: "2",    memory: 2Gi }
+                probes:
+                  # / exige l'auth (401) → pas de httpGet ; TCP suffit pour "up".
+                  liveness:  { enabled: true, custom: true, spec: { tcpSocket: { port: 8000 }, periodSeconds: 30, failureThreshold: 3 } }
+                  readiness: { enabled: true, custom: true, spec: { tcpSocket: { port: 8000 }, periodSeconds: 15, failureThreshold: 3 } }
+                  startup:   { enabled: true, custom: true, spec: { tcpSocket: { port: 8000 }, periodSeconds: 10, failureThreshold: 60 } }  # 10min pour 1er DL modèle
+        service:
+          app:
+            controller: txtai
+            ports:
+              http:
+                port: 8000
+        ingress:
+          app:
+            className: nginx
+            annotations:
+              cert-manager.io/cluster-issuer: "letsencrypt-prod"
+              traefik.ingress.kubernetes.io/router.middlewares: txtai-lan-only@kubernetescrd
+            hosts:
+              - host: txtai.tgu.ovh
+                paths:
+                  - path: /
+                    pathType: Prefix
+                    service:
+                      identifier: app
+                      port: http
+            tls:
+              - hosts: [txtai.tgu.ovh]
+                secretName: txtai-tls
+        persistence:
+          # config.yml rendu depuis le ConfigMap, monté à /app/config.yml
+          config:
+            type: configMap
+            name: txtai-config
+            advancedMounts:
+              txtai:
+                main:
+                  - path: /app/config.yml
+                    subPath: config.yml
+                    readOnly: true
+          # index txtai (+ content store SQLite) + cache HF → persistants
+          data:
+            type: persistentVolumeClaim
+            storageClass: microk8s-hostpath
+            accessMode: ReadWriteOnce
+            size: 5Gi
+            advancedMounts:
+              txtai:
+                main:
+                  - path: /data
+        configMaps:
+          config:
+            data:
+              config.yml: |
+                # Répertoire d'index (+ SQLite content) — persisté sur le PVC.
+                path: /data/index
+                # requis pour add/index/upsert via l'API
+                writable: true
+                embeddings:
+                  # modèle LOCAL (HF), CPU, offline après 1er DL — aucune clé/API payante
+                  path: sentence-transformers/all-MiniLM-L6-v2
+                  # stocke texte + métadonnées (session_id/date/project/title/url)
+                  content: true
+                # serveur MCP (SSE) sur /mcp — consommé par Hermes (transport: sse)
+                mcp: true
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      selfHeal: true
+      prune: true
