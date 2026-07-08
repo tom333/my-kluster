@@ -84,7 +84,9 @@ spec:
           # config.yml rendu depuis le ConfigMap, monté à /app/config.yml
           config:
             type: configMap
-            name: txtai-config
+            # bjw-s 5.0.1 fusionne les configMaps.* en UN CM nommé d'après le release
+            # (ici "txtai"), pas <release>-config. (même piège que hermes-agent.)
+            name: txtai
             advancedMounts:
               txtai:
                 main:
