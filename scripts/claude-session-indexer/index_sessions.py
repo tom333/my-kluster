@@ -36,6 +36,9 @@ def scrub(txt: str) -> str:
     return txt.strip()
 
 PROJECTS_DIR = Path(os.environ.get("CLAUDE_PROJECTS_DIR", Path.home() / ".claude" / "projects"))
+# Manifest de resumabilité {chemin_fichier: mtime} — ne ré-indexe/ré-embed que
+# les sessions nouvelles ou modifiées (une session active grossit → mtime change).
+MANIFEST = Path(os.environ.get("INDEX_MANIFEST", Path.home() / ".claude" / ".txtai-index-manifest.json"))
 CHUNK_CHARS = 1500
 CHUNK_OVERLAP = 200
 BATCH = 200
@@ -159,6 +162,7 @@ def post(url: str, token: str, path: str, payload=None, method="POST"):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--dry-run", action="store_true", help="parse + stats, aucun POST")
+    ap.add_argument("--full", action="store_true", help="ignore le manifest, ré-indexe tout")
     ap.add_argument("--project", help="filtre : ne traite que les dirs contenant cette chaîne")
     args = ap.parse_args()
 
@@ -169,16 +173,30 @@ def main():
         print(f"Aucun .jsonl sous {PROJECTS_DIR}", file=sys.stderr)
         sys.exit(1)
 
-    all_docs, n_sessions, n_empty = [], 0, 0
+    # Resumabilité : skip les fichiers inchangés depuis la dernière indexation.
+    manifest = {}
+    if not args.full and MANIFEST.exists():
+        try:
+            manifest = json.loads(MANIFEST.read_text())
+        except Exception:
+            manifest = {}
+
+    all_docs, n_sessions, n_empty, n_skip = [], 0, 0, 0
+    fresh_manifest = dict(manifest)
     for f in files:
+        mtime = f.stat().st_mtime
+        if not args.full and manifest.get(str(f)) == mtime:
+            n_skip += 1
+            continue
         s = parse_session(f)
         if not s:
             n_empty += 1
             continue
         n_sessions += 1
         all_docs.extend(session_to_docs(s))
+        fresh_manifest[str(f)] = mtime
 
-    print(f"Sessions parsées : {n_sessions} ({n_empty} vides ignorées)")
+    print(f"Sessions à (ré)indexer : {n_sessions} (skip inchangées: {n_skip}, vides: {n_empty})")
     print(f"Documents (chunks) : {len(all_docs)}")
 
     if args.dry_run:
@@ -200,12 +218,18 @@ def main():
     # Commit INCRÉMENTAL : add + upsert par batch. Chaque upsert n'embed que le
     # batch bufferisé (txtai merge par id) → commits courts, robuste au timeout,
     # reprenable. Un seul upsert géant sur 2 cœurs CPU dépasse le timeout client.
+    if not all_docs:
+        print("Rien de nouveau à indexer.")
+        return
     for i in range(0, len(all_docs), BATCH):
         batch = all_docs[i : i + BATCH]
         post(url, token, "/add", batch)
         post(url, token, "/upsert", method="GET")
         print(f"  indexed {i + len(batch)}/{len(all_docs)}")
-    print("index persisté (incrémental).")
+    # manifest sauvé seulement après succès → un run échoué se reprend au prochain
+    MANIFEST.parent.mkdir(parents=True, exist_ok=True)
+    MANIFEST.write_text(json.dumps(fresh_manifest))
+    print(f"index persisté (incrémental). manifest: {MANIFEST}")
 
 
 if __name__ == "__main__":

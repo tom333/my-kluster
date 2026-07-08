@@ -20,6 +20,9 @@ import sys
 import urllib.request
 
 STATE_DB = os.environ.get("HERMES_STATE_DB", "/opt/data/state.db")
+# Resumabilité : ne traite que les sessions cron démarrées APRÈS le dernier run
+# (les digests sont immuables une fois la session finie). Manifest = {last_started_at}.
+MANIFEST = os.environ.get("DIGEST_MANIFEST", "/opt/data/.txtai-digest-manifest.json")
 CHUNK_CHARS = 1500
 CHUNK_OVERLAP = 200
 BATCH = 100
@@ -46,11 +49,20 @@ def post(url: str, token: str, path: str, payload=None, method="POST"):
         return r.status
 
 
-def collect() -> list[dict]:
+def _load_since() -> float:
+    try:
+        return float(json.load(open(MANIFEST)).get("last_started_at", 0))
+    except Exception:
+        return 0.0
+
+
+def collect(since: float) -> tuple[list[dict], float]:
     c = sqlite3.connect(f"file:{STATE_DB}?mode=ro", uri=True)
     docs = []
+    max_started = since
     rows = c.execute(
-        "SELECT id, title, started_at FROM sessions WHERE source='cron' ORDER BY started_at"
+        "SELECT id, title, started_at FROM sessions WHERE source='cron' AND started_at > ? ORDER BY started_at",
+        (since,),
     ).fetchall()
     for sid, title, started in rows:
         # dernier message assistant = le digest livré
@@ -59,6 +71,8 @@ def collect() -> list[dict]:
             "AND content IS NOT NULL AND length(content)>0 ORDER BY id DESC LIMIT 1",
             (sid,),
         ).fetchone()
+        if started and started > max_started:
+            max_started = started
         if not m or not m[0] or len(m[0].strip()) < MIN_DIGEST_CHARS:
             continue
         digest = m[0].strip()
@@ -83,7 +97,7 @@ def collect() -> list[dict]:
                 "session_id": sid,
             })
     c.close()
-    return docs
+    return docs, max_started
 
 
 def main():
@@ -92,13 +106,22 @@ def main():
     if not token:
         print("TXTAI_TOKEN / TXTAI_MCP_TOKEN requis", file=sys.stderr)
         sys.exit(2)
-    docs = collect()
-    print(f"Digests -> documents : {len(docs)}")
+    full = "--full" in sys.argv
+    since = 0.0 if full else _load_since()
+    docs, max_started = collect(since)
+    print(f"Digests nouveaux -> documents : {len(docs)} (since={since:.0f})")
+    if not docs:
+        print("Rien de nouveau.")
+        return
     for i in range(0, len(docs), BATCH):
         b = docs[i : i + BATCH]
         post(url, token, "/add", b)
         post(url, token, "/upsert", method="GET")
         print(f"  indexed {i + len(b)}/{len(docs)}")
+    try:
+        json.dump({"last_started_at": max_started}, open(MANIFEST, "w"))
+    except Exception as e:
+        print(f"WARN manifest non sauvé: {e}", file=sys.stderr)
     print("digests indexés (incrémental).")
 
 
