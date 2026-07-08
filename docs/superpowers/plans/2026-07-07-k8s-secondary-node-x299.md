@@ -1,14 +1,19 @@
-# Plan — Noeud k8s secondaire (X299/7820X) + offload pods (scénario 1)
+# Plan — Noeud k8s secondaire (AM4/Ryzen 5 5500) + offload pods (scénario 1)
 
 Date : 2026-07-07
 
 ## Objectif
 Soulager le noeud primaire `pc` (i5-9400F 6c/6t **saturé** : load ~5.5, swap 100% plein)
-en ajoutant le X299/i7-7820X (**8c/16t**, 24→64 Go DDR4, **24/7**) comme **worker
-MicroK8s** qui absorbe les **pods CPU/RAM**. La 3060 (idle, 15%) + LocalAI **restent
-sur `pc`**. Jeu (rare, qq h/sem) sur le X299 en parallèle du worker.
+en ajoutant un nouveau nœud **AM4 : Gigabyte B550M K + Ryzen 5 5500 (6c/12t Zen3) +
+1050 Ti + SSD (OS/pods) + HDD SATA 2 To (bulk), 16→32 Go DDR4, 24/7** comme **worker MicroK8s** qui absorbe les **pods
+CPU/RAM**. La 3060 (idle, 15%) + LocalAI **restent sur `pc`**. Jeu (rare) possible sur le
+nouveau nœud (1050 Ti) en parallèle du worker.
 
-Décision actée : **scénario 1** (pas de déplacement de GPU — le GPU n'est pas le goulot,
+> **Changement de cible matérielle (2026-07)** : visait initialement un X299/i7-7820X
+> (8c/16t, →64 Go). Cible finale = **AM4/R5 5500** (6c/12t — per-core Zen3 > 7820X, suffisant),
+> **16 Go au démarrage** (upgrade 32 Go prioritaire : 4 slots DDR4), **1050 Ti conservé**.
+
+Décision actée : **scénario 1** (pas de déplacement de la 3060 — le GPU ML n'est pas le goulot,
 l'IA est idle ; ~90% du gain = déplacer les pods CPU/RAM, commun à tous les scénarios).
 
 ## Contraintes (faits)
@@ -17,18 +22,24 @@ l'IA est idle ; ~90% du gain = déplacer les pods CPU/RAM, commun à tous les sc
   → **Un pod stateful ne migre PAS sans déplacer ses données** (le dir hostpath est sur `pc`).
 - **Réseau inter-noeud = 1 GbE** (~125 Mo/s) → **co-localiser les pods data-chatty** ;
   éviter le shuffle cross-noeud (DB↔consumers, S3/DuckLake).
-- Node master actuel = `pc` (control-plane). Nouveau worker = `jeux` (X299).
-- Jeu **rare** → RAM du X299 dispo pour les pods ~99% du temps.
+- Node master actuel = `pc` (control-plane). Nouveau worker = `jeux` (AM4/R5 5500).
+- **RAM = 16 Go au démarrage** (~12 Go utiles pods ; OS+microk8s mangent 3-4) → **contrainte
+  forte** : offloader d'abord les pods **légers**, **s'arrêter quand la RAM se remplit**. Passer
+  à **32 Go débloque les vagues 3-4** (mlflow/openwebui/DBs). Vérifier les requests RAM avant chaque move.
+- Jeu **rare** → RAM dispo pour les pods ~99% du temps (plafond 16 Go tant que pas upgradé).
 
 ## Cible
 | Noeud | Rôle | Garde |
 |---|---|---|
 | `pc` (i5, 3060, 62 Go) | master + **LocalAI/GPU** + station dev + ingress (Traefik) + control-plane | infra système |
-| `jeux` (7820X, 1050 Ti, →64 Go) | **worker** : pods CPU/RAM offloadés + jeu sporadique | — |
+| `jeux` (R5 5500 6c/12t, 1050 Ti, 16→32 Go) | **worker** : pods CPU/RAM offloadés + jeu sporadique + **transcode NVENC jellyfin** (1050 Ti) | — |
 
 ## Phase 0 — Prérequis (avant tout pod)
-1. X299 monté + Ubuntu Server 24.04 + rôles `desktop`/`gaming` (déjà écrits) → PC de jeu OK.
-2. **+DDR4 → 64 Go** (host des pods).
+1. AM4 monté (B550M K + R5 5500 + 1050 Ti + SSD + 2 To SATA) + Ubuntu Server 24.04 + rôles `desktop`/`gaming` → OK.
+2. **+DDR4 → 32 Go** (16 au démarrage ; 32 = prérequis vagues 3-4).
+   - **Stockage** : pas de gros NVMe (au mieux un petit 240 Go). → mettre le **root hostpath microk8s
+     + les dirs rsync (configs/DBs SQLite)** sur le **SSD** (perf DB) ; le **SATA 2 To** = bulk/local
+     (scratch downloads si besoin — le média reste sur le NAS NFS).
 3. **Join worker** : sur `pc` `microk8s add-node` → sur `jeux` la commande `microk8s join …`.
    (Rôle `k8s-node-bootstrap` : variante worker — pas de re-bootstrap control-plane.)
 4. **Label** le worker pour le scheduling ciblé :
@@ -55,7 +66,7 @@ Storage → méthode de migration :
 | `hermes` (crw, lightpanda) | stateless | nodeSelector | jeux | 1 |
 | `piped` | hostpath 2Gi | rsync+pin | jeux | 1 |
 | `cv` (qdrant 10Gi + web) | hostpath | rsync+pin, co-loc | jeux | 2 |
-| **`selfhost`** (*arr : sonarr/radarr/prowlarr/qbittorrent/jellyfin/seerr/cross-seed/cleanuparr/configarr/suggestarr) | 14× hostpath **petits** (config 1-2Gi) + **media NFS 5Ti** | rsync configs + pin **tout le ns ensemble** (data-chatty + NFS partagé) | jeux | 2 |
+| **`selfhost`** (*arr sonarr/radarr/prowlarr/qbittorrent/seerr/cross-seed/cleanuparr/configarr/suggestarr + **jellyfin**) | ~12× hostpath **petits** (config 1-2Gi, jellyfin 10Gi) + **media NFS 5Ti** | rsync configs + pin **tout le ns ensemble** (data-chatty + NFS partagé). ⚠️ **NE PAS convertir en NFS** (sonarr/radarr/prowlarr/jellyfin = **SQLite** → corruption sur NFS) → hostpath rsync+pin obligatoire. **jellyfin + 1050 Ti = transcode NVENC** (passthrough GPU au pod via nvidia-container-toolkit, PAS gpu-operator). | jeux | 2 |
 | `openwebui` (10Gi+2Gi) | hostpath | rsync+pin (upstream = LocalAI sur pc → **trafic cross-noeud 1GbE**, acceptable, chat léger) | jeux | 3 |
 | `ia-lab` (mlflow 10Gi, rustfs 20Gi+2Gi) | hostpath | rsync+pin, **co-loc mlflow+rustfs** (S3) | jeux | 3 |
 | `dagster` (postgres 8Gi + models 5Gi) | hostpath DB | rsync+pin à froid, **co-loc postgres+runners** | jeux | 4 |
@@ -114,8 +125,10 @@ de la marge). Si session lourde : optionnel
 kubectl cordon jeux        # + scaler les pods non-critiques, ou rien
 # après: kubectl uncordon jeux
 ```
-Vu la fréquence, probablement **rien à faire** (limits suffisent). Pas de GPU k8s sur `jeux`
-(1050 Ti = jeu only).
+Vu la fréquence, probablement **rien à faire** (limits suffisent). Le **1050 Ti** sert au jeu
+**et au transcode NVENC de jellyfin** (device passthrough au pod jellyfin via nvidia-container-toolkit
+— PAS le gpu-operator/time-slicing lourd, réservé au 3060 sur `pc`). Aucun scheduling GPU ML sur `jeux`
+(4 Go Pascal = inutile en ML).
 
 ## Rollback (par pod)
 1. Git : retirer `nodeSelector` (revert commit) → ArgoCD reschedule sur `pc`.
