@@ -401,6 +401,23 @@ spec:
                     timeout: 60
                     connect_timeout: 10
                     enabled: true
+                  # txtai — second-brain : recherche sémantique sur les transcripts Claude
+                  # Code (index txtai in-cluster, script claude-session-indexer). Transport
+                  # SSE (txtai monte /mcp en SSE, pas streamable-HTTP → transport: sse requis).
+                  # Token via ${TXTAI_MCP_TOKEN} (hermes-secrets, envFrom) → PAS de clair en
+                  # Git (contrairement au bearer arrconf ci-dessus, à migrer #1). On n'expose
+                  # QUE le tool `search` (les add/delete/upsert/index = bloat prompt + risque
+                  # que l'agent modifie/supprime l'index).
+                  txtai:
+                    url: "http://txtai.txtai.svc.cluster.local:8000/mcp"
+                    transport: sse
+                    headers:
+                      Authorization: "Bearer ${TXTAI_MCP_TOKEN}"
+                    tools:
+                      include: ["search_search_get"]
+                    timeout: 60
+                    connect_timeout: 10
+                    enabled: true
                 agent:
                   max_turns: 90
                   gateway_timeout: 1800
