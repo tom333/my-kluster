@@ -38,7 +38,7 @@ def scrub(txt: str) -> str:
 PROJECTS_DIR = Path(os.environ.get("CLAUDE_PROJECTS_DIR", Path.home() / ".claude" / "projects"))
 CHUNK_CHARS = 1500
 CHUNK_OVERLAP = 200
-BATCH = 100
+BATCH = 200
 
 
 def _text_from_content(content) -> str:
@@ -126,10 +126,17 @@ def chunk(text: str) -> list[str]:
 
 def session_to_docs(s: dict) -> list[dict]:
     docs = []
+    # En-tête métadonnées bakée dans le texte : un search "plain" ne renvoie que
+    # {id,text,score} (pas les colonnes). En la mettant dans le texte, Hermes lit
+    # session/projet/date/titre directement dans le résultat → pas de script python.
+    header = (
+        f"[Session Claude Code — projet: {s['project']} · date: {s['date']} · "
+        f"titre: {s['title']} · session_id: {s['session_id']}]"
+    )
     for idx, ch in enumerate(chunk(s["text"])):
         docs.append({
             "id": f"{s['session_id']}:{idx:04d}",
-            "text": ch,
+            "text": f"{header}\n\n{ch}",
             "session_id": s["session_id"],
             "project": s["project"],
             "date": s["date"],
@@ -145,7 +152,7 @@ def post(url: str, token: str, path: str, payload=None, method="POST"):
     req.add_header("Authorization", f"Bearer {token}")
     if data:
         req.add_header("Content-Type", "application/json")
-    with urllib.request.urlopen(req, timeout=120) as r:
+    with urllib.request.urlopen(req, timeout=900) as r:
         return r.status
 
 
@@ -190,12 +197,15 @@ def main():
         print("TXTAI_URL et TXTAI_TOKEN requis (ou --dry-run)", file=sys.stderr)
         sys.exit(2)
 
+    # Commit INCRÉMENTAL : add + upsert par batch. Chaque upsert n'embed que le
+    # batch bufferisé (txtai merge par id) → commits courts, robuste au timeout,
+    # reprenable. Un seul upsert géant sur 2 cœurs CPU dépasse le timeout client.
     for i in range(0, len(all_docs), BATCH):
         batch = all_docs[i : i + BATCH]
         post(url, token, "/add", batch)
-        print(f"  add {i + len(batch)}/{len(all_docs)}")
-    post(url, token, "/upsert", method="GET")
-    print("upsert OK — index persisté.")
+        post(url, token, "/upsert", method="GET")
+        print(f"  indexed {i + len(batch)}/{len(all_docs)}")
+    print("index persisté (incrémental).")
 
 
 if __name__ == "__main__":
