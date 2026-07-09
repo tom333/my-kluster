@@ -18,6 +18,7 @@ applications:
     syncPolicy:
       syncOptions:
         - CreateNamespace=true
+        - ServerSideApply=true
   applications:
     namespace: argocd
     additionalAnnotations:

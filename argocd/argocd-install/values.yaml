@@ -1,5 +1,4 @@
 argo-cd:
-  installCRDs: true
   dex:
     enabled: false
   redis-ha:
