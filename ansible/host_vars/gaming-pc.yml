@@ -1,0 +1,30 @@
+---
+# Host-specific overrides for gaming-pc.
+#
+# Matériel (2026-07) : AM4 — Gigabyte B550M K + Ryzen 5 5500 (6c/12t Zen3, PAS d'iGPU)
+# + GeForce GTX 1050 Ti (Pascal) + SSD (OS/pods) + HDD SATA 2 To + 16→32 Go DDR4, 24/7.
+# Remplace le laptop mort (Kepler 920M). Double rôle : worker MicroK8s + frontend jeu/média.
+#
+# Les defaults des rôles desktop/gaming/media-pc étaient tunés pour le laptop
+# (nvidia-470/Kepler, autologin, tint2, hack BT rtl8723, purge snapd). Ici on
+# ré-aligne pour l'AM4. Cf. docs/superpowers/plans/2026-07-11-gaming-node-desktop-pegasus.md
+
+# --- Frontend / session (rôle desktop) ---
+desktop_frontend: pegasus          # UI canapé type Batocera (jeux PC + rétro + Brave + Jellyfin)
+desktop_autologin: false           # login mot de passe (nœud partagé/worker)
+desktop_screenlock: true           # light-locker à l'idle
+
+# --- GPU 1050 Ti (Pascal) ---
+# 580 = dernière branche Maxwell/Pascal, MAINTENUE pour les kernels récents
+# (≠ 470 Kepler, gelé). Pas de contrainte de pin kernel.
+desktop_nvidia_driver: nvidia-driver-580
+desktop_hold_hwe_kernel: false
+gaming_nvidia_gl_i386_package: "libnvidia-gl-580:i386"
+
+# --- Worker MicroK8s ---
+desktop_purge_snapd: false         # ⚠️ MicroK8s = snap : NE PAS purger snapd
+
+# --- Hacks laptop désactivés (matériel différent) ---
+gaming_blacklist_rtl8723_wifi: false     # carte WiFi/BT ≠ laptop
+gaming_btusb_disable_autosuspend: false
+# media_xinput_disable_devices : plus de touchpad -> default [] (retiré de l'inventaire)

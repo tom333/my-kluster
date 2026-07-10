@@ -90,14 +90,12 @@ all:
     media_pcs:
       hosts:
         gaming-pc:
-          # Filaire (enp2s0f2). WiFi désactivé (coexistence 2.4GHz buggue le BT)
-          # → IP DHCP non garantie ; mDNS jeux.local stable tant qu'avahi répond.
+          # AM4 (B550M K + R5 5500 + 1050 Ti), 24/7, filaire. Remplace le laptop mort.
+          # Overrides matériel/rôles dans host_vars/gaming-pc.yml.
+          # mDNS jeux.local (IP DHCP non fixe ; avahi).
           ansible_host: jeux.local
           ansible_user: moi
           beszel_arch: amd64
-          # Per-host: touchpad cassé Raydium à désactiver au login graphique
-          media_xinput_disable_devices:
-            - "Raydium Corporation Raydium Touch System"
         # work-laptop : réutilise les vars définies dans dev_workstations
         work-laptop: {}
 
