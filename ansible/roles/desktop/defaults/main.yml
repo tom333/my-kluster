@@ -19,8 +19,19 @@ desktop_install_brave: true
 desktop_install_audio: true        # pipewire + wireplumber
 desktop_install_bluetooth: true    # bluez + blueman + BT audio
 
-# CPU governor — i3-5005U brides en powersave par défaut ; performance pour le jeu/vidéo.
+# CPU tuning.
+# desktop_force_cpu_governor: force scaling_governor (bon pour Intel qui bride en
+#   powersave). Sur AMD Zen3 (amd_pstate=active) METTRE false : le gouverneur
+#   "powersave" y est dynamique (rampe à fond sous charge) — forcer performance
+#   24/7 = chaleur/conso inutiles sur un nœud mostly-idle.
+desktop_force_cpu_governor: true
 desktop_cpu_governor: "performance"
+# desktop_cpu_epp: energy_performance_preference (amd_pstate active uniquement).
+#   "" = ne pas toucher. "performance" = perf max sous charge + idle sain.
+desktop_cpu_epp: ""
+# nvidia-patch : retire la limite de sessions NVENC (cartes GTX = 3-5). Optionnel,
+#   à ré-appliquer après chaque MAJ driver. Défaut off (biblio maison = souvent OK).
+desktop_nvenc_unlimited: false
 
 # --- Optimisations Ubuntu (dé-bloat serveur/cloud + perf) ---
 desktop_purge_snapd: true            # aucun snap utilisé (Brave/Lutris/jeux = deb/AppImage/flatpak)

@@ -36,3 +36,14 @@ k8s_node_role: "master"
 # Worker : hôte master (nom d'inventaire) d'où déléguer la génération du token
 # de join. Défaut = 1er hôte du groupe k8s_nodes.
 k8s_join_master_host: "{{ groups['k8s_nodes'][0] | default('k8s-node') }}"
+
+# Worker : tuning kubelet pour un nœud à RAM limitée qui joue parfois.
+# Seuils d'éviction plus hauts que le défaut (100Mi = trop tard) + réserve système
+# (garde RAM/CPU pour la session graphique/jeu). Args MicroK8s kubelet.
+k8s_worker_kubelet_tuning: true
+k8s_worker_kubelet_args:
+  eviction-hard: "memory.available<500Mi,nodefs.available<10%"
+  eviction-soft: "memory.available<1Gi"
+  eviction-soft-grace-period: "memory.available=2m"
+  eviction-minimum-reclaim: "memory.available=300Mi"
+  system-reserved: "memory=1Gi,cpu=500m"

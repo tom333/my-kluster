@@ -1,0 +1,20 @@
+---
+# nvidia-patch — retire la limite de sessions NVENC des cartes GTX (3-5 par défaut).
+# Outil communautaire keylase/nvidia-patch. À RÉ-APPLIQUER après chaque MAJ du driver.
+# Opt-in (desktop_nvenc_unlimited). Utile si plusieurs transcodes Jellyfin simultanés.
+
+- name: Récupérer nvidia-patch (keylase)
+  ansible.builtin.get_url:
+    url: https://raw.githubusercontent.com/keylase/nvidia-patch/master/patch.sh
+    dest: /usr/local/sbin/nvidia-patch.sh
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Appliquer le patch NVENC (idempotent — le script skip si déjà patché)
+  ansible.builtin.command: /usr/local/sbin/nvidia-patch.sh
+  register: nvenc_patch
+  changed_when: "'Patched' in (nvenc_patch.stdout | default('')) or 'patched' in (nvenc_patch.stdout | default(''))"
+  failed_when:
+    - nvenc_patch.rc != 0
+    - "'already' not in (nvenc_patch.stdout | default('') ~ nvenc_patch.stderr | default(''))"

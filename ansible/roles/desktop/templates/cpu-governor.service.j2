@@ -1,14 +1,14 @@
-# Managed by Ansible (desktop role). Force CPU governor at boot.
-# i3-5005U (intel_pstate) bride en powersave par défaut -> {{ desktop_cpu_governor }}
-# pour la vidéo/jeu. Pas de paquet (cpupower) requis : echo direct dans sysfs.
+# Managed by Ansible (desktop role). Tuning CPU au boot.
+# Intel : force le gouverneur (bride en powersave sinon).
+# AMD Zen3 (amd_pstate=active) : laisser le gouverneur dynamique, poser l'EPP.
 [Unit]
-Description=Set CPU scaling governor to {{ desktop_cpu_governor }}
+Description=CPU tuning (governor + EPP)
 After=multi-user.target
 
 [Service]
 Type=oneshot
-ExecStart=/bin/sh -c 'for g in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do echo {{ desktop_cpu_governor }} > "$g"; done'
 RemainAfterExit=yes
+ExecStart=/bin/sh -c '{% if desktop_force_cpu_governor | bool %}for g in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do echo {{ desktop_cpu_governor }} > "$g"; done; {% endif %}{% if desktop_cpu_epp | length > 0 %}for e in /sys/devices/system/cpu/cpu*/cpufreq/energy_performance_preference; do echo {{ desktop_cpu_epp }} > "$e" 2>/dev/null || true; done; {% endif %}true'
 
 [Install]
 WantedBy=multi-user.target

@@ -1,0 +1,15 @@
+---
+# Worker : tuning kubelet (éviction + réserve système) pour nœud RAM-limité + jeu.
+# MicroK8s lit les args kubelet dans /var/snap/microk8s/current/args/kubelet.
+
+- name: Set kubelet args (éviction + system-reserved)
+  ansible.builtin.lineinfile:
+    path: /var/snap/microk8s/current/args/kubelet
+    regexp: "^--{{ item.key }}="
+    line: "--{{ item.key }}={{ item.value }}"
+    state: present
+    create: false
+  loop: "{{ k8s_worker_kubelet_args | dict2items }}"
+  loop_control:
+    label: "{{ item.key }}"
+  notify: restart microk8s kubelite

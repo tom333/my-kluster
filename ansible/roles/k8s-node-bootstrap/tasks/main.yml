@@ -34,3 +34,10 @@
 - ansible.builtin.import_tasks: 45_worker_join.yml
   tags: [bootstrap, worker]
   when: k8s_node_role == 'worker'
+
+# Worker : tuning kubelet (éviction RAM + réserve système).
+- ansible.builtin.import_tasks: 46_worker_kubelet_tuning.yml
+  tags: [bootstrap, worker, kubelet]
+  when:
+    - k8s_node_role == 'worker'
+    - k8s_worker_kubelet_tuning | bool

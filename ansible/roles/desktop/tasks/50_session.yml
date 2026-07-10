@@ -36,19 +36,34 @@
     update_cache: false
   when: desktop_screenlock | bool
 
-- name: CPU governor service (performance)
+- name: CPU tuning service (governor + EPP au boot)
   ansible.builtin.template:
     src: cpu-governor.service.j2
     dest: /etc/systemd/system/cpu-governor.service
     owner: root
     group: root
     mode: '0644'
+  when: desktop_force_cpu_governor | bool or (desktop_cpu_epp | length > 0)
   notify: reload systemd (desktop)
 
-- name: Enable + start CPU governor service
+- name: Enable + start CPU tuning service
   ansible.builtin.systemd:
     name: cpu-governor.service
     enabled: true
     state: started
     daemon_reload: true
-  when: not ansible_check_mode
+  when:
+    - desktop_force_cpu_governor | bool or (desktop_cpu_epp | length > 0)
+    - not ansible_check_mode
+
+- name: Remove CPU tuning service if disabled (AMD amd_pstate active gère seul)
+  ansible.builtin.systemd:
+    name: cpu-governor.service
+    enabled: false
+    state: stopped
+    masked: false
+  failed_when: false
+  when:
+    - not (desktop_force_cpu_governor | bool)
+    - desktop_cpu_epp | length == 0
+    - not ansible_check_mode

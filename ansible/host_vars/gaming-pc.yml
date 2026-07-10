@@ -14,6 +14,11 @@ desktop_frontend: pegasus          # UI canapé type Batocera (jeux PC + rétro 
 desktop_autologin: false           # login mot de passe (nœud partagé/worker)
 desktop_screenlock: true           # light-locker à l'idle
 
+# --- CPU (Ryzen 5 5500 Zen3, amd_pstate=active) ---
+desktop_force_cpu_governor: false  # ne PAS forcer performance 24/7 (amd_pstate dynamique)
+desktop_cpu_epp: performance       # EPP perf : max sous charge (jeu/pods) + idle sain
+# desktop_nvenc_unlimited: true    # décommenter si transcodes Jellyfin simultanés >3
+
 # --- GPU 1050 Ti (Pascal) ---
 # 580 = dernière branche Maxwell/Pascal, MAINTENUE pour les kernels récents
 # (≠ 470 Kepler, gelé). Pas de contrainte de pin kernel.

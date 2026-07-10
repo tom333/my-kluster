@@ -6,3 +6,11 @@
 - name: reload systemd (k8s-node-bootstrap)
   ansible.builtin.systemd:
     daemon_reload: true
+
+# Recharge les args kubelet (worker). Redémarre kubelite → brève coupure des pods
+# du nœud (acceptable au provisioning).
+- name: restart microk8s kubelite
+  ansible.builtin.systemd:
+    name: snap.microk8s.daemon-kubelite
+    state: restarted
+  when: not ansible_check_mode

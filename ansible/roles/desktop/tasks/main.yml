@@ -11,6 +11,10 @@
 - ansible.builtin.import_tasks: 20_nvidia.yml
   tags: [desktop, nvidia]
 
+- ansible.builtin.import_tasks: 25_nvenc_patch.yml
+  tags: [desktop, nvidia, nvenc]
+  when: desktop_nvenc_unlimited | bool
+
 - ansible.builtin.import_tasks: 30_brave.yml
   tags: [desktop, brave]
   when: desktop_install_brave | bool
