@@ -34,8 +34,18 @@ desktop_grub_timeout: 2
 # PC enfant isolé LAN sans données sensibles).
 desktop_disable_cpu_mitigations: true
 
+# Session frontend : 'tint2' (barre + launchers) ou 'pegasus' (frontend canapé type Batocera).
+desktop_frontend: "tint2"
+# Autologin (kid) vs login mot de passe (défaut = mdp, requis pour un nœud partagé).
+desktop_autologin: false
+# Verrou écran à l'idle (light-locker) — protège au-delà du login initial.
+desktop_screenlock: false
+
 # tint2 launchers (.desktop basenames in /usr/share/applications or ~/.local/share/applications).
 desktop_launchers:
   - net.lutris.Lutris
   - com.github.iwalton3.jellyfin-media-player
   - brave-browser
+
+# Pegasus frontend (build stable weekly, x11-static self-contained, URL stable).
+desktop_pegasus_url: "https://github.com/mmatyas/pegasus-frontend/releases/download/weekly_2024w38/pegasus-fe_alpha16-82-gc3462e68_x11-static.zip"

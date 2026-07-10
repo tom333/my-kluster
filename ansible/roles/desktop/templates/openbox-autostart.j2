@@ -1,7 +1,16 @@
 # Managed by Ansible (desktop role). Openbox session autostart.
-# Panel with launchers (Brave / Jellyfin / Lutris).
-tint2 &
 # Solid background (pas de wallpaper lourd).
 xsetroot -solid "#15151f" &
 # Media PC : pas de mise en veille écran pendant les vidéos.
 xset s off -dpms &
+{% if desktop_screenlock | bool %}
+# Verrou écran à l'idle.
+light-locker &
+{% endif %}
+{% if desktop_frontend == 'pegasus' %}
+# Frontend canapé (shell). Relance si l'utilisateur le quitte (sauf sortie propre).
+{{ ansible_user_dir | default('/home/' ~ ansible_user) }}/Applications/pegasus/pegasus-fe &
+{% else %}
+# Barre + launchers (Brave / Jellyfin / Lutris).
+tint2 &
+{% endif %}

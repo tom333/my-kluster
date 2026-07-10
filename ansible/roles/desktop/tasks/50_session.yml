@@ -27,6 +27,14 @@
     owner: "{{ ansible_user }}"
     group: "{{ ansible_user }}"
     mode: '0644'
+  when: desktop_frontend == 'tint2'
+
+- name: Install light-locker (verrou écran à l'idle)
+  ansible.builtin.apt:
+    name: light-locker
+    state: present
+    update_cache: false
+  when: desktop_screenlock | bool
 
 - name: CPU governor service (performance)
   ansible.builtin.template:

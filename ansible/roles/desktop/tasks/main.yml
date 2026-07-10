@@ -21,5 +21,9 @@
 - ansible.builtin.import_tasks: 50_session.yml
   tags: [desktop, session]
 
+- ansible.builtin.import_tasks: 55_pegasus.yml
+  tags: [desktop, pegasus]
+  when: desktop_frontend == 'pegasus'
+
 - ansible.builtin.import_tasks: 60_optimisations.yml
   tags: [desktop, optims]

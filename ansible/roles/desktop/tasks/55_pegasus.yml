@@ -1,0 +1,81 @@
+---
+# Pegasus frontend (natif, self-contained x11-static). Shell "canapé" type Batocera.
+# Lance les binaires HÔTE (Lutris/RetroArch/Brave/Jellyfin) -> PAS de Flatpak (sandbox).
+# Providers Lutris + Steam = auto (import de la ludothèque). Rétro = Steam ROM Manager (suivi).
+
+- name: Ensure unzip
+  ansible.builtin.apt:
+    name: unzip
+    state: present
+    update_cache: false
+
+- name: Download + extract Pegasus (self-contained)
+  ansible.builtin.unarchive:
+    src: "{{ desktop_pegasus_url }}"
+    dest: "/home/{{ ansible_user }}/Applications/pegasus"
+    remote_src: true
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    creates: "/home/{{ ansible_user }}/Applications/pegasus/pegasus-fe"
+
+- name: Ensure pegasus-fe executable
+  ansible.builtin.file:
+    path: "/home/{{ ansible_user }}/Applications/pegasus/pegasus-fe"
+    mode: '0755'
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+
+- name: Ensure Pegasus config + apps dirs
+  ansible.builtin.file:
+    path: "/home/{{ ansible_user }}/{{ item }}"
+    state: directory
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: '0755'
+  loop:
+    - .config/pegasus-frontend
+    - Games/apps
+
+- name: Pegasus settings (game dirs + providers Lutris/Steam)
+  ansible.builtin.copy:
+    dest: "/home/{{ ansible_user }}/.config/pegasus-frontend/settings.txt"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: '0644'
+    content: |
+      # Managed by Ansible (desktop role).
+      [general]
+      fullscreen: true
+      [providers]
+      # Lutris + Steam auto-import (ludothèque en tuiles).
+      [game_dirs]
+      /home/{{ ansible_user }}/Games/apps
+
+- name: Apps launch scripts (Brave, Jellyfin)
+  ansible.builtin.copy:
+    dest: "/home/{{ ansible_user }}/Games/apps/{{ item.file }}"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: '0755'
+    content: "#!/bin/sh\nexec {{ item.cmd }} \"$@\"\n"
+  loop:
+    - { file: "brave.sh", cmd: "brave-browser" }
+    - { file: "jellyfin.sh", cmd: "jellyfinmediaplayer" }
+  loop_control:
+    label: "{{ item.file }}"
+
+- name: Pegasus "Applications" collection (Brave + Jellyfin)
+  ansible.builtin.copy:
+    dest: "/home/{{ ansible_user }}/Games/apps/metadata.pegasus.txt"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: '0644'
+    content: |
+      collection: Applications
+      launch: {file.path}
+
+      game: Brave (Web)
+      file: brave.sh
+
+      game: Jellyfin
+      file: jellyfin.sh

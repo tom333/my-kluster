@@ -1,5 +1,5 @@
 ---
-# LightDM + autologin into Openbox (kid -> direct dans la session).
+# LightDM -> Openbox. Autologin (kid) OU login mot de passe (défaut, nœud partagé).
 
 - name: Install LightDM
   ansible.builtin.apt:
@@ -13,27 +13,36 @@
   ansible.builtin.group:
     name: autologin
     state: present
+  when: desktop_autologin | bool
 
 - name: Add user to autologin (+ nopasswdlogin) groups
   ansible.builtin.user:
     name: "{{ ansible_user }}"
     groups: autologin,nopasswdlogin
     append: true
+  when: desktop_autologin | bool
 
-- name: Configure LightDM autologin -> Openbox
+- name: Configure LightDM (session Openbox ; autologin selon toggle)
   ansible.builtin.copy:
-    dest: /etc/lightdm/lightdm.conf.d/50-autologin.conf
+    dest: /etc/lightdm/lightdm.conf.d/50-session.conf
     owner: root
     group: root
     mode: '0644'
     content: |
       # Managed by Ansible (desktop role).
       [Seat:*]
+      user-session=openbox
+      {% if desktop_autologin | bool %}
       autologin-user={{ ansible_user }}
       autologin-user-timeout=0
       autologin-session=openbox
-      user-session=openbox
+      {% endif %}
   notify: restart lightdm
+
+- name: Remove legacy autologin drop-in (renamed)
+  ansible.builtin.file:
+    path: /etc/lightdm/lightdm.conf.d/50-autologin.conf
+    state: absent
 
 - name: Set graphical target as default boot
   ansible.builtin.command: systemctl set-default graphical.target
