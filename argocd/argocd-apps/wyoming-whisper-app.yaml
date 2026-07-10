@@ -24,7 +24,7 @@ spec:
               main:
                 image:
                   repository: rhasspy/wyoming-whisper
-                  tag: "3.4.1"
+                  tag: "3.5.0"
                   pullPolicy: IfNotPresent
                 args:
                   - "--model"
