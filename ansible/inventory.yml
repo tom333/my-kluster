@@ -106,6 +106,12 @@ all:
       hosts:
         gaming-pc: {}
 
+    # Workers MicroK8s — rejoignent le cluster du master `pc` (k8s_node_role=worker
+    # en host_vars). gaming-pc = worker 24/7 qui offload les pods CPU/RAM.
+    k8s_workers:
+      hosts:
+        gaming-pc: {}
+
   hosts:
     # Machines monitorées uniquement — reçoivent seulement beszel-agent.
     # Décommenter et adapter quand une machine est ajoutée.

@@ -4,7 +4,8 @@
 # - dev_workstations : CLI tools + dev tooling + monitoring
 # - voice_satellites : Linux-Voice-Assistant (docker, ESPHome protocol) — tag `voice`
 # - media_pcs : Jellyfin client + gaming optims + xinput disable
-# - gaming_pcs : bureau minimal (Openbox/nvidia-470, tag `desktop`) + jeux (tag `games`)
+# - gaming_pcs : bureau minimal (Openbox/nvidia, tag `desktop`) + jeux (tag `games`)
+# - k8s_workers : join cluster MicroK8s en worker + nvidia container-toolkit (tag `worker`)
 # - pihole_hosts : monitoring + weekly upgrade + custom DNS
 # - libreelec_hosts : appliance-friendly monitoring (no apt, paths under /storage)
 # - others : just monitoring (vanilla apt + beszel-agent)
@@ -79,9 +80,24 @@
       ansible.builtin.debug:
         msg: "Gaming play on {{ inventory_hostname }} ({{ ansible_host }}) — arch={{ beszel_arch }}"
   roles:
-    # desktop d'abord : pose Xorg/Openbox/nvidia-470 + active i386 (requis par gaming).
+    # desktop d'abord : pose Xorg/Openbox/nvidia + active i386 (requis par gaming).
     - { role: desktop, tags: [desktop] }
     - { role: gaming, tags: [games] }
+
+- name: k8s worker nodes — join cluster + NVIDIA container-toolkit
+  # Après les plays media/gaming : le driver nvidia est posé par le rôle desktop
+  # (20_nvidia de k8s-node-bootstrap ne fait que VÉRIFIER le driver présent).
+  hosts: k8s_workers
+  become: true
+  gather_facts: true
+  vars_files:
+    - group_vars/vault.yml
+  pre_tasks:
+    - name: Show host info
+      ansible.builtin.debug:
+        msg: "k8s worker play on {{ inventory_hostname }} ({{ ansible_host }}) — role={{ k8s_node_role | default('?') }}"
+  roles:
+    - { role: k8s-node-bootstrap, tags: [worker, bootstrap] }
 
 - name: PiHole boxes — monitoring + weekly core update + custom DNS
   hosts: pihole_hosts
@@ -116,7 +132,7 @@
     - kodi-backup
 
 - name: Deploy Beszel agents on other monitored machines
-  hosts: all:!k8s_nodes:!dev_workstations:!media_pcs:!gaming_pcs:!libreelec_hosts:!pihole_hosts
+  hosts: all:!k8s_nodes:!dev_workstations:!media_pcs:!gaming_pcs:!k8s_workers:!libreelec_hosts:!pihole_hosts
   become: true
   gather_facts: true
   vars_files:

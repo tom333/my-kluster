@@ -1,0 +1,46 @@
+---
+# Rejoint le cluster MicroK8s existant en tant que WORKER.
+# Le token de join est éphémère (non commitable) → généré à la volée sur le
+# master (delegate_to) puis consommé ici. Idempotent : skip si déjà membre.
+
+- name: Vérifier si le nœud est déjà dans le cluster (depuis le master)
+  ansible.builtin.command: "/snap/bin/microk8s kubectl get node {{ ansible_hostname }} --no-headers"
+  delegate_to: "{{ k8s_join_master_host }}"
+  register: worker_node_check
+  changed_when: false
+  failed_when: false
+  check_mode: false
+
+- name: Générer un token de join (sur le master, TTL 1h)
+  ansible.builtin.command: /snap/bin/microk8s add-node --token-ttl 3600 --format json
+  delegate_to: "{{ k8s_join_master_host }}"
+  register: join_token
+  changed_when: false
+  check_mode: false
+  when: worker_node_check.rc != 0
+
+- name: Extraire l'URL de join
+  ansible.builtin.set_fact:
+    k8s_join_url: "{{ (join_token.stdout | from_json).urls[0] }}"
+  when: worker_node_check.rc != 0
+
+- name: Rejoindre le cluster en worker
+  ansible.builtin.command: "/snap/bin/microk8s join {{ k8s_join_url }} --worker"
+  register: join_result
+  changed_when: true
+  failed_when:
+    - join_result.rc != 0
+    - "'already known to dqlite' not in (join_result.stderr | default(''))"
+  when: worker_node_check.rc != 0
+
+- name: Attendre microk8s prêt (post-join)
+  ansible.builtin.command: /snap/bin/microk8s status --wait-ready --timeout=180
+  changed_when: false
+  check_mode: false
+  when: worker_node_check.rc != 0
+
+- name: Labelliser le worker (workload=offload, depuis le master)
+  ansible.builtin.command: "/snap/bin/microk8s kubectl label node {{ ansible_hostname }} workload=offload --overwrite"
+  delegate_to: "{{ k8s_join_master_host }}"
+  changed_when: true
+  when: not ansible_check_mode

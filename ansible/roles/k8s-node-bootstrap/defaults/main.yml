@@ -28,3 +28,11 @@ gpu_enabled: true
 
 # Hostname guard (override if you renamed your machine)
 k8s_node_expected_hostname: "pc"
+
+# Rôle du nœud : "master" (mono-node actuel — enable addons + gpu-operator +
+# export kubeconfig) ou "worker" (rejoint le cluster existant : join --worker,
+# pas d'addons ni gpu-operator ni kubeconfig).
+k8s_node_role: "master"
+# Worker : hôte master (nom d'inventaire) d'où déléguer la génération du token
+# de join. Défaut = 1er hôte du groupe k8s_nodes.
+k8s_join_master_host: "{{ groups['k8s_nodes'][0] | default('k8s-node') }}"

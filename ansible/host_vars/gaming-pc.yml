@@ -28,3 +28,9 @@ desktop_purge_snapd: false         # ⚠️ MicroK8s = snap : NE PAS purger snap
 gaming_blacklist_rtl8723_wifi: false     # carte WiFi/BT ≠ laptop
 gaming_btusb_disable_autosuspend: false
 # media_xinput_disable_devices : plus de touchpad -> default [] (retiré de l'inventaire)
+
+# --- Worker MicroK8s (rôle k8s-node-bootstrap variante worker) ---
+k8s_node_role: worker
+k8s_node_expected_hostname: jeux         # garde-fou hostname (≠ défaut "pc")
+gpu_enabled: true                        # installe nvidia-container-toolkit (NVENC jellyfin)
+# microk8s_channel : hérite du défaut 1.33/stable (DOIT matcher le master)

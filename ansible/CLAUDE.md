@@ -7,8 +7,8 @@ Guide concis pour agents IA travaillant dans ce dossier. Pour la doc humaine, vo
 ```
 ansible/
 ├── ansible.cfg                  # config Ansible globale (host_key_checking off, etc.)
-├── inventory.yml                # groupes : k8s_nodes / dev_workstations / media_pcs / gaming_pcs / libreelec_hosts / pihole_hosts / voice_satellites / routeros_hosts
-├── playbook.yml                 # 8 plays (1 par groupe + 1 catch-all pour Beszel-only)
+├── inventory.yml                # groupes : k8s_nodes / k8s_workers / dev_workstations / media_pcs / gaming_pcs / libreelec_hosts / pihole_hosts / voice_satellites / routeros_hosts
+├── playbook.yml                 # 9 plays (1 par groupe + 1 catch-all pour Beszel-only)
 ├── group_vars/
 │   ├── all.yml                  # vars non-sensibles globales (refs vault, age pubkey)
 │   └── vault.yml                # Ansible Vault — token Telegram, pubkey SSH Beszel hub
@@ -17,7 +17,7 @@ ansible/
     ├── beszel-agent/            # Beszel agent apt-based
     ├── beszel-agent-libreelec/  # Beszel agent LibreELEC (paths /storage/...)
     ├── sealed-secrets-backup/   # backup quotidien age vers NAS
-    ├── k8s-node-bootstrap/      # provisioning k8s host (NVIDIA, NFS, MicroK8s, addons)
+    ├── k8s-node-bootstrap/      # provisioning k8s host. `k8s_node_role`: master (addons+gpu-operator+kubeconfig) OU worker (join cluster + toolkit NVENC, pas d'addons). Token join généré à la volée (delegate_to master, éphémère). gaming-pc=worker.
     ├── dev-workstation/         # pipx + uv/ruff + VS Code + wezterm + lazygit + chezmoi + nerd-fonts + git config
     ├── media-pc/                # Jellyfin client + gamemode + sysctl + xinput autostart
     ├── desktop/                 # Ubuntu Server 24.04 -> bureau mini : Xorg+Openbox+LightDM autologin, nvidia-470 (kernel GA pinné), Brave, tint2, gouverneur CPU perf

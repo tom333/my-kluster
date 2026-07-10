@@ -1,10 +1,12 @@
 ---
 # k8s-node-bootstrap — idempotent OS + MicroK8s setup.
 # Decomposed by concern. Use --tags <name> to run partial sections.
+# k8s_node_role: "master" (mono-node : addons + gpu-operator) ou "worker" (join).
 
 - ansible.builtin.import_tasks: 00_preflight.yml
   tags: [bootstrap, preflight]
 
+# NVIDIA : check driver + container-toolkit. Worker : requis pour NVENC jellyfin.
 - ansible.builtin.import_tasks: 20_nvidia.yml
   tags: [bootstrap, nvidia]
   when: gpu_enabled | default(true)
@@ -12,9 +14,23 @@
 - ansible.builtin.import_tasks: 30_filesystem.yml
   tags: [bootstrap, filesystem]
 
-- ansible.builtin.import_tasks: 40_microk8s.yml
+# Install snap microk8s + wait-ready (partagé master + worker).
+- ansible.builtin.import_tasks: 35_microk8s_install.yml
   tags: [bootstrap, microk8s]
 
+# Master : enable addons + export kubeconfig.
+- ansible.builtin.import_tasks: 40_microk8s.yml
+  tags: [bootstrap, microk8s]
+  when: k8s_node_role == 'master'
+
+# Master : gpu-operator (worker = pas de gpu-operator ; NVENC jellyfin = décision séparée).
 - ansible.builtin.import_tasks: 50_gpu_operator.yml
   tags: [bootstrap, gpu_operator]
-  when: gpu_enabled | default(true)
+  when:
+    - gpu_enabled | default(true)
+    - k8s_node_role == 'master'
+
+# Worker : rejoint le cluster existant + label workload=offload.
+- ansible.builtin.import_tasks: 45_worker_join.yml
+  tags: [bootstrap, worker]
+  when: k8s_node_role == 'worker'
