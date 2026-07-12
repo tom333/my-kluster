@@ -1,0 +1,16 @@
+# PriorityClass haute pour LocalAI (charge GPU+MoE prioritaire du homelab).
+# But : sur le nœud mono chroniquement sur-souscrit en requests CPU, garantir que
+# LocalAI schedule TOUJOURS — le scheduler préempte un pod de priorité défaut (0)
+# pour lui faire de la place. Fini le "Pending Insufficient cpu" après reboot.
+#
+# value=100000 : au-dessus du défaut (0), TRÈS en dessous de system-cluster-critical
+# (2000000000) et system-node-critical → LocalAI n'évince JAMAIS coredns/traefik/kubelet,
+# seulement des apps user idle (jellyfin, rustfs…), qui reschedulent quand du CPU se libère.
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: localai-high
+value: 100000
+globalDefault: false
+preemptionPolicy: PreemptLowerPriority
+description: "LocalAI (GPU+MoE) — préempte les pods user idle pour toujours scheduler sur le nœud mono."

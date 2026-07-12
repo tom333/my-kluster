@@ -22,6 +22,9 @@ spec:
       annotations:
         checksum/models-config: {{ include (print $.Template.BasePath "/configmap-models.yaml") . | sha256sum }}
     spec:
+      {{- with .Values.priorityClassName }}
+      priorityClassName: {{ . }}
+      {{- end }}
       {{- if .Values.runtimeClassName }}
       runtimeClassName: {{ .Values.runtimeClassName }}
       {{- end }}
