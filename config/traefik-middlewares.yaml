@@ -127,6 +127,19 @@ spec:
     address: http://oauth2-proxy.kube-system.svc.cluster.local/
     trustForwardHeader: true
     authResponseHeaders: ["X-Auth-Request-User", "X-Auth-Request-Email", "Authorization"]
+---
+# ns brain : SilverBullet (brain.tgu.ovh) — vault second-brain, PUBLIC hors-LAN
+# (pas de lan-only : accès distant voulu), gate GitHub obligatoire avant tout accès.
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: oauth2-forwardauth
+  namespace: brain
+spec:
+  forwardAuth:
+    address: http://oauth2-proxy.kube-system.svc.cluster.local/
+    trustForwardHeader: true
+    authResponseHeaders: ["X-Auth-Request-User", "X-Auth-Request-Email", "Authorization"]
 
 # ─── Sablier scale-to-zero (Phase 6) ─────────────────────────────────────────
 # Attaché à l'ingress du service candidat. names=deployment_<ns>_<nom>_<replicas>.
