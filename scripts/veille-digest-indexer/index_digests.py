@@ -127,3 +127,10 @@ def main():
 
 if __name__ == "__main__":
     main()
+    # Greffe : indexe aussi les conversations Telegram (best-effort, non-bloquant).
+    # Le cron no_agent digest-indexer relit ce script à chaque tick → pas de restart.
+    try:
+        import subprocess as _sp, os as _o
+        _sp.run([sys.executable, _o.path.join(_o.path.dirname(_o.path.abspath(__file__)), "index_telegram.py")], timeout=600)
+    except Exception as _e:
+        print(f"WARN telegram indexer: {_e}", file=sys.stderr)
