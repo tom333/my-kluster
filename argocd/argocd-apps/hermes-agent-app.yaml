@@ -139,7 +139,7 @@ spec:
               install-py-extras:
                 image:
                   repository: nousresearch/hermes-agent
-                  tag: "v2026.7.7.2"
+                  tag: "v2026.7.20"
                   pullPolicy: IfNotPresent
                 command: ["sh", "-c"]
                 args:
@@ -183,10 +183,10 @@ spec:
               main:
                 image:
                   repository: nousresearch/hermes-agent
-                  # Date-scheme tags. v2026.7.7.2 = latest stable, post "Surface
+                  # Date-scheme tags. v2026.7.20 = latest stable, post "Surface
                   # Release" (v2026.6.5) which shipped the full admin dashboard.
                   # Renovate can track docker tags for this image.
-                  tag: "v2026.7.7.2"
+                  tag: "v2026.7.20"
                   pullPolicy: IfNotPresent
                 # Keep the image's s6 entrypoint; pass `gateway run` as args so the
                 # gateway runs AND s6 supervises the dashboard (HERMES_DASHBOARD=1).
