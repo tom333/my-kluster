@@ -25,9 +25,18 @@ Les **2 goulots** traités : CPU par le swap (6t→12t), RAM par l'**offload** d
 - [x] fstab `/media/data` en **UUID** (fait).
 - [ ] **Burn-in B550M-K + 5500** : boot USB jetable → **memtest86** (2×32 en DOCP) + `stress-ng --cpu $(nproc) --timeout 1h`. CM/RAM instable sous charge = corruption cluster. **Ne pas mettre les disques prod avant OK.**
 - [ ] **Noter la MAC** de la NIC B550M-K (pendant le burn-in : `ip link`).
-- [ ] **Plan réseau `.250`** : déterminer si `.250` = statique NM ou **réservation DHCP MikroTik (par MAC)**.
-  - statique NM → recréer le profil sur la nouvelle NIC (IP .250/24, GW 192.168.88.1, DNS, **ipv6 disabled** = re-appliquer le fix kicker).
-  - réservation MikroTik → **mettre à jour la réservation vers la nouvelle MAC**.
+- [x] **Plan réseau `.250` déterminé** : **statique NetworkManager** (profil "Connexion filaire 1",
+  `ipv4.method manual` 192.168.88.250/24, GW .1, DNS 8.8.8.8, `ipv6.method disabled` = fix kicker).
+  **Lié au nom d'IF `enp3s0`, PAS à la MAC** → nouvelle NIC = nouveau nom → profil orphelin.
+  Pas de réservation MikroTik (aucun lease) → rien à toucher au routeur.
+  **Fix post-swap** (nom via `ip -o link`) :
+  ```
+  sudo nmcli con add type ethernet ifname <NEW_NIC> con-name station \
+    ipv4.method manual ipv4.addresses 192.168.88.250/24 \
+    ipv4.gateway 192.168.88.1 ipv4.dns 8.8.8.8 ipv6.method disabled
+  sudo nmcli con up station
+  sudo nmcli con delete "Connexion filaire 1"
+  ```
 - [ ] **Clé live Ubuntu** prête (réparation GRUB/EFI).
 - [ ] **Retrouver le disque du laptop Bodhi mort** (ludothèque Lutris + 32 mondes Minecraft + ROMs) → adaptateur USB pour le brancher au PC jeu au moment de la restauration (cf. `migrate-gaming-pc-home.sh`, source = ce disque, pas sda2).
 
@@ -58,7 +67,8 @@ Down pendant le swap : **cluster + média (jellyfin/*arr) + fabrique IA + dev**.
 3. **Re-plan host_vars Intel** (cf. Phase 7).
 4. `ansible-playbook -i inventory.yml playbook.yml --limit gaming-pc -e ansible_host=<ip> --vault-password-file … --ask-become-pass` → desktop (Pegasus) + gaming + worker.
 5. Reboot. Join worker auto (token délégué au master).
-6. **Restore data** : brancher le disque Bodhi (USB) → adapter `migrate-gaming-pc-home.sh` (source = disque laptop) → ludothèque/mondes/ROMs.
+6. **Restore data** : laptop Bodhi branché + sur le réseau → adapter `migrate-gaming-pc-home.sh`
+   (source = **rsync depuis le host laptop**, pas sda2 local) → ludothèque/mondes/ROMs.
 7. Steam ROM Manager (art rétro Pegasus). Cleanup ES-DE.
 
 ## Phase 6 — Offload pods
@@ -74,7 +84,8 @@ Le PC jeu **redevient Intel** (i5-9400F, intel_pstate) :
 ## Rollback
 Tant que Phase 4 pas verte : remettre les 3 disques + RAM + 3060 sur **l'ancienne CM LGA1151 + i5** (conservée intacte) + ancienne PSU → retour à l'état d'origine. Aucune donnée détruite (disques jamais formatés).
 
-## Points ouverts
-- Disque du laptop Bodhi mort **récupérable** ? (sinon ludothèque/mondes à reconstruire).
-- `.250` = NM statique ou réservation DHCP MikroTik ? (détermine le fix réseau).
-- Boîtier PC jeu accepte la CM LGA1151 (form factor) ?
+## Points ouverts — TOUS réglés (2026-07-24)
+- [x] Données laptop Bodhi : **le laptop sera branché + accessible sur le réseau** → restore via
+  rsync réseau (adapter `migrate-gaming-pc-home.sh` : source = host laptop, pas sda2 local).
+- [x] `.250` = **NM statique lié au nom d'IF** (cf. Phase 0) → recréer le profil NM sur la nouvelle NIC.
+- [x] Boîtier PC jeu accepte la CM LGA1151 : **OK**.
