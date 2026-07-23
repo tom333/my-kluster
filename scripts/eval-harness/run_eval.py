@@ -179,6 +179,87 @@ def score_reasoning(model, tasks):
     return res
 
 
+def _mock_tool(mock, name, args):
+    """Réponse déterministe d'un outil factice → (texte, appel_valide?).
+    Règles par outil : "__eval__" = eval arithmétique sûr de `expression` ;
+    dict = lookup sur la 1re valeur d'argument (fallback clé "*") ; str = réponse fixe."""
+    rule = mock.get(name)
+    if rule is None:
+        return f"ERROR: unknown tool '{name}'", False
+    if rule == "__eval__":
+        expr = str(args.get("expression") or args.get("expr") or "")
+        if not re.fullmatch(r"[0-9+\-*/(). %]+", expr or ""):
+            return "ERROR: invalid expression", True
+        try:
+            return str(eval(expr, {"__builtins__": {}}, {})), True  # charset arith. uniquement
+        except Exception as e:
+            return f"ERROR: {e}", True
+    if isinstance(rule, dict):
+        for v in args.values():
+            if str(v) in rule:
+                return str(rule[str(v)]), True
+        return (str(rule["*"]), True) if "*" in rule else ("ERROR: not found", True)
+    return str(rule), True
+
+
+def _check_answer(text, expect):
+    if text is None:
+        return False, "pas de réponse finale (boucle épuisée/erreur)"
+    c = text.strip()
+    typ, val = expect.get("type", "contains"), expect.get("value")
+    if typ == "contains":
+        return (str(val).lower() in c.lower()), f"final={c[:80]}"
+    if typ == "equals":
+        return (c == str(val)), f"final={c[:80]}"
+    if typ == "numeric":
+        m = re.findall(r"-?\d+(?:\.\d+)?", c)
+        got = m[-1] if m else None
+        return (got is not None and abs(float(got) - float(val)) < 1e-6), f"got={got} exp={val}"
+    return False, f"type expect inconnu: {typ}"
+
+
+def score_agentic(model, tasks):
+    """Boucle multi-tours vs outils factices déterministes : tool_call → résultat
+    canned → tool_call suivant → … → réponse finale. Mesure la vraie capacité
+    agentique (boucle + orchestration d'outils = ce qu'Hermes/opencode exigent),
+    PAS le schéma single-shot de score_toolcall. Cap à max_turns (anti-boucle infinie)."""
+    res = []
+    for t in tasks:
+        msgs = []
+        if t.get("system"):
+            msgs.append({"role": "system", "content": t["system"]})
+        msgs.append({"role": "user", "content": t["user"]})
+        max_turns = t.get("max_turns", 8)
+        tools, mock = t["tools"], t.get("mock", {})
+        calls = bad = 0
+        final = None
+        turn = 0
+        for turn in range(max_turns):
+            r = chat(model, msgs, tools=tools)
+            if r.get("error"):
+                final = None
+                break
+            tcs = r.get("tool_calls") or []
+            if not tcs:
+                final = r.get("content") or ""
+                break
+            msgs.append({"role": "assistant", "content": r.get("content") or None, "tool_calls": tcs})
+            for tc in tcs:
+                fn = tc.get("function", {})
+                try:
+                    args = json.loads(fn.get("arguments") or "{}")
+                except Exception:
+                    args = {}
+                out, valid = _mock_tool(mock, fn.get("name"), args)
+                calls += 1
+                bad += 0 if valid else 1
+                msgs.append({"role": "tool", "tool_call_id": tc.get("id", ""), "content": out})
+        ok, detail = _check_answer(final, t.get("expect", {}))
+        res.append({"id": t["id"], "pass": ok, "turns": turn + 1, "calls": calls,
+                    "bad_calls": bad, "detail": detail})
+    return res
+
+
 def load(name):
     f = HERE / "tasks" / name
     if not f.exists():
@@ -197,7 +278,8 @@ def main():
     if not warmup(args.model):
         print("MODÈLE INJOIGNABLE (warmup échoué) — reject rapide (metrics=0)")
         metrics = {"coding_pass_rate": 0.0, "toolcall_acc": 0.0, "format_acc": 0.0,
-                   "reasoning_acc": 0.0, "mean_tokps": 0.0, "overall": 0.0, "unreachable": 1}
+                   "reasoning_acc": 0.0, "mean_tokps": 0.0, "agentic_success_rate": 0.0,
+                   "agentic_avg_turns": 0.0, "overall": 0.0, "hermes_ready": 0, "unreachable": 1}
         results = {"model": args.model, "tag": args.tag, "metrics": metrics, "unreachable": True}
         outdir = HERE / "results"
         outdir.mkdir(exist_ok=True)
@@ -209,6 +291,7 @@ def main():
     toolcall = score_toolcall(args.model, load("toolcall.jsonl"))
     fmt = score_format(args.model, load("format.jsonl"))
     reasoning = score_reasoning(args.model, load("reasoning.jsonl"))
+    agentic = score_agentic(args.model, load("agentic.jsonl"))
 
     def rate(rs): return sum(1 for r in rs if r["pass"]) / len(rs) if rs else 0.0
     metrics = {
@@ -217,11 +300,19 @@ def main():
         "format_acc": rate(fmt),
         "reasoning_acc": rate(reasoning),
         "mean_tokps": (sum(tokps) / len(tokps)) if tokps else 0.0,
+        # P6 — capacité agentique multi-tours (boucle d'outils). Signal Hermes/opencode.
+        "agentic_success_rate": rate(agentic),
+        "agentic_avg_turns": round(sum(a["turns"] for a in agentic) / len(agentic), 2) if agentic else 0.0,
     }
+    # overall = 4 catégories de BASE uniquement (ne PAS polluer le gate de promotion LocalAI ;
+    # l'agentique est un signal SÉPARÉ pour la décision cerveau-Hermes).
     cats = [metrics["coding_pass_rate"], metrics["toolcall_acc"], metrics["format_acc"], metrics["reasoning_acc"]]
     metrics["overall"] = round(sum(cats) / len(cats), 4)
-    results = {"model": args.model, "tag": args.tag, "metrics": metrics,
-               "coding": coding, "toolcall": toolcall, "format": fmt, "reasoning": reasoning}
+    # Hermes-readiness = seuils ABSOLUS (pas un delta vs ornith) : peut-il tenir une vraie
+    # boucle agentique fiable pour remplacer deepseek-v4-flash comme cerveau Hermes ?
+    metrics["hermes_ready"] = int(metrics["agentic_success_rate"] >= 0.8 and metrics["toolcall_acc"] >= 0.9)
+    results = {"model": args.model, "tag": args.tag, "metrics": metrics, "coding": coding,
+               "toolcall": toolcall, "format": fmt, "reasoning": reasoning, "agentic": agentic}
 
     # Fallback local : toujours écrire results.json (l'artefact S3/MLflow peut échouer
     # faute de creds rustfs — les métriques passent, le détail non).
@@ -230,9 +321,13 @@ def main():
     (outdir / f"{args.model}-{args.tag}.json").write_text(json.dumps(results, indent=2))
 
     print(json.dumps(metrics, indent=2))
-    for cat, rs in [("coding", coding), ("toolcall", toolcall), ("format", fmt), ("reasoning", reasoning)]:
+    for cat, rs in [("coding", coding), ("toolcall", toolcall), ("format", fmt),
+                    ("reasoning", reasoning), ("agentic", agentic)]:
         for r in rs:
-            print(f"  [{cat}] {'✅' if r['pass'] else '❌'} {r['id']}  {r['detail'][:70]}")
+            extra = f" ({r['turns']}t/{r['calls']}c)" if cat == "agentic" else ""
+            print(f"  [{cat}] {'✅' if r['pass'] else '❌'} {r['id']}{extra}  {r['detail'][:70]}")
+    print(f"\n🧠 Hermes-readiness: {'OUI' if metrics['hermes_ready'] else 'NON'} "
+          f"(agentic {metrics['agentic_success_rate']:.0%} ≥80% ET tool {metrics['toolcall_acc']:.0%} ≥90%)")
 
     # MLflow
     try:
