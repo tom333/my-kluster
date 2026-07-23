@@ -122,6 +122,16 @@ spec:
                       echo "yq already installed, skip"
                     fi
 
+                    # yt-dlp : "les mains" YouTube de l'agent (transcripts/subs pour la
+                    # veille). Binaire standalone (embarque python) → pas de dep. Sur $PATH.
+                    if [ ! -x yt-dlp ]; then
+                      echo "Downloading yt-dlp (static, ~30 MB)"
+                      curl -fsSL -o yt-dlp https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux
+                      chmod +x yt-dlp
+                    else
+                      echo "yt-dlp already installed, skip"
+                    fi
+
                     echo "Installed CLI extras:"
                     ls -la /opt/data/.local/bin/
               # Install firecrawl-py into the PVC (consumed via PYTHONPATH on main).
