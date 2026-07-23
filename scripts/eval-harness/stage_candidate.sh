@@ -86,6 +86,8 @@ TMP=$(mktemp)
 
 echo "=== config candidat $NAME ==="; cat "$TMP"
 kubectl cp "$TMP" "$NS/$(POD):/models/${NAME}.yaml" -c localai
+# sauvegarde la config pour promote.sh (P3 : bloc à insérer dans values.yaml)
+mkdir -p "$(dirname "$0")/results"; cp "$TMP" "$(dirname "$0")/results/${NAME}.model.yaml"
 rm -f "$TMP"
 restart_wait
 echo "=== candidat listé ? ==="

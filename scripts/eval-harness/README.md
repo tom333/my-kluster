@@ -44,3 +44,11 @@ artefact `results.json`). Compare candidat vs baseline par requête MLflow.
 ## Roadmap pipeline (P1 = ce harness)
 P2 staging candidat (API LocalAI) · P3 PR auto my-kluster · P4 déclencheur veille ·
 P5 backend versionné + auto-update. Tous **PR-gated** (jamais d'auto-merge).
+
+## Pipeline automation (P3-P5)
+
+Le PR est le **gate humain** — jamais d'auto-merge.
+
+- **P3 `promote.sh --candidate <n>`** : gate (overall Δ ≥ marge ET pas de régression tool-call) → si gagnant, PR my-kluster (add candidat + remove incumbent + résumé). `--dry-run`.
+- **P4 `eval-pipeline.sh --name <n> --gguf <url>`** : chaîne stage+éval → gate+PR → notify Telegram → cleanup. `poll-candidates.sh` traite la file `~/.config/brain/model-candidates.queue` (**on-demand** : chaque candidat = 1 restart LocalAI, pas de cron aveugle). Veille → ajoute des candidats à la file (format `name|gguf|[draft]|[ctx]`).
+- **P5 `backend-watch.sh`** : alerte Telegram si nouveau backend cuda12-llama-cpp sur quay (cron pc quotidien). Maj = **manuelle gatée** par le harness (auto-update reporté : risque + backend pas déclaratif git).

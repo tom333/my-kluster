@@ -1,0 +1,175 @@
+{
+  "model": "gemma-4-e2b-coder",
+  "tag": "candidate",
+  "metrics": {
+    "coding_pass_rate": 0.6428571428571429,
+    "toolcall_acc": 0.3333333333333333,
+    "format_acc": 1.0,
+    "reasoning_acc": 0.875,
+    "mean_tokps": 66.72589388726297,
+    "overall": 0.7128
+  },
+  "coding": [
+    {
+      "id": "reverse_string",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "id": "fib",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "id": "is_palindrome",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "id": "two_sum",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "id": "count_vowels",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "id": "flatten",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "id": "valid_parentheses",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "id": "merge_intervals",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "id": "lcs",
+      "pass": false,
+      "detail": "IndexError: list index out of range"
+    },
+    {
+      "id": "roman_to_int",
+      "pass": false,
+      "detail": "AssertionError"
+    },
+    {
+      "id": "regex_match",
+      "pass": false,
+      "detail": "AssertionError"
+    },
+    {
+      "id": "calc_ii",
+      "pass": false,
+      "detail": "ValueError: invalid literal for int() with base 10: '3+2*2'"
+    },
+    {
+      "id": "edit_distance",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "id": "median_sorted",
+      "pass": false,
+      "detail": "IndexError: list index out of range"
+    }
+  ],
+  "toolcall": [
+    {
+      "id": "weather",
+      "pass": false,
+      "detail": "no tool_call"
+    },
+    {
+      "id": "add",
+      "pass": false,
+      "detail": "no tool_call"
+    },
+    {
+      "id": "todo",
+      "pass": false,
+      "detail": "no tool_call"
+    },
+    {
+      "id": "search",
+      "pass": true,
+      "detail": "name=search_web args={'query': 'RTX 3060 price'}"
+    },
+    {
+      "id": "tool_select_stock",
+      "pass": true,
+      "detail": "name=get_stock_price args={'ticker': 'AAPL'}"
+    },
+    {
+      "id": "book_flight_multiarg",
+      "pass": false,
+      "detail": "no tool_call"
+    }
+  ],
+  "format": [
+    {
+      "id": "json_person",
+      "pass": true,
+      "detail": "{\n  \"name\": \"Bob\",\n  \"age\": 30\n}\n</|turn>"
+    },
+    {
+      "id": "exact_word",
+      "pass": true,
+      "detail": "BANANA"
+    },
+    {
+      "id": "csv_fruits",
+      "pass": true,
+      "detail": "Apple, Banana, Orange"
+    }
+  ],
+  "reasoning": [
+    {
+      "id": "apples",
+      "pass": true,
+      "detail": "got=15 exp=15"
+    },
+    {
+      "id": "pencils",
+      "pass": true,
+      "detail": "got=28 exp=28"
+    },
+    {
+      "id": "train",
+      "pass": false,
+      "detail": "got=239.4 exp=240"
+    },
+    {
+      "id": "ages",
+      "pass": true,
+      "detail": "got=20 exp=20"
+    },
+    {
+      "id": "perimeter",
+      "pass": true,
+      "detail": "got=26 exp=26"
+    },
+    {
+      "id": "tank",
+      "pass": true,
+      "detail": "got=60 exp=60"
+    },
+    {
+      "id": "book_pages",
+      "pass": true,
+      "detail": "got=120 exp=120"
+    },
+    {
+      "id": "chickens",
+      "pass": true,
+      "detail": "got=8 exp=8"
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+# POC promptfoo : ornith vs gemma-4-e2b-coder via LocalAI (compare aux résultats
+# du harness custom). Clé via OPENAI_API_KEY (env), pas en git.
+description: ornith vs gemma-4-e2b-coder (LocalAI)
+providers:
+  - id: openai:chat:ornith-1.0-9b-mtp
+    label: ornith
+    config: { apiBaseUrl: https://localai.tgu.ovh/v1, temperature: 0, max_tokens: 2048 }
+  - id: openai:chat:gemma-4-e2b-coder
+    label: gemma-e2b
+    config: { apiBaseUrl: https://localai.tgu.ovh/v1, temperature: 0, max_tokens: 2048 }
+prompts:
+  - "{{prompt}}"
+defaultTest:
+  options:
+    provider: openai:chat:ornith-1.0-9b-mtp
+tests:
+  - vars: { prompt: "Write a Python function `reverse_string(s)` returning s reversed. Respond with only a ```python code block.", test: "assert reverse_string('Hello')=='olleH'\nassert reverse_string('')==''" }
+    assert: [{ type: python, value: file://assert_code.py }]
+  - vars: { prompt: "Write a Python function `valid_parentheses(s)` returning True if ()[]{} in s are correctly matched/nested. Respond with only a ```python code block.", test: "assert valid_parentheses('([)]')==False\nassert valid_parentheses('{[]}')==True" }
+    assert: [{ type: python, value: file://assert_code.py }]
+  - vars: { prompt: "Write a Python function `regex_match(s,p)` implementing regex matching with '.' and '*' over the ENTIRE string. Respond with only a ```python code block.", test: "assert regex_match('aab','c*a*b')==True\nassert regex_match('mississippi','mis*is*p*.')==False" }
+    assert: [{ type: python, value: file://assert_code.py }]
+  - vars: { prompt: "Write a Python function `roman_to_int(s)` converting a Roman numeral to int. Respond with only a ```python code block.", test: "assert roman_to_int('MCMXCIV')==1994\nassert roman_to_int('LVIII')==58" }
+    assert: [{ type: python, value: file://assert_code.py }]
+  - vars: { prompt: "Reply with exactly the single word BANANA in uppercase and nothing else." }
+    assert: [{ type: equals, value: "BANANA" }]
+  - vars: { prompt: "A shop had 15 apples, sold 6 then 4, then received 10 more. How many now? End with 'ANSWER: <n>'." }
+    assert: [{ type: regex, value: "ANSWER:\\s*15\\b" }]
+  - vars: { prompt: "A farmer has chickens and cows: 20 heads, 56 legs total. How many cows? End with 'ANSWER: <n>'." }
+    assert: [{ type: regex, value: "ANSWER:\\s*8\\b" }]
