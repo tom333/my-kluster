@@ -33,7 +33,7 @@ def localai_key() -> str:
     return f.read_text().strip() if f.exists() else ""
 
 
-def chat(model, messages, tools=None, max_tokens=2048, temp=0.0):
+def chat(model, messages, tools=None, max_tokens=2048, temp=0.0, timeout=300):
     body = {"model": model, "messages": messages, "max_tokens": max_tokens, "temperature": temp}
     if tools:
         body["tools"] = tools
@@ -44,7 +44,7 @@ def chat(model, messages, tools=None, max_tokens=2048, temp=0.0):
     req.add_header("Content-Type", "application/json")
     t0 = time.time()
     try:
-        with urllib.request.urlopen(req, timeout=300) as r:
+        with urllib.request.urlopen(req, timeout=timeout) as r:
             d = json.load(r)
     except Exception as e:
         return {"error": str(e)[:200], "latency": time.time() - t0}
@@ -52,6 +52,29 @@ def chat(model, messages, tools=None, max_tokens=2048, temp=0.0):
     msg = d["choices"][0]["message"]
     return {"content": msg.get("content") or "", "tool_calls": msg.get("tool_calls") or [],
             "usage": d.get("usage", {}), "latency": dt, "finish": d["choices"][0].get("finish_reason")}
+
+
+def warmup(model, budget=180):
+    """Health-gate : le modèle génère-t-il des tokens sur une requête triviale ?
+    (cold-load inclus). Évite de griller 300s × N tâches sur un modèle qui ne charge
+    pas (quant/backend incompatible, ex Q2_0 ternaire hors mainline). Liveness =
+    completion_tokens>0 : un modèle reasoning peut mettre ses tokens dans `reasoning`
+    (content vide) tout en étant bien vivant. budget total borné."""
+    deadline = time.time() + budget
+    attempt = 0
+    while time.time() < deadline:
+        attempt += 1
+        left = max(20, int(deadline - time.time()))
+        r = chat(model, [{"role": "user", "content": "Reply with one word: ready"}],
+                 max_tokens=64, timeout=left)
+        alive = not r.get("error") and (r.get("content") or r.get("tool_calls")
+                                        or r.get("usage", {}).get("completion_tokens", 0) > 0)
+        if alive:
+            print(f"warmup OK (essai {attempt}, {r.get('latency', 0):.1f}s)")
+            return True
+        print(f"warmup essai {attempt}: {r.get('error', 'réponse vide')[:80]}")
+        time.sleep(5)  # anti busy-loop sur échec/erreur rapide
+    return False
 
 
 def extract_code(text: str) -> str:
@@ -171,6 +194,17 @@ def main():
     args = ap.parse_args()
 
     print(f"== éval {args.model} ({args.tag}) ==")
+    if not warmup(args.model):
+        print("MODÈLE INJOIGNABLE (warmup échoué) — reject rapide (metrics=0)")
+        metrics = {"coding_pass_rate": 0.0, "toolcall_acc": 0.0, "format_acc": 0.0,
+                   "reasoning_acc": 0.0, "mean_tokps": 0.0, "overall": 0.0, "unreachable": 1}
+        results = {"model": args.model, "tag": args.tag, "metrics": metrics, "unreachable": True}
+        outdir = HERE / "results"
+        outdir.mkdir(exist_ok=True)
+        (outdir / f"{args.model}-{args.tag}.json").write_text(json.dumps(results, indent=2))
+        print(json.dumps(metrics, indent=2))
+        return
+
     coding, tokps = score_coding(args.model, load("coding.jsonl"))
     toolcall = score_toolcall(args.model, load("toolcall.jsonl"))
     fmt = score_format(args.model, load("format.jsonl"))
