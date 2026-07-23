@@ -52,3 +52,10 @@ Le PR est le **gate humain** — jamais d'auto-merge.
 - **P3 `promote.sh --candidate <n>`** : gate (overall Δ ≥ marge ET pas de régression tool-call) → si gagnant, PR my-kluster (add candidat + remove incumbent + résumé). `--dry-run`.
 - **P4 `eval-pipeline.sh --name <n> --gguf <url>`** : chaîne stage+éval → gate+PR → notify Telegram → cleanup. `poll-candidates.sh` traite la file `~/.config/brain/model-candidates.queue` (**on-demand** : chaque candidat = 1 restart LocalAI, pas de cron aveugle). Veille → ajoute des candidats à la file (format `name|gguf|[draft]|[ctx]`).
 - **P5 `backend-watch.sh`** : alerte Telegram si nouveau backend cuda12-llama-cpp sur quay (cron pc quotidien). Maj = **manuelle gatée** par le harness (auto-update reporté : risque + backend pas déclaratif git).
+
+## Découverte de candidats (sourcing)
+
+Deux sources **disjointes** alimentent la même file `~/.config/brain/model-candidates.queue` (format `name|gguf-url`) ; le harness reste seul juge, la PR reste le gate.
+
+- **`hf-discover.py`** (cron pc 21:45 UTC) : requête HuggingFace Hub **structurée** via `hf models ls --apps llama.cpp --pipeline-tag text-generation --sort trending_score` (deps `huggingface_hub`, uv PEP723). Filtre **taille réelle du .gguf ≤ 9GB** (lecture Hub avant staging = pas de restart LocalAI gâché sur un modèle trop gros), écarte les quants exotiques (ternaire/2-bit non-mainline CUDA, via tags), dédup vs modèles déployés (`values.yaml`) + file + done. IDs/URLs **réels** (zéro hallucination). `--limit N --max-size-gb F --dry-run`.
+- **veille LLM** (skill `veille-digest`, cron Hermes 21:30) : émet `CANDIDAT: name|gguf|...` en prose ; `auto-eval-cycle.sh` (cron pc 22:00) scrape ces lignes de `state.db` → file. Signal complémentaire (blogs/reddit repèrent un modèle *avant* qu'il trend sur HF).
