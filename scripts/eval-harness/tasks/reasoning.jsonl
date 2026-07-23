@@ -1,0 +1,8 @@
+{"id":"apples","prompt":"A shop had 15 apples. It sold 6 in the morning and 4 in the afternoon, then received a delivery of 10 more. How many apples does the shop have now?","answer":15}
+{"id":"pencils","prompt":"Tom has 3 boxes with 12 pencils each. He gives away 8 pencils. How many pencils does he have left?","answer":28}
+{"id":"train","prompt":"A train travels 60 km in 45 minutes. At the same constant speed, how many kilometers does it travel in 3 hours?","answer":240}
+{"id":"ages","prompt":"Sarah is twice as old as Ben. In 5 years, the sum of their ages will be 40. How old is Sarah now?","answer":20}
+{"id":"perimeter","prompt":"A rectangle is 8 cm by 5 cm. What is its perimeter in cm?","answer":26}
+{"id":"tank","prompt":"An empty tank is filled at 15 liters per minute for 8 minutes, then drained at 10 liters per minute for 6 minutes. How many liters are in the tank at the end?","answer":60}
+{"id":"book_pages","prompt":"A book has 240 pages. Mia reads one third of the book on Monday, then one fourth of the remaining pages on Tuesday. How many pages are left unread?","answer":120}
+{"id":"chickens","prompt":"A farmer has chickens and cows. Together they have 20 heads and 56 legs. How many cows are there?","answer":8}
