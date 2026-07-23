@@ -12,11 +12,15 @@ QUEUE="${MODEL_CANDIDATES_QUEUE:-$HOME/.config/brain/model-candidates.queue}"
 DONE="${MODEL_CANDIDATES_DONE:-$HOME/.cache/model-candidates.done}"
 mkdir -p "$(dirname "$DONE")"; touch "$DONE"
 [ -f "$QUEUE" ] || { echo "pas de file $QUEUE"; exit 0; }
+MAX="${MAX_PER_CYCLE:-0}"   # 0 = illimité ; sinon cap le nb traité (limite les restarts LocalAI)
+n=0
 
 while IFS='|' read -r name gguf draft ctx; do
   case "$name" in ""|\#*) continue;; esac
   sig="$(printf '%s|%s' "$name" "$gguf" | sha1sum | cut -d' ' -f1)"
   grep -q "$sig" "$DONE" 2>/dev/null && continue   # déjà traité
+  [ "$MAX" != "0" ] && [ "$n" -ge "$MAX" ] && { echo "cap MAX_PER_CYCLE=$MAX atteint, stop"; break; }
+  n=$((n+1))
   echo "=== candidat: $name ==="
   args=(--name "$name" --gguf "$gguf")
   [ -n "${draft:-}" ] && args+=(--draft "$draft")
