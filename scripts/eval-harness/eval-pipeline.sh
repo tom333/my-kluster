@@ -34,10 +34,22 @@ echo "$PROMO"
 VERDICT="$(echo "$PROMO" | grep -oE 'gate: (PROMOTE|REJECT)' | head -1)"
 PRLINE="$(echo "$PROMO" | grep -oE 'https://github.com/[^ ]+/pull/[0-9]+' | head -1)"
 
+# résumé chiffré du changement (lignes du tableau comparatif de promote.sh)
+SUMMARY="$(echo "$PROMO" | grep -E '^\| (overall|coding_pass_rate|toolcall_acc|format_acc|reasoning_acc|mean_tokps) ' \
+  | sed 's/^| //; s/ |$//; s/ | / /g')"
 if echo "$VERDICT" | grep -q PROMOTE; then
-  notify "🟢 $NAME BAT $INCUMBENT sur le harness → PR ouverte (review + merge manuel) : ${PRLINE:-voir GitHub}"
+  notify "🟢 Swap proposé : $NAME → remplace $INCUMBENT
+(métrique · candidat · courant · Δ)
+$SUMMARY
+
+PR ouverte, review + merge MANUEL :
+${PRLINE:-voir github.com/tom333/my-kluster/pulls}"
 else
-  notify "⚪ $NAME non promu vs $INCUMBENT (harness). Détails MLflow localai-model-eval."
+  notify "⚪ $NAME NON promu vs $INCUMBENT
+(métrique · candidat · courant · Δ)
+$SUMMARY
+
+(gate non franchi ; détails MLflow localai-model-eval)"
 fi
 
 echo "=== cleanup candidat $NAME ==="
