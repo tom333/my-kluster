@@ -10,13 +10,14 @@
 # le GGUF au boot, ne hot-load pas). Manuel/occasionnel → le restart est acceptable.
 set -euo pipefail
 NS=localai
-NAME=""; GGUF=""; DRAFT=""; CTX=8192; BASELINE="ornith-1.0-9b-mtp"; CLEANUP=0
+NAME=""; GGUF=""; DRAFT=""; CTX=8192; BASELINE="ornith-1.0-9b-mtp"; CLEANUP=0; BACKEND="llama-cpp"
 while [ $# -gt 0 ]; do case "$1" in
   --name) NAME="$2"; shift 2;;
   --gguf) GGUF="$2"; shift 2;;
   --draft) DRAFT="$2"; shift 2;;
   --ctx) CTX="$2"; shift 2;;
   --baseline) BASELINE="$2"; shift 2;;
+  --backend) BACKEND="$2"; shift 2;;   # ex: cuda12-bonsai (ternaire Q2_0), défaut llama-cpp
   --cleanup) CLEANUP=1; shift;;
   *) echo "arg inconnu: $1"; exit 2;;
 esac; done
@@ -48,7 +49,7 @@ GGUF_FILE="$(basename "$GGUF")"
 TMP=$(mktemp)
 {
   echo "name: $NAME"
-  echo "backend: llama-cpp"
+  echo "backend: $BACKEND"
   echo "known_usecases: [chat]"
   echo "context_size: $CTX"
   echo "gpu_layers: 99"
