@@ -55,6 +55,12 @@
     name: nvidia-persistenced
     enabled: true
     state: started
+  register: persistenced
+  failed_when:
+    - persistenced is failed
+    # Ne fail que si le driver EST actif (échec réel). Si driver installé mais pas
+    # encore chargé (pré-reboot), le service démarrera au boot -> on tolère.
+    - nvidia_smi.rc == 0
 
 # Ubuntu 26.04+ dropped the dpkg diversion that provided /sbin/ldconfig.real.
 # The gpu-operator toolkit regenerates a config.toml pinned to "@/sbin/ldconfig.real",
