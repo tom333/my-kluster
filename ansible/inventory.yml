@@ -90,10 +90,10 @@ all:
     media_pcs:
       hosts:
         gaming-pc:
-          # AM4 (B550M K + R5 5500 + 1050 Ti), 24/7, filaire. Remplace le laptop mort.
-          # Overrides matériel/rôles dans host_vars/gaming-pc.yml.
-          # mDNS jeux.local (IP DHCP non fixe ; avahi).
-          ansible_host: jeux.local
+          # i5-9400F + ancienne CM MSI LGA1151 + 1050 Ti, 24/7, filaire. Remplace le
+          # laptop mort (le R5 5500 est parti sur la station). Overrides dans
+          # host_vars/gaming-pc.yml. IP statique (réservation MikroTik).
+          ansible_host: 192.168.88.150
           ansible_user: moi
           beszel_arch: amd64
         # work-laptop : réutilise les vars définies dans dev_workstations
