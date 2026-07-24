@@ -31,9 +31,14 @@
     enabled: false
     state: stopped
     masked: true
+  register: oomd_mask
+  failed_when:
+    - oomd_mask is failed
+    - "'Could not find' not in (oomd_mask.msg | default(''))"
   when:
     - desktop_disable_oomd | bool
     - not ansible_check_mode
+  # systemd-oomd absent sur Ubuntu Server (paquet Desktop) → rien à masquer, on tolère.
 
 - name: Mask les timers apt en arrière-plan (protège kernel pinné + pas de MAJ en jeu)
   ansible.builtin.systemd:
