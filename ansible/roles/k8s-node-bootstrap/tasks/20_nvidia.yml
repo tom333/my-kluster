@@ -72,3 +72,6 @@
     dest: /sbin/ldconfig.real
     state: link
     force: false
+  # 26.04+ uniquement : sur 24.04 la diversion dpkg fournit déjà ldconfig.real
+  # (vrai fichier) -> ne pas tenter de le remplacer par un symlink.
+  when: ansible_distribution_version is version('26.04', '>=')
