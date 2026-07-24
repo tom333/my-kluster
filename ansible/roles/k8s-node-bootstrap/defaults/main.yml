@@ -5,7 +5,7 @@
 # WARNING: changing the channel triggers a snap refresh — k8s minor upgrades
 # can break CRDs, deprecated APIs, etc. Always bump in lockstep with cluster
 # workloads and read MicroK8s release notes first.
-microk8s_channel: "1.33/stable"
+microk8s_channel: "1.35/stable"
 microk8s_addons:
   - dns
   - ingress
