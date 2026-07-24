@@ -34,17 +34,19 @@ Donc :
 **Conséquence** : B1 (reconfigure dqlite) et B2 (rebuild GitOps) étaient **surdimensionnés**,
 bâtis sur une prémisse fausse. Rétrogradés en **fallback** (§B1/B2 plus bas).
 
-### Vraie cause probable du 501 `[ERROR] not an HA MicroK8s cluster` — **À DÉMONTRER**
-Le 501 au `join --worker` est un problème de **handshake/résolution**, pas de dqlite.
-Hypothèses documentées (issues #4513, #3225), **à confirmer au test** :
-- ⬜ **Résolution hostname croisée** manquante : le master (`pc`) doit résoudre `jeux`→.150
-  ET l'inverse. `/etc/hosts` incomplet des deux côtés = 500/501. *(hypothèse #1)*
-- ⬜ **Token périmé** (usage unique) : regénérer via `add-node` juste avant le join.
-- ✅ **Mismatch de channel** : déjà réglé (1.35/stable des deux côtés).
+### Vraie cause du 501 `[ERROR] not an HA MicroK8s cluster` — ✅ DÉMONTRÉE (2026-07-25)
+Test A0 effectué (token frais, channel identique, join `--worker`) → **501 reproduit**.
+Hypothèses `/etc/hosts` et token **écartées**. Cause réelle, confirmée sur le master :
 
-> ⚠️ Ces causes restent des **hypothèses non prouvées**. Le vrai diagnostic sortira du
-> test (Option A0). Tant que le worker-join propre n'a pas été tenté avec `/etc/hosts`
-> corrigé + token frais, on ne sait pas laquelle (ou autre) est en jeu.
+- ❌ ~~/etc/hosts / résolution hostname~~ — écarté (501 sur join nu).
+- ✅ **Le master tourne sur la pile legacy `etcd + flannel`, addon `ha-cluster` DÉSACTIVÉ.**
+  - `snap services microk8s` : `daemon-etcd` **actif**, `daemon-k8s-dqlite` **inactif**, `daemon-flanneld` **actif**.
+  - `microk8s status` : `high-availability: no`, `datastore endpoints: 127.0.0.1:12379`. CNI = `flannel.conflist`.
+  - Un MicroK8s etcd+flannel **refuse tout join** → 501. C'est **structurel**, pas réseau.
+
+> **Conclusion** : le multinode exige dqlite. Seule voie = `microk8s enable ha-cluster`
+> (migre **etcd→dqlite + flannel→calico**). A0 (worker-join simple) est **impossible en l'état**.
+> ⚠️ `enable ha-cluster` est **potentiellement destructif** (cf. §Étapes à risque + §Correction).
 
 ---
 
