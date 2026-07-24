@@ -9,12 +9,27 @@
   ansible.builtin.meta: end_play
   when: lspci_out.stdout is not search('NVIDIA')
 
-- name: Ensure NVIDIA kernel driver is present (must be installed manually)
+- name: Check NVIDIA driver running (nvidia-smi)
   ansible.builtin.command: nvidia-smi
   register: nvidia_smi
   changed_when: false
   check_mode: false
-  failed_when: nvidia_smi.rc != 0
+  failed_when: false
+
+- name: Check NVIDIA driver package installed (si smi KO = chargement pending reboot)
+  ansible.builtin.shell: "dpkg -l 'nvidia-driver-*' 2>/dev/null | grep -q '^ii'"
+  register: nvidia_pkg
+  changed_when: false
+  check_mode: false
+  failed_when: false
+  when: nvidia_smi.rc != 0
+
+- name: Ensure NVIDIA driver present (actif OU installé/reboot-pending)
+  ansible.builtin.assert:
+    that:
+      - nvidia_smi.rc == 0 or (nvidia_pkg.rc | default(1)) == 0
+    fail_msg: "Driver NVIDIA ni actif ni installé — le rôle desktop doit l'installer d'abord."
+    success_msg: "{{ 'Driver NVIDIA actif' if nvidia_smi.rc == 0 else 'Driver NVIDIA installé (se chargera au prochain reboot)' }}"
 
 - name: Add NVIDIA Container Toolkit GPG key
   ansible.builtin.shell:
