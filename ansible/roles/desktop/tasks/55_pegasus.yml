@@ -9,6 +9,14 @@
     state: present
     update_cache: false
 
+- name: Ensure Pegasus dir (unarchive exige un dest existant)
+  ansible.builtin.file:
+    path: "/home/{{ ansible_user }}/Applications/pegasus"
+    state: directory
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: '0755'
+
 - name: Download + extract Pegasus (self-contained)
   ansible.builtin.unarchive:
     src: "{{ desktop_pegasus_url }}"
