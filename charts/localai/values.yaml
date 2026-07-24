@@ -433,42 +433,27 @@ modelsConfigs:
       request_timeout_seconds: 120
     pii:
       enabled: true
-
-  # Ornith-1.0-9B (DeepReinforce — base Qwen3.5+Gemma4, RL "scaffold+solution").
-  # 9B dense entraîné agentique : SWE-bench Verified 69.4 / Terminal-Bench 2.1 43.1
-  # (≈ classe 27B) — surclasse Qwen3.5-9B (53.2 / 21.3). Tool-calling natif bien
-  # formé (OpenAI tool_calls) + reasoning <think>, ctx 262K, MIT.
-  # Mesuré RTX 3060 (2026-07-20) : 9.3/12 GB VRAM, 61 tok/s (MTP ~1.5x), tool-call OK.
-  # Variante MTP : décodage spéculatif via draft_model (head séparé), pattern
-  # copié de gemma-4-12b (draft_max=2 optimal). Si OOM : ctx 16384/8192 ou cache q4_0.
-  # Caveat : reasoning consomme des tokens → max_tokens généreux sinon content vide.
-  ornith-1.0-9b-mtp: |
-    name: ornith-1.0-9b-mtp
+  qwen3-coder-30b-a3b-instruct: |
+    name: qwen3-coder-30b-a3b-instruct
     backend: llama-cpp
-    known_usecases:
-      - chat
-    context_size: 32768
+    known_usecases: [chat]
+    context_size: 8192
     gpu_layers: 99
     f16: true
     flash_attention: true
-    mmap: false
+    mmap: true
     cache_type_k: q8_0
     cache_type_v: q8_0
-    draft_model: mtp-Ornith-1.0-9B-head-Q8_0.gguf
     parameters:
-      model: Ornith-1.0-9B-MTP-Q4_K_M.gguf
+      model: Qwen3-Coder-30B-A3B-Instruct-UD-IQ1_S.gguf
       temperature: 0.6
       top_p: 0.95
       top_k: 20
     download_files:
-      - filename: Ornith-1.0-9B-MTP-Q4_K_M.gguf
-        uri: https://huggingface.co/protoLabsAI/Ornith-1.0-9B-MTP-GGUF/resolve/main/Ornith-1.0-9B-MTP-Q4_K_M.gguf
-      - filename: mtp-Ornith-1.0-9B-head-Q8_0.gguf
-        uri: https://huggingface.co/protoLabsAI/Ornith-1.0-9B-MTP-GGUF/resolve/main/mtp-head/mtp-Ornith-1.0-9B-head-Q8_0.gguf
+      - filename: Qwen3-Coder-30B-A3B-Instruct-UD-IQ1_S.gguf
+        uri: https://huggingface.co/unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF/resolve/main/Qwen3-Coder-30B-A3B-Instruct-UD-IQ1_S.gguf
     options:
       - use_jinja:true
-      - spec_type:draft-mtp
-      - draft_max:2
     function:
       automatic_tool_parsing_fallback: true
       grammar:

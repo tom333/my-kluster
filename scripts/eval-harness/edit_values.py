@@ -55,20 +55,21 @@ def main():
     if args.add_file:
         assert args.add_name, "--add-name requis avec --add-file"
         body = Path(args.add_file).read_text().rstrip("\n")
-        block = f"  {args.add_name}: |\n" + "\n".join("    " + l for l in body.split("\n"))
-        # insérer avant le 1er bloc flux (image gen à la fin), sinon avant ingress
-        out, inserted = [], False
-        for l in lines:
-            if not inserted and (l.startswith("  flux") and l.endswith(": |")):
-                out.append(block); out.append(""); inserted = True
-            out.append(l)
-        if not inserted:  # fallback : avant 'ingress:'
-            out = []
-            for l in lines:
-                if not inserted and l.startswith("ingress:"):
-                    out.append(block); out.append(""); inserted = True
-                out.append(l)
-        lines = out
+        block_lines = [f"  {args.add_name}: |"] + ["    " + l for l in body.split("\n")]
+        # point d'insertion : AVANT le bloc flux commentaires inclus (image gen à la fin),
+        # sinon avant 'ingress:'. Insérer avant la CLÉ flux collerait le nouveau bloc sous
+        # le commentaire de flux et volerait sa doc (bug historique) → on remonte au-dessus
+        # des lignes de commentaire précédant la clé.
+        idx = next((i for i, l in enumerate(lines)
+                    if l.startswith("  flux") and l.endswith(": |")), None)
+        if idx is not None:
+            j = idx - 1
+            while j >= 0 and COMMENT_RE.match(lines[j]):
+                j -= 1
+            idx = j + 1
+        else:  # fallback : avant 'ingress:'
+            idx = next((i for i, l in enumerate(lines) if l.startswith("ingress:")), len(lines))
+        lines = lines[:idx] + block_lines + [""] + lines[idx:]
 
     new = "\n".join(lines)
     # validation

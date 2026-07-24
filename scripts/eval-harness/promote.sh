@@ -33,18 +33,24 @@ reasons=[]
 if d_overall<margin: reasons.append(f"overall Δ {d_overall:+.3f} < marge {margin}")
 if d_tool<-0.05: reasons.append(f"toolcall Δ {d_tool:+.3f} < -0.05 (régression agentique)")
 rows="\n".join(f"| {k} | {cand.get(k,0):.3f} | {base.get(k,0):.3f} | {cand.get(k,0)-base.get(k,0):+.3f} |"
-  for k in ["overall","coding_pass_rate","toolcall_acc","format_acc","reasoning_acc","mean_tokps"])
+  for k in ["overall","coding_pass_rate","toolcall_acc","format_acc","reasoning_acc","agentic_success_rate","mean_tokps"])
 print("PROMOTE" if promote else "REJECT")
 print("REASONS::" + ("; ".join(reasons) if reasons else "gate OK"))
 print("TABLE::"+rows.replace("\n","§"))
+# Signal Hermes-readiness (séparé du gate LocalAI) : candidat apte à remplacer
+# deepseek-v4-flash comme cerveau Hermes ? (agentique multi-tours + tool absolus)
+hr=cand.get("hermes_ready",0); asr=cand.get("agentic_success_rate",0)
+print(f"HERMES::{'OUI' if hr else 'NON'} (agentic {asr:.0%}, tool {cand.get('toolcall_acc',0):.0%})")
 PY
 )
 DECISION=$(echo "$GATE" | sed -n '1p')
 REASONS=$(echo "$GATE" | sed -n '2p' | sed 's/^REASONS:://')
-TABLE=$(echo "$GATE" | sed -n '3p' | sed 's/^TABLE:://; s/§/\n/g')
+TABLE=$(echo "$GATE" | grep '^TABLE::' | sed 's/^TABLE:://; s/§/\n/g')
+HERMES=$(echo "$GATE" | grep '^HERMES::' | sed 's/^HERMES:://')
 
 echo "=== gate: $DECISION — $REASONS ==="
 printf "| métrique | %s | %s | Δ |\n|---|---|---|---|\n%s\n" "$NAME" "$INCUMBENT" "$TABLE"
+echo "=== Hermes-readiness (cerveau Hermes, hors gate LocalAI) : $HERMES ==="
 
 if [ "$DECISION" != "PROMOTE" ]; then
   echo "→ candidat NON promu. Rien à faire (cleanup via stage_candidate.sh --cleanup)."
@@ -52,7 +58,7 @@ if [ "$DECISION" != "PROMOTE" ]; then
 fi
 
 # --- build PR ---
-BODY=$(printf "## Model swap: %s → %s\n\nÉval automatique (harness deterministic, exp MLflow \`localai-model-eval\`). Candidat > courant sur le gate (marge %s, pas de régression tool-call).\n\n| métrique | %s (candidat) | %s (courant) | Δ |\n|---|---|---|---|\n%s\n\n**Généré par le pipeline model-autodeploy (P3). Review + merge manuel requis.**\n" "$NAME" "$INCUMBENT" "$MARGIN" "$NAME" "$INCUMBENT" "$TABLE")
+BODY=$(printf "## Model swap: %s → %s\n\nÉval automatique (harness deterministic, exp MLflow \`localai-model-eval\`). Candidat > courant sur le gate (marge %s, pas de régression tool-call).\n\n| métrique | %s (candidat) | %s (courant) | Δ |\n|---|---|---|---|\n%s\n\n**Hermes-readiness** (candidat apte à remplacer deepseek-v4-flash comme cerveau Hermes — agentique multi-tours, hors gate LocalAI) : **%s**\n\n**Généré par le pipeline model-autodeploy (P3/P6). Review + merge manuel requis.**\n" "$NAME" "$INCUMBENT" "$MARGIN" "$NAME" "$INCUMBENT" "$TABLE" "$HERMES")
 BRANCH="model-swap/${NAME}"
 
 echo "=== édition values.yaml (add $NAME, remove $INCUMBENT) ==="
