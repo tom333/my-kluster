@@ -135,3 +135,25 @@ risque faible mais coûteux. Le repo est fait pour se re-bootstrapper (cf. CLAUD
 **Tester A0 (worker-join propre) en premier** — quasi-sans-risque pour la prod, réversible,
 zéro backup. Le 501 est presque sûrement un problème de résolution/token, **à démontrer au
 test**. B1/B2 = fallback uniquement si A0 révèle un blocage structurel réel.
+
+---
+
+## RÉSULTAT (2026-07-25) — in-place = cul-de-sac, reverté
+
+Tenté A0 puis la migration in-place. **Échec, cluster récupéré.** Chronologie :
+1. A0 (worker-join) → 501 reproduit. Cause démontrée = master **etcd+flannel**, `ha-cluster` off.
+2. `microk8s enable ha-cluster` → étape `000-switch-to-calico` **restart containerd → 82 pods bouncent → `--wait-ready --timeout 30` dépassé → rollback auto**. Script dans snap read-only, non patchable. **N'atteint jamais l'étape datastore.** (A fait le switch CNI flannel→calico au passage, qui a survécu.)
+3. Migration manuelle (`scripts/migrate-etcd-to-dqlite.sh`, miroir de `001`, non-destructif) : bugs PATH + etcd https/http, MAIS surtout le rollback du 000 avait laissé containerd `bin_dir=${SNAP}/opt/cni/bin` (snap RO, **sans calico**) alors que calico est dans `${SNAP_DATA}/opt/cni/bin` → `failed to find plugin "calico"` → **tous sandboxes KO, 1/83 pods**.
+4. Revert etcd (`scripts/revert-dqlite-to-etcd.sh`) → datastore OK mais pods toujours KO (bin_dir).
+5. **Fix** `scripts/fix-cni-bindir.sh` (bin_dir → SNAP_DATA + restart containerd) → **73 pods Running, cluster sain**.
+
+**État final** : `etcd + calico` (dqlite NON migré, multinode NON atteint). argocd/cert-manager
+remontés (bonus). `k8s-dqlite migrator` confirmé **non-destructif** (le wipe n'était pas le risque ;
+la fragilité du tooling l'est).
+
+### Décision multinode (à trancher)
+- **B2 rebuild** ⭐ : fresh install = dqlite+calico d'office, sidesteppe le wrapper cassé. Backups prêts (`/data/pvc-backup-20260725`, 49G, registry=47G). ~2-4h fenêtre.
+- **Rester single-node** : le swap CPU R5 5500 a déjà soulagé ; `jeux` reste standalone. Zéro risque.
+- ❌ **Ne PAS retenter l'in-place** (ni wrapper, ni manuel) — prouvé fragile, incident-prone.
+
+Scripts d'incident conservés : `scripts/{backup-pvc-preha,migrate-etcd-to-dqlite,revert-dqlite-to-etcd,recover-migration,fix-cni-bindir}.sh`.
