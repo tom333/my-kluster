@@ -25,7 +25,7 @@ spec:
             type: deployment
             # replicas 0 = phase 1 offload (arrêt écritures avant relocalisation PVC).
             # Repassé à 1 une fois le PV recréé sur jeux + données restaurées.
-            replicas: 1
+            replicas: 0
             strategy: Recreate
             # Init container runs `mlflow db upgrade` before the main server boots.
             # Replaces the helm pre-install/pre-upgrade Job from the previous custom
