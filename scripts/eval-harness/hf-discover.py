@@ -42,7 +42,10 @@ SHARDED = re.compile(r"-\d{5}-of-\d{5}")
 # NB: "mtp"/"draft" seuls sont ambigus (le fichier principal Ornith s'appelle
 # ...-MTP-Q4_K_M.gguf) → on ne cible que les marqueurs sans ambiguïté.
 COMPANION = re.compile(r"(mmproj|projector|[-_.]head[-_.]|[-_.]lora[-_.]|adapter"
-                       r"|control[-_]?vector|[-_.]cvec[-_.]|speculat)", re.I)
+                       r"|control[-_]?vector|[-_.]cvec[-_.]|speculat|imatrix)", re.I)
+# garde-fou taille : sous ce seuil ce ne sont pas des poids de modèle utiles
+# (imatrix/calibration/artefacts) même si l'extension est .gguf
+MIN_BYTES = 500_000_000
 HF_BIN = shutil.which("hf") or os.path.join(os.path.dirname(sys.executable), "hf")
 
 
@@ -99,6 +102,8 @@ def pick_gguf(repo_id, max_bytes):
         path, size = e.get("path", ""), e.get("size")
         if not path.lower().endswith(".gguf") or not size or size > max_bytes:
             continue
+        if size < MIN_BYTES:
+            continue  # trop petit pour de vrais poids (imatrix/calibration/artefact)
         base = path.rsplit("/", 1)[-1]
         if path.count("/") >= 2:
             continue  # gguf niché profond = repo-collection/toolkit, pas un modèle unique
