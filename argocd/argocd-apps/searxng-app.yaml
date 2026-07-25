@@ -16,6 +16,10 @@ spec:
     targetRevision: 5.0.1
     helm:
       values: |
+        # Offload sur le worker jeux (stateless -> nodeSelector seul suffit).
+        defaultPodOptions:
+          nodeSelector:
+            workload: offload
         controllers:
           searxng:
             type: deployment
