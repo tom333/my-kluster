@@ -63,7 +63,15 @@ cat > "$ARGS/etcd" <<'EOT'
 --enable-v2=true
 EOT
 
-echo "=== [5] init dqlite (si backend absent) ==="
+echo "=== [5] wipe backend dqlite périmé (garde: seulement en mode etcd) + init frais ==="
+# Sécurité: ne wipe QUE si on est bien en mode etcd (lock no-k8s-dqlite présent),
+# jamais sur un dqlite vivant.
+if [ -e "$SNAP_DATA/var/lock/no-k8s-dqlite" ]; then
+  rm -rf "$SNAP_DATA/var/kubernetes/backend"
+  echo "  backend dqlite périmé wipé"
+else
+  echo "  ERREUR: pas en mode etcd (no-k8s-dqlite absent) — abort par sécurité"; exit 4
+fi
 if [ ! -e "$SNAP_DATA/var/kubernetes/backend/cluster.key" ]; then
   mkdir -p "$SNAP_DATA/var/kubernetes/backend"
   echo "Address: 127.0.0.1:19001" > "$SNAP_DATA/var/kubernetes/backend/init.yaml"
