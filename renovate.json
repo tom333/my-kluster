@@ -45,6 +45,17 @@
     },
     {
       "customType": "regex",
+      "description": "Kokoro-FastAPI TTS image tag inside ArgoCD app-template helm values",
+      "fileMatch": [
+        "^argocd/argocd-apps/kokoro-tts-app\\.yaml$"
+      ],
+      "matchStrings": [
+        "repository:\\s*(?<depName>ghcr\\.io/remsky/kokoro-fastapi-cpu)\\s*\\n\\s*tag:\\s*\"(?<currentValue>v\\d+\\.\\d+\\.\\d+)\""
+      ],
+      "datasourceTemplate": "docker"
+    },
+    {
+      "customType": "regex",
       "description": "Wyoming-OpenAI bridge image tag inside ArgoCD app-template helm values",
       "fileMatch": [
         "^argocd/argocd-apps/wyoming-openai-bridge-app\\.yaml$"

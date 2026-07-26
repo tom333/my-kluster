@@ -1,0 +1,66 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kokoro-tts
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    # ns openwebui : consommateur principal (TTS OpenWebUI). Service ClusterIP
+    # only — pas d'ingress, usage in-cluster.
+    namespace: openwebui
+    server: https://kubernetes.default.svc
+  project: datalab-project
+  source:
+    repoURL: https://bjw-s-labs.github.io/helm-charts
+    chart: app-template
+    targetRevision: 5.0.1
+    helm:
+      values: |
+        # Kokoro-FastAPI (remsky) — TTS OpenAI-compatible /v1/audio/speech,
+        # modèle Kokoro-82M, CPU. Serveur TTS dédié : on ne met PAS de TTS
+        # sur les instances LocalAI (SINGLE_ACTIVE_BACKEND évincerait le LLM
+        # résident à chaque phrase). Remplaçant vivant d'openedai-speech
+        # (archivé 02/2025). Voix FR : ff_siwis (même voix que le pipeline HA).
+        # Consommateur : OpenWebUI (Settings > Audio > TTS : OpenAI,
+        # http://kokoro-tts.openwebui.svc.cluster.local:8880/v1, clé libre).
+        controllers:
+          kokoro:
+            type: deployment
+            strategy: Recreate
+            containers:
+              main:
+                image:
+                  repository: ghcr.io/remsky/kokoro-fastapi-cpu
+                  tag: "v0.6.0"
+                  pullPolicy: IfNotPresent
+                resources:
+                  # Kokoro-82M CPU : léger. Burst CPU pendant la synthèse.
+                  limits:   { cpu: "3",    memory: 3Gi }
+                  requests: { cpu: "100m", memory: 1Gi }
+                probes:
+                  readiness:
+                    enabled: true
+                    custom: true
+                    spec:
+                      httpGet: { path: /health, port: 8880 }
+                      periodSeconds: 10
+                  liveness:
+                    enabled: true
+                    custom: true
+                    spec:
+                      httpGet: { path: /health, port: 8880 }
+                      periodSeconds: 30
+        service:
+          app:
+            controller: kokoro
+            ports:
+              http:
+                port: 8880
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      selfHeal: true
+      prune: true
