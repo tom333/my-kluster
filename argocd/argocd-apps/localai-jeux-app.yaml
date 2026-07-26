@@ -44,6 +44,7 @@ spec:
 
         env:
           THREADS: "4"
+          DEBUG: "true"   # TEMP diag crash embeddings (stderr backend). À revert.
 
         persistence:
           models:
