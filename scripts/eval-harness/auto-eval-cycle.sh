@@ -12,7 +12,16 @@ RUN=0; [ "${1:-}" = "--run" ] && RUN=1
 SINCE=$(date -d '2 days ago' +%s 2>/dev/null || echo 0)
 
 notify() {
-  local tok; tok="$(cat "$HOME/.config/brain/telegram-bot-token" 2>/dev/null || true)"
+  local f="${TELEGRAM_TOKEN_FILE:-${HOME:-/home/moi}/.config/brain/telegram-bot-token}"
+  local tok; tok="$(cat "$f" 2>/dev/null || true)"
+  if [ -z "$tok" ]; then
+    echo "WARN notify: token Telegram illisible ($f) — message NON envoyé" >&2; return 0
+  fi
+  local code
+  code=$(curl -s -4 -m 20 -o /dev/null -w '%{http_code}' "https://api.telegram.org/bot${tok}/sendMessage" \
+    --data-urlencode "chat_id=843341688" --data-urlencode "text=$1" 2>/dev/null || echo 000)
+  [ "$code" = "200" ] || echo "WARN notify: Telegram http=$code — non délivré" >&2
+}/.config/brain/telegram-bot-token}" 2>/dev/null || true)"
   [ -z "$tok" ] && return 0
   curl -s -4 "https://api.telegram.org/bot${tok}/sendMessage" \
     --data-urlencode "chat_id=843341688" --data-urlencode "text=$1" -o /dev/null || true

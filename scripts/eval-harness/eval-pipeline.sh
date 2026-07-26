@@ -16,11 +16,20 @@ while [ $# -gt 0 ]; do case "$1" in
 esac; done
 [ -z "$NAME" ] || [ -z "$GGUF" ] && { echo "--name + --gguf requis"; exit 2; }
 
+# NE JAMAIS échouer en silence : un `return 0` muet a déjà fait croire que le
+# pipeline n'avait pas tourné (token introuvable sous cron car $HOME absent →
+# aucune notif, aucune trace). Toute défaillance est désormais logguée.
 notify() {
-  local tok; tok="$(cat "$HOME/.config/brain/telegram-bot-token" 2>/dev/null || true)"
-  [ -z "$tok" ] && return 0
-  curl -s -4 "https://api.telegram.org/bot${tok}/sendMessage" \
-    --data-urlencode "chat_id=843341688" --data-urlencode "text=$1" -o /dev/null || true
+  local f="${TELEGRAM_TOKEN_FILE:-${HOME:-/home/moi}/.config/brain/telegram-bot-token}"
+  local tok; tok="$(cat "$f" 2>/dev/null || true)"
+  if [ -z "$tok" ]; then
+    echo "WARN notify: token Telegram illisible ($f) — message NON envoyé: ${1:0:60}…" >&2
+    return 0
+  fi
+  local code
+  code=$(curl -s -4 -m 20 -o /dev/null -w '%{http_code}' "https://api.telegram.org/bot${tok}/sendMessage" \
+    --data-urlencode "chat_id=843341688" --data-urlencode "text=$1" 2>/dev/null || echo 000)
+  [ "$code" = "200" ] || echo "WARN notify: Telegram a répondu http=$code — message NON délivré" >&2
 }
 
 notify "🔬 Pipeline modèle : éval candidat $NAME démarrée (vs $INCUMBENT)…"

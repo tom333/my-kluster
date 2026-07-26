@@ -36,7 +36,7 @@ Maj GATÉE par le harness (pas d'auto) :
 1) LOCALAI_EXTERNAL_BACKENDS=llama-cpp + rm /backends/cuda12-llama-cpp + restart
 2) run_eval.py sur les modèles clés → vérifier zéro régression
 3) si OK, garder ; sinon revert."
-tok="$(cat "$HOME/.config/brain/telegram-bot-token" 2>/dev/null || true)"
+tok="$(cat "${TELEGRAM_TOKEN_FILE:-${HOME:-/home/moi}/.config/brain/telegram-bot-token}" 2>/dev/null || true)"
 [ -n "$tok" ] && curl -s -4 "https://api.telegram.org/bot${tok}/sendMessage" \
   --data-urlencode "chat_id=843341688" --data-urlencode "text=$MSG" -o /dev/null || true
 python3 -c "import json; json.dump({'alerted':'$LATEST'}, open('$STATE','w'))"
