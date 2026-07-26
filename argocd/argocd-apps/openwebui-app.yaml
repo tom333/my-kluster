@@ -26,6 +26,14 @@ spec:
         websocket:
           enabled: false
 
+        # Pipelines = service Python séparé (:9099) pour du middleware LLM lourd.
+        # Inutile ici : la doc upstream recommande les Functions natives pour les
+        # filtres/providers (rate-limit, RAG, tracking) ; Pipelines ne se justifie
+        # que pour des dépendances lourdes ou du calcul à déporter. Le pod bouclait
+        # (52 restarts) et ajoutait une connexion morte dans OPENAI_API_BASE_URLS.
+        pipelines:
+          enabled: false
+
         persistence:
           enabled: true
           provider: local
