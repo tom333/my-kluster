@@ -263,10 +263,20 @@ spec:
             controller: hermes
             ports:
               http:
-                # Web admin dashboard. (Gateway OpenAI API on 8642 stays intra-pod /
-                # localhost for the dashboard; not exposed externally — chat is Telegram.)
+                # Web admin dashboard.
                 port: 9119
                 targetPort: 9119
+                protocol: TCP
+              api:
+                # API server OpenAI-compatible (API_SERVER_ENABLED=true,
+                # API_SERVER_HOST=0.0.0.0) → permet à Open WebUI de parler à
+                # l'AGENT (outils, mémoire, skills) et pas seulement aux modèles
+                # bruts de LocalAI. Modèle exposé : `hermes-agent`.
+                # ⚠️ ClusterIP uniquement, JAMAIS d'ingress : chaque requête crée
+                # un tour d'agent côté pod, avec terminal/fichiers/MCP. La clé
+                # API_SERVER_KEY (SealedSecret hermes-secrets) est le seul garde-fou.
+                port: 8642
+                targetPort: 8642
                 protocol: TCP
         ingress:
           app:

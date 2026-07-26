@@ -82,13 +82,22 @@ spec:
           - name: ENABLE_PERSISTENT_CONFIG
             value: "false"
 
+          # DEUX connexions, séparées par ';' — l'ordre des URLs doit correspondre
+          # à l'ordre des clés dans OPENAI_API_KEYS :
+          #  1. LocalAI  = modèles bruts (dont l'alias `current`)
+          #  2. Hermes   = l'AGENT complet (outils, mémoire, skills) via son API
+          #     server OpenAI-compatible :8642 → modèle exposé `hermes-agent`.
           - name: OPENAI_API_BASE_URLS
-            value: "http://localai.localai.svc.cluster.local:8080/v1"
+            value: "http://localai.localai.svc.cluster.local:8080/v1;http://hermes-agent.hermes.svc.cluster.local:8642/v1"
+          # Les Secrets étant namespacés, openwebui ne peut pas lire hermes-secrets :
+          # les 2 clés sont donc combinées ("<localai>;<hermes>") dans un
+          # SealedSecret dédié (sealed/openwebui-openai-keys.yaml), scellé depuis
+          # les valeurs lues en cluster — jamais en clair dans Git.
           - name: OPENAI_API_KEYS
             valueFrom:
               secretKeyRef:
-                name: localai-api-key
-                key: api-key
+                name: openwebui-openai-keys
+                key: keys
           # ENABLE_OLLAMA_API retiré des extraEnvVars le 2026-07-26 : le chart le
           # pose DÉJÀ (via ollama.enabled: false). Le doublon cassait le
           # strategic merge patch d'ArgoCD ("order in patch list doesn't match
@@ -111,7 +120,7 @@ spec:
           - name: DEFAULT_MODELS
             value: "current"
           - name: MODEL_ORDER_LIST
-            value: "current,qwen2.5-7b-instruct,gemma-4-12b-it-qat,qwen2.5-1.5b-instruct"
+            value: "current,hermes-agent,qwen2.5-7b-instruct,gemma-4-12b-it-qat,qwen2.5-1.5b-instruct"
           # Titres/tags de conversation : forcer un PETIT modèle, sinon Open WebUI
           # utilise le modèle courant (le 30B) juste pour titrer un chat → swap
           # VRAM inutile et lent (SINGLE_ACTIVE_BACKEND = 1 modèle à la fois).

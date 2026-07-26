@@ -1,0 +1,15 @@
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  creationTimestamp: null
+  name: openwebui-openai-keys
+  namespace: openwebui
+spec:
+  encryptedData:
+    keys: AgAnMGgeyxEczXEpcE++CqC8LJUWPrjsxnjTQwkRCSRSOlPe17sv/h6f1oO2jGbNV0LxICcQa8eJmLQe5XcAA7YI2bLjojkjX3wFxI3+SOcmu+STLHzwq7khuRjRfnV9QynNL3gw6+SCnvMMskEsPJbLDnDlSxTPmi6n3/wqb3b2o50PakYvuXCsSLC9ULpB4iraf/E7BP5OLR5AA3Lx28+ulu2qyCfan3j10WO55Lul1wNtyXxoGV0MH/rSXPzaO6xfqtnQw4ad9KeWaOYv5mesGJfjtPK61DpdHZbYOJ27euRY9Y4yzV8Iy0Rg0V9G8Ieot5ZHbOHhaTat0rTOjJGVt8LIZdu7vWAjGnZkISnEBvCotA2yuIE8XzQSJqmvhdZuSGTxTwXAuxK1gMd84zz3WMbvBwsEsnjsrfqukg0EYm6ffZbpV+D7SldXXwX0fekGaVhfTUiwuE072QCg/y2SH1lFPmO56X9UqWRWZhTLxzI2ON3+mBozAHCkf+YnNFIIbCNGCKyfb1O6+/kV0ET6gPY02scEeRi2tP4auD6qloqmvy5F5GhSFlBvgZLz44CGLr6zqS7EASQ9NPqvfmS3biBFAVBnr7SvCiD8hY7GYnm62efxWCBdGIxGZEXuRSfmB600XCcwEE3V9++WofSuCwg9slnRLQ5N/KBYCYqm9MFWxpgAE19IHAWfRz2M9yghP5kIzkODDhdj1ie8/2jJLenxyG4s107p10tnKrAZmR7Ux0DGJFWmizAoOzIJKGub4M/SxhNW7XrbzIHREvMytQ/NVusDe7NpDqbgCOLojWm7nYtHzAK6MZGIi7sTtIokn5BIliVbn23F25Sz
+  template:
+    metadata:
+      creationTimestamp: null
+      name: openwebui-openai-keys
+      namespace: openwebui
