@@ -11,7 +11,9 @@ metadata:
   namespace: openwebui
   annotations:
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
-    traefik.ingress.kubernetes.io/router.middlewares: openwebui-lan-only@kubernetescrd,openwebui-openwebui-sablier@kubernetescrd
+    # Sablier (scale-to-zero) RETIRÉ le 2026-07-26 : page d'attente `<meta refresh=5>`
+    # servie en boucle alors que le StatefulSet était prêt → login impossible.
+    traefik.ingress.kubernetes.io/router.middlewares: openwebui-lan-only@kubernetescrd
 spec:
   ingressClassName: public
   tls:
