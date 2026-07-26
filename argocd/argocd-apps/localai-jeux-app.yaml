@@ -1,0 +1,118 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: localai-jeux
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    # Même namespace que l'instance pc : réutilise les SealedSecrets
+    # (localai-api-key, huggingface-token, openrouter-api-key) et le
+    # Middleware Traefik `localai-lan-only`. Pas de collision de ressources :
+    # le chart préfixe tout par le release name (localai-jeux-*).
+    namespace: localai
+    server: https://kubernetes.default.svc
+  project: datalab-project
+  source:
+    repoURL: https://github.com/tom333/my-kluster.git
+    targetRevision: HEAD
+    path: charts/localai
+    helm:
+      # 2e instance du chart custom, épinglée sur le nœud `jeux` (GTX 1050 Ti
+      # 4GB, Pascal CC 6.1 — couvert par le backend cuda12, ARCHS inclut 610).
+      # Rôle : appliance services légers — STT Whisper + embeddings + tiny-chat.
+      # L'image (et son bump Renovate) est héritée de values.yaml → les 2
+      # instances suivent la même version LocalAI.
+      valuesObject:
+        nodeSelector:
+          kubernetes.io/hostname: jeux
+
+        # Ryzen 5500 (6 cœurs exposés), 16GB RAM, PAS d'offload MoE ici →
+        # profil léger. GPU exclusif : 1050 Ti 4GB.
+        # ⚠️ nœud gaming : quand un jeu tourne, il se bat pour les 4GB VRAM.
+        # SINGLE_ACTIVE_BACKEND + watchdog idle 5min (hérités) limitent la casse.
+        resources:
+          limits:
+            cpu: "4"
+            memory: 6Gi
+            nvidia.com/gpu: 1
+          requests:
+            cpu: "500m"
+            memory: 2Gi
+            nvidia.com/gpu: 1
+
+        env:
+          THREADS: "4"
+
+        persistence:
+          models:
+            size: 15Gi
+          # /tmp/generated ne sert qu'aux backends image-gen (flux, sur pc).
+          output:
+            enabled: false
+
+        ingress:
+          hosts:
+            - host: localai-jeux.tgu.ovh
+              paths:
+                - path: /
+                  pathType: Prefix
+          tls:
+            - secretName: localai-jeux-tls
+              hosts:
+                - localai-jeux.tgu.ovh
+          annotations:
+            cert-manager.io/cluster-issuer: "letsencrypt-prod"
+            traefik.ingress.kubernetes.io/router.middlewares: localai-lan-only@kubernetescrd
+
+        # Helm fusionne les maps : sans neutralisation, jeux hériterait des
+        # gros modèles pc (gemma 6.7GB, MoE 14GB… ingérable sur 4GB).
+        # `null` supprime la clé héritée. On GARDE qwen2.5-1.5b-instruct
+        # (1.1GB, tiny-chat) hérité tel quel.
+        modelsConfigs:
+          qwen2.5-7b-instruct: null
+          qwen3-8b: null
+          qwen3.5-9b: null
+          hermes-3-llama-3.1-8b: null
+          deepseek-coder-v2-lite-instruct: null
+          gemma-4-12b-it-qat: null
+          gemma-4-26b-a4b-heretic: null
+          ornith-1.0-9b-mtp: null
+          deepseek-v4-flash: null
+          flux.2-klein: null
+
+          # STT — Whisper large-v3-turbo (~1.6GB, VRAM ~2-2.5GB, tient seul
+          # sur 4GB). Endpoint OpenAI : POST /v1/audio/transcriptions.
+          # Candidat pipeline voix HA (remplace/complète wyoming-whisper).
+          whisper-large-v3-turbo: |
+            name: whisper-large-v3-turbo
+            backend: whisper
+            parameters:
+              model: ggml-large-v3-turbo.bin
+            download_files:
+              - filename: ggml-large-v3-turbo.bin
+                uri: https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-large-v3-turbo.bin
+
+          # Embeddings — Qwen3-Embedding-0.6B (top MTEB multilingue/FR de sa
+          # taille, 32k ctx, MRL). f16 1.2GB → full-GPU sur le 1050 Ti.
+          # Endpoint : POST /v1/embeddings. Décharge le 3060 de pc.
+          qwen3-embedding-0.6b: |
+            name: qwen3-embedding-0.6b
+            backend: llama-cpp
+            embeddings: true
+            context_size: 32768
+            f16: true
+            gpu_layers: 99
+            parameters:
+              model: Qwen3-Embedding-0.6B-f16.gguf
+            download_files:
+              - filename: Qwen3-Embedding-0.6B-f16.gguf
+                uri: https://huggingface.co/Qwen/Qwen3-Embedding-0.6B-GGUF/resolve/main/Qwen3-Embedding-0.6B-f16.gguf
+
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      selfHeal: true
+      prune: true
