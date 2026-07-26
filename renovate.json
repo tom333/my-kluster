@@ -45,6 +45,17 @@
     },
     {
       "customType": "regex",
+      "description": "Wyoming-OpenAI bridge image tag inside ArgoCD app-template helm values",
+      "fileMatch": [
+        "^argocd/argocd-apps/wyoming-openai-bridge-app\\.yaml$"
+      ],
+      "matchStrings": [
+        "repository:\\s*(?<depName>ghcr\\.io/roryeckel/wyoming_openai)\\s*\\n\\s*tag:\\s*\"(?<currentValue>\\d+\\.\\d+\\.\\d+)\""
+      ],
+      "datasourceTemplate": "docker"
+    },
+    {
+      "customType": "regex",
       "description": "Hermes Agent image tag (date-based versioning vYYYY.M.D[.N])",
       "fileMatch": [
         "^argocd/argocd-apps/hermes-agent-app\\.yaml$"

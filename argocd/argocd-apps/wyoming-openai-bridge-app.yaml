@@ -1,0 +1,69 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: wyoming-openai-bridge
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    # ns localai (PAS voice) : le bridge a besoin du Bearer LocalAI et le
+    # SealedSecret localai-api-key n'est déchiffrable que dans ce namespace
+    # (kubeseal est ns-scopé ; le resceller pour `voice` exigerait la clé en clair).
+    namespace: localai
+    server: https://kubernetes.default.svc
+  project: datalab-project
+  source:
+    repoURL: https://bjw-s-labs.github.io/helm-charts
+    chart: app-template
+    targetRevision: 5.0.1
+    helm:
+      values: |
+        # Pont Wyoming ↔ OpenAI-STT (roryeckel/wyoming_openai).
+        # HA (Assist) parle Wyoming ; LocalAI expose /v1/audio/transcriptions.
+        # Ce bridge remplace wyoming-whisper (CPU, 8Gi RAM sur pc) par le
+        # whisper-large-v3-turbo GPU de localai-jeux (1050 Ti).
+        # wyoming-whisper (NodePort 30300) reste en place pendant la validation ;
+        # le bascule/retrait se fait côté pipeline HA puis .disable de l'app.
+        controllers:
+          bridge:
+            type: deployment
+            strategy: Recreate
+            containers:
+              main:
+                image:
+                  repository: ghcr.io/roryeckel/wyoming_openai
+                  tag: "0.5.0"
+                  pullPolicy: IfNotPresent
+                env:
+                  WYOMING_URI: tcp://0.0.0.0:10300
+                  WYOMING_LANGUAGES: fr
+                  WYOMING_LOG_LEVEL: INFO
+                  # Service de l'instance localai-jeux (même namespace).
+                  STT_OPENAI_URL: http://localai-jeux:8080/v1
+                  STT_MODELS: whisper-large-v3-turbo
+                  STT_OPENAI_KEY:
+                    valueFrom:
+                      secretKeyRef:
+                        name: localai-api-key
+                        key: api-key
+                resources:
+                  # Pur proxy (pas de modèle) : minuscule.
+                  limits:   { cpu: "500m", memory: 256Mi }
+                  requests: { cpu: "50m",  memory: 64Mi }
+        service:
+          app:
+            controller: bridge
+            type: NodePort
+            ports:
+              wyoming:
+                port: 10300
+                targetPort: 10300
+                nodePort: 30301       # HA (hors-cluster) → 192.168.88.250:30301
+                protocol: TCP
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      selfHeal: true
+      prune: true
