@@ -28,5 +28,7 @@ kubectl exec -n $NS "$POD" -c main -- test -f "$FLAG" 2>/dev/null || exit 0
 # consomme le drapeau AVANT de lancer (évite une double exécution au tick suivant)
 kubectl exec -n $NS "$POD" -c main -- rm -f "$FLAG" >/dev/null 2>&1
 echo "=== drapeau consommé, lancement du pipeline $(date -u +%FT%TZ) ==="
+"$HERE/publish-queue-status.sh" >/dev/null 2>&1 || true   # état "running" visible par Hermes
 MAX_PER_CYCLE="${MAX_PER_CYCLE:-2}" "$HERE/poll-candidates.sh"
 echo "=== pipeline terminé $(date -u +%FT%TZ) ==="
+"$HERE/publish-queue-status.sh" >/dev/null 2>&1 || true   # état final (file + verdicts)
