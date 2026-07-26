@@ -118,10 +118,10 @@ spec:
             className: nginx
             annotations:
               cert-manager.io/cluster-issuer: "letsencrypt-prod"
-              # Sablier scale-to-zero (Phase 6 pilote). Middleware ia-lab/mlflow-sablier
-              # (config/traefik-middlewares.yaml) : réveille mlflow 0→1 à la requête,
-              # page d'attente, scale-to-zero après 10m d'inactivité.
-              traefik.ingress.kubernetes.io/router.middlewares: ia-lab-mlflow-sablier@kubernetescrd
+              # Sablier (scale-to-zero) RETIRÉ le 2026-07-26 : le middleware servait
+              # sa page d'attente `<meta refresh=5>` en boucle alors que le workload
+              # était prêt → UI inutilisable (même symptôme que openwebui). Plus
+              # d'annotation middlewares ici : accès direct.
             hosts:
               - host: mlflow.tgu.ovh
                 paths:
