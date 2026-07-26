@@ -89,8 +89,11 @@ spec:
               secretKeyRef:
                 name: localai-api-key
                 key: api-key
-          - name: ENABLE_OLLAMA_API
-            value: "false"
+          # ENABLE_OLLAMA_API retiré des extraEnvVars le 2026-07-26 : le chart le
+          # pose DÉJÀ (via ollama.enabled: false). Le doublon cassait le
+          # strategic merge patch d'ArgoCD ("order in patch list doesn't match
+          # $setElementOrder") → ComparisonError, l'app ne synchronisait plus.
+          # Ne jamais redéclarer ici une variable déjà émise par le chart.
           # Open WebUI bootstrap: the first user to sign up automatically
           # becomes admin. Subsequent signups land in "pending" and need
           # explicit approval from the admin UI. Tighten ENABLE_SIGNUP to
