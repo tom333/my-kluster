@@ -97,7 +97,10 @@ spec:
             name: qwen3-embedding-0.6b
             backend: llama-cpp
             embeddings: true
-            context_size: 32768
+            # 8192 (pas 32768) : sur 4GB, ctx 32k × parallel 2 + n_batch 2048
+            # = OOM dur au load (exit -1, constaté 2026-07-26). 8k/chunk = large
+            # pour du RAG ; le modèle supporte 32k si un jour il migre sur pc.
+            context_size: 8192
             f16: true
             gpu_layers: 99
             parameters:
