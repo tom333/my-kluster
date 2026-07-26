@@ -2,13 +2,13 @@
 # P3 — si un candidat BAT le modèle courant sur le harness, génère une PR my-kluster
 # (add candidat + remove incumbent + résumé). JAMAIS d'auto-merge (PR = gate humain).
 #
-#   promote.sh --candidate <name> [--incumbent ornith-1.0-9b-mtp] [--margin 0.02] [--dry-run]
+#   promote.sh --candidate <name> [--incumbent qwen3-coder-30b-a3b-instruct] [--margin 0.02] [--dry-run]
 #
 # Gate : overall(cand) - overall(base) >= margin  ET  toolcall(cand) >= toolcall(base) - 0.05
 # (pas de régression agentique). Lit results/<name>-candidate.json + <incumbent>-baseline.json.
 set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
-NAME=""; INCUMBENT="ornith-1.0-9b-mtp"; MARGIN="0.02"; DRY=0
+NAME=""; INCUMBENT="qwen3-coder-30b-a3b-instruct"; MARGIN="0.02"; DRY=0
 while [ $# -gt 0 ]; do case "$1" in
   --candidate) NAME="$2"; shift 2;;
   --incumbent) INCUMBENT="$2"; shift 2;;

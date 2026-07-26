@@ -2,13 +2,13 @@
 # P4 — runner bout-en-bout pour UN candidat : stage+éval (P2) → gate+PR si gagnant
 # (P3) → notification Telegram → cleanup. Tourne sur pc (kubectl+docker+gh+git).
 #
-#   eval-pipeline.sh --name <n> --gguf <url> [--draft <url>] [--ctx N] [--incumbent ornith-1.0-9b-mtp]
+#   eval-pipeline.sh --name <n> --gguf <url> [--draft <url>] [--ctx N] [--incumbent qwen3-coder-30b-a3b-instruct]
 #
 # Le PR reste le gate humain (jamais d'auto-merge). Le candidat est nettoyé après
 # (s'il gagne, il revient via la PR mergée → ArgoCD).
 set -uo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
-NAME=""; GGUF=""; DRAFT=""; CTX=8192; INCUMBENT="ornith-1.0-9b-mtp"
+NAME=""; GGUF=""; DRAFT=""; CTX=8192; INCUMBENT="qwen3-coder-30b-a3b-instruct"
 while [ $# -gt 0 ]; do case "$1" in
   --name) NAME="$2"; shift 2;; --gguf) GGUF="$2"; shift 2;;
   --draft) DRAFT="$2"; shift 2;; --ctx) CTX="$2"; shift 2;;

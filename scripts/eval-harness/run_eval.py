@@ -10,8 +10,8 @@ en sandbox docker --network none), tool-calling (validation schéma), format
 candidat vs baseline. Le modèle courant ORCHESTRE (lance ce script), il ne JUGE pas.
 
 Usage :
-  uv run run_eval.py --model ornith-1.0-9b-mtp --tag baseline
-  uv run run_eval.py --model <candidat> --tag candidate --compare-to ornith-1.0-9b-mtp
+  uv run run_eval.py --model qwen3-coder-30b-a3b-instruct --tag baseline
+  uv run run_eval.py --model <candidat> --tag candidate --compare-to qwen3-coder-30b-a3b-instruct
 
 Env : LOCALAI_URL, LOCALAI_KEY (ou ~/.config/brain/localai-key), MLFLOW_TRACKING_URI.
 """

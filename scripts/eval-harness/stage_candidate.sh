@@ -3,14 +3,14 @@
 # lance le harness d'éval, compare au baseline. Si gagnant → P3 (PR). Sinon → --cleanup.
 #
 # Usage :
-#   stage_candidate.sh --name qwen2.5-coder-3b --gguf <URL.gguf> [--draft <URL>] [--ctx 8192] [--baseline ornith-1.0-9b-mtp]
+#   stage_candidate.sh --name qwen2.5-coder-3b --gguf <URL.gguf> [--draft <URL>] [--ctx 8192] [--baseline qwen3-coder-30b-a3b-instruct]
 #   stage_candidate.sh --cleanup --name qwen2.5-coder-3b     # retire le candidat + reverte
 #
 # Méthode : écrit /models/<name>.yaml sur le PVC LocalAI + restart (LocalAI télécharge
 # le GGUF au boot, ne hot-load pas). Manuel/occasionnel → le restart est acceptable.
 set -euo pipefail
 NS=localai
-NAME=""; GGUF=""; DRAFT=""; CTX=8192; BASELINE="ornith-1.0-9b-mtp"; CLEANUP=0; BACKEND="llama-cpp"
+NAME=""; GGUF=""; DRAFT=""; CTX=8192; BASELINE="qwen3-coder-30b-a3b-instruct"; CLEANUP=0; BACKEND="llama-cpp"
 while [ $# -gt 0 ]; do case "$1" in
   --name) NAME="$2"; shift 2;;
   --gguf) GGUF="$2"; shift 2;;
