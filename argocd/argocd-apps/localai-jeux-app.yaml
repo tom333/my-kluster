@@ -44,7 +44,6 @@ spec:
 
         env:
           THREADS: "4"
-          DEBUG: "true"   # TEMP diag crash embeddings (stderr backend). À revert.
 
         persistence:
           models:
@@ -98,10 +97,13 @@ spec:
             name: qwen3-embedding-0.6b
             backend: llama-cpp
             embeddings: true
-            # 8192 (pas 32768) : sur 4GB, ctx 32k × parallel 2 + n_batch 2048
-            # = OOM dur au load (exit -1, constaté 2026-07-26). 8k/chunk = large
-            # pour du RAG ; le modèle supporte 32k si un jour il migre sur pc.
+            # 8192 (pas 32768) : marge sur 4GB. 8k/chunk = large pour du RAG.
             context_size: 8192
+            # batch 512 : SANS ça, l'autotune hardware met n_batch=2048 → le
+            # compute buffer llama.cpp gonfle à ~4.9GB → cudaMalloc OOM sur la
+            # carte 4GB (diag DEBUG 2026-07-26 ; ni le ctx ni l'arch Pascal
+            # n'étaient en cause — ARCHS inclut bien 610). 512 → buffer ~÷4.
+            batch: 512
             f16: true
             gpu_layers: 99
             parameters:
