@@ -145,6 +145,16 @@ modelsInitImage:
 # an initContainer into the persistent /models directory. Each key becomes a
 # file <key>.yaml that LocalAI reads on boot.
 modelsConfigs:
+  # ── Alias stable ────────────────────────────────────────────────────────────
+  # `current` pointe TOUJOURS sur le modèle agentic/coding retenu par le pipeline
+  # d'éval (scripts/eval-harness). Les consommateurs (Open WebUI, outils de code)
+  # ciblent `current` et n'ont RIEN à changer quand le modèle gagnant change :
+  # seule la ligne `alias:` ci-dessous bouge (via promote.sh / edit_values.py).
+  # Support vérifié sur cette version : GET /api/aliases → 200.
+  current: |
+    name: current
+    alias: qwen3-coder-30b-a3b-instruct
+
   # ~1 GB VRAM. Kept around for quick smoke tests and ultra-low-latency replies.
   qwen2.5-1.5b-instruct: |
     name: qwen2.5-1.5b-instruct

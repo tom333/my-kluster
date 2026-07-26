@@ -70,6 +70,18 @@ spec:
             traefik.ingress.kubernetes.io/router.middlewares: openwebui-oauth2-forwardauth@kubernetescrd
 
         extraEnvVars:
+          # ── Config déclarative ────────────────────────────────────────────
+          # Par défaut Open WebUI lit les variables UNE FOIS au premier boot puis
+          # la base SQLite fait foi (les changements d'env sont ignorés ensuite).
+          # false => l'env redevient la source de vérité à CHAQUE démarrage = GitOps.
+          # ⚠️ Contrepartie : les réglages faits dans l'UI admin ne survivent plus
+          # au redémarrage (même modèle mental que le config.yaml d'Hermes,
+          # re-seedé depuis son ConfigMap). Ce qui n'a pas d'équivalent en env
+          # (presets "Models" + leur system prompt, Functions) se versionne via
+          # GET/POST /api/v1/configs/export|import.
+          - name: ENABLE_PERSISTENT_CONFIG
+            value: "false"
+
           - name: OPENAI_API_BASE_URLS
             value: "http://localai.localai.svc.cluster.local:8080/v1"
           - name: OPENAI_API_KEYS
@@ -89,6 +101,60 @@ spec:
             value: "pending"
           - name: WEBUI_AUTH
             value: "true"
+
+          # ── Modèles ───────────────────────────────────────────────────────
+          # `current` = alias LocalAI qui suit le gagnant du pipeline d'éval
+          # (charts/localai/values.yaml) → rien à changer ici lors d'un swap.
+          - name: DEFAULT_MODELS
+            value: "current"
+          - name: MODEL_ORDER_LIST
+            value: "current,qwen2.5-7b-instruct,gemma-4-12b-it-qat,qwen2.5-1.5b-instruct"
+          # Titres/tags de conversation : forcer un PETIT modèle, sinon Open WebUI
+          # utilise le modèle courant (le 30B) juste pour titrer un chat → swap
+          # VRAM inutile et lent (SINGLE_ACTIVE_BACKEND = 1 modèle à la fois).
+          - name: TASK_MODEL
+            value: "qwen2.5-1.5b-instruct"
+          - name: TASK_MODEL_EXTERNAL
+            value: "qwen2.5-1.5b-instruct"
+
+          # ── STT (transcription vocale) ────────────────────────────────────
+          # Servi par localai-jeux (whisper-large-v3-turbo sur le GPU du nœud
+          # `jeux`) → ne dispute pas le GPU du nœud `pc` (LLM + images).
+          - name: AUDIO_STT_ENGINE
+            value: "openai"
+          - name: AUDIO_STT_OPENAI_API_BASE_URL
+            value: "http://localai-jeux.localai.svc.cluster.local:8080/v1"
+          - name: AUDIO_STT_OPENAI_API_KEY
+            valueFrom:
+              secretKeyRef:
+                name: localai-api-key
+                key: api-key
+          - name: AUDIO_STT_MODEL
+            value: "whisper-large-v3-turbo"
+
+          # ── TTS ───────────────────────────────────────────────────────────
+          # PAS ENCORE CÂBLÉ : piper n'existe que derrière le protocole Wyoming
+          # (voice/wyoming-piper:10200), il n'expose pas /v1/audio/speech.
+          # À faire : backend TTS dans LocalAI, ou pont Wyoming→OpenAI.
+          # - name: AUDIO_TTS_ENGINE
+          #   value: "openai"
+          # - name: AUDIO_TTS_OPENAI_API_BASE_URL
+          #   value: "http://localai.localai.svc.cluster.local:8080/v1"
+
+          # ── Génération d'images ───────────────────────────────────────────
+          - name: ENABLE_IMAGE_GENERATION
+            value: "true"
+          - name: IMAGE_GENERATION_ENGINE
+            value: "openai"
+          - name: IMAGES_OPENAI_API_BASE_URL
+            value: "http://localai.localai.svc.cluster.local:8080/v1"
+          - name: IMAGES_OPENAI_API_KEY
+            valueFrom:
+              secretKeyRef:
+                name: localai-api-key
+                key: api-key
+          - name: IMAGE_GENERATION_MODEL
+            value: "flux.2-klein"
 
   syncPolicy:
     syncOptions:
