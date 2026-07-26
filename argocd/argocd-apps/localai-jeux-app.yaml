@@ -66,22 +66,18 @@ spec:
             cert-manager.io/cluster-issuer: "letsencrypt-prod"
             traefik.ingress.kubernetes.io/router.middlewares: localai-lan-only@kubernetescrd
 
-        # Helm fusionne les maps : sans neutralisation, jeux hériterait des
-        # gros modèles pc (gemma 6.7GB, MoE 14GB… ingérable sur 4GB).
-        # `null` supprime la clé héritée. On GARDE qwen2.5-1.5b-instruct
-        # (1.1GB, tiny-chat) hérité tel quel.
-        modelsConfigs:
-          qwen2.5-7b-instruct: null
-          qwen3-8b: null
-          qwen3.5-9b: null
-          hermes-3-llama-3.1-8b: null
-          deepseek-coder-v2-lite-instruct: null
-          gemma-4-12b-it-qat: null
-          gemma-4-26b-a4b-heretic: null
-          ornith-1.0-9b-mtp: null
-          deepseek-v4-flash: null
-          flux.2-klein: null
+        # ALLOWLIST (cf. template configmap-models) : seules ces clés sont
+        # rendues sur jeux. Le pattern `clé: null` ne marche PAS via ArgoCD
+        # (nulls strippés du valuesObject → l'instance héritait des gros
+        # modèles pc, constaté 2026-07-26 : gemma 4.4GiB téléchargé sur le
+        # PVC jeux). L'allowlist est aussi future-proof : un nouveau modèle
+        # ajouté côté pc ne fuite jamais ici.
+        modelsConfigsInclude:
+          - qwen2.5-1.5b-instruct
+          - whisper-large-v3-turbo
+          - qwen3-embedding-0.6b
 
+        modelsConfigs:
           # STT — Whisper large-v3-turbo (~1.6GB, VRAM ~2-2.5GB, tient seul
           # sur 4GB). Endpoint OpenAI : POST /v1/audio/transcriptions.
           # Candidat pipeline voix HA (remplace/complète wyoming-whisper).

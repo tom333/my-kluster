@@ -6,12 +6,17 @@ metadata:
   labels:
     {{- include "localai.labels" . | nindent 4 }}
 data:
+  {{- /* modelsConfigsInclude (liste, optionnelle) = ALLOWLIST pour les
+         instances secondaires (ex. localai-jeux) : seules les clés listées
+         sont rendues. Nécessaire car le pattern `clé: null` ne survit PAS au
+         valuesObject d'ArgoCD (les nulls sont strippés à la sérialisation →
+         l'overlay n'écrase rien et l'instance hérite des gros modèles).
+         Les listes Helm REMPLACENT (pas de merge) → robuste, et un nouveau
+         modèle ajouté aux values de base ne fuite jamais sur l'instance.
+         Absente/vide → tout est rendu (instance principale). */}}
+  {{- $include := .Values.modelsConfigsInclude | default list }}
   {{- range $name, $config := .Values.modelsConfigs }}
-  {{- /* Une valeur null neutralise un modèle hérité des values de base
-         (pattern multi-instance : l'app jeux nullifie les gros modèles pc).
-         Selon la version Helm/ArgoCD, la clé null peut fuiter dans le range
-         au lieu d'être supprimée → on l'ignore explicitement. */}}
-  {{- if $config }}
+  {{- if and $config (or (empty $include) (has $name $include)) }}
   {{ $name }}.yaml: |-
 {{ $config | indent 4 }}
   {{- end }}
