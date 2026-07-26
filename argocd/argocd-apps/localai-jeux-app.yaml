@@ -99,15 +99,16 @@ spec:
             embeddings: true
             # 8192 (pas 32768) : marge sur 4GB. 8k/chunk = large pour du RAG.
             context_size: 8192
-            # batch 512 : SANS ça, l'autotune hardware met n_batch=2048 → le
-            # compute buffer llama.cpp gonfle à ~4.9GB → cudaMalloc OOM sur la
-            # carte 4GB (diag DEBUG 2026-07-26 ; ni le ctx ni l'arch Pascal
-            # n'étaient en cause — ARCHS inclut bien 610). 512 → buffer ~÷4.
-            batch: 512
             f16: true
             gpu_layers: 99
             parameters:
               model: Qwen3-Embedding-0.6B-f16.gguf
+              # batch explicite (source LocalAI EffectiveBatchSize : « Explicit
+              # batch: always wins », champ = PredictionOptions → bloc parameters,
+              # PAS top-level). Sans lui : embeddings = single-pass n_ubatch≈ctx →
+              # compute buffer ~n_ubatch×n_ctx ≈ 4.9GiB → OOM 4GB (bug #10485,
+              # le garde-fou VRAM-aware n'a pas suffi ici). 512 → buffer ~÷16.
+              batch: 512
             download_files:
               - filename: Qwen3-Embedding-0.6B-f16.gguf
                 uri: https://huggingface.co/Qwen/Qwen3-Embedding-0.6B-GGUF/resolve/main/Qwen3-Embedding-0.6B-f16.gguf
