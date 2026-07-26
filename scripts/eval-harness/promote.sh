@@ -71,6 +71,17 @@ if [ "$DRY" = "1" ]; then
   exit 0
 fi
 
+# Le modèle SORTANT quitte values.yaml → sans trace, hf-discover le reproposerait
+# indéfiniment (sa dédup regarde les modèles déployés + file + done-cache, et
+# l'incumbent n'a jamais été un "candidat"). On l'inscrit donc au done-cache.
+DONE="${MODEL_CANDIDATES_DONE:-$HOME/.cache/model-candidates.done}"
+if ! grep -qF "$INCUMBENT" "$DONE" 2>/dev/null; then
+  printf '%s  %s  %s  (remplacé par %s)\n' \
+    "$(printf 'incumbent-%s' "$INCUMBENT" | sha1sum | cut -d' ' -f1)" \
+    "$INCUMBENT" "$(date -u +%FT%TZ)" "$NAME" >> "$DONE"
+  echo "→ $INCUMBENT inscrit au done-cache (ne sera plus reproposé)"
+fi
+
 cd /data/projets/perso/my-kluster
 git checkout -b "$BRANCH" 2>&1 | tail -1
 git add charts/localai/values.yaml

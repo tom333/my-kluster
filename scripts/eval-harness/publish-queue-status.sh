@@ -14,9 +14,12 @@ DEST=/opt/data/eval/queue-status.json
 QUEUE="${MODEL_CANDIDATES_QUEUE:-$HOME/.config/brain/model-candidates.queue}"
 DONE="${MODEL_CANDIDATES_DONE:-$HOME/.cache/model-candidates.done}"
 
+# Comparaison EXACTE sur le champ 2 du done-cache. Un `grep -qF "$name"` faisait
+# du sous-chaîne : `ornith-1.0-9b` matchait `ornith-1.0-9b-mtp` → candidat
+# faussement annoncé comme déjà traité (0 en attente alors qu'il y en avait 1).
 pending=(); while IFS='|' read -r name gguf rest; do
   case "$name" in ""|\#*) continue;; esac
-  grep -qF "$name" "$DONE" 2>/dev/null && continue
+  awk -v m="$name" '$2==m{found=1} END{exit !found}' "$DONE" 2>/dev/null && continue
   pending+=("$name")
 done < "$QUEUE" 2>/dev/null
 
