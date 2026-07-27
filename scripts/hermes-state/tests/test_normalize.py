@@ -2,6 +2,8 @@ import copy
 import json
 import pathlib
 
+import yaml
+
 import normalize
 
 FIXTURES = pathlib.Path(__file__).resolve().parent / "fixtures"
@@ -98,3 +100,46 @@ def test_clef_racine_inconnue_conservee():
 
 def test_termine_par_un_saut_de_ligne():
     assert normalize.normalize_jobs(charger()).endswith("\n")
+
+
+def charger_yaml(nom):
+    return yaml.safe_load((FIXTURES / nom).read_text(encoding="utf-8"))
+
+
+def test_yaml_subset_ignore_les_cles_ajoutees_par_hermes():
+    """plugins, _config_version, onboarding et la perte des commentaires ne
+    doivent PAS être signalés : sinon l'outil crie en permanence."""
+    ecarts = normalize.yaml_subset_diff(charger_yaml("config_git.yaml"),
+                                       charger_yaml("config_pod.yaml"))
+    assert ecarts == []
+
+
+def test_yaml_subset_detecte_une_valeur_declaree_modifiee():
+    pod = charger_yaml("config_pod.yaml")
+    pod["agent"]["max_turns"] = 20
+    ecarts = normalize.yaml_subset_diff(charger_yaml("config_git.yaml"), pod)
+    assert len(ecarts) == 1
+    assert "agent.max_turns" in ecarts[0]
+
+
+def test_yaml_subset_detecte_une_cle_declaree_absente():
+    pod = charger_yaml("config_pod.yaml")
+    del pod["model"]["provider"]
+    ecarts = normalize.yaml_subset_diff(charger_yaml("config_git.yaml"), pod)
+    assert len(ecarts) == 1
+    assert "model.provider" in ecarts[0]
+    assert "absent" in ecarts[0]
+
+
+def test_yaml_subset_compare_les_listes_en_entier():
+    pod = charger_yaml("config_pod.yaml")
+    pod["platform_toolsets"]["telegram"] = ["web"]
+    ecarts = normalize.yaml_subset_diff(charger_yaml("config_git.yaml"), pod)
+    assert len(ecarts) == 1
+    assert "platform_toolsets.telegram" in ecarts[0]
+
+
+def test_yaml_subset_signale_un_type_incompatible():
+    ecarts = normalize.yaml_subset_diff({"agent": {"max_turns": 90}}, {"agent": "oui"})
+    assert len(ecarts) == 1
+    assert "agent" in ecarts[0]

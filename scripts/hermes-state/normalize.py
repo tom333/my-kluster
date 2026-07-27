@@ -103,3 +103,43 @@ def normalize_jobs(raw, warn=None):
                   if k != "jobs" and k not in VOLATILE_ROOT_FIELDS}
     racine["jobs"] = propres
     return _dump(racine)
+
+
+def yaml_subset_diff(declare, reel, chemin=""):
+    """Liste les endroits où `reel` ne respecte PAS `declare`.
+
+    Asymétrique par conception : une clé présente dans `reel` mais absente de
+    `declare` est IGNORÉE. Hermes ajoute _config_version/plugins/onboarding à
+    chaque réécriture ; les signaler rendrait la sortie illisible et donc
+    inutile. La question à laquelle ce mode répond est « mes valeurs déclarées
+    sont-elles respectées ? », pas « les fichiers sont-ils identiques ? ».
+    """
+    ecarts = []
+    ici = chemin or "<racine>"
+
+    if isinstance(declare, dict):
+        if not isinstance(reel, dict):
+            return [f"{ici}: attendu un objet, trouvé {type(reel).__name__}"]
+        for cle, attendu in declare.items():
+            sous = f"{chemin}.{cle}" if chemin else cle
+            if cle not in reel:
+                ecarts.append(f"{sous}: absent du pod")
+            else:
+                ecarts.extend(yaml_subset_diff(attendu, reel[cle], sous))
+    elif declare != reel:
+        ecarts.append(f"{ici}: Git={declare!r} pod={reel!r}")
+
+    return ecarts
+
+
+def extract_config_from_argocd(chemin_manifeste):
+    """Extrait le bloc config.yaml du manifeste ArgoCD (triple imbrication).
+
+    spec.source.helm.values est une CHAÎNE de YAML, qui contient elle-même
+    configMaps.bootstrap.data["config.yaml"], encore une chaîne de YAML.
+    """
+    with open(chemin_manifeste, encoding="utf-8") as f:
+        app = yaml.safe_load(f)
+    values = yaml.safe_load(app["spec"]["source"]["helm"]["values"])
+    brut = values["configMaps"]["bootstrap"]["data"]["config.yaml"]
+    return yaml.safe_load(brut)
