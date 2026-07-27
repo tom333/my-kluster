@@ -1,0 +1,144 @@
+---
+name: veille-digest
+title: Veille web périodique → digest Telegram
+description: "Veille web récurrente, dédup par mémoire → digest Telegram."
+version: 1.5.0
+author: tom333
+license: MIT
+platforms: [linux]
+metadata:
+  hermes:
+    tags: [veille, monitoring, web, telegram, digest, rss, dedup, news]
+    category: research
+    requires_toolsets: [web]
+---
+
+# Veille web périodique → digest Telegram
+
+Procédure réutilisable pour TOUT job de veille récurrent : collecter des infos web
+sur un thème, ne garder QUE les nouveautés, produire un résumé concis livré sur Telegram.
+
+Le job appelant fournit : le **thème**, les **sources**, le **format de sortie**, et le
+message « rien de neuf ». Cette procédure porte le reste (dédup mémoire, discipline
+outils, règles de liens, discipline de sortie).
+
+## When To Use This Skill
+
+- Cron de veille quotidienne/hebdomadaire sur un sujet (tech, emploi, RSS, releases…)
+- Tout digest récurrent qui doit éviter de répéter ce qui a déjà été envoyé
+- Tout job « résume les nouveautés et envoie sur Telegram »
+
+## Procédure
+
+### 1. Dédup — via le second-brain txtai (tool `mcp_txtai_search`)
+- Tu disposes du tool **`mcp_txtai_search`** — index de TOUS tes digests de veille passés
+  (bien plus fiable que le contexte, qui se fait compacter entre runs).
+- Pour CHAQUE item candidat (AVANT de l'inclure dans le digest), interroge-le :
+  `select text,date from txtai where similar('<titre ou sujet de l item>') and source='veille' limit 3`
+  → si un digest passé couvre déjà ce sujet/lien, **skip-le** (pas nouveau).
+- Ne rapporte QUE les items sans correspondance = les **vraies nouveautés** sur tout l'historique.
+- ⚠️ N'écris AUCUN fichier, ne crée AUCUN script. La dédup = requêtes `mcp_txtai_search`, point.
+- Sujet jamais vu (aucune correspondance txtai) = rapporté normalement.
+
+### 2. Collecte — releases GitHub
+
+Voir la section ⚠️ ci-dessous pour la méthode exacte (API REST + `search_files`).
+
+**Alternative pour le changelog** : après avoir identifié la version via l'API, tu peux
+extraire le changelog détaillé via `web_extract` sur l'URL individuelle de la release :
+`https://github.com/org/repo/releases/tag/vX.Y.Z`. Contrairement à la page liste
+(`/releases`), les pages individuelles rendent assez de contenu statique pour que
+`web_extract` récupère la description des changements.
+
+### 3. Collecte — pages web
+- **Pages listées explicitement par le job** : `web_extract` sur l'URL EXACTE.
+  N'utilise JAMAIS `web_search` pour une page listée — va lire la page directement.
+  `browser_navigate` UNIQUEMENT si `web_extract` rend vide (et si le toolset browser est dispo).
+- **Tendances communautaires** : `web_search` sur Reddit (r/selfhosted, r/sonarr, r/radarr),
+  forums, blogs. Utile pour détecter des discussions, problèmes de sécurité, ou breaking changes.
+- **Outils MCP disponibles** : si le job surveille un déploiement local, utilise les
+  outils MCP disponibles (ex: `mcp__arrconf__*`) pour obtenir l'état : bibliothèque,
+  file d'attente, téléchargements bloqués, vitesses de transfert.
+- Sites à connexion/anti-bot (LinkedIn, Indeed…) : ignore-les.
+
+### 3bis. Collecte — vidéos YouTube (yt-dlp), QUAND le thème s'y prête
+- `yt-dlp` est sur $PATH. Utilise-le UNIQUEMENT si des vidéos récentes peuvent enrichir
+  le thème (LLM, data/IA, outils, self-host, releases…). Thèmes sans vidéo pertinente
+  (offres d'emploi locales, etc.) : **SAUTE** cette étape.
+- Chercher des vidéos récentes (mode cron : `terminal` puis `read_file`, JAMAIS de pipe) :
+  `yt-dlp "ytsearch6:<sujet + mots-clés>" --skip-download --dateafter now-14days --print "%(id)s ||| %(title)s ||| %(upload_date)s ||| %(channel)s"`
+- Déduplique chaque candidat via `mcp_txtai_search`
+  (`select text from txtai where similar('<titre>') and source in ('veille','youtube') limit 3`) → skip les déjà-vus.
+- Pour 1-2 vidéos VRAIMENT pertinentes, récupère le transcript (fichier puis `read_file`) :
+  `mkdir -p /tmp/yt && yt-dlp --skip-download --write-auto-subs --sub-langs "fr.*,en.*" --convert-subs srt -o "/tmp/yt/%(id)s.%(ext)s" "https://www.youtube.com/watch?v=<ID>"`
+  puis `read_file` sur le `.srt`. Résume les points clés dans le digest **avec le lien**.
+- TOUJOURS `--skip-download` (jamais la vidéo). **Max 1-2 transcripts/run** (coût/temps).
+
+### 3. Liens — règle stricte
+- Récupère le VRAI lien (attribut `href`) de chaque item.
+- Ne RECONSTRUIS JAMAIS une URL depuis le texte du lien.
+- Pas de href fiable → mets l'URL de la page source. N'invente jamais d'URL.
+
+### 4. Sortie Telegram
+- Livre UNIQUEMENT le résultat final. PAS de plan, PAS de next_steps, PAS de JSON
+  brut, PAS de description de ta démarche.
+- Suis exactement le format demandé par le job.
+- Si AUCUN item nouveau vs le digest précédent : envoie uniquement le message
+  « rien de neuf » fourni par le job. Rien d'autre.
+
+### 3ter. Candidat modèle local (veille modèles/LLM uniquement, sinon SAUTE)
+Si tu repères un modèle **local-exécutable** (GGUF dispo, ~≤12 GB en Q4, orienté
+coding/agentic) qui SEMBLE dépasser le modèle courant `ornith-1.0-9b-mtp`, ajoute
+en FIN de digest UNE ligne copiable pour le pipeline d'éval auto :
+`CANDIDAT: <name>|<gguf-url>[|<draft-url>|<ctx>]`
+- Ne JUGE pas toi-même (benchmarks marketing peu fiables) — le harness d'éval tranche.
+- 1 seule ligne CANDIDAT/digest max (le plus prometteur). Pas de GGUF / trop gros /
+  backend exotique (ex: ternaire Q2_0 non-mergé) → n'émets RIEN.
+
+## Common Mistakes
+
+- Écrire un fichier d'état ou un script (/tmp, /workspace) → REFUSÉ par le guard, et
+  inutile : la dédup est en mémoire (contexte injecté), pas sur disque.
+- Prétendre avoir « mis à jour l'état » : il n'y a pas d'état fichier. Ne mens pas.
+- Utiliser `web_search` au lieu de `web_extract` sur une page listée → on manque les
+  items pourtant présents dans le HTML de la page.
+- Reconstruire un lien depuis le texte affiché → lien mort.
+- Re-rapporter un item déjà dans le digest précédent → dédup ratée.
+
+### ⚠️ GitHub release pages — ne pas utiliser web_extract
+
+Les pages GitHub Releases (`https://github.com/org/repo/releases`) sont des applis
+React dynamiques. `web_extract` échoue systématiquement (contenu vide ou « Uh oh!
+Please reload this page »). Utilise l'API REST GitHub à la place :
+
+```
+# 1. Télécharger les 2 dernières releases (pas de pipe vers python3 — bloqué en cron)
+curl -sL 'https://api.github.com/repos/org/repo/releases?per_page=2' -o /tmp/gh_repo.json
+
+# 2. Extraire les infos — préférer search_files (ripgrep) à grep
+#    grep -o peut échouer sur du JSON compact (pas de retour à la ligne)
+#    search_files est fiable même sur JSON minifié :
+search_files pattern='"tag_name"' path=/tmp/gh_repo.json context=0
+search_files pattern='"published_at"' path=/tmp/gh_repo.json context=0
+search_files pattern='"prerelease"' path=/tmp/gh_repo.json context=0
+```
+
+**⚠️ `grep` peut échouer sur du JSON compact** — l'API GitHub renvoie parfois
+du JSON sans sauts de ligne, ce qui fait que `grep -o '"tag_name":"[^"]*"'` ne
+matche rien. Utilise `search_files` (ripgrep) qui est fiable sur tous les formats.
+
+**Alternative pour le changelog** : les pages individuelles de release
+(`https://github.com/org/repo/releases/tag/vX.Y.Z`) fonctionnent avec `web_extract`
+pour récupérer la description des changements, contrairement à la page liste `/releases`.
+
+**Pas de `curl | python3`** — le pipe vers un interpréteur déclenche le scanner de
+sécurité tirith (bloqué en mode cron). Toujours : `curl -o fichier`, puis outil de
+lecture séparé (`read_file`, `search_files`, `grep`).
+
+### ⚠️ Restrictions en mode cron job
+
+- `execute_code` est bloqué — pas de scripts Python automatisés.
+- `curl | python3` / tout pipe vers interpréteur → bloqué par tirith.
+- Utilise `terminal` pour les téléchargements simples, puis `read_file` / `search_files`
+  / `grep` pour l'extraction des données.
+- `browser_navigate` n'est pas disponible en mode cron.
