@@ -81,3 +81,15 @@ artifacts:
     git: hermes-runtime/state/jobs.json
     owner: hermes
     mode: json-spec
+
+  # Marqueur ecrit par `hermes skills opt-out`. Empeche l'image de re-semer ses
+  # ~70 skills groupes a chaque boot et a chaque `hermes update`. Sans lui, un
+  # wipe de PVC ramenerait un index de skills de ~8,5 Ko dans le prompt systeme
+  # (contre 1,1 Ko avec les 8 skills conserves), et reintroduirait llama-cpp /
+  # vllm / kubernetes -- les modes d'emploi qui poussaient l'agent a improviser
+  # des evaluations locales que SOUL.md lui interdit.
+  - name: skills-opt-out
+    pod: /opt/data/.no-bundled-skills
+    git: hermes-runtime/state/no-bundled-skills
+    owner: git
+    mode: text
