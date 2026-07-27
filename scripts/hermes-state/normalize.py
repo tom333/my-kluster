@@ -144,12 +144,16 @@ def extract_config_from_argocd(chemin_manifeste):
     """
     with open(chemin_manifeste, encoding="utf-8") as f:
         app = yaml.safe_load(f)
-    # TypeError en plus de KeyError : si helm.values est vide, yaml.safe_load
-    # rend None, et indexer None lève TypeError, pas KeyError.
+    # Trois familles d'échec, toutes observées :
+    #   KeyError       -> une clé du chemin manque
+    #   TypeError      -> un niveau intermédiaire n'est pas indexable
+    #   AttributeError -> `helm.values` est vide : yaml.safe_load(None) prend None
+    #                     pour un flux et appelle .read() dessus. Ce cas précède
+    #                     toute indexation, donc TypeError seul ne le couvre pas.
     try:
         values = yaml.safe_load(app["spec"]["source"]["helm"]["values"])
         brut = values["configMaps"]["bootstrap"]["data"]["config.yaml"]
-    except (KeyError, TypeError) as e:
+    except (KeyError, TypeError, AttributeError) as e:
         raise ValueError(
             f"{chemin_manifeste}: clé {e} introuvable — chemin attendu "
             f"spec.source.helm.values -> configMaps.bootstrap.data['config.yaml']"

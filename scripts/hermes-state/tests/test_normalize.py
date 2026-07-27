@@ -152,6 +152,18 @@ def test_extract_config_from_argocd_cas_nominal():
     assert config["agent"]["max_turns"] == 90
 
 
+def test_extract_config_from_argocd_signale_un_bloc_values_vide(tmp_path):
+    """Cas piégeux : `helm.values` vide donne None, et yaml.safe_load(None) prend
+    None pour un flux -> AttributeError AVANT toute indexation. Un except sur
+    (KeyError, TypeError) seul laisserait donc filer une erreur illisible."""
+    p = tmp_path / "app.yaml"
+    p.write_text("spec:\n  source:\n    helm:\n      values:\n", encoding="utf-8")
+    with pytest.raises(ValueError) as excinfo:
+        normalize.extract_config_from_argocd(p)
+    assert str(p) in str(excinfo.value)
+    assert "configMaps.bootstrap.data" in str(excinfo.value)
+
+
 def test_extract_config_from_argocd_signale_une_cle_manquante(tmp_path):
     """Verrouille le message d'erreur : un chart ArgoCD qui change de forme doit
     produire un ValueError nommant le fichier et le chemin attendu, pas un
