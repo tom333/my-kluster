@@ -1,0 +1,16 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: hermes-agent-minimal
+spec:
+  source:
+    helm:
+      values: |
+        configMaps:
+          bootstrap:
+            data:
+              config.yaml: |
+                model:
+                  default: deepseek/deepseek-v4-flash
+                agent:
+                  max_turns: 90

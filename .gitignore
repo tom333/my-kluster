@@ -14,3 +14,7 @@ ansible/routeros/wg-clients/
 
 # Backups locaux (ex. vault.yml.bak lors d'une réencryption) — jamais commiter
 **/*.bak
+# Caches Python (3 .pyc avaient été committés par erreur dans scripts/eval-harness/)
+__pycache__/
+*.pyc
+.pytest_cache/

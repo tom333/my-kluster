@@ -1,0 +1,10 @@
+# Commentaire que Hermes supprimera à la réécriture.
+model:
+  default: deepseek/deepseek-v4-flash
+  provider: openrouter
+  context_length: 131072
+agent:
+  max_turns: 90
+  tool_use_enforcement: auto
+platform_toolsets:
+  telegram: [web, browser, file, todo, cronjob, skills, terminal, code_execution]

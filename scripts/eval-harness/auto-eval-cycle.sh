@@ -21,10 +21,6 @@ notify() {
   code=$(curl -s -4 -m 20 -o /dev/null -w '%{http_code}' "https://api.telegram.org/bot${tok}/sendMessage" \
     --data-urlencode "chat_id=843341688" --data-urlencode "text=$1" 2>/dev/null || echo 000)
   [ "$code" = "200" ] || echo "WARN notify: Telegram http=$code — non délivré" >&2
-}/.config/brain/telegram-bot-token}" 2>/dev/null || true)"
-  [ -z "$tok" ] && return 0
-  curl -s -4 "https://api.telegram.org/bot${tok}/sendMessage" \
-    --data-urlencode "chat_id=843341688" --data-urlencode "text=$1" -o /dev/null || true
 }
 
 kubectl config use-context microk8s >/dev/null 2>&1 || true
