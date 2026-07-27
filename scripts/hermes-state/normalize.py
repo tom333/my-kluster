@@ -113,6 +113,10 @@ def yaml_subset_diff(declare, reel, chemin=""):
     chaque réécriture ; les signaler rendrait la sortie illisible et donc
     inutile. La question à laquelle ce mode répond est « mes valeurs déclarées
     sont-elles respectées ? », pas « les fichiers sont-ils identiques ? ».
+
+    Le sous-ensemble ne s'applique qu'aux dictionnaires : listes et scalaires
+    doivent correspondre EXACTEMENT (une liste plus longue côté pod est un
+    écart, pas un ajout toléré).
     """
     ecarts = []
     ici = chemin or "<racine>"
@@ -140,6 +144,14 @@ def extract_config_from_argocd(chemin_manifeste):
     """
     with open(chemin_manifeste, encoding="utf-8") as f:
         app = yaml.safe_load(f)
-    values = yaml.safe_load(app["spec"]["source"]["helm"]["values"])
-    brut = values["configMaps"]["bootstrap"]["data"]["config.yaml"]
+    # TypeError en plus de KeyError : si helm.values est vide, yaml.safe_load
+    # rend None, et indexer None lève TypeError, pas KeyError.
+    try:
+        values = yaml.safe_load(app["spec"]["source"]["helm"]["values"])
+        brut = values["configMaps"]["bootstrap"]["data"]["config.yaml"]
+    except (KeyError, TypeError) as e:
+        raise ValueError(
+            f"{chemin_manifeste}: clé {e} introuvable — chemin attendu "
+            f"spec.source.helm.values -> configMaps.bootstrap.data['config.yaml']"
+        ) from e
     return yaml.safe_load(brut)

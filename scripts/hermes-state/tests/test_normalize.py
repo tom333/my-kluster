@@ -2,6 +2,7 @@ import copy
 import json
 import pathlib
 
+import pytest
 import yaml
 
 import normalize
@@ -143,3 +144,29 @@ def test_yaml_subset_signale_un_type_incompatible():
     ecarts = normalize.yaml_subset_diff({"agent": {"max_turns": 90}}, {"agent": "oui"})
     assert len(ecarts) == 1
     assert "agent" in ecarts[0]
+
+
+def test_extract_config_from_argocd_cas_nominal():
+    config = normalize.extract_config_from_argocd(FIXTURES / "argocd-app-minimal.yaml")
+    assert config["model"]["default"] == "deepseek/deepseek-v4-flash"
+    assert config["agent"]["max_turns"] == 90
+
+
+def test_extract_config_from_argocd_signale_une_cle_manquante(tmp_path):
+    """Verrouille le message d'erreur : un chart ArgoCD qui change de forme doit
+    produire un ValueError nommant le fichier et le chemin attendu, pas un
+    KeyError brut illisible dans un log de cron nocturne."""
+    manifeste_casse = tmp_path / "argocd-app-casse.yaml"
+    manifeste_casse.write_text(
+        "spec:\n"
+        "  source:\n"
+        "    helm:\n"
+        "      values: |\n"
+        "        autreChose: {}\n",
+        encoding="utf-8",
+    )
+    with pytest.raises(ValueError) as exc_info:
+        normalize.extract_config_from_argocd(manifeste_casse)
+    message = str(exc_info.value)
+    assert str(manifeste_casse) in message
+    assert "configMaps.bootstrap.data" in message
