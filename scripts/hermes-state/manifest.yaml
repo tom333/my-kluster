@@ -1,0 +1,79 @@
+# Qui possède quoi. Source UNIQUE de la propriété des artefacts Hermes.
+#   owner: git     -> Git fait foi, `apply` écrase le pod
+#   owner: hermes  -> le pod fait foi, `export` capture vers Git, `apply` n'y touche JAMAIS
+# mode: text | tree | yaml-subset | json-spec | json
+# Chemins `git` relatifs à la racine du dépôt.
+artifacts:
+  - name: soul
+    pod: /opt/data/SOUL.md
+    git: hermes-runtime/SOUL.md
+    owner: git
+    mode: text
+
+  - name: hermes-md
+    pod: /workspace/HERMES.md
+    git: hermes-runtime/HERMES.md
+    owner: git
+    mode: text
+    also:
+      - /workspace/AGENTS.md
+
+  - name: skill-eval-modeles
+    pod: /opt/data/skills/eval-modeles/SKILL.md
+    git: hermes-runtime/skills/eval-modeles.SKILL.md
+    owner: git
+    mode: text
+
+  - name: skill-decouvertes
+    pod: /opt/data/skills/decouvertes/SKILL.md
+    git: hermes-runtime/skills/decouvertes.SKILL.md
+    owner: git
+    mode: text
+
+  - name: skill-web-fetch
+    pod: /opt/data/skills/web-fetch/SKILL.md
+    git: hermes-runtime/skills/web-fetch.SKILL.md
+    owner: git
+    mode: text
+
+  - name: skill-veille-digest
+    pod: /opt/data/skills/veille-digest
+    git: hermes-runtime/skills/veille-digest
+    owner: git
+    mode: tree
+
+  - name: script-index-digests
+    pod: /opt/data/scripts/index_digests.py
+    git: scripts/veille-digest-indexer/index_digests.py
+    owner: git
+    mode: text
+
+  - name: script-index-telegram
+    pod: /opt/data/scripts/index_telegram.py
+    git: scripts/telegram-indexer/index_telegram.py
+    owner: git
+    mode: text
+
+  - name: script-bonsai-watch
+    pod: /opt/data/scripts/bonsai_watch.py
+    git: scripts/bonsai-watcher/bonsai_watch.py
+    owner: git
+    mode: text
+
+  # Cas spécial : la source Git est le bloc YAML inline du manifeste ArgoCD,
+  # chemin configMaps.bootstrap.data["config.yaml"] dans spec.source.helm.values.
+  # `apply` est REFUSÉ sur cet artefact : son seul chemin d'écriture légitime est
+  # ArgoCD puis le re-seed par l'initContainer au boot.
+  - name: config
+    pod: /opt/data/config.yaml
+    git: argocd/argocd-apps/hermes-agent-app.yaml
+    owner: git
+    mode: yaml-subset
+    apply_forbidden: true
+    restart_required: true
+
+  - name: crons
+    pod: /opt/data/cron/jobs.json
+    git: hermes-runtime/state/jobs.json
+    owner: hermes
+    mode: json-spec
