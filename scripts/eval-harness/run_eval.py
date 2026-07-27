@@ -14,6 +14,9 @@ Usage :
   uv run run_eval.py --model <candidat> --tag candidate --compare-to qwen3-coder-30b-a3b-instruct
 
 Env : LOCALAI_URL, LOCALAI_KEY (ou ~/.config/brain/localai-key), MLFLOW_TRACKING_URI.
+Artefacts MLflow : AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY, ou les fichiers
+~/.config/brain/rustfs-{access,secret}-key. Sans eux les metriques passent mais
+les artefacts sont perdus EN SILENCE (cf. setup_s3_env).
 """
 from __future__ import annotations
 import argparse, json, os, re, subprocess, tempfile, time, urllib.request
@@ -23,6 +26,8 @@ HERE = Path(__file__).parent
 LOCALAI_URL = os.environ.get("LOCALAI_URL", "https://localai.tgu.ovh/v1")
 MLFLOW_URI = os.environ.get("MLFLOW_TRACKING_URI", "https://mlflow.tgu.ovh")
 SANDBOX_IMAGE = os.environ.get("EVAL_SANDBOX_IMAGE", "python:3.12-slim")
+# rustfs-svc:9000 est ClusterIP : depuis pc il faut passer par l'ingress.
+S3_ENDPOINT = os.environ.get("MLFLOW_S3_ENDPOINT_URL", "https://rustfs.tgu.ovh")
 
 
 def localai_key() -> str:
@@ -31,6 +36,33 @@ def localai_key() -> str:
         return k
     f = Path.home() / ".config" / "brain" / "localai-key"
     return f.read_text().strip() if f.exists() else ""
+
+
+def setup_s3_env() -> str:
+    """Donne à boto3 de quoi joindre rustfs, sinon log_artifact échoue en silence.
+
+    L'experiment MLflow a `artifact_location: s3://mlflow-artifacts/4`, donc le
+    client uploade en DIRECT vers S3 — le `--serve-artifacts` du serveur ne sert
+    de proxy que si la racine est `mlflow-artifacts:/`. Sans identifiants, boto3
+    rend « Unable to locate credentials », les métriques passent et les artefacts
+    non : 23 runs ont ainsi perdu leur detail avant que ce soit remarqué.
+
+    Endpoint via l'ingress (rustfs-svc:9000 est ClusterIP, injoignable depuis pc).
+    Retourne un libellé d'état pour l'afficher.
+    """
+    if os.environ.get("AWS_ACCESS_KEY_ID") and os.environ.get("AWS_SECRET_ACCESS_KEY"):
+        os.environ.setdefault("MLFLOW_S3_ENDPOINT_URL", S3_ENDPOINT)
+        os.environ.setdefault("AWS_DEFAULT_REGION", "us-east-1")
+        return "env"
+    base = Path.home() / ".config" / "brain"
+    ak, sk = base / "rustfs-access-key", base / "rustfs-secret-key"
+    if not (ak.exists() and sk.exists()):
+        return f"ABSENTS ({ak} / {sk}) — artefacts non uploadés"
+    os.environ["AWS_ACCESS_KEY_ID"] = ak.read_text().strip()
+    os.environ["AWS_SECRET_ACCESS_KEY"] = sk.read_text().strip()
+    os.environ.setdefault("MLFLOW_S3_ENDPOINT_URL", S3_ENDPOINT)
+    os.environ.setdefault("AWS_DEFAULT_REGION", "us-east-1")
+    return f"fichiers ({S3_ENDPOINT})"
 
 
 def chat(model, messages, tools=None, max_tokens=2048, temp=0.0, timeout=300):
@@ -332,16 +364,26 @@ def main():
     # MLflow
     try:
         import mlflow, datetime
+        print(f"→ identifiants S3 (artefacts) : {setup_s3_env()}")
         mlflow.set_tracking_uri(MLFLOW_URI)
         mlflow.set_experiment("localai-model-eval")
         stamp = datetime.datetime.now().strftime("%Y%m%d-%H%M")
         with mlflow.start_run(run_name=f"{args.model}-{args.tag}-{stamp}"):
             mlflow.log_params({"model": args.model, "tag": args.tag})
             mlflow.log_metrics(metrics)
-            with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as f:
-                json.dump(results, f, indent=2); tmp = f.name
-            mlflow.log_artifact(tmp, "results")
-        print(f"→ loggé MLflow ({MLFLOW_URI}, exp localai-model-eval)")
+            # Nom lisible : un artefact tmpXXXX.json est inconsultable dans l'UI.
+            with tempfile.TemporaryDirectory() as td:
+                tmp = str(Path(td) / f"{args.model}-{args.tag}.json")
+                Path(tmp).write_text(json.dumps(results, indent=2))
+                mlflow.log_artifact(tmp, "results")
+            # Verifier l'upload : log_artifact peut lever sans que l'appelant le
+            # sache si un jour il est enveloppe, et un artefact absent est
+            # exactement le defaut qu'on vient de corriger.
+            noms = [f.path for f in mlflow.MlflowClient().list_artifacts(
+                mlflow.active_run().info.run_id, "results")]
+            if not noms:
+                raise RuntimeError("artefact absent apres log_artifact")
+        print(f"→ loggé MLflow ({MLFLOW_URI}, exp localai-model-eval), artefacts: {noms}")
     except Exception as e:
         print(f"WARN MLflow: {e}")
 
