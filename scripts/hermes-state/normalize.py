@@ -21,6 +21,15 @@ VOLATILE_JOB_FIELDS = frozenset({
 # suffit à produire un commit quotidien vide de sens.
 VOLATILE_ROOT_FIELDS = frozenset({"updated_at"})
 
+# Statut IMBRIQUÉ dans un champ de définition. `repeat` décrit bien la répétition
+# voulue (`times`), mais Hermes y range aussi `completed`, un compteur incrémenté
+# à CHAQUE exécution. Observé en production : les 8 tâches ont vu leur compteur
+# passer de N à N+1 après un tour d'ordonnanceur. Sans ce retrait, le cron
+# nocturne committerait chaque nuit — le défaut exact que ce module combat.
+# Une liste plate de champs ne peut pas exprimer « garder ce champ sauf une de
+# ses sous-clés », d'où cette structure séparée.
+VOLATILE_NESTED_FIELDS = {"repeat": frozenset({"completed"})}
+
 DEFINITION_JOB_FIELDS = frozenset({
     "id", "name", "schedule", "schedule_display", "prompt", "model", "provider",
     "base_url", "skill", "skills", "script", "enabled", "deliver", "workdir",
@@ -89,7 +98,12 @@ def normalize_jobs(raw, warn=None):
         if inconnus and warn:
             etiquette = job.get("name") or job.get("id") or "?"
             warn(f"{etiquette}: champ(s) inconnu(s) conservé(s): {', '.join(sorted(inconnus))}")
-        propres.append({k: v for k, v in job.items() if k not in VOLATILE_JOB_FIELDS})
+        propre = {k: v for k, v in job.items() if k not in VOLATILE_JOB_FIELDS}
+        for champ, sous_cles in VOLATILE_NESTED_FIELDS.items():
+            if isinstance(propre.get(champ), dict):
+                propre[champ] = {k: v for k, v in propre[champ].items()
+                                 if k not in sous_cles}
+        propres.append(propre)
 
     # Clé secondaire (name) : sans elle, deux jobs partageant le même id (vide
     # ou dupliqué) retomberaient sur la stabilité de sort() et hériteraient de

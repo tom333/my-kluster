@@ -4,7 +4,9 @@
 # ///
 """hermes-state — réconciliation Git <-> PVC de la configuration Hermes.
 
-    hermes-state diff              observe, ne modifie rien. Code retour 1 si dérive.
+    hermes-state diff                        observe, ne modifie rien. 1 si dérive.
+    hermes-state export [--adopt] [--commit] pod -> Git (artefacts owner=hermes)
+    hermes-state apply [--only NOM]... --yes Git -> pod (artefacts owner=git)
 
 Spec: docs/superpowers/specs/2026-07-27-hermes-state-design.md
 """
@@ -197,6 +199,61 @@ def cmd_export(args):
     return 2 if echecs else 0
 
 
+def cmd_apply(args):
+    arts = normalize.load_manifest(MANIFEST)
+    if args.only:
+        connus = {a["name"] for a in arts}
+        inconnus = set(args.only) - connus
+        if inconnus:
+            raise ValueError(f"artefact(s) inconnu(s): {', '.join(sorted(inconnus))} "
+                             f"— connus: {', '.join(sorted(connus))}")
+        arts = [a for a in arts if a["name"] in set(args.only)]
+
+    pod = podio.Pod()
+    redemarrage, echecs = [], []
+
+    for a in arts:
+        try:
+            check_appliable(a)
+        except GuardError as e:
+            print(f"ignoré: {e}")
+            continue
+
+        cote_git = contenu_git(a)
+        if cote_git is None:
+            print(ligne_statut(a["name"], ABSENT_GIT, "absent de Git, rien à appliquer"))
+            continue
+
+        statut, detail = comparer(a, cote_git, contenu_pod(pod, a))
+        if statut == IDENTIQUE:
+            print(ligne_statut(a["name"], IDENTIQUE, "déjà aligné"))
+            continue
+
+        print(ligne_statut(a["name"], statut, detail))
+        try:
+            if a["mode"] == "tree":
+                for rel, texte in sorted(cote_git.items()):
+                    apply_artifact(pod, dict(a, pod=f"{a['pod']}/{rel}", also=[]),
+                                   texte.encode("utf-8"), oui=args.yes)
+            else:
+                apply_artifact(pod, a, cote_git.encode("utf-8"), oui=args.yes)
+        except podio.PodError as e:
+            print(f"erreur: {a['name']}: {e}", file=sys.stderr)
+            echecs.append(a["name"])
+            continue
+
+        if a["restart_required"]:
+            redemarrage.append(a["name"])
+
+    if redemarrage:
+        print(f"\nredémarrage du pod nécessaire pour: {', '.join(redemarrage)}")
+        print("hermes-state ne redémarre JAMAIS de lui-même. À toi de décider :")
+        print("  kubectl delete pod -n hermes -l app.kubernetes.io/name=hermes-agent")
+    if not args.yes:
+        print("\n(dry-run — ajoute --yes pour écrire réellement)")
+    return 2 if echecs else 0
+
+
 def construire_parseur():
     p = argparse.ArgumentParser(prog="hermes-state", description=__doc__,
                                 formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -207,13 +264,19 @@ def construire_parseur():
                    help="capture aussi les artefacts owner=git absents de Git (amorçage)")
     e.add_argument("--commit", action="store_true",
                    help="git add/commit/push des chemins exportés (cf. spec §5)")
+    ap = sous.add_parser("apply", help="Git -> pod, artefacts owner=git uniquement")
+    ap.add_argument("--only", action="append", default=[], metavar="NOM",
+                    help="limiter à cet artefact (répétable)")
+    ap.add_argument("--yes", action="store_true",
+                    help="écrire réellement (sans ce drapeau : dry-run)")
     return p
 
 
 def main(argv=None):
     args = construire_parseur().parse_args(argv)
     try:
-        return {"diff": cmd_diff, "export": cmd_export}[args.verbe](args)
+        return {"diff": cmd_diff, "export": cmd_export,
+                "apply": cmd_apply}[args.verbe](args)
     except (podio.PodError, GuardError, ValueError) as e:
         print(f"erreur: {e}", file=sys.stderr)
         return 2

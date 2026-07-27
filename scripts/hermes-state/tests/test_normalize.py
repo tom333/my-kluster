@@ -182,3 +182,29 @@ def test_extract_config_from_argocd_signale_une_cle_manquante(tmp_path):
     message = str(exc_info.value)
     assert str(manifeste_casse) in message
     assert "configMaps.bootstrap.data" in message
+
+
+def test_compteur_imbrique_dans_repeat_est_ecarte():
+    """repeat.completed s'incremente a CHAQUE execution. Observe en production :
+    les 8 taches sont passees de N a N+1 apres un tour d'ordonnanceur. Sans son
+    retrait, le cron nocturne committerait chaque nuit sans changement reel.
+    repeat.times, lui, est bien de la definition et doit survivre."""
+    a = charger()
+    b = copy.deepcopy(a)
+    b["jobs"][0]["repeat"]["completed"] += 1
+    assert normalize.normalize_jobs(a) == normalize.normalize_jobs(b)
+
+    sortie = json.loads(normalize.normalize_jobs(a))
+    job = next(j for j in sortie["jobs"] if j["id"] == "b2")
+    assert "completed" not in job["repeat"], "le compteur doit disparaitre"
+    assert job["repeat"] == {"times": None}, "repeat.times doit survivre"
+
+
+def test_repeat_null_ne_casse_pas():
+    """repeat vaut null sur la plupart des taches reelles : le retrait imbrique
+    ne doit pas planter dessus."""
+    a = charger()
+    a["jobs"][0]["repeat"] = None
+    sortie = json.loads(normalize.normalize_jobs(a))
+    job = next(j for j in sortie["jobs"] if j["id"] == "b2")
+    assert job["repeat"] is None
