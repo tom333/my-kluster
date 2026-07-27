@@ -159,3 +159,10 @@ def extract_config_from_argocd(chemin_manifeste):
             f"spec.source.helm.values -> configMaps.bootstrap.data['config.yaml']"
         ) from e
     return yaml.safe_load(brut)
+
+
+def normalize_text(contenu):
+    """Neutralise les fins de ligne pour que la comparaison texte soit fiable."""
+    if isinstance(contenu, bytes):
+        contenu = contenu.decode("utf-8")
+    return contenu.replace("\r\n", "\n").replace("\r", "\n")
