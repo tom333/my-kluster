@@ -17,6 +17,7 @@ import sys
 
 import yaml
 
+import gitio
 import normalize
 import podio
 
@@ -192,7 +193,6 @@ def cmd_export(args):
     print("capturé: " + ", ".join(changes) if changes else "aucun changement à capturer")
 
     if args.commit and changes:
-        import gitio
         chemins = [a["git"] for a in a_exporter(arts, args.adopt)]
         gitio.commit_export(RACINE_DEPOT, chemins, changes)
 
@@ -277,7 +277,7 @@ def main(argv=None):
     try:
         return {"diff": cmd_diff, "export": cmd_export,
                 "apply": cmd_apply}[args.verbe](args)
-    except (podio.PodError, GuardError, ValueError) as e:
+    except (podio.PodError, GuardError, gitio.GitGuardError, ValueError) as e:
         print(f"erreur: {e}", file=sys.stderr)
         return 2
 
