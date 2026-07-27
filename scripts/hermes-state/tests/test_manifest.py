@@ -1,5 +1,4 @@
-import sys, pathlib
-sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
+import pathlib
 
 import pytest
 import normalize
@@ -44,4 +43,52 @@ def test_chemin_git_en_doublon_rejete(tmp_path):
         "  - name: b\n    pod: /b\n    git: meme/chemin\n    owner: git\n    mode: text\n"
     )
     with pytest.raises(ValueError, match="doublon"):
+        normalize.load_manifest(p)
+
+
+def test_champ_requis_manquant_rejete(tmp_path):
+    p = tmp_path / "m.yaml"
+    p.write_text("artifacts:\n  - name: x\n    pod: /a\n    owner: git\n    mode: text\n")
+    with pytest.raises(ValueError, match="manquant"):
+        normalize.load_manifest(p)
+
+
+def test_artifacts_absent_rejete(tmp_path):
+    p = tmp_path / "m.yaml"
+    p.write_text("autre_cle: 1\n")
+    with pytest.raises(ValueError, match="aucun artefact déclaré"):
+        normalize.load_manifest(p)
+
+
+def test_artifacts_vide_rejete(tmp_path):
+    p = tmp_path / "m.yaml"
+    p.write_text("artifacts: []\n")
+    with pytest.raises(ValueError, match="aucun artefact déclaré"):
+        normalize.load_manifest(p)
+
+
+def test_nom_en_doublon_rejete(tmp_path):
+    p = tmp_path / "m.yaml"
+    p.write_text(
+        "artifacts:\n"
+        "  - name: a\n    pod: /a\n    git: chemin-a\n    owner: git\n    mode: text\n"
+        "  - name: a\n    pod: /b\n    git: chemin-b\n    owner: git\n    mode: text\n"
+    )
+    with pytest.raises(ValueError, match="doublon"):
+        normalize.load_manifest(p)
+
+
+def test_valeurs_par_defaut(tmp_path):
+    p = tmp_path / "m.yaml"
+    p.write_text("artifacts:\n  - name: x\n    pod: /a\n    git: b\n    owner: git\n    mode: text\n")
+    arts = normalize.load_manifest(p)
+    assert arts[0]["also"] == []
+    assert arts[0]["apply_forbidden"] is False
+    assert arts[0]["restart_required"] is False
+
+
+def test_entree_non_mapping_rejetee(tmp_path):
+    p = tmp_path / "m.yaml"
+    p.write_text("artifacts:\n  - juste-une-chaine\n")
+    with pytest.raises(ValueError, match="index"):
         normalize.load_manifest(p)

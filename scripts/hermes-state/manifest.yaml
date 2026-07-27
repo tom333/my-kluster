@@ -3,6 +3,10 @@
 #   owner: hermes  -> le pod fait foi, `export` capture vers Git, `apply` n'y touche JAMAIS
 # mode: text | tree | yaml-subset | json-spec | json
 # Chemins `git` relatifs à la racine du dépôt.
+# also: destinations supplémentaires recevant le MÊME contenu que `pod`.
+# apply_forbidden: `apply` refuse cet artefact, même s'il est owner: git.
+# restart_required: appliquer cet artefact n'a d'effet qu'après un redémarrage
+#   du pod ; l'outil le signale mais ne redémarre jamais de lui-même.
 artifacts:
   - name: soul
     pod: /opt/data/SOUL.md

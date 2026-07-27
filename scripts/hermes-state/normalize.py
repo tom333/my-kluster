@@ -4,8 +4,6 @@ Contrainte structurelle : ce module ne fait AUCUN I/O réseau et n'importe NI
 podio NI hermes_state. C'est ce qui permet de tester toute la logique sans
 cluster. Seule exception tolérée : lire le manifeste depuis le disque.
 """
-import json
-
 import yaml
 
 OWNERS = frozenset({"git", "hermes"})
@@ -14,13 +12,16 @@ MODES = frozenset({"text", "tree", "yaml-subset", "json-spec", "json"})
 
 def load_manifest(path):
     """Charge et VALIDE le manifeste. Lève ValueError sur toute incohérence."""
-    doc = yaml.safe_load(open(path, encoding="utf-8")) or {}
+    with open(path, encoding="utf-8") as f:
+        doc = yaml.safe_load(f) or {}
     arts = doc.get("artifacts") or []
     if not arts:
         raise ValueError(f"{path}: aucun artefact déclaré")
 
     vus_noms, vus_git = set(), set()
-    for a in arts:
+    for i, a in enumerate(arts):
+        if not isinstance(a, dict):
+            raise ValueError(f"artefact à l'index {i}: entrée invalide (attendu un mapping)")
         for champ in ("name", "pod", "git", "owner", "mode"):
             if not a.get(champ):
                 raise ValueError(f"artefact {a.get('name', '?')}: champ '{champ}' manquant")
