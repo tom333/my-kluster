@@ -125,6 +125,27 @@ def comparer(a, cote_git, cote_pod):
     return (IDENTIQUE, "") if cote_git == cote_pod else (DIVERGE, "contenu différent")
 
 
+def ecrire_si_different(chemin, contenu):
+    """Écrit uniquement si le contenu change. Retourne True si écriture eut lieu.
+
+    Sans cette condition, le cron d'export toucherait les fichiers chaque nuit
+    et `git status` serait sale en permanence.
+    """
+    chemin = pathlib.Path(chemin)
+    if chemin.exists() and chemin.read_text(encoding="utf-8") == contenu:
+        return False
+    chemin.parent.mkdir(parents=True, exist_ok=True)
+    chemin.write_text(contenu, encoding="utf-8")
+    return True
+
+
+def a_exporter(arts, adopt):
+    """owner=hermes toujours ; owner=git seulement en --adopt (amorçage)."""
+    if adopt:
+        return list(arts)
+    return [a for a in arts if a["owner"] == "hermes"]
+
+
 def cmd_diff(args):
     arts = normalize.load_manifest(MANIFEST)
     pod = podio.Pod()
@@ -139,18 +160,60 @@ def cmd_diff(args):
     return 1 if derive else 0
 
 
+def cmd_export(args):
+    arts = normalize.load_manifest(MANIFEST)
+    pod = podio.Pod()
+    changes, echecs = [], []
+
+    for a in a_exporter(arts, args.adopt):
+        if a["mode"] == "yaml-subset":
+            print(ligne_statut(a["name"], "·", "ignoré à l'export (source = manifeste ArgoCD)"))
+            continue
+        try:
+            cote_pod = contenu_pod(pod, a)
+        except podio.PodError as e:
+            print(f"erreur: {a['name']}: {e}", file=sys.stderr)
+            echecs.append(a["name"])
+            continue
+        if cote_pod is None:
+            print(ligne_statut(a["name"], ABSENT_POD, "absent du pod, rien à capturer"))
+            continue
+
+        if a["mode"] == "tree":
+            ecrits = [rel for rel, texte in cote_pod.items()
+                      if ecrire_si_different(chemin_git(a) / rel, texte)]
+            if ecrits:
+                changes.append(f"{a['name']} ({', '.join(sorted(ecrits))})")
+        elif ecrire_si_different(chemin_git(a), cote_pod):
+            changes.append(a["name"])
+
+    print("capturé: " + ", ".join(changes) if changes else "aucun changement à capturer")
+
+    if args.commit and changes:
+        import gitio
+        chemins = [a["git"] for a in a_exporter(arts, args.adopt)]
+        gitio.commit_export(RACINE_DEPOT, chemins, changes)
+
+    return 2 if echecs else 0
+
+
 def construire_parseur():
     p = argparse.ArgumentParser(prog="hermes-state", description=__doc__,
                                 formatter_class=argparse.RawDescriptionHelpFormatter)
     sous = p.add_subparsers(dest="verbe", required=True)
     sous.add_parser("diff", help="compare Git et le pod, ne modifie rien")
+    e = sous.add_parser("export", help="pod -> Git, artefacts owner=hermes")
+    e.add_argument("--adopt", action="store_true",
+                   help="capture aussi les artefacts owner=git absents de Git (amorçage)")
+    e.add_argument("--commit", action="store_true",
+                   help="git add/commit/push des chemins exportés (cf. spec §5)")
     return p
 
 
 def main(argv=None):
     args = construire_parseur().parse_args(argv)
     try:
-        return {"diff": cmd_diff}[args.verbe](args)
+        return {"diff": cmd_diff, "export": cmd_export}[args.verbe](args)
     except (podio.PodError, GuardError, ValueError) as e:
         print(f"erreur: {e}", file=sys.stderr)
         return 2

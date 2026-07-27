@@ -106,3 +106,22 @@ def test_comparer_yaml_subset_ignore_les_ajouts_du_pod():
 def test_ligne_statut():
     assert hermes_state.ligne_statut("soul", "=") == "=  soul"
     assert "~" in hermes_state.ligne_statut("soul", "~", "contenu différent")
+
+
+def test_export_ecrit_seulement_si_le_contenu_change(tmp_path):
+    """Sans cette condition le cron d'export salirait le working tree chaque
+    nuit, meme sans changement reel."""
+    cible = tmp_path / "state" / "jobs.json"
+    assert hermes_state.ecrire_si_different(cible, "a\n") is True
+    mtime = cible.stat().st_mtime_ns
+    assert hermes_state.ecrire_si_different(cible, "a\n") is False
+    assert cible.stat().st_mtime_ns == mtime, "aucune reecriture si contenu identique"
+    assert hermes_state.ecrire_si_different(cible, "b\n") is True
+    assert cible.read_text(encoding="utf-8") == "b\n"
+
+
+def test_export_selectionne_les_artefacts():
+    arts = [art(name="soul", owner="git"), art(name="crons", owner="hermes")]
+    assert [a["name"] for a in hermes_state.a_exporter(arts, adopt=False)] == ["crons"]
+    assert sorted(a["name"] for a in hermes_state.a_exporter(arts, adopt=True)) == \
+        ["crons", "soul"]
