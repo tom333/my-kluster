@@ -15,8 +15,8 @@ des copies manuelles (`kubectl cp` documenté dans `hermes-runtime/README.md`). 
 
 | Artefact | État réel |
 |---|---|
-| `config.yaml` | **divergent structurellement** : 2 152 o dans le pod contre ~7 500 o en Git, réécrit **42 h après le démarrage du pod**, clés ajoutées par Hermes (`plugins`, `_config_version: 33`, `onboarding`), commentaires supprimés |
-| `jobs.json` | **8 crons, ~18 000 caractères de prompts, zéro Git.** Perte du PVC = perte de tout le travail de veille |
+| `config.yaml` | **réécrit à chaud, mais aucune valeur perdue.** Hermes le réécrit hors de tout redémarrage (observé 42 h après le boot du pod), supprime les commentaires et ajoute ses propres clés (`plugins`, `_config_version`, `onboarding`, `skills`). ⚠️ **Correction apportée après implémentation** : la première rédaction annonçait une « dérive structurelle » en comparant des octets (2 152 dans le pod contre ~7 500 en Git). Mesure sémantique réelle : 13 clés déclarées côté Git, 17 côté pod, **4 ajoutées, 0 perdue, 0 écart de valeur**. L'écart d'octets n'était que des commentaires. Cet artefact est **sain** ; l'enjeu est de vérifier qu'il le reste, pas de réparer. C'est exactement l'erreur que le mode `yaml-subset` existe pour éviter — et je l'avais commise dans le diagnostic. |
+| `jobs.json` | **8 crons, 12 872 caractères de prompts, zéro Git.** Perte du PVC = perte de tout le travail de veille. C'est le vrai chantier. |
 | skill `veille-digest` | présent sur le PVC, **versionné nulle part**, alors qu'il alimente le pipeline d'éval |
 | `index_digests.py` | **divergent** entre PVC et Git, sans savoir quelle version fait foi |
 | `bonsai_watch.py` | identique, mais **non suivi** par Git (`?? scripts/bonsai-watcher/`) |
@@ -126,8 +126,17 @@ est la vraie question.
 Export de la **définition seule**. Décomptes vérifiés sur les 8 jobs réels : 30 champs distincts,
 dont 21 de définition et 9 volatils.
 
+**Découvert à l'implémentation, absent de cette liste au départ** : `repeat` est un champ
+de définition (`repeat.times` = nombre de répétitions voulu) mais Hermes y range aussi
+`repeat.completed`, un compteur **incrémenté à chaque exécution**. Une liste plate de
+champs ne peut pas exprimer « garder ce champ sauf une de ses sous-clés », d'où une
+structure séparée `VOLATILE_NESTED_FIELDS`. Sans ce retrait, le cron aurait committé
+chaque nuit — le défaut exact que ce mode combat. Ce piège était **invisible en test sur
+fixture** : il n'est apparu qu'après un vrai tour d'ordonnanceur sur les 8 tâches.
+
 ```
 racine    : `jobs` conservé ; `updated_at` ÉCARTÉ (réécrit à chaque sauvegarde)
+imbriqué  : `repeat.completed` ÉCARTÉ, `repeat.times` conservé
 
 conservés (21) : id, name, schedule, schedule_display, prompt, model, provider, base_url,
                  skill, skills, script, enabled, deliver, workdir, context_from,

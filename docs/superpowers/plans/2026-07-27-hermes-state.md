@@ -58,7 +58,7 @@ Crée `scripts/hermes-state/manifest.yaml` :
 # Qui possède quoi. Source UNIQUE de la propriété des artefacts Hermes.
 #   owner: git     -> Git fait foi, `apply` écrase le pod
 #   owner: hermes  -> le pod fait foi, `export` capture vers Git, `apply` n'y touche JAMAIS
-# mode: text | tree | yaml-subset | json-spec | json
+# mode: text | tree | yaml-subset | json-spec
 # Chemins `git` relatifs à la racine du dépôt.
 artifacts:
   - name: soul
@@ -215,7 +215,7 @@ import json
 import yaml
 
 OWNERS = frozenset({"git", "hermes"})
-MODES = frozenset({"text", "tree", "yaml-subset", "json-spec", "json"})
+MODES = frozenset({"text", "tree", "yaml-subset", "json-spec"})
 
 
 def load_manifest(path):
@@ -252,7 +252,7 @@ def load_manifest(path):
 uv run --quiet --with pytest --with pyyaml pytest tests/test_manifest.py -v
 ```
 
-Attendu : `5 passed`.
+Attendu : tous les tests de `test_manifest.py` passent, aucun échec.
 
 - [ ] **Step 6: Commit**
 
@@ -357,9 +357,6 @@ Crée `scripts/hermes-state/tests/test_normalize.py` :
 import copy
 import json
 import pathlib
-import sys
-
-sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 
 import normalize
 
@@ -507,18 +504,6 @@ def normalize_jobs(raw, warn=None):
                   if k != "jobs" and k not in VOLATILE_ROOT_FIELDS}
     racine["jobs"] = propres
     return _dump(racine)
-
-
-def normalize_json(raw):
-    """Pour les états simples (seen-*.json) : tri des clés, indentation stable."""
-    return _dump(raw)
-
-
-def normalize_text(contenu):
-    """Neutralise les fins de ligne pour que la comparaison texte soit fiable."""
-    if isinstance(contenu, bytes):
-        contenu = contenu.decode("utf-8")
-    return contenu.replace("\r\n", "\n").replace("\r", "\n")
 ```
 
 - [ ] **Step 5: Lancer les tests**
@@ -527,7 +512,7 @@ def normalize_text(contenu):
 uv run --quiet --with pytest --with pyyaml pytest tests/test_normalize.py -v
 ```
 
-Attendu : `10 passed`.
+Attendu : les 10 tests de `test_normalize.py` passent, aucun échec.
 
 - [ ] **Step 6: Commit**
 
@@ -696,7 +681,7 @@ def extract_config_from_argocd(chemin_manifeste):
 uv run --quiet --with pytest --with pyyaml pytest tests/ -v
 ```
 
-Attendu : `20 passed`.
+Attendu : **0 failed** sur l'ensemble de `tests/` (le total croît à chaque tâche ; c'est l'absence d'échec qui compte, pas le compte).
 
 - [ ] **Step 6: Vérifier l'extraction sur le vrai manifeste**
 
@@ -733,11 +718,6 @@ git commit -m "feat(hermes-state): comparaison YAML par sous-ensemble pour confi
 Crée `scripts/hermes-state/tests/test_podio.py` :
 
 ```python
-import pathlib
-import sys
-
-sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
-
 import pytest
 import podio
 
@@ -981,7 +961,7 @@ class Pod:
 uv run --quiet --with pytest --with pyyaml pytest tests/ -v
 ```
 
-Attendu : `30 passed`.
+Attendu : **0 failed** sur l'ensemble de `tests/`, dont les 10 nouveaux de `test_podio.py`.
 
 - [ ] **Step 5: Commit**
 
@@ -997,6 +977,7 @@ git commit -m "feat(hermes-state): transport kubectl (écriture atomique + chown
 
 **Files:**
 - Create: `scripts/hermes-state/hermes_state.py`
+- Modify: `scripts/hermes-state/normalize.py` (ajoute `normalize_text`, dont ce verbe est le premier appelant)
 - Create: `scripts/hermes-state/tests/test_guards.py`
 
 - [ ] **Step 1: Écrire les tests qui échouent**
@@ -1004,11 +985,6 @@ git commit -m "feat(hermes-state): transport kubectl (écriture atomique + chown
 Crée `scripts/hermes-state/tests/test_guards.py` :
 
 ```python
-import pathlib
-import sys
-
-sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
-
 import hermes_state
 import pytest
 
@@ -1062,7 +1038,21 @@ uv run --quiet --with pytest --with pyyaml pytest tests/test_guards.py -v
 
 Attendu : `ModuleNotFoundError: No module named 'hermes_state'`.
 
-- [ ] **Step 3: Implémenter la CLI et le verbe `diff`**
+- [ ] **Step 3: Ajouter `normalize_text` à `normalize.py`**
+
+Cette fonction n'est livrée qu'ici, parce que le verbe `diff` est son **premier appelant réel** :
+la livrer plus tôt serait de l'anticipation, ce que la politique du dépôt interdit. Ajoute-la à
+`scripts/hermes-state/normalize.py`, après `normalize_jobs` :
+
+```python
+def normalize_text(contenu):
+    """Neutralise les fins de ligne pour que la comparaison texte soit fiable."""
+    if isinstance(contenu, bytes):
+        contenu = contenu.decode("utf-8")
+    return contenu.replace("\r\n", "\n").replace("\r", "\n")
+```
+
+- [ ] **Step 4: Implémenter la CLI et le verbe `diff`**
 
 Crée `scripts/hermes-state/hermes_state.py` :
 
@@ -1150,8 +1140,6 @@ def contenu_pod(pod, a):
         brut = pod.read_json_retry(a["pod"], json.loads)
         return normalize.normalize_jobs(brut, warn=lambda m: print(f"   avertissement: {m}",
                                                                    file=sys.stderr))
-    if a["mode"] == "json":
-        return normalize.normalize_json(pod.read_json_retry(a["pod"], json.loads))
     return normalize.normalize_text(pod.read(a["pod"]))
 
 
@@ -1217,7 +1205,7 @@ if __name__ == "__main__":
     sys.exit(main())
 ```
 
-- [ ] **Step 4: Ajouter `apply_artifact` (référencé par le test des garde-fous)**
+- [ ] **Step 5: Ajouter `apply_artifact` (référencé par le test des garde-fous)**
 
 Ajoute à `scripts/hermes-state/hermes_state.py`, juste après `check_appliable` :
 
@@ -1235,16 +1223,16 @@ def apply_artifact(pod, a, donnees, oui=False):
         print(f"   écrit {c} (chown {podio.AGENT_UID})")
 ```
 
-- [ ] **Step 5: Lancer les tests**
+- [ ] **Step 6: Lancer les tests**
 
 ```bash
 cd /data/projets/perso/my-kluster/scripts/hermes-state
 uv run --quiet --with pytest --with pyyaml pytest tests/ -v
 ```
 
-Attendu : `35 passed`.
+Attendu : **0 failed** sur l'ensemble de `tests/`, dont les 5 nouveaux de `test_guards.py`.
 
-- [ ] **Step 6: Exécuter `diff` contre le vrai pod (lecture seule, sans danger)**
+- [ ] **Step 7: Exécuter `diff` contre le vrai pod (lecture seule, sans danger)**
 
 ```bash
 uv run --quiet --with pyyaml python hermes_state.py diff; echo "code retour: $?"
@@ -1258,7 +1246,7 @@ Attendu, d'après l'audit du 2026-07-27 :
 
 Si `config` ressort en `~`, lis le détail : c'est soit une vraie dérive de valeur déclarée, soit un défaut de `yaml_subset_diff` à corriger avant d'aller plus loin.
 
-- [ ] **Step 7: Commit**
+- [ ] **Step 8: Commit**
 
 ```bash
 cd /data/projets/perso/my-kluster
@@ -1399,7 +1387,7 @@ Enfin, ajoute `"export": cmd_export` au dictionnaire de `main`.
 uv run --quiet --with pytest --with pyyaml pytest tests/ -v
 ```
 
-Attendu : `37 passed`.
+Attendu : **0 failed** sur l'ensemble de `tests/`, dont les 2 nouveaux tests d'export.
 
 - [ ] **Step 5: Capturer les crons pour de vrai (sans commit)**
 
@@ -1576,7 +1564,7 @@ Et ajoute `"apply": cmd_apply` au dictionnaire de `main`.
 uv run --quiet --with pytest --with pyyaml pytest tests/ -v
 ```
 
-Attendu : `40 passed`.
+Attendu : **0 failed** sur l'ensemble de `tests/`, dont les 3 nouveaux tests d'apply.
 
 - [ ] **Step 5: Vérifier le refus, en dry-run global**
 
@@ -1621,9 +1609,6 @@ Crée `scripts/hermes-state/tests/test_gitio.py` :
 
 ```python
 import pathlib
-import sys
-
-sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 
 import gitio
 import pytest
@@ -1785,7 +1770,7 @@ l'intérieur de la fonction ainsi que son commentaire sur la Task 8.
 uv run --quiet --with pytest --with pyyaml pytest tests/ -v
 ```
 
-Attendu : `47 passed`.
+Attendu : **0 failed** sur l'ensemble de `tests/`, dont les 7 nouveaux de `test_gitio.py`.
 
 - [ ] **Step 6: Vérifier le garde-fou de branche pour de vrai**
 
@@ -2050,7 +2035,7 @@ cd scripts/hermes-state
 uv run --quiet --with pytest --with pyyaml pytest tests/ -v
 ```
 
-Attendu : `47 passed`.
+Attendu : **0 failed** sur l'ensemble de `tests/`, dont les 7 nouveaux de `test_gitio.py`.
 
 ---
 
