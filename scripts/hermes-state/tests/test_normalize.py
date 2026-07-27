@@ -28,11 +28,25 @@ def test_champs_de_definition_subsistent():
     assert job["schedule"]["expr"] == "30 21 * * *"
     assert job["skill"] == "veille-digest"
     assert job["created_at"] == "2026-06-10T00:01:00+00:00"
+    assert job["model"] == "deepseek/deepseek-v4-flash", "un modèle épinglé doit ressortir intact"
 
 
 def test_tri_stable_par_id():
     sortie = json.loads(normalize.normalize_jobs(charger()))
     assert [j["id"] for j in sortie["jobs"]] == ["a1", "b2"]
+
+
+def test_tri_deterministe_sans_id():
+    """Sans clé secondaire, deux jobs partageant le même id (ici vide) hériteraient
+    de l'ordre du fichier source via la stabilité de sort() — deux documents
+    contenant les mêmes tâches en ordre source inversé doivent produire une
+    sortie identique."""
+    a = charger()
+    for job in a["jobs"]:
+        job["id"] = ""
+    b = copy.deepcopy(a)
+    b["jobs"] = list(reversed(b["jobs"]))
+    assert normalize.normalize_jobs(a) == normalize.normalize_jobs(b)
 
 
 def test_idempotence():

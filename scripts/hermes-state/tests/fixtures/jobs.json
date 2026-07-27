@@ -6,7 +6,7 @@
       "schedule": {"kind": "cron", "expr": "30 21 * * *", "display": "30 21 * * *"},
       "schedule_display": "30 21 * * *",
       "prompt": "Fais la veille LLM du jour et livre un digest.",
-      "model": null,
+      "model": "deepseek/deepseek-v4-flash",
       "provider": null,
       "base_url": null,
       "skill": "veille-digest",

@@ -9,7 +9,7 @@ import json
 import yaml
 
 OWNERS = frozenset({"git", "hermes"})
-MODES = frozenset({"text", "tree", "yaml-subset", "json-spec", "json"})
+MODES = frozenset({"text", "tree", "yaml-subset", "json-spec"})
 
 # Champs de statut, réécrits en permanence par l'ordonnanceur. Les écarter est ce
 # qui fait qu'un commit n'apparaît QUE si la définition d'un job a changé.
@@ -72,6 +72,14 @@ def normalize_jobs(raw, warn=None):
     warn : callable(str), appelé pour chaque champ inconnu — qui est CONSERVÉ.
            Perdre silencieusement un champ d'une future version de Hermes serait
            pire que d'en capturer un de trop.
+
+    L'ORDRE des listes internes d'un job (`skills`, `enabled_toolsets`...) est
+    délibérément PRÉSERVÉ, jamais trié : la capture doit rester directement
+    restaurable telle quelle. Trier ces listes ferait dévier le fichier
+    versionné du contenu réel du pod, et une restauration réordonnerait les
+    listes de l'agent — un vrai risque contre un risque hypothétique. Si
+    Hermes se met un jour à réordonner ces listes sans raison fonctionnelle,
+    ce sera un faux positif à traiter à ce moment-là, pas par anticipation.
     """
     jobs = raw.get("jobs", []) if isinstance(raw, dict) else list(raw)
 
@@ -83,7 +91,11 @@ def normalize_jobs(raw, warn=None):
             warn(f"{etiquette}: champ(s) inconnu(s) conservé(s): {', '.join(sorted(inconnus))}")
         propres.append({k: v for k, v in job.items() if k not in VOLATILE_JOB_FIELDS})
 
-    propres.sort(key=lambda j: str(j.get("id", "")))
+    # Clé secondaire (name) : sans elle, deux jobs partageant le même id (vide
+    # ou dupliqué) retomberaient sur la stabilité de sort() et hériteraient de
+    # l'ordre du fichier source — exactement le commit fantôme que cette
+    # fonction existe pour éliminer.
+    propres.sort(key=lambda j: (str(j.get("id", "")), str(j.get("name", ""))))
 
     racine = {}
     if isinstance(raw, dict):
@@ -91,15 +103,3 @@ def normalize_jobs(raw, warn=None):
                   if k != "jobs" and k not in VOLATILE_ROOT_FIELDS}
     racine["jobs"] = propres
     return _dump(racine)
-
-
-def normalize_json(raw):
-    """Pour les états simples (seen-*.json) : tri des clés, indentation stable."""
-    return _dump(raw)
-
-
-def normalize_text(contenu):
-    """Neutralise les fins de ligne pour que la comparaison texte soit fiable."""
-    if isinstance(contenu, bytes):
-        contenu = contenu.decode("utf-8")
-    return contenu.replace("\r\n", "\n").replace("\r", "\n")
