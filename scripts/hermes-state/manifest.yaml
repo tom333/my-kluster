@@ -1,7 +1,7 @@
 # Qui possède quoi. Source UNIQUE de la propriété des artefacts Hermes.
 #   owner: git     -> Git fait foi, `apply` écrase le pod
 #   owner: hermes  -> le pod fait foi, `export` capture vers Git, `apply` n'y touche JAMAIS
-# mode: text | tree | yaml-subset | json-spec | json
+# mode: text | tree | yaml-subset | json-spec
 # Chemins `git` relatifs à la racine du dépôt.
 # also: destinations supplémentaires recevant le MÊME contenu que `pod`.
 # apply_forbidden: `apply` refuse cet artefact, même s'il est owner: git.
