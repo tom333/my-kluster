@@ -57,7 +57,7 @@ A2B** sont des optims de *taille/vitesse*, pas de « cerveau » — à réserver
 non-agent.
 
 État génération (2026-06-05) : **rien de plus récent en GGUF** que Qwen3.6 / gemma-4
-(pas de Qwen3.7 / Qwen3-Next / gemma-5). Le watcher `~/bin/moe-watch.py` (voir annexe)
+(pas de Qwen3.7 / Qwen3-Next / gemma-5). Le watcher `~/bin/moe-watch.py` (RETIRÉ le 2026-07-27, voir section dédiée)
 préviendra quand une nouvelle gen débarquera.
 
 ## Candidats (GGUF de confiance, vérifiés)
@@ -213,18 +213,32 @@ ik_llama ajoute `--fit-margin` (non dispo en mainline) et un draft autotune.
 - [ ] Vision (optionnel) : ajouter `mmproj-*.gguf` si on passe les screenshots browser en image (gros gain tokens vs HTML).
 - [ ] Choix final Qwen3.6-35B-A3B (MTP, ChatML) vs gemma-4-26B-A4B (vision native).
 
-## Watcher — nouveaux MoE de confiance
+## Watcher — RETIRÉ le 2026-07-27
 
-`~/bin/moe-watch.py` (sur le host) surveille HF et **notifie quand un nouveau MoE
-A-xB de confiance, utilisable sur le nœud, apparaît** (nouvelle gen type Qwen3.7,
-gemma-5, etc.). Silencieux sinon. Remplace l'ancien `gemma4-watch.py`.
+`~/bin/moe-watch.py` surveillait HF pour les nouveaux MoE A-xB utilisables via offload
+RAM. **Supprimé**, pour quatre raisons cumulées :
 
-- Critères : publisher de confiance, actif ≤ 8B, q4_k_m ≤ 45 GB, hors finetunes.
-- État : `~/.local/state/moe-watch.state` (familles déjà vues, dédup → pas de spam).
-- Cron (toutes les 2 h, notif seulement si du neuf) :
-  ```bash
-  ( crontab -l 2>/dev/null; echo '0 */2 * * * out=$(/usr/bin/python3 /home/moi/bin/moe-watch.py 2>/dev/null); [ -n "$out" ] && notify-send "Nouveau MoE" "$out"' ) | crontab -
-  ```
+1. **Le cron prescrit ici n'a jamais existé**, et n'aurait pas fonctionné : il appelait
+   `notify-send`, qui exige un `DISPLAY` absent sous cron. Le script est resté dormant
+   7 semaines (état figé au 2026-06-09).
+2. **Sa liste d'exclusions bannissait `heretic`, `uncensored` et `abliterated`** — or le
+   seul MoE-offload déployé EST `gemma-4-26b-a4b-heretic`. Il n'aurait jamais pu
+   suggérer le modèle qui tourne.
+3. **Son résultat était un cul-de-sac** : une notification. `scripts/eval-harness/hf-discover.py`
+   (cron 21:45, versionné) alimente au contraire la file d'éval — ses trouvailles
+   finissent mesurées.
+4. **Le créneau visé ne sert plus l'objectif.** L'offload RAM est CPU-bound au prefill :
+   `qwen3.6-35b-a3b` mesurait **744 s par tour**. Or les crons Hermes font en moyenne
+   34 messages et 22 appels d'outil — soit des heures par session. Un MoE offloadé ne
+   peut donc pas être agentique sur ce nœud, quelle que soit son intelligence. Il reste
+   utile au chat et à la vision, où un seul tour suffit.
+
+**Conséquence pour la recherche de modèles** : la cible est l'agentique, donc un modèle
+qui **tient en VRAM**. Un candidat « qui fait les deux » devrait être multimodal ET ≤ 12 Go
+(type `gemma-4-12b` + `mmproj`), pas un MoE offloadé. ⚠️ Le harness d'éval **ne mesure pas
+la vision** : cet axe reste invérifiable automatiquement.
+
+Archive du script : `~/.local/state/archive/moe-watch-20260727.tar.gz`.
 
 ## Annexe — gemma-4-12B dense (plan B en veille)
 
