@@ -1,0 +1,49 @@
+{
+  "harnais": "aider",
+  "modele": "localai/qwen3-coder-30b-a3b-instruct",
+  "duree_s": 27.8,
+  "timeout": false,
+  "returncode": 0,
+  "depart": {
+    "passed": 6,
+    "failed": 13
+  },
+  "tours": 1,
+  "appels_outils": null,
+  "format_appels": "diff (aucun schema d'outil)",
+  "pic_input": 739,
+  "total_input": 739,
+  "total_output": 1200,
+  "verdict": "FAIL",
+  "tests_passed": 6,
+  "tests_failed": 13,
+  "tests_attendus": 19,
+  "pytest_tail": "13 failed, 6 passed in 0.04s",
+  "gardes_violees": [],
+  "api_modifiee": [
+    {
+      "fichier": "task_manager.py",
+      "avant": null,
+      "apres": [
+        "class Task",
+        "class TaskManager",
+        "def __init__(self)",
+        "def __init__(self,id,description,priority,due_date)",
+        "def __repr__(self)",
+        "def add_task(self,description,priority,due_date)",
+        "def complete(self)",
+        "def complete_task(self,id)",
+        "def get_completed_tasks(self)",
+        "def get_overdue_tasks(self,current_date)",
+        "def get_pending_tasks(self)",
+        "def get_task(self,id)",
+        "def get_tasks(self,priority)",
+        "def is_overdue(self,current_date)",
+        "def remove_task(self,id)"
+      ]
+    }
+  ],
+  "fichiers_modifies": [
+    "taskmgr/task_manager.py"
+  ]
+}

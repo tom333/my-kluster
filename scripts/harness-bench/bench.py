@@ -129,6 +129,7 @@ def verify(workdir):
 
 
 def pi_command(model, workdir):
+    """Retourne (argv, variables d'environnement a ajouter)."""
     return [
         "pi",
         "--model",
@@ -141,7 +142,7 @@ def pi_command(model, workdir):
         "--no-context-files",
         "-p",
         PROMPT,
-    ]
+    ], {}
 
 
 def pi_metrics(transcript):
@@ -186,20 +187,94 @@ def pi_metrics(transcript):
 
 
 def aider_command(model, workdir):
-    # aider n'utilise pas de schemas d'outils : il edite par diff. Le prompt et la
-    # verification sont identiques, seule l'invocation change.
-    return [
+    """aider n'expose aucun schema d'outil : il edite par diff textuel.
+
+    Le prompt et la verification sont identiques a pi ; seule l'invocation change.
+    Trois specificites :
+      - aider passe par litellm, donc un endpoint OpenAI-compatible se declare via
+        le prefixe `openai/` plus OPENAI_API_BASE / OPENAI_API_KEY ;
+      - il ne connait pas la fenetre de nos modeles locaux : sans
+        `.aider.model.metadata.json` il applique un defaut et le banc mesurerait une
+        troncature au lieu du harnais. On ecrit donc 32768, comme le contextWindow
+        donne a pi ;
+      - `--map-tokens 0` coupe le repo-map (1024 tokens par defaut), pour comparer
+        des preambules et non des strategies de contexte.
+    """
+    model_id = model.split("/", 1)[-1]
+    litellm_name = "openai/" + model_id
+    (workdir / ".aider.model.metadata.json").write_text(
+        json.dumps(
+            {
+                litellm_name: {
+                    "max_input_tokens": 32768,
+                    "max_output_tokens": 4096,
+                    "input_cost_per_token": 0,
+                    "output_cost_per_token": 0,
+                    "litellm_provider": "openai",
+                    "mode": "chat",
+                }
+            },
+            indent=2,
+        )
+        + "\n"
+    )
+    key_file = Path.home() / ".config" / "brain" / "localai-key"
+    env = {
+        "OPENAI_API_BASE": "https://localai.tgu.ovh/v1",
+        "OPENAI_API_KEY": key_file.read_text().strip(),
+        "AIDER_ANALYTICS": "false",
+    }
+    argv = [
         "aider",
         "--model",
-        model,
-        "--yes",
+        litellm_name,
+        "--yes-always",
         "--no-auto-commits",
         "--no-git",
+        "--no-check-update",
+        "--no-show-model-warnings",
+        "--no-auto-lint",
         "--map-tokens",
         "0",
-        "--message",
-        PROMPT,
+        # Boucle agentique d'aider : il relance les tests apres chaque edition et
+        # itere sur les echecs. Sans ca, `--message` est un echange unique.
+        "--auto-test",
+        "--test-cmd",
+        PYTEST + " -q",
     ]
+    # aider n'explore pas : il edite ce qu'on met dans le chat. Les 5 modules sont
+    # donc passes en editables et la suite de tests en lecture seule.
+    #
+    # ATTENTION, ceci n'est PAS la meme difficulte que pour pi : pi a du DECOUVRIR
+    # les fichiers lui-meme (bash, read). Ici la localisation est offerte. C'est
+    # l'usage idiomatique d'aider, pas une triche, mais les deux colonnes ne sont
+    # pas comparables sur le nombre de tours.
+    for path in sorted((workdir / "taskmgr").glob("*.py")):
+        argv += ["--file", "taskmgr/" + path.name]
+    argv += ["--read", "tests/test_taskmgr.py"]
+    argv += ["--message", PROMPT]
+    return argv, env
+
+
+def aider_metrics(transcript):
+    """aider imprime 'Tokens: 12k sent, 456 received.' par echange."""
+    sent = re.findall(r"Tokens:\s*([\d.]+)\s*([km]?)\s*sent", transcript, re.I)
+    received = re.findall(r"([\d.]+)\s*([km]?)\s*received", transcript, re.I)
+
+    def scale(value, unit):
+        factor = {"k": 1000, "m": 1000000}.get(unit.lower(), 1)
+        return int(float(value) * factor)
+
+    sent_values = [scale(v, u) for v, u in sent]
+    received_values = [scale(v, u) for v, u in received]
+    return {
+        "tours": len(sent_values) or None,
+        "appels_outils": None,  # aider edite par diff, il n'y a pas d'appel d'outil
+        "format_appels": "diff (aucun schema d'outil)",
+        "pic_input": max(sent_values) if sent_values else None,
+        "total_input": sum(sent_values) or None,
+        "total_output": sum(received_values) or None,
+    }
 
 
 def no_metrics(transcript):
@@ -209,7 +284,7 @@ def no_metrics(transcript):
 
 HARNESSES = {
     "pi": (pi_command, pi_metrics),
-    "aider": (aider_command, no_metrics),
+    "aider": (aider_command, aider_metrics),
 }
 
 
@@ -232,15 +307,20 @@ def run(harness, model, timeout):
     before = run_pytest(workdir)
     print("depart : %s passed, %s failed" % (before[0], before[1]), flush=True)
 
+    argv, env_extra = build_command(model, workdir)
+    env = dict(os.environ)
+    env.update(env_extra)
+
     started = time.time()
     timed_out = False
     try:
         proc = subprocess.run(
-            build_command(model, workdir),
+            argv,
             cwd=workdir,
             capture_output=True,
             text=True,
             timeout=timeout,
+            env=env,
         )
         transcript = proc.stdout + proc.stderr
         returncode = proc.returncode

@@ -1,0 +1,30 @@
+{
+  "harnais": "aider",
+  "modele": "localai/qwen3-coder-30b-a3b-instruct",
+  "duree_s": 219.4,
+  "timeout": false,
+  "returncode": 0,
+  "depart": {
+    "passed": 6,
+    "failed": 13
+  },
+  "tours": 4,
+  "appels_outils": null,
+  "format_appels": "diff (aucun schema d'outil)",
+  "pic_input": 9700,
+  "total_input": 27500,
+  "total_output": 10144,
+  "verdict": "FAIL",
+  "tests_passed": 15,
+  "tests_failed": 4,
+  "tests_attendus": 19,
+  "pytest_tail": "4 failed, 15 passed in 0.03s",
+  "gardes_violees": [],
+  "api_modifiee": [],
+  "fichiers_modifies": [
+    "taskmgr/filters.py",
+    "taskmgr/priority.py",
+    "taskmgr/report.py",
+    "taskmgr/store.py"
+  ]
+}

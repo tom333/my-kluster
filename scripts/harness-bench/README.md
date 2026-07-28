@@ -94,6 +94,47 @@ tie-break compris.
 Le pic reste sous la moitié de la fenêtre dans les deux cas, sur ~27 tours : **sur ce
 type de tâche, le contexte n'est pas le facteur limitant.**
 
+### aider — le paradigme sans schéma d'outil
+
+`aider 0.86.2` + `qwen3-coder-30b`, même fixture, même prompt :
+
+```
+verdict  FAIL 15/19        tours 4          format  diff (aucun schema d'outil)
+pic      9 700 / 32 768    total in 27 500  out 10 144      durée 219,4 s
+gardes   aucune            API intacte      4 fichiers sur 5 corriges
+```
+
+`dates.py` est resté **inchangé** après six tentatives. Cause, dans le transcript :
+
+```
+The LLM did not conform to the edit format.
+No filename provided before ``` in file listing
+Only 3 reflections allowed, stopping.
+```
+
+Deux enseignements, et le second invalide une hypothèse de départ.
+
+**Le plafond de réflexions.** En non-interactif, aider s'arrête après 3 réflexions.
+Il n'existe **aucun drapeau** pour le relever (`--max-reflections` n'existe pas) :
+c'est un comportement, pas une erreur de configuration. Le FAIL est légitime.
+
+**Le format d'édition est un protocole texte non validé.** On avait retenu aider
+parce qu'en n'exposant aucun schéma d'outil il contourne *par construction* la
+bascule XML de `qwen3-coder` au-delà de 5 outils. C'est vrai — mais il remplace ce
+risque par un autre : un appel d'outil parse en JSON ou ne parse pas, tandis qu'un
+bloc d'édition aider peut être *presque* correct et échouer. Trois rejets de format
+ont suffi à consommer le budget de réflexions.
+
+**En contrepartie, il est bien plus sobre** : 27 500 tokens d'entrée au total contre
+190 931 pour pi, soit ×7 moins. pi réexpédie un contexte croissant à chaque tour ;
+aider envoie les fichiers une fois et itère en conversation. Le paradigme diff est
+économe — il n'a simplement pas fini.
+
+> Réserve de comparabilité : aider n'explore pas, il édite ce qu'on met dans le chat.
+> Les 5 modules lui sont donc passés en `--file` et la suite de tests en `--read`,
+> alors que **pi a dû découvrir les fichiers lui-même**. Usage idiomatique d'aider,
+> pas une triche, mais les colonnes « tours » ne sont pas comparables.
+
 ### Ce que ce banc corrige dans eval-harness
 
 `eval-harness` donnait `bonsai-27b` à **coding 0,643**, avec 5 échecs sur 5 en
