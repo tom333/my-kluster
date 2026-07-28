@@ -40,6 +40,8 @@ def main():
     ap.add_argument("--add-file", help="fichier config modèle brut à ajouter")
     ap.add_argument("--add-name", help="clé modelsConfig du modèle ajouté")
     ap.add_argument("--remove", help="clé modelsConfig à retirer")
+    ap.add_argument("--repoint-alias", metavar="MODELE",
+                    help="fait pointer l'alias `current` sur ce modèle")
     ap.add_argument("--dry-run", action="store_true")
     args = ap.parse_args()
 
@@ -71,13 +73,42 @@ def main():
             idx = next((i for i, l in enumerate(lines) if l.startswith("ingress:")), len(lines))
         lines = lines[:idx] + block_lines + [""] + lines[idx:]
 
+    if args.repoint_alias:
+        # L'alias `current` est ce que consomment Hermes, OpenWebUI et les crons.
+        # Un swap qui retire l'incumbent SANS repointer l'alias le laisse désigner
+        # un modèle absent du chart, et tout ce qui appelle `current` casse. Le
+        # défaut était latent : edit_values.py ignorait totalement l'alias.
+        dans_current = False
+        touche = False
+        for i, ligne in enumerate(lines):
+            if KEY_RE.match(ligne):
+                dans_current = KEY_RE.match(ligne).group(1) == "current"
+                continue
+            if dans_current and ligne.strip().startswith("alias:"):
+                indent = ligne[: len(ligne) - len(ligne.lstrip())]
+                lines[i] = f"{indent}alias: {args.repoint_alias}"
+                touche = True
+                break
+        if not touche:
+            sys.exit("ERREUR: ligne `alias:` introuvable dans le bloc `current`")
+        print(f"alias current -> {args.repoint_alias}")
+
     new = "\n".join(lines)
     # validation
     d = yaml.safe_load(new)
     keys = list(d["modelsConfigs"].keys())
     for k, v in d["modelsConfigs"].items():
         yaml.safe_load(v)  # chaque sous-config valide
+
+    # GARDE-FOU : l'alias doit désigner un modèle qui existe encore. Sans elle,
+    # un swap produit un values.yaml syntaxiquement valide et fonctionnellement
+    # mort.
+    cible = yaml.safe_load(d["modelsConfigs"]["current"]).get("alias")
+    if cible not in keys:
+        sys.exit(f"ERREUR: l'alias `current` pointe sur '{cible}', absent de "
+                 f"modelsConfigs. Utiliser --repoint-alias. Rien n'a été écrit.")
     print(f"modelsConfigs après édition ({len(keys)}): {keys}")
+    print(f"alias current valide -> {cible}")
 
     if args.dry_run:
         print("[dry-run] values.yaml NON écrit")

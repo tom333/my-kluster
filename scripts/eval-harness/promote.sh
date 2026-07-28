@@ -167,7 +167,12 @@ BRANCH="model-swap/${NAME}"
 
 echo "=== édition values.yaml (add $NAME, remove $INCUMBENT) ==="
 DRYFLAG=""; [ "$DRY" = "1" ] && DRYFLAG="--dry-run"
-python3 "$HERE/edit_values.py" --add-file "$HERE/results/${NAME}.model.yaml" --add-name "$NAME" --remove "$INCUMBENT" $DRYFLAG
+# --repoint-alias est OBLIGATOIRE sur un swap : l'alias `current` est ce que
+# consomment Hermes, OpenWebUI et les crons. Sans lui, retirer l'incumbent laisse
+# l'alias désigner un modèle absent du chart. edit_values.py refuse d'écrire dans
+# ce cas.
+python3 "$HERE/edit_values.py" --add-file "$HERE/results/${NAME}.model.yaml" \
+  --add-name "$NAME" --remove "$INCUMBENT" --repoint-alias "$NAME" $DRYFLAG
 
 if [ "$DRY" = "1" ]; then
   echo "=== [dry-run] PR qui SERAIT créée (branch $BRANCH) ==="
