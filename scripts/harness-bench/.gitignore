@@ -1,0 +1,4 @@
+# Transcripts bruts : ~1.7 Mo par run, reproductibles en relançant le banc.
+results/*.transcript
+__pycache__/
+.pytest_cache/

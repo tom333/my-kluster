@@ -1,0 +1,37 @@
+{
+  "harnais": "pi",
+  "modele": "localai/qwen3-coder-30b-a3b-instruct",
+  "duree_s": 93.7,
+  "timeout": false,
+  "returncode": 0,
+  "depart": {
+    "passed": 6,
+    "failed": 13
+  },
+  "tours": 26,
+  "appels_outils": 25,
+  "outils_utilises": [
+    "bash",
+    "edit",
+    "read",
+    "write"
+  ],
+  "format_appels": "json",
+  "pic_input": 11074,
+  "total_input": 190931,
+  "total_output": 4059,
+  "verdict": "PASS",
+  "tests_passed": 19,
+  "tests_failed": 0,
+  "tests_attendus": 19,
+  "pytest_tail": "19 passed in 0.01s",
+  "gardes_violees": [],
+  "api_modifiee": [],
+  "fichiers_modifies": [
+    "taskmgr/dates.py",
+    "taskmgr/filters.py",
+    "taskmgr/priority.py",
+    "taskmgr/report.py",
+    "taskmgr/store.py"
+  ]
+}

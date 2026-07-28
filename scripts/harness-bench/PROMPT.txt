@@ -1,0 +1,12 @@
+Le projet dans ce dossier contient des defauts : plusieurs tests echouent.
+
+Lance `pytest -q` pour voir les echecs, puis corrige le code source dans taskmgr/
+jusqu'a ce que TOUS les tests passent.
+
+Contraintes :
+- Ne modifie aucun fichier dans tests/ ni conftest.py. Corrige la logique, pas les tests.
+- Ne renomme aucune fonction, classe, methode ni parametre public : les signatures
+  doivent rester identiques a l'existant.
+- Les defauts sont repartis dans plusieurs fichiers de taskmgr/.
+
+Tu as termine quand `pytest -q` affiche 19 passed.
