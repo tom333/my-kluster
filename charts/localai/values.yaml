@@ -498,6 +498,39 @@ modelsConfigs:
       - "<|im_end|>"
       - "<|endoftext|>"
 
+  # Qwopus3.5-9B-Coder-MTP (Jackrong), Q6_K. Promu le 2026-07-29 via PR #1583, il
+  # remplace qwen3-coder-30b-a3b-instruct (IQ1_S) comme cible de l'alias `current`.
+  #
+  # Base Qwen3.5-9B, entraîné explicitement à l'agentique : ToolCall-15 100/100,
+  # traces d'exécution d'outils réelles issues de GLM-5.1 et Kimi-4.6, SWE-bench
+  # Verified 53.89 %.
+  #
+  # Pourquoi un 9B remplace un 30B — mesures du 2026-07-29 (scripts/harness-bench,
+  # scénario tetris : écrire un paquet de zéro contre 44 tests) :
+  #   tetris     38/44  vs 33-34/44        agentic  1.000 vs 0.833
+  #   tok/s      66.6   vs 62.6            poids    7.56 GB vs ~11.4 GB @32k
+  #   pic ctx    34.6 % vs 90.6 %  <-- l'ancien mourait sur stopReason=length
+  # `coding_pass_rate` RECULE (0.786 vs 0.929) et `overall` avec lui : c'est un test
+  # one-shot, qui sanctionne définitivement ce qu'une boucle corrige en une
+  # itération. Les deux sont hors gate depuis 70b31d57, délibérément.
+  #
+  # VRAM mesurée à ctx 32768 : 9914 / 12288 MiB, soit ~2.4 GB libres. Ne pas monter
+  # le contexte sans re-sonder.
+  #
+  # ⚠️ CAVEAT `<think>` : le modèle raisonne avant de répondre et consomme ~47
+  # tokens de sortie AVANT le premier token de contenu. Avec max_tokens: 20 la
+  # réponse est VIDE (finish_reason=stop, contenu ""). À partir de ~100 c'est
+  # correct. Tout consommateur de `current` doit prévoir un max_tokens généreux.
+  # On ne désactive PAS le thinking (pas de chat_template_kwargs enable_thinking:
+  # false comme sur qwen3-8b) : c'est précisément ce raisonnement qui lui donne son
+  # agentique à 1.000, et c'est pour ça qu'il a été promu.
+  #
+  # ⚠️ Réserve de validation : mesuré bon sous le harnais `pi` (38/44 en 186 s), il
+  # a fait TIMEOUT sous `little-coder` (boucle infinie dans le code généré, 2 tours
+  # en 1200 s). Validé sur un seul harnais.
+  #
+  # MTP : le dépôt annonce +35.8 % de débit avec draft=2, mais aucune tête de draft
+  # séparée n'est publiée — pas de draft_model ici, contrairement à gemma-4-12b.
   qwopus3.5-9b-coder: |
     name: qwopus3.5-9b-coder
     backend: llama-cpp
