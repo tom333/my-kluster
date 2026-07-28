@@ -83,7 +83,11 @@ download_and_verify() {
     attempts=$((attempts + 1))
     have=$(stat -c%s "$dst" 2>/dev/null || echo 0)
     echo "  Tentative $attempts/$max_attempts (déjà $have octets)..."
-    curl -C - -sL --retry 5 --retry-delay 10 --max-time 7200 -o "$dst" "$url" || true
+    # -f (--fail) est indispensable : sans lui, une réponse HTTP 4xx/5xx voit son
+    # CORPS écrit dans "$dst". Un 404 y dépose une page d'erreur de quelques
+    # octets, qui devient un faux "partiel" que la reprise suivante prolongerait —
+    # produisant un fichier définitivement corrompu.
+    curl -C - -sfL --retry 5 --retry-delay 10 --max-time 7200 -o "$dst" "$url" || true
 
     actual_size=$(stat -c%s "$dst" 2>/dev/null || echo 0)
     if [ "$actual_size" -lt "$expected_size" ]; then
