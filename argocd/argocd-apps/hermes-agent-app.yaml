@@ -400,7 +400,15 @@ spec:
                     request_timeout_seconds: 120
                   # Kept for direct chat / embeddings / fallback (NOT the agent default).
                   localai:
-                    name: localai
+                    # name = TYPE de provider, pas l'alias (cf. `owl` ci-dessus qui est
+                    # un openrouter). `localai` n'est PAS un type reconnu : les types
+                    # acceptes sont anthropic/custom/deepseek/llamacpp/lmstudio/ollama/
+                    # openai/openrouter/vllm. Avec un type inconnu Hermes retombe sur
+                    # `custom` et NE LIT PLUS key_env -> HTTP 401 "authentication key
+                    # required". Ce provider n'a donc jamais fonctionne depuis sa
+                    # declaration ; le defaut est passe inapercu faute d'usage.
+                    # LocalAI etant compatible OpenAI, le type correct est `openai`.
+                    name: openai
                     base_url: http://localai.localai.svc.cluster.local:8080/v1
                     key_env: OPENAI_API_KEY
                     default_model: qwen3-8b
