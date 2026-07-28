@@ -1,0 +1,19 @@
+Ce dossier contient une suite de tests, `tests/test_tetris.py`, et rien d'autre.
+
+Le paquet `tetris/` qu'elle importe n'existe pas : ecris-le entierement pour que
+TOUS les tests passent.
+
+Le fichier de tests est le contrat. Son docstring d'entete decrit le comportement
+attendu de chaque classe et de chaque methode publique : lis-le en entier avant de
+commencer, puis lis les tests eux-memes.
+
+Contraintes :
+- Ne modifie aucun fichier dans tests/ ni conftest.py.
+- Respecte exactement les noms publics annonces par le contrat : le module `tetris`
+  doit exporter SHAPES, Piece, Board, Bag et Game.
+- Organise le code comme tu le juges bon : le contrat impose l'interface publique,
+  pas le decoupage en fichiers.
+
+Lance `pytest -q` pour verifier ta progression.
+
+Tu as termine quand `pytest -q` affiche 44 passed.

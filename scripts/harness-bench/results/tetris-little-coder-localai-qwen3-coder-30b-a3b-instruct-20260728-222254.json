@@ -1,0 +1,34 @@
+{
+  "scenario": "tetris",
+  "harnais": "little-coder",
+  "modele": "localai/qwen3-coder-30b-a3b-instruct",
+  "duree_s": 392.8,
+  "timeout": false,
+  "returncode": 1,
+  "depart": {
+    "passed": 0,
+    "failed": 0
+  },
+  "tours": 6,
+  "appels_outils": 6,
+  "outils_utilises": [
+    "bash",
+    "edit",
+    "read",
+    "write"
+  ],
+  "format_appels": "json",
+  "pic_input": 24456,
+  "total_input": 88734,
+  "total_output": 12886,
+  "verdict": "FAIL",
+  "tests_passed": 34,
+  "tests_failed": 10,
+  "tests_attendus": 44,
+  "pytest_tail": "10 failed, 34 passed in 0.08s",
+  "gardes_violees": [],
+  "api_modifiee": [],
+  "fichiers_modifies": [
+    "tetris/__init__.py"
+  ]
+}

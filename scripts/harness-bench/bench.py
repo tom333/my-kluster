@@ -5,8 +5,8 @@ Meme fixture, meme prompt, meme verification pour tous les harnais et tous les
 modeles. Le verdict ne regarde QUE l'etat du disque apres coup : il est donc
 valable pour un harnais a outils (pi) comme pour un harnais a diff (aider).
 
-  bench.py --harness pi --model localai/qwen3-coder-30b-a3b-instruct
-  bench.py --harness pi --model localai/bonsai-27b
+  bench.py --scenario repair --harness pi --model localai/qwen3-coder-30b-a3b-instruct
+  bench.py --scenario tetris --harness pi --model localai/bonsai-27b
   bench.py --list-harnesses
 
 Resultat : results/<harness>-<modele>-<horodatage>.json
@@ -24,13 +24,37 @@ import time
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-FIXTURE = HERE / "fixture"
-PROMPT = (HERE / "PROMPT.txt").read_text()
 RESULTS = HERE / "results"
 PYTEST = os.environ.get("BENCH_PYTEST", "/usr/bin/pytest")
-EXPECTED_TESTS = 19
-# Fichiers que l'agent n'a pas le droit de toucher.
-PROTECTED = ("tests/test_taskmgr.py", "conftest.py")
+
+# Deux scenarios de difficulte tres differente.
+#
+# `repair` : 7 defauts semes dans 5 modules existants, chacun une inversion d'UN
+#   token. Les noms de tests designent le bug. Mesure la MECANIQUE de la boucle
+#   (lire, editer, lancer, iterer), pas la capacite de codage : il ne separe pas un
+#   quant ternaire d'un MoE IQ1_S, les deux font 19/19.
+#
+# `tetris` : le paquet n'existe pas, il faut l'ecrire depuis le contrat. Demande de
+#   la CONCEPTION (representation, rotation de matrice, degagement, gravite,
+#   scoring) tout en gardant un oracle parfait, car le coeur est deterministe et
+#   sans horloge. `check_api` est faux : tout est nouveau, comparer les signatures
+#   a un dossier vide n'aurait aucun sens.
+SCENARIOS = {
+    "repair": {
+        "fixture": HERE / "fixture",
+        "prompt": HERE / "PROMPT.txt",
+        "expected_tests": 19,
+        "protected": ("tests/test_taskmgr.py", "conftest.py"),
+        "check_api": True,
+    },
+    "tetris": {
+        "fixture": HERE / "fixture-tetris",
+        "prompt": HERE / "PROMPT-tetris.txt",
+        "expected_tests": 44,
+        "protected": ("tests/test_tetris.py", "conftest.py"),
+        "check_api": False,
+    },
+}
 
 
 # --- verification, independante du harnais -------------------------------
@@ -76,48 +100,51 @@ def run_pytest(workdir):
     return passed, failed, tail[0]
 
 
-def verify(workdir):
+def verify(workdir, scenario):
     """Verdict objectif : tests verts, gardes respectees, API intacte."""
+    fixture = scenario["fixture"]
+    expected = scenario["expected_tests"]
     passed, failed, tail = run_pytest(workdir)
 
     violations = []
-    for rel in PROTECTED:
-        before = (FIXTURE / rel).read_bytes()
+    for rel in scenario["protected"]:
+        before = (fixture / rel).read_bytes()
         after_path = workdir / rel
         if not after_path.exists():
             violations.append("%s supprime" % rel)
         elif after_path.read_bytes() != before:
             violations.append("%s modifie" % rel)
 
-    before_api = api_signatures(FIXTURE)
-    after_api = api_signatures(workdir)
     api_diff = []
-    for name in sorted(set(before_api) | set(after_api)):
-        if before_api.get(name) != after_api.get(name):
-            api_diff.append(
-                {
-                    "fichier": name,
-                    "avant": before_api.get(name),
-                    "apres": after_api.get(name),
-                }
-            )
+    if scenario["check_api"]:
+        before_api = api_signatures(fixture)
+        after_api = api_signatures(workdir)
+        for name in sorted(set(before_api) | set(after_api)):
+            if before_api.get(name) != after_api.get(name):
+                api_diff.append(
+                    {
+                        "fichier": name,
+                        "avant": before_api.get(name),
+                        "apres": after_api.get(name),
+                    }
+                )
 
     modified = []
     for path in sorted(workdir.rglob("*.py")):
         rel = path.relative_to(workdir).as_posix()
-        origin = FIXTURE / rel
+        origin = fixture / rel
         if not origin.exists() or origin.read_bytes() != path.read_bytes():
             modified.append(rel)
 
     return {
         "verdict": (
             "PASS"
-            if passed == EXPECTED_TESTS and not failed and not violations and not api_diff
+            if passed == expected and not failed and not violations and not api_diff
             else "FAIL"
         ),
         "tests_passed": passed,
         "tests_failed": failed,
-        "tests_attendus": EXPECTED_TESTS,
+        "tests_attendus": expected,
         "pytest_tail": tail,
         "gardes_violees": violations,
         "api_modifiee": api_diff,
@@ -128,7 +155,7 @@ def verify(workdir):
 # --- adaptateurs de harnais ----------------------------------------------
 
 
-def pi_command(model, workdir):
+def pi_command(model, workdir, prompt):
     """Retourne (argv, variables d'environnement a ajouter)."""
     return [
         "pi",
@@ -141,7 +168,7 @@ def pi_command(model, workdir):
         "--no-skills",
         "--no-context-files",
         "-p",
-        PROMPT,
+        prompt,
     ], {}
 
 
@@ -196,7 +223,7 @@ def pi_metrics(transcript):
     }
 
 
-def little_coder_command(model, workdir):
+def little_coder_command(model, workdir, prompt):
     """little-coder = pi + ~30 extensions + ~30 skills, pi etant une simple
     dependance npm. Meme CLI, meme format JSONL, donc `pi_metrics` s'applique.
 
@@ -223,11 +250,11 @@ def little_coder_command(model, workdir):
         "--no-session",
         "--no-context-files",
         "-p",
-        PROMPT,
+        prompt,
     ], {"LITTLE_CODER_PERMISSION_MODE": "accept-all"}
 
 
-def aider_command(model, workdir):
+def aider_command(model, workdir, prompt):
     """aider n'expose aucun schema d'outil : il edite par diff textuel.
 
     Le prompt et la verification sont identiques a pi ; seule l'invocation change.
@@ -293,7 +320,7 @@ def aider_command(model, workdir):
     for path in sorted((workdir / "taskmgr").glob("*.py")):
         argv += ["--file", "taskmgr/" + path.name]
     argv += ["--read", "tests/test_taskmgr.py"]
-    argv += ["--message", PROMPT]
+    argv += ["--message", prompt]
     return argv, env
 
 
@@ -333,23 +360,30 @@ HARNESSES = {
 # --- orchestration -------------------------------------------------------
 
 
-def run(harness, model, timeout):
+def run(harness, model, scenario_name, timeout):
+    scenario = SCENARIOS[scenario_name]
+    prompt = scenario["prompt"].read_text()
+    fixture = scenario["fixture"]
     if harness not in HARNESSES:
         sys.exit("harnais inconnu: %s (connus: %s)" % (harness, ", ".join(HARNESSES)))
     build_command, parse_metrics = HARNESSES[harness]
 
-    slug = "%s-%s" % (harness, re.sub(r"[^a-z0-9]+", "-", model.lower()).strip("-"))
+    slug = "%s-%s-%s" % (
+        scenario_name,
+        harness,
+        re.sub(r"[^a-z0-9]+", "-", model.lower()).strip("-"),
+    )
     workdir = Path("/tmp") / ("harness-bench-" + slug)
     if workdir.exists():
         shutil.rmtree(workdir)
-    shutil.copytree(FIXTURE, workdir)
+    shutil.copytree(fixture, workdir)
     for cache in workdir.rglob("__pycache__"):
         shutil.rmtree(cache, ignore_errors=True)
 
     before = run_pytest(workdir)
     print("depart : %s passed, %s failed" % (before[0], before[1]), flush=True)
 
-    argv, env_extra = build_command(model, workdir)
+    argv, env_extra = build_command(model, workdir, prompt)
     env = dict(os.environ)
     env.update(env_extra)
 
@@ -375,6 +409,7 @@ def run(harness, model, timeout):
     elapsed = round(time.time() - started, 1)
 
     result = {
+        "scenario": scenario_name,
         "harnais": harness,
         "modele": model,
         "duree_s": elapsed,
@@ -383,7 +418,7 @@ def run(harness, model, timeout):
         "depart": {"passed": before[0], "failed": before[1]},
     }
     result.update(parse_metrics(transcript))
-    result.update(verify(workdir))
+    result.update(verify(workdir, scenario))
 
     RESULTS.mkdir(exist_ok=True)
     stamp = time.strftime("%Y%m%d-%H%M%S")
@@ -401,6 +436,7 @@ def run(harness, model, timeout):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--harness", default="pi")
+    parser.add_argument("--scenario", default="repair", choices=sorted(SCENARIOS))
     parser.add_argument("--model", required=False)
     parser.add_argument("--timeout", type=int, default=2400)
     parser.add_argument("--list-harnesses", action="store_true")
@@ -410,7 +446,7 @@ def main():
         return 0
     if not args.model:
         parser.error("--model requis")
-    return run(args.harness, args.model, args.timeout)
+    return run(args.harness, args.model, args.scenario, args.timeout)
 
 
 if __name__ == "__main__":

@@ -1,0 +1,33 @@
+{
+  "scenario": "tetris",
+  "harnais": "little-coder",
+  "modele": "localai/bonsai-27b",
+  "duree_s": 405.8,
+  "timeout": false,
+  "returncode": 0,
+  "depart": {
+    "passed": 0,
+    "failed": 0
+  },
+  "tours": 7,
+  "appels_outils": 6,
+  "outils_utilises": [
+    "bash",
+    "read",
+    "write"
+  ],
+  "format_appels": "json",
+  "pic_input": 23621,
+  "total_input": 81303,
+  "total_output": 4419,
+  "verdict": "FAIL",
+  "tests_passed": 11,
+  "tests_failed": 33,
+  "tests_attendus": 44,
+  "pytest_tail": "33 failed, 11 passed in 0.30s",
+  "gardes_violees": [],
+  "api_modifiee": [],
+  "fichiers_modifies": [
+    "tetris/__init__.py"
+  ]
+}

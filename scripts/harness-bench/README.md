@@ -160,6 +160,71 @@ aider envoie les fichiers une fois et itère en conversation. Le paradigme diff 
 > alors que **pi a dû découvrir les fichiers lui-même**. Usage idiomatique d'aider,
 > pas une triche, mais les colonnes « tours » ne sont pas comparables.
 
+## Scénario `tetris` — 28/07/2026, ctx 32768
+
+Écrire `tetris/` depuis zéro pour satisfaire 44 tests. Départ : 0/44 (erreur de
+collecte, le paquet n'existe pas).
+
+| harnais | modèle | tests | tours | pic d'entrée | sortie | fin | durée |
+|---|---|---|---|---|---|---|---|
+| little-coder | qwen3-coder-30b | **34/44** | 6 | 24 456 → 75 % | 12 886 | budget | 393 s |
+| pi | qwen3-coder-30b | **33/44** | 19 | **29 704 → 90,6 %** | 12 777 | **`length`** | 377 s |
+| pi | bonsai-27b | 13/44 | 8 | 17 434 | 7 041 | `length` | 303 s |
+| little-coder | bonsai-27b | 11/44 | 7 | 23 621 | 4 419 | **`aborted`** | 406 s |
+
+**Le banc discrimine enfin.** Sur `repair`, les deux modèles faisaient 19/19 — une
+égalité qui ne disait rien. Ici l'écart est de **2,6×** : ~75 % pour `qwen3-coder`,
+~27 % pour `bonsai`. La différence de quantification devient visible dès qu'il faut
+concevoir au lieu de réparer.
+
+### Ici, le contexte EST le facteur limitant
+
+Conclusion inverse de celle de `repair`, et c'est le résultat le plus important.
+
+`pi` + `qwen3-coder` s'arrête sur `stopReason: length` à **29 704 tokens d'entrée,
+soit 90,6 % de la fenêtre**, en n'ayant produit qu'**un seul token** sur son dernier
+tour. Il n'a pas échoué faute de savoir : il n'avait plus de place. Les trois autres
+runs finissent aussi par manquer de budget (`length` ou arrêt prématuré) avec des
+entrées de 17 k à 24 k et une progression rapide.
+
+Sur une tâche de réparation à 26 tours, le pic plafonnait à 34 %. Sur une tâche de
+conception, on touche le plafond en 19 tours. **Ce n'est pas la longueur de la boucle
+qui remplit la fenêtre, c'est la quantité de code à tenir en tête.**
+
+### Conception propre ≠ code correct
+
+Inversion inattendue :
+
+| | fichiers produits | tests |
+|---|---|---|
+| `bonsai` sous pi | **5 modules** (`__init__`, `bag`, `board`, `game`, `piece`) | 13/44 |
+| `qwen3-coder` sous pi | **1 fichier** `tetris.py` | 33/44 |
+
+`bonsai` a produit la plus belle architecture — celle que le contrat suggérait — et le
+code le plus faux. `qwen3-coder` a pris le raccourci d'un module unique (valide :
+`from tetris import ...` fonctionne avec `tetris.py`) et passe 2,5× plus de tests.
+Sous budget contraint, le raccourci est **adaptatif** : moins de tokens de structure,
+plus de tokens de logique.
+
+### Le mode de défaillance de `bonsai` : la boucle
+
+`little-coder` + `bonsai` finit en `aborted`, et son transcript contient **8 318
+répétitions** du même message :
+
+```
+Error. I need to either use a property with a backing variable, or
+Error: can't set attribute 'size'
+```
+
+Il a défini `size` en propriété sans accesseur en écriture, puis a tenté de
+l'affecter, et a tourné en boucle sur cette seule erreur des milliers de fois.
+
+C'est exactement ce que la littérature annonce pour les quants très bas en usage
+agentique : *« it makes it unreliable at long tool calls »*, *« ends up stuck in loops
+while reasoning »*, et ACBench mesurant −10 à −15 % sur les tâches d'agent
+bout-en-bout là où l'usage d'outils isolé ne perd que 1-3 %. Le scénario `repair`
+ne l'a jamais fait apparaître ; celui-ci le fait en un run.
+
 ### Ce que ce banc corrige dans eval-harness
 
 `eval-harness` donnait `bonsai-27b` à **coding 0,643**, avec 5 échecs sur 5 en
