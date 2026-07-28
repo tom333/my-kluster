@@ -172,6 +172,35 @@ collecte, le paquet n'existe pas).
 | pi | bonsai-27b | 13/44 | 8 | 17 434 | 7 041 | `length` | 303 s |
 | little-coder | bonsai-27b | 11/44 | 7 | 23 621 | 4 419 | **`aborted`** | 406 s |
 
+### Qwopus3.5-9B-Coder Q6_K — le meilleur résultat, et il renverse l'intuition « plus gros »
+
+`Jackrong/Qwopus3.5-9B-Coder-MTP-GGUF`, Q6_K, 7,56 Go. Base Qwen3.5-9B, entraîné
+explicitement à l'agentique (ToolCall-15 100/100, traces d'exécution d'outils réelles
+de GLM-5.1 et Kimi-4.6, SWE-bench Verified 53,89 %).
+
+| harnais | tests | tours | pic d'entrée | durée |
+|---|---|---|---|---|
+| **pi** | **38/44** | **9** | **11 342 → 34,6 %** | **185,9 s** |
+| little-coder | 0/44 | 2 | 9 673 | **TIMEOUT 1200 s** |
+
+**Un 9B bat le 30B incumbent de 5 tests**, en 9 tours au lieu de 19, avec un pic à
+34,6 % de la fenêtre au lieu de 90,6 %.
+
+La leçon n'est PAS « un Q4+ code mieux » : `gemma-4-12b-coder` était en Q4_K_M et a
+fait 0/44. C'est la **conjonction** de trois choses :
+
+1. un quant honnête (Q6, pas un quant de désespoir à 1 bit) ;
+2. un entraînement agentique explicite — ce que gemma n'avait pas, lui qui
+   comprenait parfaitement le contrat et n'agissait jamais ;
+3. des poids assez légers pour laisser respirer le KV.
+
+⚠️ **`little-coder` + `qwopus` : timeout.** Le code généré contient une boucle
+infinie ; l'agent lance `pytest` lui-même, son appel pend, et il ne reprend jamais la
+main — 2 tours en 1200 s. `pi` avec le même modèle finit en 185,9 s. pi documente un
+champ `timeout` par commande sur son outil bash ; l'équivalent chez little-coder n'a
+pas pu être établi, donc **l'écart est mesuré mais le mécanisme reste une hypothèse**.
+Le plafond de 1200 s (au lieu de 2400) rend cette ligne non strictement comparable.
+
 **Le banc discrimine enfin.** Sur `repair`, les deux modèles faisaient 19/19 — une
 égalité qui ne disait rien. Ici l'écart est de **2,6×** : ~75 % pour `qwen3-coder`,
 ~27 % pour `bonsai`. La différence de quantification devient visible dès qu'il faut

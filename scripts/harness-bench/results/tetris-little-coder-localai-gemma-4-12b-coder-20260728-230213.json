@@ -1,0 +1,27 @@
+{
+  "scenario": "tetris",
+  "harnais": "little-coder",
+  "modele": "localai/gemma-4-12b-coder",
+  "duree_s": 21.9,
+  "timeout": false,
+  "returncode": 0,
+  "depart": {
+    "passed": 0,
+    "failed": 0
+  },
+  "tours": 1,
+  "appels_outils": 0,
+  "outils_utilises": [],
+  "format_appels": "aucun",
+  "pic_input": 4648,
+  "total_input": 4648,
+  "total_output": 519,
+  "verdict": "FAIL",
+  "tests_passed": 0,
+  "tests_failed": 0,
+  "tests_attendus": 44,
+  "pytest_tail": "1 error in 0.07s",
+  "gardes_violees": [],
+  "api_modifiee": [],
+  "fichiers_modifies": []
+}

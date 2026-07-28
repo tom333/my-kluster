@@ -1,0 +1,33 @@
+{
+  "scenario": "tetris",
+  "harnais": "pi",
+  "modele": "localai/qwopus3.5-9b-coder",
+  "duree_s": 185.9,
+  "timeout": false,
+  "returncode": 0,
+  "depart": {
+    "passed": 0,
+    "failed": 0
+  },
+  "tours": 9,
+  "appels_outils": 8,
+  "outils_utilises": [
+    "bash",
+    "read",
+    "write"
+  ],
+  "format_appels": "json",
+  "pic_input": 11342,
+  "total_input": 46734,
+  "total_output": 11449,
+  "verdict": "FAIL",
+  "tests_passed": 38,
+  "tests_failed": 6,
+  "tests_attendus": 44,
+  "pytest_tail": "6 failed, 38 passed in 0.06s",
+  "gardes_violees": [],
+  "api_modifiee": [],
+  "fichiers_modifies": [
+    "tetris/__init__.py"
+  ]
+}

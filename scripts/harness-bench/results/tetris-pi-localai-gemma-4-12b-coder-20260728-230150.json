@@ -1,0 +1,29 @@
+{
+  "scenario": "tetris",
+  "harnais": "pi",
+  "modele": "localai/gemma-4-12b-coder",
+  "duree_s": 83.3,
+  "timeout": false,
+  "returncode": 0,
+  "depart": {
+    "passed": 0,
+    "failed": 0
+  },
+  "tours": 2,
+  "appels_outils": 1,
+  "outils_utilises": [
+    "read"
+  ],
+  "format_appels": "json",
+  "pic_input": 6959,
+  "total_input": 8549,
+  "total_output": 2478,
+  "verdict": "FAIL",
+  "tests_passed": 0,
+  "tests_failed": 0,
+  "tests_attendus": 44,
+  "pytest_tail": "1 error in 0.07s",
+  "gardes_violees": [],
+  "api_modifiee": [],
+  "fichiers_modifies": []
+}

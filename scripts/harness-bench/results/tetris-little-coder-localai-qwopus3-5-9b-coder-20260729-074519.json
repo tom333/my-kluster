@@ -1,0 +1,33 @@
+{
+  "scenario": "tetris",
+  "harnais": "little-coder",
+  "modele": "localai/qwopus3.5-9b-coder",
+  "duree_s": 1200.2,
+  "timeout": true,
+  "returncode": -1,
+  "depart": {
+    "passed": 0,
+    "failed": 0
+  },
+  "tours": 2,
+  "appels_outils": 3,
+  "outils_utilises": [
+    "bash",
+    "read",
+    "write"
+  ],
+  "format_appels": "json",
+  "pic_input": 9673,
+  "total_input": 14761,
+  "total_output": 2959,
+  "verdict": "FAIL",
+  "tests_passed": 0,
+  "tests_failed": 0,
+  "tests_attendus": 44,
+  "pytest_tail": "TIMEOUT pytest apres 180s (boucle infinie dans le code genere)",
+  "gardes_violees": [],
+  "api_modifiee": [],
+  "fichiers_modifies": [
+    "tetris/__init__.py"
+  ]
+}

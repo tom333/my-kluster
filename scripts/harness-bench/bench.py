@@ -85,10 +85,18 @@ def api_signatures(root):
 
 
 def run_pytest(workdir):
-    """Retourne (passed, failed, sortie_courte)."""
-    proc = subprocess.run(
-        [PYTEST, "-q"], cwd=workdir, capture_output=True, text=True, timeout=180
-    )
+    """Retourne (passed, failed, sortie_courte).
+
+    Le depassement de delai est un RESULTAT, pas un plantage du banc : du code
+    genere qui boucle a l'infini fait pendre pytest, et c'est un mode de
+    defaillance attendu. On le rapporte au lieu de laisser l'exception remonter.
+    """
+    try:
+        proc = subprocess.run(
+            [PYTEST, "-q"], cwd=workdir, capture_output=True, text=True, timeout=180
+        )
+    except subprocess.TimeoutExpired:
+        return 0, 0, "TIMEOUT pytest apres 180s (boucle infinie dans le code genere)"
     tail = proc.stdout.strip().splitlines()[-1:] or [""]
     passed = failed = 0
     match = re.search(r"(\d+) passed", proc.stdout)
@@ -401,9 +409,15 @@ def run(harness, model, scenario_name, timeout):
         transcript = proc.stdout + proc.stderr
         returncode = proc.returncode
     except subprocess.TimeoutExpired as exc:
-        transcript = (exc.stdout or "") + (exc.stderr or "")
-        if isinstance(transcript, bytes):
-            transcript = transcript.decode("utf-8", "replace")
+        # Malgre text=True, TimeoutExpired peut porter du bytes sur un flux et du
+        # str sur l'autre : on decode chaque morceau AVANT de concatener, sinon on
+        # perd le transcript sur un TypeError et le timeout devient invisible.
+        def _texte(flux):
+            if flux is None:
+                return ""
+            return flux.decode("utf-8", "replace") if isinstance(flux, bytes) else flux
+
+        transcript = _texte(exc.stdout) + _texte(exc.stderr)
         returncode = -1
         timed_out = True
     elapsed = round(time.time() - started, 1)
