@@ -474,6 +474,61 @@ modelsConfigs:
       - "<|im_end|>"
       - "<|endoftext|>"
 
+  # prism-ml Bonsai-27B — 1-bit quant (Q1_0, ~1.1 bit/weight) of Qwen3.6-27B.
+  # Staged + evaluated 2026-07-28 (MLflow run bonsai-27b-candidate-20260728-1934).
+  #
+  # NOT a replacement for qwen3-coder-30b-a3b-instruct — kept ALONGSIDE it as a
+  # complementary profile. Harness deltas vs the incumbent:
+  #   overall 0.911 vs 0.982 | coding 0.643 vs 0.929 | tok/s 30.2 vs 59.4
+  #   toolcall / format / reasoning / agentic identical (1.0 / 1.0 / 1.0 / 0.833)
+  # All 5 coding failures were NameError: the model writes correct logic but
+  # renames the requested function (median_two for median_sorted, calc for
+  # calc_ii...). At ~1.1 bit what degrades is exact symbol recall, not reasoning.
+  # Half the speed is structural — 27B dense (all weights active) vs 30B MoE A3B
+  # (3B active) — not a quant defect.
+  #
+  # Why keep it: 3.6 GB of weights leave real VRAM headroom.
+  #   bonsai-27b @32k: 6609 / 12288 MiB  → 5.7 GB free
+  #   incumbent  @32k: 11385 / 12288 MiB → 0.5 GB free
+  # It is the only model here that can go past 32k. The model card claims 262k
+  # with hybrid attention (~75% linear) — UNVERIFIED. 32768 is what we measured,
+  # so that is what we declare; probe higher before raising it.
+  #
+  # Runs on the STOCK llama-cpp backend: Q1_0 loads in mainline llama.cpp, so the
+  # cuda12-bonsai-development backend that blocked this model earlier is no
+  # longer needed and can be uninstalled.
+  # Upstream also ships mmproj (vision) files — not wired here, text only.
+  bonsai-27b: |
+    name: bonsai-27b
+    backend: llama-cpp
+    known_usecases: [chat]
+    context_size: 32768
+    gpu_layers: 99
+    f16: true
+    flash_attention: true
+    mmap: true
+    cache_type_k: q8_0
+    cache_type_v: q8_0
+    parameters:
+      model: Bonsai-27B-Q1_0.gguf
+      temperature: 0.6
+      top_p: 0.95
+      top_k: 20
+    download_files:
+      - filename: Bonsai-27B-Q1_0.gguf
+        uri: https://huggingface.co/prism-ml/Bonsai-27B-gguf/resolve/main/Bonsai-27B-Q1_0.gguf
+    options:
+      - use_jinja:true
+    function:
+      automatic_tool_parsing_fallback: true
+      grammar:
+        disable: true
+    template:
+      use_tokenizer_template: true
+    stopwords:
+      - "<|im_end|>"
+      - "<|endoftext|>"
+
   # Black Forest Labs Flux.2 Klein, smaller 4B variant.
   # Chosen over the 9B variants because:
   #  - 4B has a complete Diffusers-format repo (model_index.json + text_encoder/
