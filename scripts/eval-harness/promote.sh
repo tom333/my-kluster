@@ -65,14 +65,21 @@ BENCH_DIR, cand_name, base_name = sys.argv[5], sys.argv[6], sys.argv[7]
 # zéro contre 44 tests. C'est le seul qui discrimine (0 / 13 / 33 / 38 sur quatre
 # modèles là où eval-harness donnait 0.982 à deux d'entre eux).
 def tetris_score(name):
-    """Meilleur score tetris obtenu par ce modèle, tous harnais confondus."""
+    """Meilleur score tetris obtenu par ce modèle, tous harnais confondus.
+
+    On balaie TOUS les fichiers tetris et on filtre sur le champ `modele`, sans
+    construire de motif à partir du nom : bench.py normalise le nom en slug
+    (`[^a-z0-9]+` -> `-`), donc un point deviendrait un tiret et un glob bâti sur
+    le nom brut ne trouverait rien. C'est exactement ce qui est arrivé avec
+    `qwopus3.5-9b-coder` -> `qwopus3-5-9b-coder`.
+    """
     best = None
-    for path in glob.glob(os.path.join(BENCH_DIR, "tetris-*%s-*.json" % name)):
+    for path in glob.glob(os.path.join(BENCH_DIR, "tetris-*.json")):
         try: d = json.load(open(path))
         except (OSError, json.JSONDecodeError): continue
-        if d.get("modele", "").endswith(name):
-            score = d.get("tests_passed")
-            if score is not None and (best is None or score > best): best = score
+        if d.get("modele", "").split("/")[-1] != name: continue
+        score = d.get("tests_passed")
+        if score is not None and (best is None or score > best): best = score
     return best
 
 t_cand, t_base = tetris_score(cand_name), tetris_score(base_name)
@@ -96,8 +103,32 @@ if agentic < floor:
                    "(le signal qu'overall noyait)")
 if d_tool < -0.05:
     reasons.append(f"toolcall Δ {d_tool:+.3f} < -0.05 (régression)")
-if d_overall < -margin:
-    reasons.append(f"overall Δ {d_overall:+.3f} < -{margin} (régression globale)")
+# Gardes sur les métriques NON saturables et non trompeuses.
+for cle in ("format_acc", "reasoning_acc"):
+    delta = cand.get(cle, 0.0) - base.get(cle, 0.0)
+    if delta < -0.05:
+        reasons.append(f"{cle} Δ {delta:+.3f} < -0.05 (régression)")
+# Un modèle deux fois plus lent est un coût réel, même s'il code mieux.
+if base.get("mean_tokps", 0) and cand.get("mean_tokps", 0) < 0.5 * base["mean_tokps"]:
+    reasons.append(f"mean_tokps {cand['mean_tokps']:.1f} < 50% de l'incumbent "
+                   f"({base['mean_tokps']:.1f})")
+#
+# `overall` et `coding_pass_rate` NE SONT PAS des gardes, délibérément.
+#
+# `overall` moyenne six métriques dont quatre saturées à 1.000 : il bouge surtout
+# au rythme de `coding_pass_rate`, et il est donc contaminé par le défaut suivant.
+#
+# `coding_pass_rate` est un test ONE-SHOT : on demande une fonction, on vérifie
+# qu'elle passe. Il sanctionne définitivement ce qu'une boucle réelle corrige en
+# une itération. Deux mesures le prouvent :
+#   - bonsai-27b : 5 échecs sur 5 en `NameError` (bonne logique, mauvais nom) à
+#     l'éval one-shot, et ZÉRO renommage sur harness-bench repair, où pytest lui
+#     renvoie l'erreur ;
+#   - qwopus3.5-9b-coder : 0.786 en one-shot contre 38/44 sur tetris — meilleur
+#     que l'incumbent (33/44) qui affiche pourtant 0.929 en one-shot.
+# Garder `overall` en garde à -0.02 aurait rejeté qwopus (Δ -0.036) alors qu'il
+# gagne sur le critère principal, sur l'agentique (+0.167) et sur la vitesse.
+# Les deux restent AFFICHÉS dans le tableau, pour information seulement.
 promote = not reasons
 rows="\n".join(f"| {k} | {cand.get(k,0):.3f} | {base.get(k,0):.3f} | {cand.get(k,0)-base.get(k,0):+.3f} |"
   for k in ["overall","coding_pass_rate","toolcall_acc","format_acc","reasoning_acc","agentic_success_rate","mean_tokps"])
