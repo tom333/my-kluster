@@ -8,32 +8,105 @@
 # (pas de régression agentique). Lit results/<name>-candidate.json + <incumbent>-baseline.json.
 set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
-NAME=""; INCUMBENT="qwen3-coder-30b-a3b-instruct"; MARGIN="0.02"; DRY=0
+NAME=""; INCUMBENT=""; MARGIN="0.02"; DRY=0; AGENTIC_FLOOR="0.80"
 while [ $# -gt 0 ]; do case "$1" in
   --candidate) NAME="$2"; shift 2;;
   --incumbent) INCUMBENT="$2"; shift 2;;
   --margin) MARGIN="$2"; shift 2;;
+  --agentic-floor) AGENTIC_FLOOR="$2"; shift 2;;
   --dry-run) DRY=1; shift;;
   *) echo "arg inconnu: $1"; exit 2;;
 esac; done
 [ -z "$NAME" ] && { echo "--candidate requis"; exit 2; }
+
+# L'incumbent est RÉSOLU depuis values.yaml (alias `current`), il n'est plus figé
+# en dur. Motif : la PR 1573 avait été générée contre `ornith` (Δ overall +0.036,
+# gate passé) et se retrouvait, cinq jours plus tard, à comparer un modèle qui
+# n'était plus l'incumbent — contre le vrai courant son Δ valait 0.000. Un gate
+# évalué à l'ouverture est périmé à la relecture.
+if [ -z "$INCUMBENT" ]; then
+  INCUMBENT=$(python3 - "$HERE/../../charts/localai/values.yaml" <<'PY'
+import sys, yaml
+cfgs = yaml.safe_load(open(sys.argv[1]))["modelsConfigs"]
+print(yaml.safe_load(cfgs["current"])["alias"])
+PY
+)
+  echo "→ incumbent résolu depuis values.yaml (alias current) : $INCUMBENT"
+fi
 CAND_JSON="$HERE/results/${NAME}-candidate.json"
 BASE_JSON="$HERE/results/${INCUMBENT}-baseline.json"
 [ -f "$CAND_JSON" ] || { echo "résultats candidat absents: $CAND_JSON (lance stage_candidate.sh d'abord)"; exit 1; }
 [ -f "$BASE_JSON" ] || { echo "baseline absent: $BASE_JSON"; exit 1; }
 
 # --- gate + résumé (python) ---
-GATE=$(python3 - "$CAND_JSON" "$BASE_JSON" "$MARGIN" <<'PY'
-import json, sys
-cand=json.load(open(sys.argv[1]))["metrics"]; base=json.load(open(sys.argv[2]))["metrics"]; margin=float(sys.argv[3])
+GATE=$(python3 - "$CAND_JSON" "$BASE_JSON" "$MARGIN" "$AGENTIC_FLOOR" \
+       "$HERE/../harness-bench/results" "$NAME" "$INCUMBENT" <<'PY'
+import glob, json, os, sys
+cand=json.load(open(sys.argv[1]))["metrics"]; base=json.load(open(sys.argv[2]))["metrics"]
+margin=float(sys.argv[3]); floor=float(sys.argv[4])
+BENCH_DIR, cand_name, base_name = sys.argv[5], sys.argv[6], sys.argv[7]
+
+# --- gate refondu le 2026-07-29, après trois mesures qui l'ont invalidé ---------
+#
+# L'ancien gate était `overall >= +marge ET toolcall >= base-0.05`. Il a laissé
+# passer gemma-4-12b-coder : overall IDENTIQUE à l'incumbent, toolcall 1.000
+# parfait — et 0/44 sur harness-bench tetris, ZÉRO fichier écrit. Le modèle
+# décrivait ses actions au lieu de les exécuter.
+#
+# Deux défauts structurels :
+#   1. `overall` moyenne six métriques dont quatre saturées à 1.000. Il ne peut
+#      ni exprimer une amélioration (qwopus 38/44 vs 33/44 avec overall ~égal)
+#      ni signaler un effondrement agentique. Il est DÉCLASSÉ en simple garde de
+#      non-régression.
+#   2. `toolcall_acc` teste « voici un outil, appelle-le » — un appel isolé, pas
+#      une boucle soutenue. gemma y obtient 1.000 sans jamais écrire un fichier.
+#
+# Le critère PRINCIPAL devient donc harness-bench tetris : écrire un paquet de
+# zéro contre 44 tests. C'est le seul qui discrimine (0 / 13 / 33 / 38 sur quatre
+# modèles là où eval-harness donnait 0.982 à deux d'entre eux).
+def tetris_score(name):
+    """Meilleur score tetris obtenu par ce modèle, tous harnais confondus."""
+    best = None
+    for path in glob.glob(os.path.join(BENCH_DIR, "tetris-*%s-*.json" % name)):
+        try: d = json.load(open(path))
+        except (OSError, json.JSONDecodeError): continue
+        if d.get("modele", "").endswith(name):
+            score = d.get("tests_passed")
+            if score is not None and (best is None or score > best): best = score
+    return best
+
+t_cand, t_base = tetris_score(cand_name), tetris_score(base_name)
 d_overall=cand["overall"]-base["overall"]
 d_tool=cand["toolcall_acc"]-base["toolcall_acc"]
-promote = d_overall>=margin and d_tool>=-0.05
+agentic=cand.get("agentic_success_rate", 0.0)
+
 reasons=[]
-if d_overall<margin: reasons.append(f"overall Δ {d_overall:+.3f} < marge {margin}")
-if d_tool<-0.05: reasons.append(f"toolcall Δ {d_tool:+.3f} < -0.05 (régression agentique)")
+# Critère principal : il FAUT une mesure tetris, sinon on refuse. Promouvoir sans
+# la preuve discriminante est exactement ce qui a produit la PR 1573.
+if t_cand is None:
+    reasons.append(f"aucun résultat harness-bench tetris pour {cand_name} "
+                   f"(lancer: bench.py --scenario tetris --harness pi --model localai/{cand_name})")
+elif t_base is None:
+    reasons.append(f"aucun résultat harness-bench tetris pour l'incumbent {base_name} "
+                   "(référence manquante, impossible de comparer)")
+elif t_cand <= t_base:
+    reasons.append(f"tetris {t_cand}/44 <= incumbent {t_base}/44 (pas d'amélioration réelle)")
+if agentic < floor:
+    reasons.append(f"agentic_success_rate {agentic:.3f} < plancher {floor} "
+                   "(le signal qu'overall noyait)")
+if d_tool < -0.05:
+    reasons.append(f"toolcall Δ {d_tool:+.3f} < -0.05 (régression)")
+if d_overall < -margin:
+    reasons.append(f"overall Δ {d_overall:+.3f} < -{margin} (régression globale)")
+promote = not reasons
 rows="\n".join(f"| {k} | {cand.get(k,0):.3f} | {base.get(k,0):.3f} | {cand.get(k,0)-base.get(k,0):+.3f} |"
   for k in ["overall","coding_pass_rate","toolcall_acc","format_acc","reasoning_acc","agentic_success_rate","mean_tokps"])
+# Le critère principal en tête de tableau, pour qu'un relecteur le voie d'abord.
+rows = ("| **tetris (harness-bench)** | **%s/44** | **%s/44** | **%s** |\n" % (
+    "?" if t_cand is None else t_cand,
+    "?" if t_base is None else t_base,
+    "n/a" if (t_cand is None or t_base is None) else "%+d" % (t_cand - t_base),
+)) + rows
 print("PROMOTE" if promote else "REJECT")
 print("REASONS::" + ("; ".join(reasons) if reasons else "gate OK"))
 print("TABLE::"+rows.replace("\n","§"))
@@ -58,7 +131,7 @@ if [ "$DECISION" != "PROMOTE" ]; then
 fi
 
 # --- build PR ---
-BODY=$(printf "## Model swap: %s → %s\n\nÉval automatique (harness deterministic, exp MLflow \`localai-model-eval\`). Candidat > courant sur le gate (marge %s, pas de régression tool-call).\n\n| métrique | %s (candidat) | %s (courant) | Δ |\n|---|---|---|---|\n%s\n\n**Hermes-readiness** (candidat apte à remplacer deepseek-v4-flash comme cerveau Hermes — agentique multi-tours, hors gate LocalAI) : **%s**\n\n**Généré par le pipeline model-autodeploy (P3/P6). Review + merge manuel requis.**\n" "$NAME" "$INCUMBENT" "$MARGIN" "$NAME" "$INCUMBENT" "$TABLE" "$HERMES")
+BODY=$(printf "## Model swap: %s → %s\n\nÉval automatique. Gate refondu le 2026-07-29 : le critère PRINCIPAL est **harness-bench tetris** (écrire un paquet de zéro contre 44 tests), le seul qui discrimine — \`eval-harness\` seul donnait 0.982 aussi bien à l'incumbent qu'à un modèle qui n'écrivait aucun fichier.\n\nConditions vérifiées : tetris(candidat) > tetris(incumbent) ; \`agentic_success_rate\` >= %s ; pas de régression sur \`toolcall_acc\` (-0.05) ni sur \`overall\` (-%s). Incumbent résolu depuis l'alias \`current\` de values.yaml au moment de l'évaluation.\n\n| métrique | %s (candidat) | %s (courant) | Δ |\n|---|---|---|---|\n%s\n\n**Hermes-readiness** (candidat apte à remplacer deepseek-v4-flash comme cerveau Hermes — agentique multi-tours, hors gate LocalAI) : **%s**\n\n**Généré par le pipeline model-autodeploy (P3/P6). Review + merge manuel requis.**\n" "$NAME" "$INCUMBENT" "$AGENTIC_FLOOR" "$MARGIN" "$NAME" "$INCUMBENT" "$TABLE" "$HERMES")
 BRANCH="model-swap/${NAME}"
 
 echo "=== édition values.yaml (add $NAME, remove $INCUMBENT) ==="
