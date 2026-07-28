@@ -443,11 +443,26 @@ modelsConfigs:
       request_timeout_seconds: 120
     pii:
       enabled: true
+  # Context raised 8192 -> 32768 on 2026-07-28. The old 8192 was inherited, never
+  # measured. Probe: this model at 32768 loaded and correctly answered a 28,507-token
+  # prompt in 28s, VRAM 11385 / 12288 MiB (524 MiB free) with Q8_0 KV cache.
+  # 32768 is the CEILING on a 12GB card, not a starting point — do not raise further
+  # without re-probing.
+  #
+  # Why it matters: a coding harness sends its whole preamble (system prompt + tool
+  # schemas) on every request. At 8192 that preamble plus two files overflows before
+  # any work happens, and llama.cpp/LocalAI truncate or hard-error rather than
+  # degrade gracefully. Measured cost of an undersized window on the aider polyglot
+  # benchmark: 71.4% at 8k vs 51.9% at 2k on the identical model+quant (-19.5 pts,
+  # pure truncation). Controlled study arXiv 2605.26165: at 8K budget JSON tool
+  # schemas overflow entirely (exact-match 2.6%); at 32K they fit and the penalty
+  # vanishes. 32768 puts us above that cliff; beyond it the gain is <=2% on
+  # SWE-Bench-Verified, so there is nothing to chase.
   qwen3-coder-30b-a3b-instruct: |
     name: qwen3-coder-30b-a3b-instruct
     backend: llama-cpp
     known_usecases: [chat]
-    context_size: 8192
+    context_size: 32768
     gpu_layers: 99
     f16: true
     flash_attention: true
