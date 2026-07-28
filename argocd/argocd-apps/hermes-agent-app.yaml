@@ -417,16 +417,18 @@ spec:
                 # (ex: OpenRouter renvoie un SSE vide/malformé sur deepseek-v4-flash,
                 # ~1×/jour, flakiness streaming upstream). gemini-2.5-flash = fiable,
                 # ne se déclenche que sur l'événement rare → coût négligeable, erreur invisible.
-                # ⚠️ NEUTRALISE TEMPORAIREMENT le 2026-07-28 pour tester un modele
-                # local sous le prompt reel. Raison : le repli masquait TOUS les echecs
-                # -- le cron rendait last_status=ok alors que gemini avait repondu a la
-                # place du modele local, et trois de mes diagnostics successifs ont pris
-                # une reussite du repli pour une reussite du local. Sans visibilite des
-                # echecs, aucune mesure locale n'est interpretable.
-                # A REACTIVER apres le test : decommenter les deux lignes ci-dessous.
-                fallback_providers: []
-                #  - provider: openrouter
-                #    model: google/gemini-2.5-flash
+                # Chaîne de repli quand le modèle primaire échoue APRÈS ses retries
+                # (ex: OpenRouter renvoie un SSE vide/malformé sur deepseek-v4-flash,
+                # ~1×/jour, flakiness streaming upstream). gemini-2.5-flash = fiable,
+                # ne se déclenche que sur l'événement rare → coût négligeable.
+                #
+                # ⚠️ CE REPLI MASQUE LES ÉCHECS. Mesuré le 2026-07-28 : un cron rendait
+                # last_status=ok alors que gemini avait produit le digest à la place du
+                # modèle demandé. Aucun signal ne distingue les deux cas. Si tu diagnostiques
+                # un modèle, vide temporairement cette liste — sinon toute mesure est aveugle.
+                fallback_providers:
+                  - provider: openrouter
+                    model: google/gemini-2.5-flash
                 mcp_servers:
                   # arrconf-mcp: in-cluster ClusterIP MCP (read-only, 10 tools) for the media stack.
                   # Token resolved from ${MCP_AUTH_TOKEN} (hermes-secrets, envFrom) — same value
