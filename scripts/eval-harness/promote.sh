@@ -73,16 +73,25 @@ def tetris_score(name):
     le nom brut ne trouverait rien. C'est exactement ce qui est arrivé avec
     `qwopus3.5-9b-coder` -> `qwopus3-5-9b-coder`.
     """
-    best = None
+    best, best_runs = None, 0
     for path in glob.glob(os.path.join(BENCH_DIR, "tetris-*.json")):
         try: d = json.load(open(path))
         except (OSError, json.JSONDecodeError): continue
         if d.get("modele", "").split("/")[-1] != name: continue
-        score = d.get("tests_passed")
-        if score is not None and (best is None or score > best): best = score
-    return best
+        # `tests_passed_median` quand il existe : depuis --runs, c'est la médiane
+        # qui fait foi. Les anciens fichiers n'ont que `tests_passed` (un tirage).
+        score = d.get("tests_passed_median", d.get("tests_passed"))
+        runs = d.get("runs", 1)
+        # On privilégie la mesure la mieux échantillonnée, pas le meilleur score :
+        # prendre le max de tirages isolés reviendrait à sélectionner le bruit.
+        if score is None: continue
+        if runs > best_runs or (runs == best_runs and score > (best or -1)):
+            best, best_runs = score, runs
+    return best, best_runs
 
-t_cand, t_base = tetris_score(cand_name), tetris_score(base_name)
+t_cand, runs_cand = tetris_score(cand_name)
+t_base, runs_base = tetris_score(base_name)
+MIN_RUNS = int(os.environ.get("PROMOTE_MIN_RUNS", "3"))
 d_overall=cand["overall"]-base["overall"]
 d_tool=cand["toolcall_acc"]-base["toolcall_acc"]
 agentic=cand.get("agentic_success_rate", 0.0)
@@ -96,8 +105,16 @@ if t_cand is None:
 elif t_base is None:
     reasons.append(f"aucun résultat harness-bench tetris pour l'incumbent {base_name} "
                    "(référence manquante, impossible de comparer)")
+elif runs_cand < MIN_RUNS:
+    # Constaté le 2026-07-29 : deux exécutions de la MÊME paire modèle/harnais sur
+    # tetris ont donné 38/44 puis 21/44. Un tirage unique ne distingue pas un effet
+    # réel du hasard d'échantillonnage — il ne peut donc pas justifier un swap.
+    reasons.append(f"tetris mesuré sur {runs_cand} essai(s) seulement, {MIN_RUNS} requis "
+                   f"(relancer: bench.py --scenario tetris --harness pi "
+                   f"--model localai/{cand_name} --runs {MIN_RUNS})")
 elif t_cand <= t_base:
-    reasons.append(f"tetris {t_cand}/44 <= incumbent {t_base}/44 (pas d'amélioration réelle)")
+    reasons.append(f"tetris médiane {t_cand}/44 <= incumbent {t_base}/44 "
+                   f"(pas d'amélioration réelle)")
 if agentic < floor:
     reasons.append(f"agentic_success_rate {agentic:.3f} < plancher {floor} "
                    "(le signal qu'overall noyait)")

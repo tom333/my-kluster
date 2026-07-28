@@ -34,6 +34,20 @@ logique écrite sous un autre nom. À très bas quant, ce qui se dégrade est la
 restitution exacte d'un identifiant, pas le raisonnement. Ici c'est détecté et
 compté comme échec.
 
+## ⚠️ Un seul essai n'est pas une mesure
+
+La température n'est pas nulle (0.6). Constaté le 2026-07-29 : **deux exécutions de
+la même paire modèle/harnais sur tetris ont donné 38/44 puis 21/44** — un écart de
+17 tests que rien ne permettait d'attribuer soit au changement testé, soit au hasard.
+
+`--runs` vaut donc **3 par défaut**, et c'est la **médiane** qui fait foi. Le gate de
+`promote.sh` refuse une promotion appuyée sur moins de 3 essais
+(`PROMOTE_MIN_RUNS` pour outrepasser, à ses risques). Chaque essai part d'une copie
+fraîche dans `/tmp/harness-bench-<slug>-r<N>/`.
+
+Tous les résultats antérieurs au 2026-07-29 dans `results/` sont des tirages uniques :
+à lire comme des indications, pas comme des mesures.
+
 ## Usage
 
 ```bash

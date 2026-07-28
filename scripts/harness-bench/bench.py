@@ -18,6 +18,7 @@ import json
 import os
 import re
 import shutil
+import signal
 import subprocess
 import sys
 import time
@@ -84,6 +85,28 @@ def api_signatures(root):
     return out
 
 
+def _tuer_groupe(proc):
+    """Tue tout le groupe de processus (SIGTERM puis SIGKILL), pas juste l'enfant.
+
+    Indispensable : un timeout qui ne tue que l'enfant direct laisse les
+    petits-fils (bash -> pytest boucle infinie) tourner a 100% CPU en orphelins.
+    """
+    try:
+        gid = os.getpgid(proc.pid)
+    except ProcessLookupError:
+        return
+    for sig in (signal.SIGTERM, signal.SIGKILL):
+        try:
+            os.killpg(gid, sig)
+        except ProcessLookupError:
+            return
+        try:
+            proc.wait(timeout=5)
+            return
+        except subprocess.TimeoutExpired:
+            continue
+
+
 def run_pytest(workdir):
     """Retourne (passed, failed, sortie_courte).
 
@@ -91,18 +114,25 @@ def run_pytest(workdir):
     genere qui boucle a l'infini fait pendre pytest, et c'est un mode de
     defaillance attendu. On le rapporte au lieu de laisser l'exception remonter.
     """
+    # start_new_session + killpg : pytest peut avoir spawn des sous-process ;
+    # sans groupe, le timeout les laisserait orphelins (cf. _tuer_groupe).
+    proc = subprocess.Popen(
+        [PYTEST, "-q"], cwd=workdir, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+        text=True, start_new_session=True,
+    )
     try:
-        proc = subprocess.run(
-            [PYTEST, "-q"], cwd=workdir, capture_output=True, text=True, timeout=180
-        )
+        stdout, _ = proc.communicate(timeout=180)
     except subprocess.TimeoutExpired:
+        _tuer_groupe(proc)
+        proc.communicate()
         return 0, 0, "TIMEOUT pytest apres 180s (boucle infinie dans le code genere)"
-    tail = proc.stdout.strip().splitlines()[-1:] or [""]
+    stdout = stdout or ""
+    tail = stdout.strip().splitlines()[-1:] or [""]
     passed = failed = 0
-    match = re.search(r"(\d+) passed", proc.stdout)
+    match = re.search(r"(\d+) passed", stdout)
     if match:
         passed = int(match.group(1))
-    match = re.search(r"(\d+) failed", proc.stdout)
+    match = re.search(r"(\d+) failed", stdout)
     if match:
         failed = int(match.group(1))
     return passed, failed, tail[0]
@@ -368,20 +398,26 @@ HARNESSES = {
 # --- orchestration -------------------------------------------------------
 
 
-def run(harness, model, scenario_name, timeout):
-    scenario = SCENARIOS[scenario_name]
-    prompt = scenario["prompt"].read_text()
-    fixture = scenario["fixture"]
-    if harness not in HARNESSES:
-        sys.exit("harnais inconnu: %s (connus: %s)" % (harness, ", ".join(HARNESSES)))
-    build_command, parse_metrics = HARNESSES[harness]
-
-    slug = "%s-%s-%s" % (
+def slug_de(scenario_name, harness, model):
+    return "%s-%s-%s" % (
         scenario_name,
         harness,
         re.sub(r"[^a-z0-9]+", "-", model.lower()).strip("-"),
     )
-    workdir = Path("/tmp") / ("harness-bench-" + slug)
+
+
+def run_once(harness, model, scenario_name, timeout, essai=1, total=1):
+    """Une seule exécution. Retourne (resultat, transcript), n'écrit rien."""
+    scenario = SCENARIOS[scenario_name]
+    prompt = scenario["prompt"].read_text()
+    fixture = scenario["fixture"]
+    build_command, parse_metrics = HARNESSES[harness]
+
+    slug = slug_de(scenario_name, harness, model)
+    # Un workdir par essai : chaque exécution part d'une copie fraîche, sinon le
+    # second essai hériterait du code produit par le premier.
+    suffixe = "" if total == 1 else "-r%d" % essai
+    workdir = Path("/tmp") / ("harness-bench-" + slug + suffixe)
     if workdir.exists():
         shutil.rmtree(workdir)
     shutil.copytree(fixture, workdir)
@@ -397,53 +433,132 @@ def run(harness, model, scenario_name, timeout):
 
     started = time.time()
     timed_out = False
-    try:
-        proc = subprocess.run(
-            argv,
-            cwd=workdir,
-            capture_output=True,
-            text=True,
-            timeout=timeout,
-            env=env,
-        )
-        transcript = proc.stdout + proc.stderr
-        returncode = proc.returncode
-    except subprocess.TimeoutExpired as exc:
-        # Malgre text=True, TimeoutExpired peut porter du bytes sur un flux et du
-        # str sur l'autre : on decode chaque morceau AVANT de concatener, sinon on
-        # perd le transcript sur un TypeError et le timeout devient invisible.
-        def _texte(flux):
-            if flux is None:
-                return ""
-            return flux.decode("utf-8", "replace") if isinstance(flux, bytes) else flux
 
-        transcript = _texte(exc.stdout) + _texte(exc.stderr)
+    # Malgre text=True, TimeoutExpired peut porter du bytes sur un flux et du
+    # str sur l'autre : on decode chaque morceau AVANT de concatener, sinon on
+    # perd le transcript sur un TypeError et le timeout devient invisible.
+    def _texte(flux):
+        if flux is None:
+            return ""
+        return flux.decode("utf-8", "replace") if isinstance(flux, bytes) else flux
+
+    # start_new_session : le harnais devient chef d'un groupe de processus. Sans
+    # ca, un timeout ne tue que le harnais lui-meme et les PETITS-FILS survivent
+    # (l'agent teste lance `bash -c "... && pytest -q"` ; du code genere qui boucle
+    # a l'infini laisse alors un pytest orphelin a 100% CPU, indefiniment).
+    proc = subprocess.Popen(
+        argv,
+        cwd=workdir,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        env=env,
+        start_new_session=True,
+    )
+    try:
+        out, err = proc.communicate(timeout=timeout)
+        transcript = _texte(out) + _texte(err)
+        returncode = proc.returncode
+    except subprocess.TimeoutExpired:
+        _tuer_groupe(proc)
+        out, err = proc.communicate()  # reap : le groupe est mort
+        transcript = _texte(out) + _texte(err)
         returncode = -1
         timed_out = True
     elapsed = round(time.time() - started, 1)
 
     result = {
-        "scenario": scenario_name,
-        "harnais": harness,
-        "modele": model,
+        "essai": essai,
         "duree_s": elapsed,
         "timeout": timed_out,
         "returncode": returncode,
         "depart": {"passed": before[0], "failed": before[1]},
+        "workdir": str(workdir),
     }
     result.update(parse_metrics(transcript))
     result.update(verify(workdir, scenario))
+    return result, transcript
 
-    RESULTS.mkdir(exist_ok=True)
+
+def mediane(valeurs):
+    propres = sorted(v for v in valeurs if v is not None)
+    if not propres:
+        return None
+    milieu = len(propres) // 2
+    if len(propres) % 2:
+        return propres[milieu]
+    # Moyenne des deux valeurs centrales, arrondie : on compte des tests, pas des
+    # fractions de test.
+    return round((propres[milieu - 1] + propres[milieu]) / 2)
+
+
+def run(harness, model, scenario_name, timeout, runs=1):
+    """Exécute `runs` fois et agrège.
+
+    Pourquoi plusieurs essais : la température n'est pas nulle (0.6 dans nos
+    configs), donc UNE exécution est un tirage, pas une mesure. Constaté le
+    2026-07-29 : deux runs de la même paire modèle/harnais sur tetris ont donné
+    38/44 puis 21/44 — un écart de 17 tests que rien ne permettait d'attribuer
+    soit à un changement de prompt, soit au hasard. Le gate de promote.sh doit
+    donc trancher sur la MÉDIANE, jamais sur un tirage.
+    """
+    if harness not in HARNESSES:
+        sys.exit("harnais inconnu: %s (connus: %s)" % (harness, ", ".join(HARNESSES)))
+    scenario = SCENARIOS[scenario_name]
+    slug = slug_de(scenario_name, harness, model)
+
+    essais = []
+    for i in range(1, runs + 1):
+        print("=== essai %d/%d ===" % (i, runs), flush=True)
+        res, transcript = run_once(harness, model, scenario_name, timeout, i, runs)
+        essais.append(res)
+        print("  %s  %s/%s tests  %s tours  pic %s  %ss" % (
+            res["verdict"], res["tests_passed"], res["tests_attendus"],
+            res.get("tours"), res.get("pic_input"), res["duree_s"]), flush=True)
+        RESULTS.mkdir(exist_ok=True)
+        (RESULTS / ("%s-r%d.transcript" % (slug, i))).write_text(transcript)
+
+    scores = [e["tests_passed"] for e in essais]
+    med = mediane(scores)
+    attendus = scenario["expected_tests"]
+    result = {
+        "scenario": scenario_name,
+        "harnais": harness,
+        "modele": model,
+        "runs": runs,
+        # `tests_passed` reste présent et vaut la MÉDIANE : les consommateurs
+        # existants (promote.sh) continuent de fonctionner et lisent d'emblée la
+        # valeur agrégée plutôt qu'un tirage.
+        "tests_passed": med,
+        "tests_passed_median": med,
+        "tests_passed_min": min(scores) if scores else None,
+        "tests_passed_max": max(scores) if scores else None,
+        "tests_passed_ecart": (max(scores) - min(scores)) if scores else None,
+        "tests_passed_tous": scores,
+        "tests_attendus": attendus,
+        "verdict": "PASS" if med == attendus else "FAIL",
+        "tours_median": mediane([e.get("tours") for e in essais]),
+        "pic_input_median": mediane([e.get("pic_input") for e in essais]),
+        "duree_s_median": mediane([e.get("duree_s") for e in essais]),
+        "format_appels": essais[-1].get("format_appels"),
+        "essais": essais,
+    }
+
     stamp = time.strftime("%Y%m%d-%H%M%S")
     out = RESULTS / ("%s-%s.json" % (slug, stamp))
     out.write_text(json.dumps(result, indent=2, ensure_ascii=False) + "\n")
-    (RESULTS / ("%s-%s.transcript" % (slug, stamp))).write_text(transcript)
 
-    print(json.dumps({k: v for k, v in result.items() if k != "api_modifiee"},
-                     indent=2, ensure_ascii=False))
-    print("\n-> %s" % out)
-    print("-> workdir conserve : %s" % workdir)
+    print("\n=== agrégat sur %d essai(s) ===" % runs)
+    print("  scores      : %s" % scores)
+    print("  médiane     : %s/%s   (min %s, max %s, écart %s)" % (
+        med, attendus, result["tests_passed_min"], result["tests_passed_max"],
+        result["tests_passed_ecart"]))
+    print("  tours méd.  : %s" % result["tours_median"])
+    print("  pic méd.    : %s" % result["pic_input_median"])
+    print("  verdict     : %s" % result["verdict"])
+    if runs == 1:
+        print("  ⚠️  UN SEUL ESSAI : c'est un tirage, pas une mesure. --runs 3 minimum")
+    print("-> %s" % out)
     return 0 if result["verdict"] == "PASS" else 1
 
 
@@ -453,6 +568,8 @@ def main():
     parser.add_argument("--scenario", default="repair", choices=sorted(SCENARIOS))
     parser.add_argument("--model", required=False)
     parser.add_argument("--timeout", type=int, default=2400)
+    parser.add_argument("--runs", type=int, default=3,
+                        help="nombre d'exécutions ; la MÉDIANE fait foi (défaut 3)")
     parser.add_argument("--list-harnesses", action="store_true")
     args = parser.parse_args()
     if args.list_harnesses:
@@ -460,7 +577,7 @@ def main():
         return 0
     if not args.model:
         parser.error("--model requis")
-    return run(args.harness, args.model, args.scenario, args.timeout)
+    return run(args.harness, args.model, args.scenario, args.timeout, args.runs)
 
 
 if __name__ == "__main__":
