@@ -72,27 +72,52 @@ d'environ 5 outils exposés (goose#6883) : le harnais ne reconnaît plus les app
 la boucle casse. C'est ce qui disqualifie Goose (11 outils par défaut) et ce qui rend
 pi viable (4 outils).
 
-## Référence — `pi 0.82.1` @ ctx 32768, 28/07/2026
+## Résultats — 28/07/2026, ctx 32768
 
-| | qwen3-coder-30b-a3b (IQ1_S) | bonsai-27b (Q1_0) |
-|---|---|---|
-| verdict | **PASS 19/19** | **PASS 19/19** |
-| tours | 26 | 28 |
-| appels d'outils | 25 | **33** |
-| format d'appel | json | json |
-| pic d'entrée | 11 074 → 33,8 % | 13 916 → 42,5 % |
-| total in / out | 190 931 / 4 059 | 265 508 / 5 610 |
-| durée | **93,7 s** | 249,4 s (×2,66) |
-| gardes · API | aucune · intacte | aucune · intacte |
+| harnais | modèle | verdict | tours | appels | préambule | pic d'entrée | total in | durée |
+|---|---|---|---|---|---|---|---|---|
+| **little-coder** 0.79.10 | qwen3-coder-30b | **PASS 19/19** | **24** | **23** | 4 528 | 14 666 | 258 359 | **89,2 s** |
+| **pi** 0.82.1 | qwen3-coder-30b | **PASS 19/19** | 26 | 25 | **1 603** | 11 074 | 190 931 | 93,7 s |
+| **pi** 0.82.1 | bonsai-27b (Q1_0) | **PASS 19/19** | 28 | 33 | 1 603 | 13 916 | 265 508 | 249,4 s |
+| **aider** 0.86.2 | qwen3-coder-30b | FAIL 15/19 | 4 | — (diff) | ~700 | 9 700 | **27 500** | 219,4 s |
 
-Les deux produisent 7 correctifs corrects. `qwen3-coder` reproduit la solution de
-référence à l'identique. `bonsai` diverge une fois, et légitimement : là où la
-référence remplace `max` par `min`, il garde `max` en niant les clés
-(`key=lambda t: (-t["priority"], -t["id"])`) — fonctionnellement équivalent,
-tie-break compris.
+Aucune garde violée, aucune dérive d'API sur les quatre runs. Le pic reste sous la
+moitié de la fenêtre partout : **sur ce type de tâche, le contexte n'est pas le
+facteur limitant.**
 
-Le pic reste sous la moitié de la fenêtre dans les deux cas, sur ~27 tours : **sur ce
-type de tâche, le contexte n'est pas le facteur limitant.**
+`qwen3-coder` sous pi reproduit la solution de référence à l'identique. `bonsai`
+diverge une fois, et légitimement : là où la référence remplace `max` par `min`, il
+garde `max` en niant les clés (`key=lambda t: (-t["priority"], -t["id"])`) —
+fonctionnellement équivalent, tie-break compris.
+
+### little-coder : les skills achètent peu, et ça se paie
+
+Question posée : ses ~30 extensions et ~30 skills réduisent-ils le nombre
+d'itérations, ou sont-ils une dépense sèche ?
+
+**Réponse : un gain modeste, payé en tokens.** 24 tours contre 26, 23 appels contre
+25, 89,2 s contre 93,7 (−5 %). En face : un préambule de **4 528 tokens contre 1 603**
+(×2,8) et +35 % de tokens d'entrée cumulés. Mesuré, le préambule est nettement
+*inférieur* aux ~7 000 annoncés par son README.
+
+Sur un budget de 32 768 les deux tiennent largement. Le choix se joue donc sur autre
+chose que le contexte — et pi nu reste plus simple à raisonner.
+
+⚠️ **Un défaut d'intégration, dans sa configuration par défaut** : son extension
+`permission-gate` restreint bash à une liste blanche (`SAFE_PREFIXES`) qui **ne
+contient pas `pytest`**. Premier run, sans rien changer :
+
+```
+shell whitelist: "pytest" is not in SAFE_PREFIXES
+→ FAIL 13/19, l'agent se declare termine avec 6 tests rouges
+```
+
+Privé de la commande de test, il perd la boucle de rétroaction — précisément le
+mécanisme qui fait réussir `bonsai` malgré son quant. Le banc lève donc la barrière
+(`LITTLE_CODER_PERMISSION_MODE=accept-all`, échappatoire documentée) puisque pi n'a
+aucune liste blanche. **C'est un choix de banc pour comparer à armes égales, pas un
+correctif de bug** : la posture par défaut de little-coder est simplement plus
+prudente que celle de pi.
 
 ### aider — le paradigme sans schéma d'outil
 

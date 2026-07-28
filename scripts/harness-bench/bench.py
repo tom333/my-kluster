@@ -167,7 +167,17 @@ def pi_metrics(transcript):
             total_in += usage.get("input") or 0
             total_out += usage.get("output") or 0
         if event.get("type") == "message_end":
-            for block in event["message"].get("content") or []:
+            content = event.get("message", {}).get("content") or []
+            # `content` peut etre une chaine, ou une liste melangeant chaines et
+            # blocs typés selon le harnais. little-coder produit la forme mixte,
+            # pi non.
+            if isinstance(content, str):
+                content = [{"type": "text", "text": content}]
+            for block in content:
+                if isinstance(block, str):
+                    block = {"type": "text", "text": block}
+                if not isinstance(block, dict):
+                    continue
                 if block.get("type") == "toolCall":
                     calls.append(block.get("name"))
                 # Un appel d'outil rendu en XML dans du texte = bascule du modele.
@@ -184,6 +194,37 @@ def pi_metrics(transcript):
         "total_input": total_in,
         "total_output": total_out,
     }
+
+
+def little_coder_command(model, workdir):
+    """little-coder = pi + ~30 extensions + ~30 skills, pi etant une simple
+    dependance npm. Meme CLI, meme format JSONL, donc `pi_metrics` s'applique.
+
+    On NE passe PAS --no-extensions ni --no-skills : ce sont precisement les
+    couches que little-coder ajoute, et les desactiver le reduirait a pi. Seul
+    --no-context-files est conserve, comme pour pi, pour ne pas faire dependre le
+    resultat d'un AGENTS.md du dossier.
+    """
+    # little-coder ajoute une extension permission-gate : en mode `auto`, bash est
+    # restreint a une liste blanche de prefixes (SAFE_PREFIXES) qui NE CONTIENT PAS
+    # `pytest`. Le premier appel du modele est donc rejete par
+    #   shell whitelist: "pytest" is not in SAFE_PREFIXES
+    # et l'agent perd la boucle de retroaction par les tests — precisement le
+    # mecanisme qui fait reussir bonsai. pi n'a aucune liste blanche, donc on leve
+    # celle-ci pour comparer a armes egales. C'est l'echappatoire documentee du
+    # projet, et c'est un CHOIX DE BANC, pas un defaut de little-coder : sa posture
+    # par defaut est plus prudente que celle de pi.
+    return [
+        "little-coder",
+        "--model",
+        model,
+        "--mode",
+        "json",
+        "--no-session",
+        "--no-context-files",
+        "-p",
+        PROMPT,
+    ], {"LITTLE_CODER_PERMISSION_MODE": "accept-all"}
 
 
 def aider_command(model, workdir):
@@ -284,6 +325,7 @@ def no_metrics(transcript):
 
 HARNESSES = {
     "pi": (pi_command, pi_metrics),
+    "little-coder": (little_coder_command, pi_metrics),
     "aider": (aider_command, aider_metrics),
 }
 

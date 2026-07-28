@@ -1,0 +1,34 @@
+{
+  "harnais": "little-coder",
+  "modele": "localai/qwen3-coder-30b-a3b-instruct",
+  "duree_s": 96.6,
+  "timeout": false,
+  "returncode": 0,
+  "depart": {
+    "passed": 6,
+    "failed": 13
+  },
+  "tours": 31,
+  "appels_outils": 30,
+  "outils_utilises": [
+    "bash",
+    "edit",
+    "read"
+  ],
+  "format_appels": "json",
+  "pic_input": 13974,
+  "total_input": 279490,
+  "total_output": 4061,
+  "verdict": "FAIL",
+  "tests_passed": 13,
+  "tests_failed": 6,
+  "tests_attendus": 19,
+  "pytest_tail": "6 failed, 13 passed in 0.03s",
+  "gardes_violees": [],
+  "api_modifiee": [],
+  "fichiers_modifies": [
+    "taskmgr/dates.py",
+    "taskmgr/filters.py",
+    "taskmgr/store.py"
+  ]
+}
