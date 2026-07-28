@@ -72,20 +72,43 @@ d'environ 5 outils exposés (goose#6883) : le harnais ne reconnaît plus les app
 la boucle casse. C'est ce qui disqualifie Goose (11 outils par défaut) et ce qui rend
 pi viable (4 outils).
 
-## Référence
+## Référence — `pi 0.82.1` @ ctx 32768, 28/07/2026
 
-`pi 0.82.1` + `qwen3-coder-30b-a3b-instruct` @ ctx 32768, 28/07/2026 :
+| | qwen3-coder-30b-a3b (IQ1_S) | bonsai-27b (Q1_0) |
+|---|---|---|
+| verdict | **PASS 19/19** | **PASS 19/19** |
+| tours | 26 | 28 |
+| appels d'outils | 25 | **33** |
+| format d'appel | json | json |
+| pic d'entrée | 11 074 → 33,8 % | 13 916 → 42,5 % |
+| total in / out | 190 931 / 4 059 | 265 508 / 5 610 |
+| durée | **93,7 s** | 249,4 s (×2,66) |
+| gardes · API | aucune · intacte | aucune · intacte |
 
-```
-verdict  PASS 19/19        tours 26         appels 25 (read/edit/write/bash)
-format   json              pic_input 11074 / 32768 = 33,8 %
-durée    93,7 s            total in 190931  out 4059
-gardes   aucune violation  API intacte      5 fichiers modifiés
-```
+Les deux produisent 7 correctifs corrects. `qwen3-coder` reproduit la solution de
+référence à l'identique. `bonsai` diverge une fois, et légitimement : là où la
+référence remplace `max` par `min`, il garde `max` en niant les clés
+(`key=lambda t: (-t["priority"], -t["id"])`) — fonctionnellement équivalent,
+tie-break compris.
 
-Les 7 correctifs produits sont identiques à la solution de référence. Le pic reste à
-un tiers de la fenêtre sur 26 tours : **sur ce type de tâche, le contexte n'est pas
-le facteur limitant.**
+Le pic reste sous la moitié de la fenêtre dans les deux cas, sur ~27 tours : **sur ce
+type de tâche, le contexte n'est pas le facteur limitant.**
+
+### Ce que ce banc corrige dans eval-harness
+
+`eval-harness` donnait `bonsai-27b` à **coding 0,643**, avec 5 échecs sur 5 en
+`NameError` — la bonne logique sous un autre nom. On en avait conclu qu'à ~1,1 bit la
+restitution exacte d'un symbole était cassée, et que le modèle serait donc inapte à
+une tâche agentique réelle.
+
+**C'est faux.** Ici il n'a renommé aucun symbole (`api_modifiee: []`) et il a tout
+résolu. La raison : `pytest` lui renvoie l'erreur, et **la boucle corrige** ce que le
+test one-shot sanctionnait définitivement.
+
+Un test one-shot **surestime donc la pénalité d'un quant très bas** dès que le cadre
+réel comporte une boucle de rétroaction. Le vrai coût n'est pas une incapacité, c'est
+un nombre d'itérations : 33 appels contre 25, et ×2,66 sur le temps de mur. Une
+dépense, pas un plafond.
 
 ## Limites connues
 
