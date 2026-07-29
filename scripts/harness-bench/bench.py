@@ -107,12 +107,27 @@ def _tuer_groupe(proc):
             continue
 
 
+# Classes d'issue d'un essai. Introduites le 2026-07-29 apres avoir compris que le
+# score seul MENT : les 44 tests importent tous le paquet, donc UNE erreur de syntaxe
+# fait echouer la collecte, donc les 44 tests, donc 0/44. Exemple mesure : un essai a
+# 0/44 avait ecrit 197 lignes et echouait sur `IndentationError: expected an indented
+# block after 'if' statement on line 156`. Un caractere. Moyenner ce 0 avec un 41/44
+# obtenu sur du code qui compile ne mesure pas le modele, ca mesure la probabilite
+# d'une coquille — et sur 3 essais, la mediane est decidee par ce tirage.
+ISSUE_OK = "collecte_ok"           # les tests ont tourne : le score veut dire quelque chose
+ISSUE_COLLECTE = "erreur_collecte"  # SyntaxError / IndentationError / ModuleNotFoundError
+ISSUE_PEND = "pytest_pend"          # boucle infinie : pytest ne rend jamais la main
+
+
 def run_pytest(workdir):
-    """Retourne (passed, failed, sortie_courte).
+    """Retourne (passed, failed, sortie_courte, issue).
 
     Le depassement de delai est un RESULTAT, pas un plantage du banc : du code
     genere qui boucle a l'infini fait pendre pytest, et c'est un mode de
     defaillance attendu. On le rapporte au lieu de laisser l'exception remonter.
+
+    `issue` distingue les trois classes ci-dessus. Sans elle, le banc ne peut pas
+    comparer deux reglages voisins : les 0/44 de collecte noient le signal.
     """
     # start_new_session + killpg : pytest peut avoir spawn des sous-process ;
     # sans groupe, le timeout les laisserait orphelins (cf. _tuer_groupe).
@@ -125,7 +140,7 @@ def run_pytest(workdir):
     except subprocess.TimeoutExpired:
         _tuer_groupe(proc)
         proc.communicate()
-        return 0, 0, "TIMEOUT pytest apres 180s (boucle infinie dans le code genere)"
+        return 0, 0, "TIMEOUT pytest apres 180s (boucle infinie dans le code genere)", ISSUE_PEND
     stdout = stdout or ""
     tail = stdout.strip().splitlines()[-1:] or [""]
     passed = failed = 0
@@ -135,14 +150,19 @@ def run_pytest(workdir):
     match = re.search(r"(\d+) failed", stdout)
     if match:
         failed = int(match.group(1))
-    return passed, failed, tail[0]
+    # "error during collection" = le paquet ne s'importe meme pas. pytest le dit
+    # explicitement, on ne devine pas.
+    collecte_ratee = ("error during collection" in stdout
+                      or "errors during collection" in stdout)
+    issue = ISSUE_COLLECTE if collecte_ratee else ISSUE_OK
+    return passed, failed, tail[0], issue
 
 
 def verify(workdir, scenario):
     """Verdict objectif : tests verts, gardes respectees, API intacte."""
     fixture = scenario["fixture"]
     expected = scenario["expected_tests"]
-    passed, failed, tail = run_pytest(workdir)
+    passed, failed, tail, issue = run_pytest(workdir)
 
     violations = []
     for rel in scenario["protected"]:
@@ -183,6 +203,14 @@ def verify(workdir, scenario):
         "tests_passed": passed,
         "tests_failed": failed,
         "tests_attendus": expected,
+        "issue": issue,
+        # Preuve qu'un "0/44" de collecte n'est pas une page blanche : on compte ce
+        # qui a ete ecrit. 197 lignes + IndentationError != 0 ligne.
+        "lignes_ecrites": sum(
+            len(p.read_text(errors="replace").splitlines())
+            for p in sorted(workdir.rglob("*.py"))
+            if p.name != "conftest.py" and "tests/" not in p.relative_to(workdir).as_posix()
+        ),
         "pytest_tail": tail,
         "gardes_violees": violations,
         "api_modifiee": api_diff,
@@ -598,8 +626,17 @@ def run(harness, model, scenario_name, timeout, runs=1):
         (RESULTS / ("%s-r%d.transcript" % (slug, i))).write_text(transcript)
 
     scores = [e["tests_passed"] for e in essais]
-    med = mediane(scores)
     attendus = scenario["expected_tests"]
+
+    # La médiane ne porte QUE sur les essais dont le code compile : mélanger un 0/44
+    # de collecte avec un 41/44 ne compare pas deux performances, ça compare une
+    # performance à une panne de l'instrument. Les deux autres classes sont rapportées
+    # comme des TAUX — « 1 essai sur 3 ne compile pas » informe sur le modèle, mais
+    # ce n'est pas un score de zéro.
+    notables = [e["tests_passed"] for e in essais if e.get("issue") == ISSUE_OK]
+    med = mediane(notables) if notables else None
+    n_collecte = sum(1 for e in essais if e.get("issue") == ISSUE_COLLECTE)
+    n_pend = sum(1 for e in essais if e.get("issue") == ISSUE_PEND)
     result = {
         "scenario": scenario_name,
         "harnais": harness,
@@ -610,10 +647,16 @@ def run(harness, model, scenario_name, timeout, runs=1):
         # valeur agrégée plutôt qu'un tirage.
         "tests_passed": med,
         "tests_passed_median": med,
-        "tests_passed_min": min(scores) if scores else None,
-        "tests_passed_max": max(scores) if scores else None,
-        "tests_passed_ecart": (max(scores) - min(scores)) if scores else None,
+        "tests_passed_min": min(notables) if notables else None,
+        "tests_passed_max": max(notables) if notables else None,
+        "tests_passed_ecart": (max(notables) - min(notables)) if notables else None,
+        # `_tous` garde TOUS les tirages, y compris les 0 de collecte, pour rester
+        # relisible ; `_notables` est ce sur quoi la médiane est calculée.
         "tests_passed_tous": scores,
+        "tests_passed_notables": notables,
+        "essais_comparables": len(notables),
+        "essais_erreur_collecte": n_collecte,
+        "essais_pytest_pend": n_pend,
         "tests_attendus": attendus,
         "verdict": "PASS" if med == attendus else "FAIL",
         "tours_median": mediane([e.get("tours") for e in essais]),
@@ -628,10 +671,22 @@ def run(harness, model, scenario_name, timeout, runs=1):
     out.write_text(json.dumps(result, indent=2, ensure_ascii=False) + "\n")
 
     print("\n=== agrégat sur %d essai(s) ===" % runs)
-    print("  scores      : %s" % scores)
-    print("  médiane     : %s/%s   (min %s, max %s, écart %s)" % (
-        med, attendus, result["tests_passed_min"], result["tests_passed_max"],
-        result["tests_passed_ecart"]))
+    for i, e in enumerate(essais, 1):
+        etiquette = {ISSUE_OK: "", ISSUE_COLLECTE: "  <- NE COMPILE PAS",
+                     ISSUE_PEND: "  <- pytest pend"}.get(e.get("issue"), "")
+        print("  essai %d : %2s/%s  %s lignes ecrites%s" % (
+            i, e["tests_passed"], attendus, e.get("lignes_ecrites"), etiquette))
+    if notables:
+        print("  médiane sur %d essai(s) comparable(s) : %s/%s   (min %s, max %s, écart %s)" % (
+            len(notables), med, attendus, result["tests_passed_min"],
+            result["tests_passed_max"], result["tests_passed_ecart"]))
+    else:
+        print("  ⚠️  AUCUN essai comparable : rien à médianiser")
+    if n_collecte or n_pend:
+        print("  hors médiane : %d/%d ne compile(nt) pas, %d pend(ent)" % (
+            n_collecte, runs, n_pend))
+        print("     ⚠️  un 0/44 de collecte n'est PAS une page blanche (cf. lignes"
+              " écrites) : c'est souvent une coquille qui annule tout le paquet.")
     print("  tours méd.  : %s" % result["tours_median"])
     print("  pic méd.    : %s" % result["pic_input_median"])
     print("  verdict     : %s" % result["verdict"])
