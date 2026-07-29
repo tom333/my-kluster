@@ -496,11 +496,18 @@ def nu_command(model, workdir, prompt):
     seulement les schémas de ses 4 outils. Plancher du banc — les autres harnais
     se lisent en écart par rapport à lui.
 
-    Le serveur est un llama-server local (docker, cf. harnais-nu/serveur.md), PAS
+    Le serveur est un llama-server local (podman, cf. harnais-nu/serveur.md), PAS
     LocalAI : `model` ne sert qu'à remplir le champ de la requête. Base URL
     surchargée par HARNAIS_NU_BASE_URL. Les budgets du harnais sont en tours et
     en tokens ; le --timeout du banc reste un garde-fou externe, pas la limite
     de comparaison.
+
+    Les trois budgets sont surchargeables par l'environnement pour balayer sans
+    toucher au code — indispensable depuis la mesure du 2026-07-29 : à 4096 tokens
+    par tour, gemma-4-12b dépense TOUT son plafond dans son canal de pensée et
+    n'atteint jamais l'action (3/3 essais à 0/44, 2 tours, 0 ligne écrite).
+
+        HARNAIS_NU_MAX_TURNS, HARNAIS_NU_MAX_TOKENS_PER_TURN, HARNAIS_NU_MAX_TOTAL_TOKENS
     """
     base_url = os.environ.get("HARNAIS_NU_BASE_URL", "http://127.0.0.1:8080/v1")
     return [
@@ -510,6 +517,9 @@ def nu_command(model, workdir, prompt):
         "--workdir", str(workdir),
         "--base-url", base_url,
         "--model", model.split("/", 1)[-1],
+        "--max-turns", os.environ.get("HARNAIS_NU_MAX_TURNS", "30"),
+        "--max-tokens-per-turn", os.environ.get("HARNAIS_NU_MAX_TOKENS_PER_TURN", "4096"),
+        "--max-total-tokens", os.environ.get("HARNAIS_NU_MAX_TOTAL_TOKENS", "100000"),
     ], {}
 
 
