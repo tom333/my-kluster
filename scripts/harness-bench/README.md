@@ -336,6 +336,39 @@ tirage chanceux.
 
 À retenir : `--runs 3` n'est pas une précaution de confort. Sans lui, on promeut du bruit.
 
+### La promotion du 2026-07-28 était une erreur
+
+Remesure de contrôle de l'ancien incumbent, `qwen3-coder-30b-a3b-instruct` (IQ1_S),
+mêmes conditions : préchauffé, backend sain, 3 essais, aucun kill watchdog.
+
+| modèle | essais | médiane | étendue | tours | pic d'entrée | durée |
+|---|---|---|---|---|---|---|
+| **qwen3-coder-30b** IQ1_S | 35, 32, 22 | **32/44** | 13 | 13 | 30 181 → **92 %** | 401 s |
+| qwopus3.5-9b Q6_K | 25, 20, 11 | **20/44** | 14 | 12 | 15 850 → 48 % | 184 s |
+
+**Le minimum de qwen (22) dépasse la médiane de qwopus (20).** Les distributions ne se
+recouvrent que sur 22–25. Avec n=3 par côté aucun test ne conclut formellement (un
+Mann-Whitney plafonne à p=0,1), mais l'écart de 12 tests est large et cohérent sur les
+trois essais.
+
+La promotion du 2026-07-28 reposait sur `38/44` contre `33/44`, **deux tirages uniques
+dont aucun n'était reproductible** : les médianes sont 20 et 32. La comparaison était
+inversée.
+
+Ce qui reste vrai en faveur de qwopus, et qui n'est pas rien :
+
+- **pic d'entrée 48 % de la fenêtre contre 92 %.** qwen travaille au plafond, avec le
+  risque d'arrêt en `length` déjà observé. C'est une marge de sécurité, pas un score.
+- **184 s contre 401 s**, soit 2,2× plus rapide.
+- qwen3-coder est un quant à **1 bit** ; qwopus est un Q6 honnête.
+- qwen porte le **seuil XML au-delà de ~5 outils exposés** (goose#6883). Invisible ici
+  — pi n'en expose que 4 — mais bloquant dès qu'on branche Context7 ou un MCP. qwopus
+  n'a pas été testé sur ce point.
+
+Donc : sur ce banc, qwen gagne nettement et l'alias `current` doit revenir vers lui.
+Pour un usage quotidien à plus de 5 outils, le seuil XML doit être testé avant de
+s'engager — c'est le seul test qui peut encore renverser la conclusion.
+
 ### A/B chemins absolus — l'hypothèse était fausse, l'instruction inutile
 
 Hypothèse de départ : `pi` résout les chemins relatifs depuis son cwd, donc un chemin
@@ -390,6 +423,32 @@ chemins a changé la sélection d'outils et doublé la pression sur le contexte.
 Conclusion : `pi-abspath` n'est pas adopté par défaut. Le harnais reste enregistré
 dans `bench.py` — cinq lignes qui évitent de redériver ce résultat sur le prochain
 modèle — mais avec ce verdict attaché.
+
+### gemma-4-12b-coder : 0/44 qui cachait 17/44
+
+Son 0/44 n'est pas un échec de compétence. Le transcript montre 2 tours : un `read`
+(JSON valide, chemin relatif, succès), puis **l'implémentation complète dans un bloc
+markdown du message de chat**, puis `agent_settled`. Il n'a jamais appelé `write` — il
+a répondu au lieu d'agir.
+
+Ce code est notable hors ligne, sans inférence : extrait du transcript, posé dans la
+fixture, `pytest`.
+
+| état | score |
+|---|---|
+| tel quel | **0/44** — `SyntaxError: unmatched ')'` ligne 84, la collecte échoue |
+| après réparation d'**une seule ligne** | **17/44** |
+
+Les 27 échecs restants sont concentrés : `'Board' object has no attribute
+'occupied_set'` × 11 (`clear_lines` l'utilise, `__init__` ne le crée jamais) et
+`'NoneType' object has no attribute 'cells'` × 9. Un symbole manquant, deux erreurs
+d'initialisation — la classe d'erreur qu'une boucle `pytest` corrige en une itération.
+
+**17/44 en un coup sans jamais lancer un test**, contre 20/44 de médiane pour qwopus
+après 8 à 44 tours d'itération. Le goulot de gemma est entièrement l'inaction, pas la
+compréhension. C'est le meilleur candidat au façonnage de comportement du lot, et
+`format_appels: aucun` chez little-coder contre `json` chez pi montre que le harnais
+pèse aussi sur ce réflexe.
 
 ## Limites connues
 
