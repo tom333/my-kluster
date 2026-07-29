@@ -1,0 +1,123 @@
+{
+  "scenario": "tetris",
+  "harnais": "pi-abspath",
+  "modele": "localai/qwopus3.5-9b-coder",
+  "runs": 3,
+  "tests_passed": 0,
+  "tests_passed_median": 0,
+  "tests_passed_min": 0,
+  "tests_passed_max": 25,
+  "tests_passed_ecart": 25,
+  "tests_passed_tous": [
+    0,
+    0,
+    25
+  ],
+  "tests_attendus": 44,
+  "verdict": "FAIL",
+  "tours_median": 14,
+  "pic_input_median": 28754,
+  "duree_s_median": 255.1,
+  "format_appels": "json",
+  "essais": [
+    {
+      "essai": 1,
+      "duree_s": 255.1,
+      "timeout": false,
+      "returncode": 0,
+      "depart": {
+        "passed": 0,
+        "failed": 0
+      },
+      "workdir": "/tmp/harness-bench-tetris-pi-abspath-localai-qwopus3-5-9b-coder-r1",
+      "tours": 19,
+      "appels_outils": 18,
+      "outils_utilises": [
+        "bash",
+        "edit",
+        "read",
+        "write"
+      ],
+      "format_appels": "json",
+      "pic_input": 28754,
+      "total_input": 246576,
+      "total_output": 17473,
+      "verdict": "FAIL",
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "tests_attendus": 44,
+      "pytest_tail": "1 error in 0.10s",
+      "gardes_violees": [],
+      "api_modifiee": [],
+      "fichiers_modifies": [
+        "tetris/__init__.py"
+      ]
+    },
+    {
+      "essai": 2,
+      "duree_s": 900.1,
+      "timeout": true,
+      "returncode": -1,
+      "depart": {
+        "passed": 0,
+        "failed": 0
+      },
+      "workdir": "/tmp/harness-bench-tetris-pi-abspath-localai-qwopus3-5-9b-coder-r2",
+      "tours": 10,
+      "appels_outils": 11,
+      "outils_utilises": [
+        "bash",
+        "edit",
+        "read",
+        "write"
+      ],
+      "format_appels": "json",
+      "pic_input": 14211,
+      "total_input": 94383,
+      "total_output": 6341,
+      "verdict": "FAIL",
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "tests_attendus": 44,
+      "pytest_tail": "TIMEOUT pytest apres 180s (boucle infinie dans le code genere)",
+      "gardes_violees": [],
+      "api_modifiee": [],
+      "fichiers_modifies": [
+        "tetris/__init__.py"
+      ]
+    },
+    {
+      "essai": 3,
+      "duree_s": 195.5,
+      "timeout": false,
+      "returncode": 0,
+      "depart": {
+        "passed": 0,
+        "failed": 0
+      },
+      "workdir": "/tmp/harness-bench-tetris-pi-abspath-localai-qwopus3-5-9b-coder-r3",
+      "tours": 14,
+      "appels_outils": 13,
+      "outils_utilises": [
+        "bash",
+        "edit",
+        "read",
+        "write"
+      ],
+      "format_appels": "json",
+      "pic_input": 30729,
+      "total_input": 193941,
+      "total_output": 11147,
+      "verdict": "FAIL",
+      "tests_passed": 25,
+      "tests_failed": 19,
+      "tests_attendus": 44,
+      "pytest_tail": "19 failed, 25 passed in 0.20s",
+      "gardes_violees": [],
+      "api_modifiee": [],
+      "fichiers_modifies": [
+        "tetris.py"
+      ]
+    }
+  ]
+}

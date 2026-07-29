@@ -210,6 +210,37 @@ def pi_command(model, workdir, prompt):
     ], {}
 
 
+# Instruction testée le 2026-07-29. Motif : sur tetris, 2 des 3 appels `read` de
+# qwopus3.5-9b-coder échouaient en ENOENT parce qu'il passait `tmp/...` au lieu de
+# `/tmp/...` — le chemin, résolu depuis le cwd, se dédoublait. Le modèle connaît
+# pourtant le chemin absolu, il l'utilise correctement dans `bash`. Il perdait ainsi
+# 2 tours sur 9, puis contournait avec `cat`, ce qui remplaçait une lecture
+# structurée par 5 Ko de sortie shell.
+INSTRUCTION_CHEMINS_ABSOLUS = (
+    "Pour les outils read, write et edit, utilise TOUJOURS un chemin ABSOLU "
+    "commencant par une barre oblique. Un chemin relatif est resolu depuis le "
+    "repertoire courant et echoue."
+)
+
+
+def pi_abspath_command(model, workdir, prompt):
+    """pi + une instruction sur les chemins absolus. Variante d'A/B : tout le reste
+    est identique à `pi`, seul ce ~30 tokens de préambule change.
+
+    VERDICT 2026-07-29, 3 essais par côté : mécanisme confirmé (un chemin relatif
+    échoue 4 fois sur 4 ; l'instruction les fait tomber de 3 à 1), effet sur le
+    score nul et non concluant (médiane 20/44 contre 0/44, étendues 11-25 et 0-25).
+    NON adopté par défaut. Effet de bord notable : l'instruction nomme `edit`, et
+    ça suffit à faire utiliser `edit` — jamais employé sans elle — ce qui fait
+    passer le pic d'entrée médian de 15 850 à 28 754. Une instruction sur la forme
+    des chemins a changé la sélection d'outils. Détail dans le README.
+    """
+    argv, env = pi_command(model, workdir, prompt)
+    # Inséré avant `-p` pour ne pas casser l'ordre attendu par pi.
+    i = argv.index("-p")
+    return argv[:i] + ["--append-system-prompt", INSTRUCTION_CHEMINS_ABSOLUS] + argv[i:], env
+
+
 def pi_metrics(transcript):
     """Extrait tours, appels d'outils, format et tokens du JSONL de pi."""
     turns = 0
@@ -390,6 +421,7 @@ def no_metrics(transcript):
 
 HARNESSES = {
     "pi": (pi_command, pi_metrics),
+    "pi-abspath": (pi_abspath_command, pi_metrics),
     "little-coder": (little_coder_command, pi_metrics),
     "aider": (aider_command, aider_metrics),
 }

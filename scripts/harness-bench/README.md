@@ -194,11 +194,18 @@ de GLM-5.1 et Kimi-4.6, SWE-bench Verified 53,89 %).
 
 | harnais | tests | tours | pic d'entrée | durée |
 |---|---|---|---|---|
-| **pi** | **38/44** | **9** | **11 342 → 34,6 %** | **185,9 s** |
+| **pi** | 38/44 ⚠️ *tirage unique* | 9 | 11 342 → 34,6 % | 185,9 s |
 | little-coder | 0/44 | 2 | 9 673 | **TIMEOUT 1200 s** |
 
-**Un 9B bat le 30B incumbent de 5 tests**, en 9 tours au lieu de 19, avec un pic à
-34,6 % de la fenêtre au lieu de 90,6 %.
+⚠️ **Ce 38/44 est un tirage unique, et il est trompeur.** Remesuré le 2026-07-29 à
+3 essais sur backend sain : **médiane 20/44** (11, 20, 25). Voir la section
+« Le 38/44 était un coup de chance » plus bas. La ligne est conservée telle quelle
+parce que c'est elle qui a servi à promouvoir le modèle — elle documente la décision,
+pas la performance.
+
+Le 9B reste devant le 30B incumbent en tours (9 contre 19) et en pic d'entrée
+(34,6 % de la fenêtre contre 90,6 %). Sur le nombre de tests, l'avance affichée
+(+5) ne survit pas à l'échantillonnage.
 
 La leçon n'est PAS « un Q4+ code mieux » : `gemma-4-12b-coder` était en Q4_K_M et a
 fait 0/44. C'est la **conjonction** de trois choses :
@@ -283,6 +290,89 @@ Un test one-shot **surestime donc la pénalité d'un quant très bas** dès que 
 réel comporte une boucle de rétroaction. Le vrai coût n'est pas une incapacité, c'est
 un nombre d'itérations : 33 appels contre 25, et ×2,66 sur le temps de mur. Une
 dépense, pas un plafond.
+
+## 29/07/2026 — le watchdog LocalAI invalidait les mesures
+
+Trois runs consécutifs rendus à **0/44 en 900 s pile**. Ce n'était ni le modèle ni le
+harnais : `LOCALAI_WATCHDOG_IDLE_TIMEOUT` valait `5m`, et le compteur d'inactivité de
+LocalAI repart de la dernière requête **terminée**, pas du dernier token produit. Une
+génération agentique longue dépasse 5 min et **le watchdog tue son propre backend en
+pleine génération**. Côté client, `pi` n'a pas de read timeout : la connexion pend
+jusqu'au plafond du banc.
+
+```
+23:52  [WatchDog] Address is idle for too long, killing it   <- en plein run
+23:57  Address unresolvable
+00:03  BackendLoader starting                               <- run suivant
+00:09  [WatchDog] killing it                                <- en plein run
+```
+
+**Ce qui prouve qu'une requête était en vol** : après chaque kill, aucun
+`BackendLoader starting` ne suit. Un backend réellement au repos aurait été rechargé
+par la requête suivante, et LocalAI l'aurait loggé. Corrigé par `30m`
+(`charts/localai/values.yaml`, commit `6ebeb037`) ; l'éviction VRAM reste assurée par
+`SINGLE_ACTIVE_BACKEND`.
+
+**Signature à reconnaître** : score 0, durée = plafond exact, `tours` faible, et
+`total_output` qui s'arrête net. Avant d'incriminer un modèle sur un 0/44, vérifier
+`kubectl logs -n localai <pod> | grep WatchDog`.
+
+### Le 38/44 était un coup de chance
+
+Remesure de `pi` + `qwopus3.5-9b-coder` à 3 essais, backend sain, modèle préchauffé :
+
+| essai | tests | tours | pic d'entrée | durée |
+|---|---|---|---|---|
+| 1 | 25/44 | 44 | 28 752 | 260,7 s |
+| 2 | 20/44 | 8 | 15 850 | 184,3 s |
+| 3 | 11/44 | 12 | 13 631 | 176,2 s |
+| **médiane** | **20/44** | 12 | 15 850 | 184,3 s |
+
+**Médiane 20/44, étendue 11–25.** Le 38/44 qui a justifié la promotion est hors de
+cette étendue : c'était le haut d'une distribution large, pas un niveau reproductible.
+`promote.sh` résout désormais la référence de l'incumbent sur cette mesure à 3 essais
+(il privilégie l'échantillonnage, pas le score), donc le gate ne s'appuie plus sur le
+tirage chanceux.
+
+À retenir : `--runs 3` n'est pas une précaution de confort. Sans lui, on promeut du bruit.
+
+### A/B chemins absolus — mécanisme confirmé, effet nul
+
+Hypothèse : `pi` résout les chemins relatifs depuis son cwd, donc un chemin relatif
+échoue et coûte un tour. Testé en ajoutant ~30 tokens d'instruction
+(`--append-system-prompt`), harnais `pi-abspath`, 3 essais de chaque côté.
+
+**Le mécanisme est réel.** Appariement `tool_execution_start` → `tool_execution_end`
+sur `read`/`write`/`edit` :
+
+| | relatifs | absolus |
+|---|---|---|
+| `pi` | 0 ok / **3 erreurs** | 9 ok / 0 erreur |
+| `pi-abspath` | 0 ok / **1 erreur** | 17 ok / 3 erreurs |
+
+Un chemin relatif échoue **systématiquement** — 0 succès sur 4 tentatives, les deux
+côtés confondus. L'instruction fait bien tomber leur nombre.
+
+**L'effet sur le résultat est nul.** `pi` médiane 20/44 (11, 20, 25) contre
+`pi-abspath` médiane 0/44 (0, 0, 25). Les deux zéros ne sont pas des pannes d'infra
+cette fois : essai 1 = erreur de collecte (module cassé), essai 2 = boucle infinie
+dans le code généré, `pytest` tué à 180 s. Ce sont des défaillances de code, qui
+peuvent tomber des deux côtés.
+
+Avec n=3 par côté et des étendues qui se recouvrent (11–25 contre 0–25), **aucune
+conclusion statistique n'est atteignable** — un Mann-Whitney sur 3 contre 3 plafonne
+à p=0,1. Le gain d'un tour récupéré ne se convertit pas en tests réussis.
+
+**L'instruction n'était pas neutre, et c'est le vrai enseignement.** Elle nommait
+trois outils (« read, write et edit »). Côté `pi`, les outils employés sont
+`bash, read, write` — jamais `edit`. Côté `pi-abspath` : `bash, edit, read, write`.
+**Mentionner `edit` a suffi à le faire utiliser**, et le pic d'entrée médian passe de
+15 850 à 28 754 (88 % de la fenêtre). Une instruction censée corriger la forme des
+chemins a changé la sélection d'outils et doublé la pression sur le contexte.
+
+Conclusion : `pi-abspath` n'est pas adopté par défaut. Le harnais reste enregistré
+dans `bench.py` — cinq lignes qui évitent de redériver ce résultat sur le prochain
+modèle — mais avec ce verdict attaché.
 
 ## Limites connues
 
