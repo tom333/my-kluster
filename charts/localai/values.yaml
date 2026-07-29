@@ -81,7 +81,14 @@ env:
   # chargement du suivant (le watchdog idle ne suffit pas : délai 5min).
   LOCALAI_SINGLE_ACTIVE_BACKEND: "true"
   LOCALAI_WATCHDOG_IDLE: "true"
-  LOCALAI_WATCHDOG_IDLE_TIMEOUT: "5m"
+  # 30m et PAS 5m : le compteur d'inactivité repart de la dernière requête
+  # TERMINÉE, pas du dernier octet généré. Une génération longue (gros prompt
+  # agentique + sortie) dépasse 5min et se fait tuer EN COURS -> la connexion
+  # pend côté client (pi n'a pas de read timeout) jusqu'au timeout du harnais.
+  # Constaté 2026-07-29 : 3 runs du bench tetris à 0/44 pour cette seule raison
+  # (logs "[WatchDog] idle for too long" en plein run, sans BackendLoader après).
+  # L'éviction VRAM reste assurée par SINGLE_ACTIVE_BACKEND au chargement suivant.
+  LOCALAI_WATCHDOG_IDLE_TIMEOUT: "30m"
   # NOTE: LOCALAI_EXTERNAL_BACKENDS volontairement non défini.
   # Les backends (cuda12-llama-cpp + cuda12-diffusers) sont déjà installés dans
   # le PVC /backends. Définir cette env var déclenche un manifest check OCI à
