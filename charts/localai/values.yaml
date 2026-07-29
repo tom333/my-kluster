@@ -158,9 +158,16 @@ modelsConfigs:
   # ciblent `current` et n'ont RIEN à changer quand le modèle gagnant change :
   # seule la ligne `alias:` ci-dessous bouge (via promote.sh / edit_values.py).
   # Support vérifié sur cette version : GET /api/aliases → 200.
+  # 2026-07-29 : repointé de qwopus3.5-9b-coder vers gemma-4-12b-it-qat. La promotion du
+  # 28/07 vers qwopus reposait sur un tirage unique (38/44) qui s'est effondré à 20/44 de
+  # médiane sur 3 essais. Mesures tetris (scripts/harness-bench/README.md) : gemma-4-12b
+  # -it-qat à 49152 produit des paquets complets jusqu'à 41/44, qwen3-coder-30b 32/44 en
+  # 1 bit, qwopus 20/44. gemma gagne aussi sur la VRAM (6,7 Go), la quantification (QAT
+  # honnête vs IQ1_S), et respecte le protocole Context7 là où qwen saute l'appel
+  # obligatoire à resolve-library-id.
   current: |
     name: current
-    alias: qwopus3.5-9b-coder
+    alias: gemma-4-12b-it-qat
 
   # ~1 GB VRAM. Kept around for quick smoke tests and ultra-low-latency replies.
   qwen2.5-1.5b-instruct: |
@@ -322,7 +329,18 @@ modelsConfigs:
     backend: llama-cpp
     known_usecases:
       - chat
-    context_size: 32768          # gemma-4 = 128k natif ; capé pour la VRAM
+    # 49152 et PAS 32768 : à 32768 le modèle se fait couper EN PLEINE ÉCRITURE sur une
+    # tâche agentique. Mesuré 2026-07-29 (scripts/harness-bench, scénario tetris) : pics
+    # d'entrée à 30638 / 30972 / 28711, soit jusqu'à 94,5 % de la fenêtre, et des paquets
+    # inachevés — `board.py` à 234 lignes écrit, `__init__.py` important un `tetris.bag`
+    # qui n'existe pas. À 49152, il produit des paquets complets en 5 modules (jusqu'à
+    # 41/44 tests) et le pic monte à 32560, au-delà de l'ancien plafond.
+    # Coût VRAM : NUL. gemma-4 alterne attention locale/globale avec une fenêtre glissante
+    # de 1024 tokens ; llama.cpp plafonne les couches SWA à 1024 cellules quel que soit
+    # context_size (llama_kv_cache_iswa) → 9711 MiB à 32768 contre 9655 MiB à 49152.
+    # Ne PAS monter plus haut : à 131072 il tourne en rond (un essai à 54693 tokens pour
+    # 10/44). L'optimum n'est pas le maximum.
+    context_size: 49152          # gemma-4 = 256k natif ; voir ci-dessus pour ce choix
     gpu_layers: 99
     f16: true
     flash_attention: true
