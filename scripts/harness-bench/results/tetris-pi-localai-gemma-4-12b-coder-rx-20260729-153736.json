@@ -1,0 +1,110 @@
+{
+  "scenario": "tetris",
+  "harnais": "pi",
+  "modele": "localai/gemma-4-12b-coder-rx",
+  "runs": 3,
+  "tests_passed": 0,
+  "tests_passed_median": 0,
+  "tests_passed_min": 0,
+  "tests_passed_max": 0,
+  "tests_passed_ecart": 0,
+  "tests_passed_tous": [
+    0,
+    0,
+    0
+  ],
+  "tests_attendus": 44,
+  "verdict": "FAIL",
+  "tours_median": 4,
+  "pic_input_median": 11642,
+  "duree_s_median": 595.0,
+  "format_appels": "json",
+  "essais": [
+    {
+      "essai": 1,
+      "duree_s": 595.0,
+      "timeout": false,
+      "returncode": 0,
+      "depart": {
+        "passed": 0,
+        "failed": 0
+      },
+      "workdir": "/tmp/harness-bench-tetris-pi-localai-gemma-4-12b-coder-rx-r1",
+      "tours": 26,
+      "appels_outils": 63,
+      "outils_utilises": [
+        "bash",
+        "read",
+        "write"
+      ],
+      "format_appels": "json",
+      "pic_input": 27678,
+      "total_input": 525162,
+      "total_output": 13208,
+      "verdict": "FAIL",
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "tests_attendus": 44,
+      "pytest_tail": "\u001b[31m\u001b[31m\u001b[1m1 error\u001b[0m\u001b[31m in 0.10s\u001b[0m\u001b[0m",
+      "gardes_violees": [],
+      "api_modifiee": [],
+      "fichiers_modifies": [
+        "tetris/__init__.py"
+      ]
+    },
+    {
+      "essai": 2,
+      "duree_s": 45.0,
+      "timeout": false,
+      "returncode": 0,
+      "depart": {
+        "passed": 0,
+        "failed": 0
+      },
+      "workdir": "/tmp/harness-bench-tetris-pi-localai-gemma-4-12b-coder-rx-r2",
+      "tours": 1,
+      "appels_outils": 0,
+      "outils_utilises": [],
+      "format_appels": "aucun",
+      "pic_input": 1595,
+      "total_input": 1595,
+      "total_output": 1270,
+      "verdict": "FAIL",
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "tests_attendus": 44,
+      "pytest_tail": "\u001b[31m\u001b[31m\u001b[1m1 error\u001b[0m\u001b[31m in 0.11s\u001b[0m\u001b[0m",
+      "gardes_violees": [],
+      "api_modifiee": [],
+      "fichiers_modifies": []
+    },
+    {
+      "essai": 3,
+      "duree_s": 656.1,
+      "timeout": false,
+      "returncode": 0,
+      "depart": {
+        "passed": 0,
+        "failed": 0
+      },
+      "workdir": "/tmp/harness-bench-tetris-pi-localai-gemma-4-12b-coder-rx-r3",
+      "tours": 4,
+      "appels_outils": 2,
+      "outils_utilises": [
+        "read"
+      ],
+      "format_appels": "json",
+      "pic_input": 11642,
+      "total_input": 19973,
+      "total_output": 2371,
+      "verdict": "FAIL",
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "tests_attendus": 44,
+      "pytest_tail": "\u001b[31m\u001b[31m\u001b[1m1 error\u001b[0m\u001b[31m in 0.12s\u001b[0m\u001b[0m",
+      "gardes_violees": [],
+      "api_modifiee": [],
+      "fichiers_modifies": []
+    }
+  ]
+}

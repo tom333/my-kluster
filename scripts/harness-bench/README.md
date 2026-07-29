@@ -515,6 +515,78 @@ avorté que mon `pkill -f` n'a jamais tué (il a d'abord tué son propre shell, 
 ligne de commande contenait le motif — même piège que le `pgrep -cf` du matin). **Cause
 non établie ; consignée comme telle.**
 
+### Le meilleur modèle du banc était déjà déployé — et le goulot était la fenêtre
+
+Enchaînement du 29/07 après-midi. Le finetune `gemma-4-12b-coder` n'appelait jamais
+d'outil ; le **QAT officiel `gemma-4-12b-it-qat`**, servi en permanence depuis le 18/06 et
+classé « autocomplétion, pas agentique » dans une note jamais vérifiée, le fait
+correctement sur le prompt exact qui faisait échouer l'autre. Test discriminant, deux
+requêtes :
+
+| modèle | provenance | finish | appels |
+|---|---|---|---|
+| `gemma-4-12b-it-qat` | officiel unsloth QAT, Q4_K_XL | `tool_calls` | `read {"path":"tests/test_tetris.py"}` |
+| `gemma-4-12b-coder` | finetune `yuxinlu1/…` | `length` | 0, prose |
+
+Donc : pas la famille gemma-4, pas la quantification (les deux en 4 bits), pas `pi` ni
+LocalAI (qwen et qwopus émettent du `json` sur la même chaîne). **C'est le finetune.** Les
+métadonnées du GGUF officiel expliquent pourquoi : le format d'appel de gemma-4 est un DSL
+à tokens spéciaux (`<|tool_call>call:read{path:<|"|>…<|"|>}<tool_call|>`,
+`<|channel>thought…<channel|>`), pas du JSON. Un finetune qui ne préserve pas ces tokens
+casse le tool-calling à la racine.
+
+#### La fenêtre de contexte, mesurée à trois valeurs
+
+| `context_size` | scores | médiane | pics | VRAM au chargement |
+|---|---|---|---|---|
+| 32768 | [40, 0, 0] | 0/44 | 30638, **30972**, 28711 | 9711 MiB |
+| **49152** | [34, 41, 0] | **34/44** | **32560**, 28889, 19457 | 9655 MiB |
+| 131072 | [27, 10, 19] | 19/44 | 33606, **54693**, 29247 | 10831 MiB |
+
+À 32768 les zéros sont des **travaux tronqués**, pas des échecs de compétence :
+`ModuleNotFoundError: No module named 'tetris.bag'` avec `board.py` de 234 lignes déjà
+écrit, et un `__init__.py` de 40 lignes de délibération en commentaires (« Let's rethink. »)
+coupée au milieu. À 49152 le pic atteint 32560, **au-delà de l'ancien plafond** — la preuve
+directe.
+
+**Et la VRAM ne suit pas la fenêtre** : +50 % de contexte pour 56 MiB de moins. Gemma-4
+alterne attention locale et globale avec une fenêtre glissante de **1024 tokens** ;
+llama.cpp alloue deux caches séparés (`llama_kv_cache_iswa`) et les couches SWA sont
+plafonnées à 1024 cellules quel que soit `context_size`. Corollaire : l'affirmation
+« quantification et contexte se disputent la même VRAM » est **fausse pour ce modèle**.
+
+**131072 est un recul.** L'essai à 54693 tokens a fait 22 tours pour 10/44 : plus de place
+lui permet de tourner en rond plus longtemps au lieu de conclure. L'optimum n'est pas le
+maximum. ⚠️ Avec des étendues de 0–41 et 10–27, des médianes sur n=3 restent un signal
+faible : ce qui est établi, c'est que 49152 est au moins aussi bon et que 131072 n'apporte
+rien.
+
+À 49152, les défaillances changent de nature — du code complet en cinq modules
+(`__init__`, `bag`, `board`, `game`, `pieces`) avec 41/44, et des erreurs de logique
+réelles, dont **le même test qui tombe dans les trois essais**
+(`test_partie_terminee_le_tick_ne_fait_plus_rien`). Un essai a produit une **boucle
+infinie qui bloque `pytest` à 36 tests sur 44** : le `timeout` par commande devient le
+prochain goulot du harnais.
+
+#### Drafter MTP Q8_0 : rejeté, et ça soulève un doute sur MTP
+
+Seule différence avec la config à 34/44 : `draft_model` en Q8_0 (444 Mo) au lieu de Q4_0
+(254 Mo). Résultat `[0, 0, 9]`, médiane **0/44**, et aucun gain de durée (201/328/373 s).
+
+Or **le décodage spéculatif est censé être sans perte** — le drafter propose, le modèle
+principal vérifie, les tokens refusés sont jetés. Si changer de drafter change la qualité,
+la vérification n'est pas exacte dans cette implémentation. **À vérifier pour le drafter
+Q4_0 utilisé en production**, `values.yaml` l'activant par défaut.
+
+#### Les options llama.cpp sont hors d'atteinte depuis LocalAI
+
+`--reasoning-budget:0` et `--cache-reuse:256`, écrits dans la forme documentée par LocalAI
+(leur exemple : `"--n-cpu-moe:4"`), **tuent le backend en 3 s** (`exitCode -1`, aucun
+stderr remonté). Les quatre exemples de leur doc sont tous MoE ou périphériques → liste
+blanche interne probable, non prouvée. Conséquence : `-ctk/-ctv` hors du yaml,
+`--cache-reuse`, `--reasoning-budget`, `-fit` sont inaccessibles tant qu'on reste sur ce
+backend. Argument mesuré en faveur de SGLang ou d'un llama-server nu.
+
 ## Limites connues
 
 - `.pytest_cache/` est créé dans le workdir et pollue un `diff -r` manuel. Sans
