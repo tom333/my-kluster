@@ -247,6 +247,46 @@ def pi_abspath_command(model, workdir, prompt):
     return argv[:i] + ["--append-system-prompt", INSTRUCTION_CHEMINS_ABSOLUS] + argv[i:], env
 
 
+# Instruction testée le 2026-07-29. Motif : gemma-4-12b-coder est le modèle qui a le
+# mieux compris le contrat tetris — son code, extrait du transcript et noté hors ligne,
+# fait 17/44 sans qu'il ait jamais lancé un test, contre 20/44 à qwopus après 12 tours
+# d'itération. Mais il ne l'écrit jamais sur le disque : il l'affiche dans son message
+# et s'arrête (2 tours, un seul `read`). PROMPT-tetris.txt dit déjà « Lance pytest -q »
+# et « Tu as termine quand pytest -q affiche 44 passed » ; il l'ignore. L'hypothèse est
+# qu'il croit répondre à un humain qui lira le code. On ne nomme QUE write et bash :
+# l'A/B des chemins absolus a montré que nommer un outil suffit à le faire employer.
+INSTRUCTION_AGIR = (
+    "Ta reponse texte n'est lue par personne : un script automatique constate "
+    "seulement l'etat du disque. Le code affiche dans un message n'existe pas. "
+    "Cree chaque fichier avec l'outil write, puis lance pytest -q avec bash. "
+    "N'arrete pas ton tour avant d'avoir fait les deux."
+)
+
+
+def pi_act_command(model, workdir, prompt):
+    """pi + une instruction qui dit que la sortie texte n'est pas lue. Variante d'A/B :
+    tout le reste est identique à `pi`, seul ce ~55 tokens de préambule change.
+
+    VERDICT 2026-07-29 : NON adopté. La référence à n=3 confirme le défaut (0/44 trois
+    fois, `write` 0, `bash` 0, 9 `read`) ; le nudge ne le corrige pas et en crée un
+    autre. Sur 2 essais mesurés : 0/44 en 1 tour, puis 0/44 en **267 tours** jusqu'au
+    timeout de 900 s. La dernière phrase — « N'arrete pas ton tour avant d'avoir fait
+    les deux » — retire la condition d'arrêt sans donner la capacité d'agir. Troisième
+    essai interrompu : la médiane de [0, 0, x] vaut 0 quel que soit x.
+
+    Même faute que INSTRUCTION_CHEMINS_ABSOLUS : une instruction ajoutée pour corriger un
+    comportement en fabrique un pire. Garder les deux comme témoins de ce piège.
+
+    Ce que gemma-4-12b-coder fait à la place, `stopReason: stop`, 0 appel d'outil :
+    soit il annonce le plan et s'arrête (« I will first read […], then implement […],
+    and finally run pytest -q »), soit il déverse 5 246 caractères de code dans son
+    message. Détail et A/B de la grammaire LocalAI dans le README.
+    """
+    argv, env = pi_command(model, workdir, prompt)
+    i = argv.index("-p")
+    return argv[:i] + ["--append-system-prompt", INSTRUCTION_AGIR] + argv[i:], env
+
+
 def pi_metrics(transcript):
     """Extrait tours, appels d'outils, format et tokens du JSONL de pi."""
     turns = 0
@@ -428,6 +468,7 @@ def no_metrics(transcript):
 HARNESSES = {
     "pi": (pi_command, pi_metrics),
     "pi-abspath": (pi_abspath_command, pi_metrics),
+    "pi-act": (pi_act_command, pi_metrics),
     "little-coder": (little_coder_command, pi_metrics),
     "aider": (aider_command, aider_metrics),
 }

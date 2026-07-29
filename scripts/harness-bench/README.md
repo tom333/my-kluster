@@ -450,6 +450,71 @@ compréhension. C'est le meilleur candidat au façonnage de comportement du lot,
 `format_appels: aucun` chez little-coder contre `json` chez pi montre que le harnais
 pèse aussi sur ce réflexe.
 
+### Faire agir gemma : le prompt échoue, la grammaire LocalAI ne s'applique pas
+
+Deux leviers testés le 29/07, dans l'ordre du moins cher au plus cher. **Les deux
+échouent**, et le second pour une raison qui invalide l'idée elle-même.
+
+**Levier 1 — instruction système** (`pi-act`, ~55 tokens) : « Ta reponse texte n'est lue
+par personne : un script automatique constate seulement l'etat du disque. […] N'arrete
+pas ton tour avant d'avoir fait les deux. »
+
+| harnais | essais | `write` | `bash` | `read` |
+|---|---|---|---|---|
+| `pi` (référence, n=3) | 0/44, 0/44, 0/44 — 2, 1, 2 tours | **0** | **0** | 9 |
+| `pi-act` (nudge) | 0/44 en 1 tour ; 0/44 en **267 tours** (timeout 900 s) | — | — | — |
+
+Le nudge change massivement le comportement, dans le mur : 267 tours contre 2. La
+phrase « n'arrête pas ton tour » lui retire sa condition d'arrêt sans lui donner la
+capacité d'agir. **Même faute que l'A/B des chemins absolus : l'instruction fabrique une
+défaillance neuve.** Le n=3 confirme au passage que le 0/44 du n=1 était réel.
+
+**Levier 2 — contrainte de décodage** (`gemma-4-12b-coder-gram`, seule différence :
+`function.grammar.disable: false` + `mixed_mode: false`). Mesuré au curl avant de brûler
+des runs :
+
+| requête | résultat |
+|---|---|
+| 1 outil, `max_tokens=300`, avec et sans grammaire | `tool_calls: 1 ['write']`, arguments justes |
+| 4 outils (comme pi), `max_tokens=60` | 2,2 s (gram) contre 2,6 s → **aucun surcoût de grammaire** |
+| 4 outils, `max_tokens=400`, gram | `finish=tool_calls` **ET** un bloc de prose à côté |
+
+**`mixed_mode: false` ne rend pas la prose inatteignable.** Avec
+`template.use_tokenizer_template: true`, gemma-4 émet ses appels d'outils nativement via
+son template llama.cpp ; la GBNF de LocalAI n'entre pas dans la boucle de décodage. Le
+levier a été choisi sur le nom d'une option, pas sur son effet mesuré.
+
+Le run tetris sous grammaire le confirme — identique à la référence :
+
+```
+1 tour, pic 1592, 16.1s, 0/44, appels outils : 0, stopReason: stop
+thinking : 'Goal: implement tetris/ so all tests pass (44/44)...'
+text     : 'I will first read tests/test_tetris.py..., then implement..., and finally
+            run pytest -q until all 44 tests pass.'
+```
+
+Deux modes de prose selon le tirage, jamais un appel productif : **annoncer le plan et
+s'arrêter** (1 tour, pic ~1592), ou **lire puis déverser tout le code** (2 tours, pic
+~6655, `stopReason: stop`, 3 558 tokens de sortie, jusqu'à « After implementation, run
+`pytest -q` »). Il ne croit pas être l'agent : il laisse des consignes à quelqu'un
+d'autre. Le prompt de la fixture dit déjà « Lance `pytest -q` » et « Tu as termine quand
+`pytest -q` affiche 44 passed ».
+
+Ce qui reste debout : le déclencheur est la **taille de la tâche**, pas la config de
+décodage — sur une demande courte il appelle l'outil sans broncher. Le vrai niveau 2
+serait donc `tool_choice: "required"` côté requête (non exposé par `pi`), ou un contrat
+d'appel terminal imposé par la boucle du harnais, indépendant du backend.
+
+**Piège de méthode, deux fois dans la même heure.** Un premier lancement a produit 6
+runs à 0/44 en 1,4 s : le candidat n'était plus servi (retiré du PVC par `--cleanup`), et
+un 404 ressemble à une mesure. Le pilote refuse maintenant de mesurer si le préchauffage
+ne renvoie pas 200. Puis un run a rendu 900,1 s / **0 tour** / transcript de 0 octet : les
+logs LocalAI ne montrent **aucune requête** sur la fenêtre, donc `pi` n'a rien émis. Non
+reproduit au relancement propre (16 s) → environnemental, probablement le `pi` d'un essai
+avorté que mon `pkill -f` n'a jamais tué (il a d'abord tué son propre shell, dont la
+ligne de commande contenait le motif — même piège que le `pgrep -cf` du matin). **Cause
+non établie ; consignée comme telle.**
+
 ## Limites connues
 
 - `.pytest_cache/` est créé dans le workdir et pollue un `diff -r` manuel. Sans
