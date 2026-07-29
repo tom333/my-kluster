@@ -60,6 +60,21 @@ il n'exécute aucun outil, il n'y a pas de boucle serveur.
 ⇒ **On ne peut pas réutiliser sa boucle. Donc on l'écrit, et on en profite pour qu'elle ne
 coûte rien en préambule.**
 
+**llama-server n'est pas qu'une API : c'est un serveur d'inférence + une application web
+complète**, et la Web UI est **activée par défaut**. Indices : `--ui/--webui/--no-ui/
+--no-webui` (défaut activé), `--path` pour servir des statiques, `--ui-config` /
+`--ui-config-file`, un répertoire `tools/ui/` avec sa propre doc de flux, et `/props` qui
+renvoie `ui`, `ui_settings`, `cors_proxy_enabled`.
+
+⇒ Deux conséquences pour le POC : **lancer avec `--no-webui`** (un banc n'en a pas besoin
+et elle élargit la surface exposée), et comprendre que les fonctions d'agent sont des
+fonctionnalités *de cette UI*, pas du serveur. Ce n'est pas une lacune de llama.cpp, c'est
+un choix d'architecture : l'agent est un client de l'API.
+
+Constat plus large : openfox, llama-server et LocalAI mettent tous leur boucle dans un
+navigateur. **La boucle n'est donc pas la partie difficile** — ce qui coûte, c'est le
+préambule empilé autour. D'où l'intérêt d'écrire les cent lignes nous-mêmes.
+
 *Point non tranché* : « accès au système de fichiers via la Web UI » est ambigu — les outils
 sont probablement exécutés côté serveur mais orchestrés par le client. Sans effet sur la
 conclusion (l'orchestration est côté navigateur), mais à vérifier si on voulait un jour
