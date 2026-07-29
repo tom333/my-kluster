@@ -514,7 +514,16 @@ def nu_command(model, workdir, prompt):
 
 
 def nu_metrics(transcript):
-    """boucle.py imprime ses métriques en une ligne JSON sur stdout (la dernière)."""
+    """boucle.py imprime ses métriques en une ligne JSON sur stdout, et RIEN d'autre.
+
+    Position dans le transcript : en tête, pas en queue — `run_once` concatene
+    stdout PUIS stderr, et tout le journal de la boucle est sur stderr. Le
+    balayage à l'envers traverse donc les lignes de log (aucune ne commence par
+    `{`) avant d'atteindre la ligne de métriques.
+
+    `appels_outils` est ici un dict {outil: compte} là où pi/little-coder rendent
+    un entier : ne pas agréger cette clé entre harnais sans normaliser.
+    """
     for line in reversed(transcript.splitlines()):
         line = line.strip()
         if not (line.startswith("{") and '"turns"' in line):
