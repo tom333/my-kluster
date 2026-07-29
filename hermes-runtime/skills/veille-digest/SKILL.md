@@ -30,14 +30,19 @@ outils, règles de liens, discipline de sortie).
 
 ## Procédure
 
-### 1. Dédup — via le second-brain txtai (tool `mcp_txtai_search`)
-- Tu disposes du tool **`mcp_txtai_search`** — index de TOUS tes digests de veille passés
+> ⚠️ **Ce skill est déjà dans ton contexte.** N'essaie pas de le charger : il n'existe
+> aucun outil pour ça. Constaté le 2026-07-29 dans `agent.log` — un appel à
+> `mcp__arrconf__get_prompt` avec `veille-digest` a échoué (`Unknown prompt`), un tour
+> gâché par exécution de cron. `arrconf` sert la configuration des *arr, rien d'autre.
+
+### 1. Dédup — via le second-brain txtai (tool `mcp__txtai__search_search_get`)
+- Tu disposes du tool **`mcp__txtai__search_search_get`** — index de TOUS tes digests de veille passés
   (bien plus fiable que le contexte, qui se fait compacter entre runs).
 - Pour CHAQUE item candidat (AVANT de l'inclure dans le digest), interroge-le :
   `select text,date from txtai where similar('<titre ou sujet de l item>') and source='veille' limit 3`
   → si un digest passé couvre déjà ce sujet/lien, **skip-le** (pas nouveau).
 - Ne rapporte QUE les items sans correspondance = les **vraies nouveautés** sur tout l'historique.
-- ⚠️ N'écris AUCUN fichier, ne crée AUCUN script. La dédup = requêtes `mcp_txtai_search`, point.
+- ⚠️ N'écris AUCUN fichier, ne crée AUCUN script. La dédup = requêtes `mcp__txtai__search_search_get`, point.
 - Sujet jamais vu (aucune correspondance txtai) = rapporté normalement.
 
 ### 2. Collecte — releases GitHub
@@ -83,7 +88,7 @@ curl -sL 'https://hn.algolia.com/api/v1/search_by_date?query=<terme>&numericFilt
   raison que pour le JSON compact de GitHub (cf. Common Mistakes).
 - **Ces sources servent à hiérarchiser, pas à conclure.** Un fil très voté reste une
   opinion : le contrôle obligatoire de la section 3ter et le harness d'éval tranchent.
-- Dédup normale via `mcp_txtai_search` avant de rapporter.
+- Dédup normale via `mcp__txtai__search_search_get` avant de rapporter.
 
 ### 3bis. Collecte — vidéos YouTube (yt-dlp), QUAND le thème s'y prête
 - `yt-dlp` est sur $PATH. Utilise-le UNIQUEMENT si des vidéos récentes peuvent enrichir
@@ -91,7 +96,7 @@ curl -sL 'https://hn.algolia.com/api/v1/search_by_date?query=<terme>&numericFilt
   (offres d'emploi locales, etc.) : **SAUTE** cette étape.
 - Chercher des vidéos récentes (mode cron : `terminal` puis `read_file`, JAMAIS de pipe) :
   `yt-dlp "ytsearch6:<sujet + mots-clés>" --skip-download --dateafter now-14days --print "%(id)s ||| %(title)s ||| %(upload_date)s ||| %(channel)s"`
-- Déduplique chaque candidat via `mcp_txtai_search`
+- Déduplique chaque candidat via `mcp__txtai__search_search_get`
   (`select text from txtai where similar('<titre>') and source in ('veille','youtube') limit 3`) → skip les déjà-vus.
 - Pour 1-2 vidéos VRAIMENT pertinentes, récupère le transcript (fichier puis `read_file`) :
   `mkdir -p /tmp/yt && yt-dlp --skip-download --write-auto-subs --sub-langs "fr.*,en.*" --convert-subs srt -o "/tmp/yt/%(id)s.%(ext)s" "https://www.youtube.com/watch?v=<ID>"`
