@@ -540,6 +540,10 @@ def nu_metrics(transcript):
             "total_input": m.get("total_input_tokens"),
             "total_output": m.get("output_tokens_total"),
             "stop_reason": m.get("stop_reason"),
+            # `stop_reason: error` + ce message = panne HTTP (contexte dépassé, 500,
+            # backend évincé), PAS une contre-performance du modèle. Sans les lire on
+            # noterait une panne d'instrument comme un score.
+            "erreur": m.get("erreur"),
         }
     return no_metrics(transcript)
 
