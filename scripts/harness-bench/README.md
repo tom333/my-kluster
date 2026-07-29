@@ -578,14 +578,45 @@ principal vérifie, les tokens refusés sont jetés. Si changer de drafter chang
 la vérification n'est pas exacte dans cette implémentation. **À vérifier pour le drafter
 Q4_0 utilisé en production**, `values.yaml` l'activant par défaut.
 
-#### Les options llama.cpp sont hors d'atteinte depuis LocalAI
+#### Options llama.cpp depuis LocalAI : c'était une faute de syntaxe de ma part
 
-`--reasoning-budget:0` et `--cache-reuse:256`, écrits dans la forme documentée par LocalAI
-(leur exemple : `"--n-cpu-moe:4"`), **tuent le backend en 3 s** (`exitCode -1`, aucun
-stderr remonté). Les quatre exemples de leur doc sont tous MoE ou périphériques → liste
-blanche interne probable, non prouvée. Conséquence : `-ctk/-ctv` hors du yaml,
-`--cache-reuse`, `--reasoning-budget`, `-fit` sont inaccessibles tant qu'on reste sur ce
-backend. Argument mesuré en faveur de SGLang ou d'un llama-server nu.
+`--reasoning-budget:0` et `--cache-reuse:256` **tuent le backend en 3 s** (`exitCode -1`,
+aucun stderr remonté). J'en ai d'abord conclu à une liste blanche interne et à
+l'inaccessibilité des options llama.cpp — **c'était faux**. La forme attendue est
+`clé:valeur` **sans `--` et avec des tirets bas**, exactement la convention des options
+déjà présentes dans nos yaml (`use_jinja:true`, `spec_type:draft-mtp`, `draft_max:2`) :
+
+```yaml
+options:
+  - parallel:1
+  - cache_reuse:256
+  - context_shift:true
+  - cache_ram:4096
+  - fit_params:true
+  - slot_prompt_similarity:0.5
+```
+
+Je m'étais appuyé sur l'autre page de doc (`--n-cpu-moe:4`) sans regarder la convention
+sous mes yeux. **À retester avec la bonne syntaxe** — ce n'est donc pas un argument contre
+ce backend.
+
+⚠️ Piste ouverte par les logs : `effective runtime tuning … parallel="4"`. LocalAI alloue
+**4 slots**, donc 4× le KV cache. C'est probablement ce qui empêche `qwen3-coder-30b`
+(attention pleine) de charger à 49152 là où gemma passe grâce à sa SWA. `parallel:1`
+libérerait les trois quarts du KV.
+
+#### ⚠️ Un banc doit avoir l'exclusivité du GPU
+
+`LOCALAI_SINGLE_ACTIVE_BACKEND=true` : toute requête vers un **autre** modèle évince le
+backend chargé, **y compris en pleine génération**. Signature du dégât : score 0, **0
+tour**, pic 0, durée = timeout exact, transcript de 0 octet, GPU à 0 % d'utilisation avec
+de la VRAM occupée.
+
+Deux séries de mesures ont été détruites ainsi le 29/07 — `gemma sans MTP` [0,0,0] et un
+témoin qwen — parce que je lançais des diagnostics concurrents **pour comprendre pourquoi
+les mesures échouaient**. Le « 900 s inexpliqué, non reproduit » consigné plus haut avait
+la même cause. À jeter aussi : le drafter Q8_0 [0,0,9], dont l'isolement n'est pas
+garanti — donc le doute sur la neutralité du MTP n'est **ni confirmé ni écarté**.
 
 ## Limites connues
 
