@@ -150,6 +150,14 @@ Chacun a été payé comptant le 2026-07-29. Détail complet dans
 
 ### Sur la boucle d'agent
 
+6bis. **Aucune requête vers un AUTRE modèle pendant une mesure.** Avec un GPU unique et
+   `LOCALAI_SINGLE_ACTIVE_BACKEND=true`, toute requête sur un autre modèle **évince le
+   backend chargé**, y compris au milieu d'une génération en cours. Signature du dégât :
+   score 0, **0 tour**, pic 0, durée = timeout exact, transcript de 0 octet, GPU à 0 %
+   d'utilisation avec de la VRAM occupée. J'ai détruit deux séries de mesures en lançant
+   des diagnostics concurrents pour comprendre… pourquoi les mesures échouaient. ⇒ un banc
+   prend un **verrou exclusif** sur le GPU ; tout diagnostic attend son tour.
+
 7. **Timeout par commande obligatoire.** Le code généré contient des boucles infinies : un
    `pytest` a pendu et bloqué la suite à 36 tests sur 44, consommant tout le budget.
    `pi` passe un `timeout` à `bash` ; `little-coder` n'en a pas d'établi et a laissé un run
