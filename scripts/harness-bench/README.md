@@ -336,22 +336,39 @@ tirage chanceux.
 
 À retenir : `--runs 3` n'est pas une précaution de confort. Sans lui, on promeut du bruit.
 
-### A/B chemins absolus — mécanisme confirmé, effet nul
+### A/B chemins absolus — l'hypothèse était fausse, l'instruction inutile
 
-Hypothèse : `pi` résout les chemins relatifs depuis son cwd, donc un chemin relatif
-échoue et coûte un tour. Testé en ajoutant ~30 tokens d'instruction
+Hypothèse de départ : `pi` résout les chemins relatifs depuis son cwd, donc un chemin
+relatif échoue et coûte un tour. Testé en ajoutant ~30 tokens d'instruction
 (`--append-system-prompt`), harnais `pi-abspath`, 3 essais de chaque côté.
 
-**Le mécanisme est réel.** Appariement `tool_execution_start` → `tool_execution_end`
-sur `read`/`write`/`edit` :
+Appariement `tool_execution_start` → `tool_execution_end` sur `read`/`write`/`edit` :
 
-| | relatifs | absolus |
+| | « relatifs » | absolus |
 |---|---|---|
-| `pi` | 0 ok / **3 erreurs** | 9 ok / 0 erreur |
-| `pi-abspath` | 0 ok / **1 erreur** | 17 ok / 3 erreurs |
+| `pi` | 0 ok / 3 erreurs | 9 ok / 0 erreur |
+| `pi-abspath` | 0 ok / 1 erreur | 17 ok / 3 erreurs |
 
-Un chemin relatif échoue **systématiquement** — 0 succès sur 4 tentatives, les deux
-côtés confondus. L'instruction fait bien tomber leur nombre.
+**⚠️ Correction du 2026-07-29, après lecture des messages d'erreur — l'hypothèse ne
+tient pas.** Deux faits la démolissent :
+
+1. **Un vrai chemin relatif fonctionne.** `gemma-4-12b-coder` a lu
+   `tests/test_tetris.py` en relatif, `isError: false`, contenu retourné. `pi` résout
+   correctement depuis son cwd.
+2. **Ce qui échouait n'était pas un chemin relatif**, c'était un chemin **absolu
+   amputé de sa barre oblique de tête**. Le message d'erreur le dit :
+   ```
+   ENOENT: access '/tmp/harness-bench-<slug>/tmp/harness-bench-<slug>/tests/test_tetris.py'
+   ```
+   `qwopus` émet `tmp/...` au lieu de `/tmp/...`, le chemin se dédouble, ENOENT. C'est
+   un défaut d'émission du modèle sur un seul token, pas une question de convention.
+
+Et les 3 erreurs « absolues » côté `pi-abspath` ne sont pas des problèmes de chemin
+non plus : ce sont des `edit` no-op — *« No changes made […] The replacement produced
+identical content »*. Une défaillance introduite par l'instruction elle-même, qui a
+fait apparaître l'outil `edit`.
+
+Donc l'instruction traitait un symptôme mal identifié. Elle ne pouvait pas marcher.
 
 **L'effet sur le résultat est nul.** `pi` médiane 20/44 (11, 20, 25) contre
 `pi-abspath` médiane 0/44 (0, 0, 25). Les deux zéros ne sont pas des pannes d'infra

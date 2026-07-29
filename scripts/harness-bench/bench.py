@@ -227,13 +227,19 @@ def pi_abspath_command(model, workdir, prompt):
     """pi + une instruction sur les chemins absolus. Variante d'A/B : tout le reste
     est identique à `pi`, seul ce ~30 tokens de préambule change.
 
-    VERDICT 2026-07-29, 3 essais par côté : mécanisme confirmé (un chemin relatif
-    échoue 4 fois sur 4 ; l'instruction les fait tomber de 3 à 1), effet sur le
-    score nul et non concluant (médiane 20/44 contre 0/44, étendues 11-25 et 0-25).
-    NON adopté par défaut. Effet de bord notable : l'instruction nomme `edit`, et
-    ça suffit à faire utiliser `edit` — jamais employé sans elle — ce qui fait
-    passer le pic d'entrée médian de 15 850 à 28 754. Une instruction sur la forme
-    des chemins a changé la sélection d'outils. Détail dans le README.
+    VERDICT 2026-07-29, 3 essais par côté : NON adopté, et l'hypothèse qui l'a
+    motivé était fausse. Ce qui échouait n'était pas un chemin relatif — `pi` les
+    résout correctement depuis son cwd (gemma-4-12b lit `tests/test_tetris.py` en
+    relatif sans erreur). C'était un chemin absolu amputé de sa barre oblique de
+    tête : qwopus émet `tmp/...` au lieu de `/tmp/...`, le chemin se dédouble et
+    donne un ENOENT sur `<cwd>/tmp/<cwd sans slash>/...`. Un défaut d'émission sur
+    un token, que cette instruction ne pouvait pas corriger.
+
+    Effet mesuré nul et non concluant (médiane 20/44 contre 0/44, étendues 11-25 et
+    0-25). Effet de bord réel : l'instruction nomme `edit`, et ça suffit à faire
+    utiliser `edit` — jamais employé sans elle. Ses échecs (`No changes made […]
+    replacement produced identical content`) sont une défaillance NOUVELLE, et le
+    pic d'entrée médian passe de 15 850 à 28 754. Détail dans le README.
     """
     argv, env = pi_command(model, workdir, prompt)
     # Inséré avant `-p` pour ne pas casser l'ordre attendu par pi.
