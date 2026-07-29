@@ -61,6 +61,30 @@ extraire le changelog détaillé via `web_extract` sur l'URL individuelle de la 
   file d'attente, téléchargements bloqués, vitesses de transfert.
 - Sites à connexion/anti-bot (LinkedIn, Indeed…) : ignore-les.
 
+### 3quater. Collecte — signal d'engagement communautaire (Reddit RSS + HN Algolia)
+
+`web_search` retourne ce qu'un moteur indexe. Ces deux sources retournent ce que des gens
+ont **voté**, ce qui est un signal différent et souvent plus précoce : sur les quants, les
+runtimes et les modèles locaux, quelqu'un a déjà essayé avant toi et dit si ça marche.
+Aucune clé, aucune dépendance à installer.
+
+```bash
+# Reddit — RSS public, remplace <sub> (ex: LocalLLaMA, selfhosted). t=day|week
+curl -sL 'https://www.reddit.com/r/<sub>/top/.rss?t=day' -o /tmp/reddit_<sub>.xml
+
+# Hacker News — API Algolia publique, triée par date, filtrable sur les points
+curl -sL 'https://hn.algolia.com/api/v1/search_by_date?query=<terme>&numericFilters=points>20' \
+  -o /tmp/hn_<terme>.json
+```
+
+- Extrais titre + URL + score (`ups` dans le RSS Reddit, `points` chez HN) et **classe par
+  score**. Un item très voté vaut plus qu'un item bien référencé.
+- Le RSS Reddit est du XML : lis-le avec `search_files` (ripgrep), pas avec `grep -o` — même
+  raison que pour le JSON compact de GitHub (cf. Common Mistakes).
+- **Ces sources servent à hiérarchiser, pas à conclure.** Un fil très voté reste une
+  opinion : le contrôle obligatoire de la section 3ter et le harness d'éval tranchent.
+- Dédup normale via `mcp_txtai_search` avant de rapporter.
+
 ### 3bis. Collecte — vidéos YouTube (yt-dlp), QUAND le thème s'y prête
 - `yt-dlp` est sur $PATH. Utilise-le UNIQUEMENT si des vidéos récentes peuvent enrichir
   le thème (LLM, data/IA, outils, self-host, releases…). Thèmes sans vidéo pertinente
@@ -87,13 +111,53 @@ extraire le changelog détaillé via `web_extract` sur l'URL individuelle de la 
   « rien de neuf » fourni par le job. Rien d'autre.
 
 ### 3ter. Candidat modèle local (veille modèles/LLM uniquement, sinon SAUTE)
+
+Le modèle courant est celui vers lequel pointe l'alias `current` de LocalAI
+(`charts/localai/values.yaml`) — **ne code JAMAIS son nom en dur ici**, il change. Au
+2026-07-29 : `gemma-4-12b-it-qat`, mesuré jusqu'à 41/44 sur le scénario `tetris` du banc
+`scripts/harness-bench`.
+
 Si tu repères un modèle **local-exécutable** (GGUF dispo, ~≤12 GB en Q4, orienté
-coding/agentic) qui SEMBLE dépasser le modèle courant `ornith-1.0-9b-mtp`, ajoute
-en FIN de digest UNE ligne copiable pour le pipeline d'éval auto :
-`CANDIDAT: <name>|<gguf-url>[|<draft-url>|<ctx>]`
-- Ne JUGE pas toi-même (benchmarks marketing peu fiables) — le harness d'éval tranche.
+coding/agentic) qui SEMBLE dépasser le courant, applique d'abord le **contrôle
+obligatoire** ci-dessous, puis ajoute en FIN de digest UNE ligne copiable :
+
+`CANDIDAT: <name>|<gguf-url-du-FICHIER>|<provenance>[|<draft-url>|<ctx>]`
+
+- `<gguf-url-du-FICHIER>` = l'URL du **.gguf précis**, jamais celle du dépôt. Unsloth
+  documente que `Q4_0` est **moins bon** que `UD-Q4_K_XL` **malgré une taille
+  supérieure** : le choix du fichier décide autant que le modèle.
+- `<provenance>` = `officiel` ou `finetune`. Un finetune peut garder la compétence en
+  code et **casser le template d'appel d'outil** : mesuré le 2026-07-29 sur
+  `yuxinlu1/gemma-4-12B-coder-…`, qui écrivait 17/44 de code correct dans son message de
+  chat sans jamais appeler `write`. Un `finetune` n'est pas disqualifié, mais il doit
+  être signalé comme tel.
+- Ne JUGE pas sur les benchmarks annoncés (SWE-bench, ToolCall-N…) : ils n'ont rien
+  prédit. `qwopus3.5-9b` annonçait 53,89 % SWE-bench Verified et fait 20/44 au banc.
+  Le harness d'éval tranche.
 - 1 seule ligne CANDIDAT/digest max (le plus prometteur). Pas de GGUF / trop gros /
   backend exotique (ex: ternaire Q2_0 non-mergé) → n'émets RIEN.
+
+#### Contrôle obligatoire avant d'émettre un CANDIDAT — 1 requête, 0 téléchargement
+
+L'API HF renvoie en une fois les métadonnées du GGUF : `context_length`, la liste
+**exacte** des fichiers avec leurs tailles, et le **chat template complet**. C'est ce qui
+permet de rejeter un mauvais candidat sans dépenser une seconde de GPU.
+
+```bash
+curl -sL 'https://huggingface.co/api/models/<org>/<repo>?full=true' -o /tmp/hf_cand.json
+```
+
+Trois vérifications dans le JSON, à reporter dans le digest :
+
+| champ | ce qu'on vérifie | rejet si |
+|---|---|---|
+| `gguf.context_length` | fenêtre native | `< 32768` |
+| `siblings[].rfilename` | le `.gguf` visé existe vraiment, et sa taille | fichier absent, ou > ~10 Go |
+| `gguf.chat_template` | contient bien des **tokens d'appel d'outil** (`tool_call`, `<|tool`, `function`, `tool_use`…) | **aucune trace d'outil → REJET, c'est le piège du finetune cassé** |
+
+Si le template ne mentionne pas d'outils, n'émets PAS de CANDIDAT : signale-le en une
+ligne dans le digest (« template sans tokens d'appel d'outil → écarté »). C'est le
+contrôle qui aurait économisé une demi-journée le 2026-07-29.
 
 ## Common Mistakes
 

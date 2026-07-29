@@ -214,6 +214,15 @@ restart_wait
 echo "=== candidat listé ? ==="
 kubectl exec -n $NS "$(POD)" -c localai -- sh -c "curl -s http://127.0.0.1:8080/v1/models -H \"Authorization: Bearer \$API_KEY\" | grep -o '\"$NAME\"' | head -1" 2>&1
 
+# Garde-fou AVANT l'éval : un modèle qui n'appelle pas ses outils ne peut pas être évalué
+# en agentique, et le mesurer donne un 0 qu'on prend pour un manque de compétence. Coût :
+# 2 requêtes. Cf. tool_call_gate.sh pour l'incident qui a motivé ce garde-fou.
+if ! "$(dirname "$0")/tool_call_gate.sh" "$NAME"; then
+  echo ""
+  echo "→ Éval NON lancée. Nettoyage : stage_candidate.sh --cleanup --name $NAME"
+  exit 1
+fi
+
 echo "=== ÉVAL candidat vs baseline $BASELINE ==="
 cd "$(dirname "$0")"
 uv run run_eval.py --model "$NAME" --tag candidate --compare-to "$BASELINE" 2>&1 | grep -vE "Downloading|Downloaded|Installed|INFO mlflow"
