@@ -488,6 +488,53 @@ def aider_metrics(transcript):
     }
 
 
+HARNAIS_NU = Path("/data/projets/perso/harnais-nu")
+
+
+def nu_command(model, workdir, prompt):
+    """Harnais témoin à préambule ZÉRO (repo harnais-nu) : aucun message system,
+    seulement les schémas de ses 4 outils. Plancher du banc — les autres harnais
+    se lisent en écart par rapport à lui.
+
+    Le serveur est un llama-server local (docker, cf. harnais-nu/serveur.md), PAS
+    LocalAI : `model` ne sert qu'à remplir le champ de la requête. Base URL
+    surchargée par HARNAIS_NU_BASE_URL. Les budgets du harnais sont en tours et
+    en tokens ; le --timeout du banc reste un garde-fou externe, pas la limite
+    de comparaison.
+    """
+    base_url = os.environ.get("HARNAIS_NU_BASE_URL", "http://127.0.0.1:8080/v1")
+    return [
+        "uv", "run", "--project", str(HARNAIS_NU),
+        str(HARNAIS_NU / "boucle.py"),
+        "--task", prompt,
+        "--workdir", str(workdir),
+        "--base-url", base_url,
+        "--model", model.split("/", 1)[-1],
+    ], {}
+
+
+def nu_metrics(transcript):
+    """boucle.py imprime ses métriques en une ligne JSON sur stdout (la dernière)."""
+    for line in reversed(transcript.splitlines()):
+        line = line.strip()
+        if not (line.startswith("{") and '"turns"' in line):
+            continue
+        try:
+            m = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        return {
+            "tours": m.get("turns"),
+            "appels_outils": m.get("tool_calls"),
+            "format_appels": m.get("call_format"),
+            "pic_input": m.get("peak_input_tokens"),
+            "total_input": m.get("total_input_tokens"),
+            "total_output": m.get("output_tokens_total"),
+            "stop_reason": m.get("stop_reason"),
+        }
+    return no_metrics(transcript)
+
+
 def no_metrics(transcript):
     """Repli : verdict objectif seulement, pas de comptage de tokens."""
     return {"tours": None, "appels_outils": None, "format_appels": "non instrumente"}
@@ -499,6 +546,7 @@ HARNESSES = {
     "pi-act": (pi_act_command, pi_metrics),
     "little-coder": (little_coder_command, pi_metrics),
     "aider": (aider_command, aider_metrics),
+    "nu": (nu_command, nu_metrics),
 }
 
 
