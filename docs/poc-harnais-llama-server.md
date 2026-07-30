@@ -239,11 +239,46 @@ Métriques à enregistrer par essai, pour rester comparable au banc existant : s
 **nombre de tours**, pic de tokens d'entrée, tokens de sortie cumulés, durée, format des
 appels observé, et le compte d'appels par outil.
 
+### `--no-kv-offload` : une dimension du banc, pas une option du harnais
+
+`--no-kv-offload` garde le KV cache en **RAM hôte** au lieu de la VRAM. C'est un flag de
+**lancement de llama-server**, pas un paramètre de requête : le harnais ne peut pas le
+changer en cours de route. Mais comme le POC possède l'invocation du serveur, ça devient
+une dimension à balayer, au même titre que `--ctx-size` et `--parallel`.
+
+**Inutile sur gemma-4** : sa fenêtre glissante de 1024 tokens rend le KV quasi gratuit
+(mesuré : 32768 → 49152 pour **56 MiB de moins**). Déplacer en RAM un cache qui ne coûte
+rien ne fait que perdre du débit.
+
+**Mais c'est le bon levier pour les modèles à attention pleine**, et on a le cas :
+`qwen3-coder-30b-a3b` (IQ1_S, 8,3 Go) **refuse de charger à 49152** — crash au démarrage,
+KV trop gros. C'est ce qui empêche la comparaison appariée avec gemma à fenêtre égale, la
+mesure qui manque encore au dossier.
+
+Ordre à respecter, du moins cher au plus cher :
+
+1. **`--parallel 1` d'abord.** LocalAI alloue 4 slots par défaut, donc **4× le KV**.
+   Testé sur gemma seulement, où ça n'a rien changé (son KV est minuscule : 9655 → 9177
+   MiB). Sur qwen, dont c'est justement le KV qui bloque, diviser par 4 peut suffire —
+   et c'est gratuit en débit.
+2. **`-ctk`/`-ctv` plus agressifs** (`q5_1`, `q4_0`, `iq4_nl` au lieu de `q8_0`) : encore
+   en VRAM, donc sans coût PCIe.
+3. **`--no-kv-offload` en dernier.** L'attention relit tout le KV à chaque token ; à
+   l'échelle du gigaoctet, le PCIe devient le goulot et le débit tombe à quelques tokens
+   par seconde.
+
+⚠️ **Et ça ne se mesure PAS sous un budget en secondes.** Le ralentissement PCIe se lirait
+comme une baisse de qualité — c'est exactement le défaut de méthode identifié au piège 3.
+Ces trois options doivent être comparées **à budget de tours égal**, le temps étant
+rapporté comme métrique séparée.
+
 ## Questions ouvertes
 
 - Le drafter MTP est-il neutre sur la sortie, à tours égaux ? (piège 15)
 - `--parallel 1` libère-t-il assez de KV pour que `qwen3-coder-30b` tienne à 49152, et son
   score bouge-t-il ? (piège 16) — c'est la comparaison appariée qui manque encore.
+- Si `--parallel 1` ne suffit pas à qwen : jusqu'où `--no-kv-offload` remonte-t-il la
+  fenêtre, et à quel coût en tokens/s ? À mesurer en budget de TOURS, pas de secondes.
 - `--cache-reuse` réduit-il vraiment le coût du préfixe sur une boucle de 12 à 26 tours ?
 - `enable_thinking:false` aide-t-il, ou le raisonnement de gemma est-il utile quand la
   fenêtre n'est plus contrainte ?
