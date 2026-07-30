@@ -510,6 +510,13 @@ def nu_command(model, workdir, prompt):
         HARNAIS_NU_MAX_TURNS, HARNAIS_NU_MAX_TOKENS_PER_TURN, HARNAIS_NU_MAX_TOTAL_TOKENS
     """
     base_url = os.environ.get("HARNAIS_NU_BASE_URL", "http://127.0.0.1:8080/v1")
+    # P2 : la porte de vérification. Absente par défaut → le harnais reste le
+    # témoin nu. HARNAIS_NU_VERIFY_CMD l'active sans toucher au code, pour mesurer
+    # la règle contre le plancher du témoin.
+    verify = []
+    if os.environ.get("HARNAIS_NU_VERIFY_CMD"):
+        verify = ["--verify-cmd", os.environ["HARNAIS_NU_VERIFY_CMD"],
+                  "--max-verify", os.environ.get("HARNAIS_NU_MAX_VERIFY", "3")]
     return [
         "uv", "run", "--project", str(HARNAIS_NU),
         str(HARNAIS_NU / "boucle.py"),
@@ -520,7 +527,7 @@ def nu_command(model, workdir, prompt):
         "--max-turns", os.environ.get("HARNAIS_NU_MAX_TURNS", "30"),
         "--max-tokens-per-turn", os.environ.get("HARNAIS_NU_MAX_TOKENS_PER_TURN", "4096"),
         "--max-total-tokens", os.environ.get("HARNAIS_NU_MAX_TOTAL_TOKENS", "100000"),
-    ], {}
+    ] + verify, {}
 
 
 def nu_metrics(transcript):
@@ -554,6 +561,11 @@ def nu_metrics(transcript):
             # backend évincé), PAS une contre-performance du modèle. Sans les lire on
             # noterait une panne d'instrument comme un score.
             "erreur": m.get("erreur"),
+            # P2 : nombre de confrontations à la commande de vérification, et son
+            # verdict. `verifications` est le prédicteur du score identifié dans
+            # harnais-nu/MESURES.md — sans lui, la règle n'est pas mesurable.
+            "verifications": m.get("verifications"),
+            "verif_ok": m.get("verif_ok"),
         }
     return no_metrics(transcript)
 
