@@ -119,6 +119,31 @@ ISSUE_COLLECTE = (
     "erreur_collecte"  # SyntaxError / IndentationError / ModuleNotFoundError
 )
 ISSUE_PEND = "pytest_pend"  # boucle infinie : pytest ne rend jamais la main
+# Ajoute le 2026-07-30 : un essai a affiche 46/44. Le modele avait cree
+# `tests/reproduce_test.py` (un test de reproduction, comportement plutot sain), que
+# pytest a collecte : +2 tests. Les gardes ne verifiaient QUE l'integrite des fichiers
+# proteges, pas l'ensemble du repertoire — le contrat mesure n'etait donc plus le
+# contrat. Un tel essai n'est pas comparable : hors mediane, comme une erreur de
+# collecte.
+ISSUE_CONTRAT = "contrat_altere"  # fichier de test ajoute ou retire
+
+
+def _fichiers_de_test(racine):
+    """Ensemble des fichiers que pytest COLLECTE, ou qu'il soient dans l'arbre.
+
+    Perimetre verifie sur le cas reel : le fichier ajoute qui a donne 46/44 etait
+    `reproduce_test.py` a la RACINE du workdir, pas sous `tests/`. pytest collecte
+    `test_*.py` et `*_test.py` depuis son rootdir — se limiter a `tests/` ne verrait
+    rien.
+    """
+    return {
+        p.relative_to(racine).as_posix()
+        for p in racine.rglob("*.py")
+        if p.is_file()
+        and (p.name.startswith("test_") or p.name.endswith("_test.py"))
+        and "__pycache__" not in p.parts
+        and ".pytest_cache" not in p.parts
+    }
 
 
 def run_pytest(workdir):
@@ -184,6 +209,21 @@ def verify(workdir, scenario):
             violations.append("%s supprime" % rel)
         elif after_path.read_bytes() != before:
             violations.append("%s modifie" % rel)
+
+    # L'ensemble des fichiers sous tests/ doit etre inchange : un fichier AJOUTE gonfle
+    # le compte de tests (46/44 mesure) et l'integrite des proteges ne le voit pas.
+    avant_tests = _fichiers_de_test(fixture)
+    apres_tests = _fichiers_de_test(workdir)
+    ajoutes = sorted(apres_tests - avant_tests)
+    retires = sorted(avant_tests - apres_tests)
+    for rel in ajoutes:
+        violations.append("%s ajoute (collecte par pytest)" % rel)
+    for rel in retires:
+        violations.append("%s retire" % rel)
+    if (ajoutes or retires) and issue == ISSUE_OK:
+        # Le score n'est plus celui du contrat : hors mediane, comme une erreur de
+        # collecte. Sans ca, un 46/44 entrerait dans le calcul de la mediane.
+        issue = ISSUE_CONTRAT
 
     api_diff = []
     if scenario["check_api"]:
@@ -830,6 +870,7 @@ def run(harness, model, scenario_name, timeout, runs=1):
     med = mediane(notables) if notables else None
     n_collecte = sum(1 for e in essais if e.get("issue") == ISSUE_COLLECTE)
     n_pend = sum(1 for e in essais if e.get("issue") == ISSUE_PEND)
+    n_contrat = sum(1 for e in essais if e.get("issue") == ISSUE_CONTRAT)
     result = {
         "scenario": scenario_name,
         "harnais": harness,
@@ -850,6 +891,7 @@ def run(harness, model, scenario_name, timeout, runs=1):
         "essais_comparables": len(notables),
         "essais_erreur_collecte": n_collecte,
         "essais_pytest_pend": n_pend,
+        "essais_contrat_altere": n_contrat,
         "tests_attendus": attendus,
         "verdict": "PASS" if med == attendus else "FAIL",
         "tours_median": mediane([e.get("tours") for e in essais]),
@@ -869,6 +911,7 @@ def run(harness, model, scenario_name, timeout, runs=1):
             ISSUE_OK: "",
             ISSUE_COLLECTE: "  <- NE COMPILE PAS",
             ISSUE_PEND: "  <- pytest pend",
+            ISSUE_CONTRAT: "  <- CONTRAT ALTERE (fichier ajoute/retire sous tests/)",
         }.get(e.get("issue"), "")
         print(
             "  essai %d : %2s/%s  %s lignes ecrites%s"
@@ -888,10 +931,10 @@ def run(harness, model, scenario_name, timeout, runs=1):
         )
     else:
         print("  ⚠️  AUCUN essai comparable : rien à médianiser")
-    if n_collecte or n_pend:
+    if n_collecte or n_pend or n_contrat:
         print(
-            "  hors médiane : %d/%d ne compile(nt) pas, %d pend(ent)"
-            % (n_collecte, runs, n_pend)
+            "  hors médiane : %d/%d ne compile(nt) pas, %d pend(ent),"
+            " %d contrat altéré" % (n_collecte, runs, n_pend, n_contrat)
         )
         print(
             "     ⚠️  un 0/44 de collecte n'est PAS une page blanche (cf. lignes"
