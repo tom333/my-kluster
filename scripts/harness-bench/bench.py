@@ -573,6 +573,10 @@ def nu_command(model, workdir, prompt):
         ]
     # Robustesse à la troncature, inerte par défaut (0) pour que le plancher du
     # témoin reste reproductible. 2 essais sur 6 sont morts d'un tool_call coupé.
+    # Leviers d'hygiene de contexte, inertes par defaut. UN levier par campagne :
+    # en activer plusieurs empeche d'attribuer l'effet (harnais-nu/MESURES.md).
+    if os.environ.get("HARNAIS_NU_HYGIENE"):
+        verify += ["--hygiene", os.environ["HARNAIS_NU_HYGIENE"]]
     if os.environ.get("HARNAIS_NU_MAX_RETRY_TRONCATURE"):
         verify += [
             "--max-retry-troncature",
@@ -638,6 +642,9 @@ def nu_metrics(transcript):
             "verifications": m.get("verifications"),
             "verif_ok": m.get("verif_ok"),
             "retries_troncature": m.get("retries_troncature"),
+            "hygiene": m.get("hygiene"),
+            "caracteres_economises": m.get("caracteres_economises"),
+            "writes_rattrapes": m.get("writes_rattrapes"),
         }
     return no_metrics(transcript)
 
