@@ -114,9 +114,11 @@ def _tuer_groupe(proc):
 # block after 'if' statement on line 156`. Un caractere. Moyenner ce 0 avec un 41/44
 # obtenu sur du code qui compile ne mesure pas le modele, ca mesure la probabilite
 # d'une coquille — et sur 3 essais, la mediane est decidee par ce tirage.
-ISSUE_OK = "collecte_ok"           # les tests ont tourne : le score veut dire quelque chose
-ISSUE_COLLECTE = "erreur_collecte"  # SyntaxError / IndentationError / ModuleNotFoundError
-ISSUE_PEND = "pytest_pend"          # boucle infinie : pytest ne rend jamais la main
+ISSUE_OK = "collecte_ok"  # les tests ont tourne : le score veut dire quelque chose
+ISSUE_COLLECTE = (
+    "erreur_collecte"  # SyntaxError / IndentationError / ModuleNotFoundError
+)
+ISSUE_PEND = "pytest_pend"  # boucle infinie : pytest ne rend jamais la main
 
 
 def run_pytest(workdir):
@@ -132,15 +134,24 @@ def run_pytest(workdir):
     # start_new_session + killpg : pytest peut avoir spawn des sous-process ;
     # sans groupe, le timeout les laisserait orphelins (cf. _tuer_groupe).
     proc = subprocess.Popen(
-        [PYTEST, "-q"], cwd=workdir, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-        text=True, start_new_session=True,
+        [PYTEST, "-q"],
+        cwd=workdir,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        start_new_session=True,
     )
     try:
         stdout, _ = proc.communicate(timeout=180)
     except subprocess.TimeoutExpired:
         _tuer_groupe(proc)
         proc.communicate()
-        return 0, 0, "TIMEOUT pytest apres 180s (boucle infinie dans le code genere)", ISSUE_PEND
+        return (
+            0,
+            0,
+            "TIMEOUT pytest apres 180s (boucle infinie dans le code genere)",
+            ISSUE_PEND,
+        )
     stdout = stdout or ""
     tail = stdout.strip().splitlines()[-1:] or [""]
     passed = failed = 0
@@ -152,8 +163,9 @@ def run_pytest(workdir):
         failed = int(match.group(1))
     # "error during collection" = le paquet ne s'importe meme pas. pytest le dit
     # explicitement, on ne devine pas.
-    collecte_ratee = ("error during collection" in stdout
-                      or "errors during collection" in stdout)
+    collecte_ratee = (
+        "error during collection" in stdout or "errors during collection" in stdout
+    )
     issue = ISSUE_COLLECTE if collecte_ratee else ISSUE_OK
     return passed, failed, tail[0], issue
 
@@ -209,7 +221,8 @@ def verify(workdir, scenario):
         "lignes_ecrites": sum(
             len(p.read_text(errors="replace").splitlines())
             for p in sorted(workdir.rglob("*.py"))
-            if p.name != "conftest.py" and "tests/" not in p.relative_to(workdir).as_posix()
+            if p.name != "conftest.py"
+            and "tests/" not in p.relative_to(workdir).as_posix()
         ),
         "pytest_tail": tail,
         "gardes_violees": violations,
@@ -272,7 +285,9 @@ def pi_abspath_command(model, workdir, prompt):
     argv, env = pi_command(model, workdir, prompt)
     # Inséré avant `-p` pour ne pas casser l'ordre attendu par pi.
     i = argv.index("-p")
-    return argv[:i] + ["--append-system-prompt", INSTRUCTION_CHEMINS_ABSOLUS] + argv[i:], env
+    return argv[:i] + ["--append-system-prompt", INSTRUCTION_CHEMINS_ABSOLUS] + argv[
+        i:
+    ], env
 
 
 # Instruction testée le 2026-07-29. Motif : gemma-4-12b-coder est le modèle qui a le
@@ -515,23 +530,39 @@ def nu_command(model, workdir, prompt):
     # la règle contre le plancher du témoin.
     verify = []
     if os.environ.get("HARNAIS_NU_VERIFY_CMD"):
-        verify = ["--verify-cmd", os.environ["HARNAIS_NU_VERIFY_CMD"],
-                  "--max-verify", os.environ.get("HARNAIS_NU_MAX_VERIFY", "3")]
+        verify = [
+            "--verify-cmd",
+            os.environ["HARNAIS_NU_VERIFY_CMD"],
+            "--max-verify",
+            os.environ.get("HARNAIS_NU_MAX_VERIFY", "3"),
+        ]
     # Robustesse à la troncature, inerte par défaut (0) pour que le plancher du
     # témoin reste reproductible. 2 essais sur 6 sont morts d'un tool_call coupé.
     if os.environ.get("HARNAIS_NU_MAX_RETRY_TRONCATURE"):
-        verify += ["--max-retry-troncature",
-                   os.environ["HARNAIS_NU_MAX_RETRY_TRONCATURE"]]
+        verify += [
+            "--max-retry-troncature",
+            os.environ["HARNAIS_NU_MAX_RETRY_TRONCATURE"],
+        ]
     return [
-        "uv", "run", "--project", str(HARNAIS_NU),
+        "uv",
+        "run",
+        "--project",
+        str(HARNAIS_NU),
         str(HARNAIS_NU / "boucle.py"),
-        "--task", prompt,
-        "--workdir", str(workdir),
-        "--base-url", base_url,
-        "--model", model.split("/", 1)[-1],
-        "--max-turns", os.environ.get("HARNAIS_NU_MAX_TURNS", "30"),
-        "--max-tokens-per-turn", os.environ.get("HARNAIS_NU_MAX_TOKENS_PER_TURN", "4096"),
-        "--max-total-tokens", os.environ.get("HARNAIS_NU_MAX_TOTAL_TOKENS", "100000"),
+        "--task",
+        prompt,
+        "--workdir",
+        str(workdir),
+        "--base-url",
+        base_url,
+        "--model",
+        model.split("/", 1)[-1],
+        "--max-turns",
+        os.environ.get("HARNAIS_NU_MAX_TURNS", "30"),
+        "--max-tokens-per-turn",
+        os.environ.get("HARNAIS_NU_MAX_TOKENS_PER_TURN", "4096"),
+        "--max-total-tokens",
+        os.environ.get("HARNAIS_NU_MAX_TOTAL_TOKENS", "100000"),
     ] + verify, {}
 
 
@@ -576,6 +607,69 @@ def nu_metrics(transcript):
     return no_metrics(transcript)
 
 
+def nu_pipeline_command(model, workdir, prompt):
+    """Pipeline à phases isolées (harnais-nu, sous-projet 1).
+
+    Même serveur, même modèle et mêmes budgets que `nu` : la seule variable est
+    l'isolation de contexte entre phases. C'est ce qui rend la comparaison au
+    plancher (médiane 44/44, pic médian 34 515) interprétable.
+    """
+    base_url = os.environ.get("HARNAIS_NU_BASE_URL", "http://127.0.0.1:8080/v1")
+    return [
+        "uv",
+        "run",
+        "--project",
+        str(HARNAIS_NU),
+        str(HARNAIS_NU / "pipeline.py"),
+        "--task",
+        prompt,
+        "--workdir",
+        str(workdir),
+        "--base-url",
+        base_url,
+        "--model",
+        model.split("/", 1)[-1],
+        "--verify-cmd",
+        os.environ.get("HARNAIS_NU_VERIFY_CMD", PYTEST + " -q"),
+        "--max-cycles",
+        os.environ.get("HARNAIS_NU_MAX_CYCLES", "10"),
+    ], {}
+
+
+def nu_pipeline_metrics(transcript):
+    """Le pipeline imprime son bilan en une ligne JSON sur stdout.
+
+    On discrimine sur `"cycles"` et non sur `"turns"` : les deux harnais nu
+    impriment `turns`, mais seul le pipeline compte des cycles et des étapes.
+
+    `contradictions` compte les fois où le modèle a annoncé un succès démenti par
+    l'oracle — l'auto-déclaration est le signal le moins fiable mesuré (cf.
+    harnais-nu/MESURES.md), et cette clé le chiffre au lieu de le supposer.
+    """
+    for line in reversed(transcript.splitlines()):
+        line = line.strip()
+        if not (line.startswith("{") and '"cycles"' in line):
+            continue
+        try:
+            m = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        return {
+            "tours": m.get("turns"),
+            # Les appels d'outils sont comptés par phase, donc dans `journal`.
+            "appels_outils": None,
+            "format_appels": "phases isolées",
+            "pic_input": m.get("peak_input_tokens"),
+            "total_output": m.get("output_tokens_total"),
+            "cycles": m.get("cycles"),
+            "etapes": m.get("etapes"),
+            "contradictions": m.get("contradictions"),
+            "fin": m.get("fin"),
+            "journal": m.get("journal"),
+        }
+    return no_metrics(transcript)
+
+
 def no_metrics(transcript):
     """Repli : verdict objectif seulement, pas de comptage de tokens."""
     return {"tours": None, "appels_outils": None, "format_appels": "non instrumente"}
@@ -588,6 +682,7 @@ HARNESSES = {
     "little-coder": (little_coder_command, pi_metrics),
     "aider": (aider_command, aider_metrics),
     "nu": (nu_command, nu_metrics),
+    "nu-pipeline": (nu_pipeline_command, nu_pipeline_metrics),
 }
 
 
@@ -708,9 +803,18 @@ def run(harness, model, scenario_name, timeout, runs=1):
         print("=== essai %d/%d ===" % (i, runs), flush=True)
         res, transcript = run_once(harness, model, scenario_name, timeout, i, runs)
         essais.append(res)
-        print("  %s  %s/%s tests  %s tours  pic %s  %ss" % (
-            res["verdict"], res["tests_passed"], res["tests_attendus"],
-            res.get("tours"), res.get("pic_input"), res["duree_s"]), flush=True)
+        print(
+            "  %s  %s/%s tests  %s tours  pic %s  %ss"
+            % (
+                res["verdict"],
+                res["tests_passed"],
+                res["tests_attendus"],
+                res.get("tours"),
+                res.get("pic_input"),
+                res["duree_s"],
+            ),
+            flush=True,
+        )
         RESULTS.mkdir(exist_ok=True)
         (RESULTS / ("%s-r%d.transcript" % (slug, i))).write_text(transcript)
 
@@ -761,21 +865,38 @@ def run(harness, model, scenario_name, timeout, runs=1):
 
     print("\n=== agrégat sur %d essai(s) ===" % runs)
     for i, e in enumerate(essais, 1):
-        etiquette = {ISSUE_OK: "", ISSUE_COLLECTE: "  <- NE COMPILE PAS",
-                     ISSUE_PEND: "  <- pytest pend"}.get(e.get("issue"), "")
-        print("  essai %d : %2s/%s  %s lignes ecrites%s" % (
-            i, e["tests_passed"], attendus, e.get("lignes_ecrites"), etiquette))
+        etiquette = {
+            ISSUE_OK: "",
+            ISSUE_COLLECTE: "  <- NE COMPILE PAS",
+            ISSUE_PEND: "  <- pytest pend",
+        }.get(e.get("issue"), "")
+        print(
+            "  essai %d : %2s/%s  %s lignes ecrites%s"
+            % (i, e["tests_passed"], attendus, e.get("lignes_ecrites"), etiquette)
+        )
     if notables:
-        print("  médiane sur %d essai(s) comparable(s) : %s/%s   (min %s, max %s, écart %s)" % (
-            len(notables), med, attendus, result["tests_passed_min"],
-            result["tests_passed_max"], result["tests_passed_ecart"]))
+        print(
+            "  médiane sur %d essai(s) comparable(s) : %s/%s   (min %s, max %s, écart %s)"
+            % (
+                len(notables),
+                med,
+                attendus,
+                result["tests_passed_min"],
+                result["tests_passed_max"],
+                result["tests_passed_ecart"],
+            )
+        )
     else:
         print("  ⚠️  AUCUN essai comparable : rien à médianiser")
     if n_collecte or n_pend:
-        print("  hors médiane : %d/%d ne compile(nt) pas, %d pend(ent)" % (
-            n_collecte, runs, n_pend))
-        print("     ⚠️  un 0/44 de collecte n'est PAS une page blanche (cf. lignes"
-              " écrites) : c'est souvent une coquille qui annule tout le paquet.")
+        print(
+            "  hors médiane : %d/%d ne compile(nt) pas, %d pend(ent)"
+            % (n_collecte, runs, n_pend)
+        )
+        print(
+            "     ⚠️  un 0/44 de collecte n'est PAS une page blanche (cf. lignes"
+            " écrites) : c'est souvent une coquille qui annule tout le paquet."
+        )
     print("  tours méd.  : %s" % result["tours_median"])
     print("  pic méd.    : %s" % result["pic_input_median"])
     print("  verdict     : %s" % result["verdict"])
@@ -791,8 +912,12 @@ def main():
     parser.add_argument("--scenario", default="repair", choices=sorted(SCENARIOS))
     parser.add_argument("--model", required=False)
     parser.add_argument("--timeout", type=int, default=2400)
-    parser.add_argument("--runs", type=int, default=3,
-                        help="nombre d'exécutions ; la MÉDIANE fait foi (défaut 3)")
+    parser.add_argument(
+        "--runs",
+        type=int,
+        default=3,
+        help="nombre d'exécutions ; la MÉDIANE fait foi (défaut 3)",
+    )
     parser.add_argument("--list-harnesses", action="store_true")
     args = parser.parse_args()
     if args.list_harnesses:
