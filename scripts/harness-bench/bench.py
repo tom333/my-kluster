@@ -517,6 +517,11 @@ def nu_command(model, workdir, prompt):
     if os.environ.get("HARNAIS_NU_VERIFY_CMD"):
         verify = ["--verify-cmd", os.environ["HARNAIS_NU_VERIFY_CMD"],
                   "--max-verify", os.environ.get("HARNAIS_NU_MAX_VERIFY", "3")]
+    # Robustesse à la troncature, inerte par défaut (0) pour que le plancher du
+    # témoin reste reproductible. 2 essais sur 6 sont morts d'un tool_call coupé.
+    if os.environ.get("HARNAIS_NU_MAX_RETRY_TRONCATURE"):
+        verify += ["--max-retry-troncature",
+                   os.environ["HARNAIS_NU_MAX_RETRY_TRONCATURE"]]
     return [
         "uv", "run", "--project", str(HARNAIS_NU),
         str(HARNAIS_NU / "boucle.py"),
@@ -566,6 +571,7 @@ def nu_metrics(transcript):
             # harnais-nu/MESURES.md — sans lui, la règle n'est pas mesurable.
             "verifications": m.get("verifications"),
             "verif_ok": m.get("verif_ok"),
+            "retries_troncature": m.get("retries_troncature"),
         }
     return no_metrics(transcript)
 
