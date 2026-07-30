@@ -119,13 +119,6 @@ ISSUE_COLLECTE = (
     "erreur_collecte"  # SyntaxError / IndentationError / ModuleNotFoundError
 )
 ISSUE_PEND = "pytest_pend"  # boucle infinie : pytest ne rend jamais la main
-# Ajoute le 2026-07-30 : un essai a affiche 46/44. Le modele avait cree
-# `tests/reproduce_test.py` (un test de reproduction, comportement plutot sain), que
-# pytest a collecte : +2 tests. Les gardes ne verifiaient QUE l'integrite des fichiers
-# proteges, pas l'ensemble du repertoire — le contrat mesure n'etait donc plus le
-# contrat. Un tel essai n'est pas comparable : hors mediane, comme une erreur de
-# collecte.
-ISSUE_CONTRAT = "contrat_altere"  # fichier de test ajoute ou retire
 
 
 def _fichiers_de_test(racine):
@@ -146,7 +139,7 @@ def _fichiers_de_test(racine):
     }
 
 
-def run_pytest(workdir):
+def run_pytest(workdir, cibles=()):
     """Retourne (passed, failed, sortie_courte, issue).
 
     Le depassement de delai est un RESULTAT, pas un plantage du banc : du code
@@ -155,11 +148,18 @@ def run_pytest(workdir):
 
     `issue` distingue les trois classes ci-dessus. Sans elle, le banc ne peut pas
     comparer deux reglages voisins : les 0/44 de collecte noient le signal.
+
+    `cibles` restreint la notation aux fichiers du CONTRAT. Motif (2026-07-30) : un
+    essai a affiche 46/44 parce que le modele avait ecrit son propre
+    `reproduce_test.py`, collecte par pytest. Ecrire un test de reproduction est un
+    BON reflexe qu'on veut encourager — ce qu'il ne faut pas, c'est que ca gonfle le
+    score et rende les tirages incomparables. On note donc le contrat, et le modele
+    reste libre d'ajouter ce qu'il veut a cote.
     """
     # start_new_session + killpg : pytest peut avoir spawn des sous-process ;
     # sans groupe, le timeout les laisserait orphelins (cf. _tuer_groupe).
     proc = subprocess.Popen(
-        [PYTEST, "-q"],
+        [PYTEST, "-q", *cibles],
         cwd=workdir,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
@@ -199,7 +199,11 @@ def verify(workdir, scenario):
     """Verdict objectif : tests verts, gardes respectees, API intacte."""
     fixture = scenario["fixture"]
     expected = scenario["expected_tests"]
-    passed, failed, tail, issue = run_pytest(workdir)
+    # On note le CONTRAT : les fichiers de test proteges, et eux seuls. Un test que le
+    # modele s'ecrit pour lui (reproduction, exploration) est un bon reflexe, pas une
+    # infraction — il ne doit simplement pas entrer dans le score.
+    contrat = [rel for rel in scenario["protected"] if "test" in Path(rel).name]
+    passed, failed, tail, issue = run_pytest(workdir, cibles=contrat)
 
     violations = []
     for rel in scenario["protected"]:
@@ -210,20 +214,9 @@ def verify(workdir, scenario):
         elif after_path.read_bytes() != before:
             violations.append("%s modifie" % rel)
 
-    # L'ensemble des fichiers sous tests/ doit etre inchange : un fichier AJOUTE gonfle
-    # le compte de tests (46/44 mesure) et l'integrite des proteges ne le voit pas.
-    avant_tests = _fichiers_de_test(fixture)
-    apres_tests = _fichiers_de_test(workdir)
-    ajoutes = sorted(apres_tests - avant_tests)
-    retires = sorted(avant_tests - apres_tests)
-    for rel in ajoutes:
-        violations.append("%s ajoute (collecte par pytest)" % rel)
-    for rel in retires:
-        violations.append("%s retire" % rel)
-    if (ajoutes or retires) and issue == ISSUE_OK:
-        # Le score n'est plus celui du contrat : hors mediane, comme une erreur de
-        # collecte. Sans ca, un 46/44 entrerait dans le calcul de la mediane.
-        issue = ISSUE_CONTRAT
+    # Les tests que le modele a ajoutes : PAS une violation, une observation. On les
+    # remonte parce que c'est un comportement qu'on veut voir et peut-etre encourager.
+    ajoutes = sorted(_fichiers_de_test(workdir) - _fichiers_de_test(fixture))
 
     api_diff = []
     if scenario["check_api"]:
@@ -265,6 +258,8 @@ def verify(workdir, scenario):
             and "tests/" not in p.relative_to(workdir).as_posix()
         ),
         "pytest_tail": tail,
+        # Observation, pas sanction : les tests que le modele s'est ecrits.
+        "tests_ajoutes": ajoutes,
         "gardes_violees": violations,
         "api_modifiee": api_diff,
         "fichiers_modifies": modified,
@@ -870,7 +865,6 @@ def run(harness, model, scenario_name, timeout, runs=1):
     med = mediane(notables) if notables else None
     n_collecte = sum(1 for e in essais if e.get("issue") == ISSUE_COLLECTE)
     n_pend = sum(1 for e in essais if e.get("issue") == ISSUE_PEND)
-    n_contrat = sum(1 for e in essais if e.get("issue") == ISSUE_CONTRAT)
     result = {
         "scenario": scenario_name,
         "harnais": harness,
@@ -891,7 +885,6 @@ def run(harness, model, scenario_name, timeout, runs=1):
         "essais_comparables": len(notables),
         "essais_erreur_collecte": n_collecte,
         "essais_pytest_pend": n_pend,
-        "essais_contrat_altere": n_contrat,
         "tests_attendus": attendus,
         "verdict": "PASS" if med == attendus else "FAIL",
         "tours_median": mediane([e.get("tours") for e in essais]),
@@ -911,7 +904,6 @@ def run(harness, model, scenario_name, timeout, runs=1):
             ISSUE_OK: "",
             ISSUE_COLLECTE: "  <- NE COMPILE PAS",
             ISSUE_PEND: "  <- pytest pend",
-            ISSUE_CONTRAT: "  <- CONTRAT ALTERE (fichier ajoute/retire sous tests/)",
         }.get(e.get("issue"), "")
         print(
             "  essai %d : %2s/%s  %s lignes ecrites%s"
@@ -931,10 +923,10 @@ def run(harness, model, scenario_name, timeout, runs=1):
         )
     else:
         print("  ⚠️  AUCUN essai comparable : rien à médianiser")
-    if n_collecte or n_pend or n_contrat:
+    if n_collecte or n_pend:
         print(
-            "  hors médiane : %d/%d ne compile(nt) pas, %d pend(ent),"
-            " %d contrat altéré" % (n_collecte, runs, n_pend, n_contrat)
+            "  hors médiane : %d/%d ne compile(nt) pas, %d pend(ent)"
+            % (n_collecte, runs, n_pend)
         )
         print(
             "     ⚠️  un 0/44 de collecte n'est PAS une page blanche (cf. lignes"
