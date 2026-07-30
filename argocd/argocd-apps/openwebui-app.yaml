@@ -12,7 +12,7 @@ spec:
   project: datalab-project
   source:
     repoURL: https://helm.openwebui.com/
-    targetRevision: 15.2.0
+    targetRevision: 15.2.1
     chart: open-webui
     helm:
       values: |
