@@ -98,3 +98,77 @@ def test_aucun_git_si_l_etat_est_mauvais(tmp_path):
 
     with pytest.raises(gitio.GitGuardError):
         gitio.commit_export(depot(tmp_path, branche="autre"), ["a"], ["c"], run=run)
+
+
+# --- rattrapage d'origin avant le push (ajouté le 2026-07-31) ----------------
+#
+# Motif : le cron d'export pousse depuis le même répertoire de travail que
+# l'humain, et Renovate auto-merge. Dès que les deux se croisent, la branche
+# diverge et le push échoue en non-fast-forward chaque nuit.
+
+
+def _faux_run(retard=0, sale=(), echecs=()):
+    """Simulateur de git. `appels` collecte les argv pour les assertions."""
+    appels = []
+
+    def run(argv, cwd):
+        appels.append(argv)
+        sous = argv[1]
+        if sous in echecs:
+            return 1, b"", b"boom " + sous.encode()
+        if sous == "rev-list":
+            return 0, str(retard).encode(), b""
+        if sous == "status":
+            return 0, "\n".join(sale).encode(), b""
+        return 0, b"", b""
+
+    run.appels = appels
+    return run
+
+
+def test_rebase_seulement_si_en_retard(tmp_path):
+    run = _faux_run(retard=0)
+    assert gitio.synchroniser_avant_push(depot(tmp_path), run=run) == 0
+    assert not any(a[:2] == ["git", "pull"] for a in run.appels), \
+        "a jour : aucun pull ne doit etre tente"
+
+
+def test_rebase_si_en_retard_et_arbre_propre(tmp_path):
+    run = _faux_run(retard=5)
+    assert gitio.synchroniser_avant_push(depot(tmp_path), run=run) == 5
+    pull = next(a for a in run.appels if a[:2] == ["git", "pull"])
+    assert "--rebase" in pull
+    assert "--autostash" not in pull, \
+        "autostash deplacerait le travail en cours de l'humain sans le dire"
+
+
+def test_refuse_le_rebase_si_arbre_sale(tmp_path):
+    run = _faux_run(retard=5, sale=[" M charts/localai/values.yaml"])
+    with pytest.raises(gitio.GitGuardError, match="SALE"):
+        gitio.synchroniser_avant_push(depot(tmp_path), run=run)
+    assert not any(a[:2] == ["git", "pull"] for a in run.appels), \
+        "arbre sale : aucun pull ne doit etre tente"
+
+
+def test_les_non_suivis_ne_rendent_pas_l_arbre_sale(tmp_path):
+    """Ce depot a des dizaines de non-suivis en permanence : ils n'empechent
+    pas un rebase, donc --untracked-files=no est obligatoire."""
+    run = _faux_run(retard=3)
+    gitio.synchroniser_avant_push(depot(tmp_path), run=run)
+    statut = next(a for a in run.appels if a[:2] == ["git", "status"])
+    assert "--untracked-files=no" in statut
+
+
+def test_le_push_est_precede_du_rattrapage(tmp_path):
+    run = _faux_run(retard=2)
+    gitio.commit_export(depot(tmp_path), ["a"], ["crons"], run=run)
+    verbes = [a[1] for a in run.appels]
+    assert verbes.index("pull") < verbes.index("push"), \
+        "le rebase doit precede le push, sinon il ne sert a rien"
+    assert not any("--force" in a for a in run.appels)
+
+
+def test_echec_du_fetch_remonte(tmp_path):
+    run = _faux_run(echecs=("fetch",))
+    with pytest.raises(gitio.GitGuardError, match="fetch"):
+        gitio.synchroniser_avant_push(depot(tmp_path), run=run)
