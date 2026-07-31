@@ -19,6 +19,7 @@ import os
 import re
 import shutil
 import signal
+import statistics
 import subprocess
 import sys
 import time
@@ -688,6 +689,10 @@ def nu_command(model, workdir, prompt):
             "--max-retry-troncature",
             os.environ["HARNAIS_NU_MAX_RETRY_TRONCATURE"],
         ]
+    # Edition structurelle (ast-grep) : un outil de plus dans le preambule, donc un
+    # changement du temoin — a mesurer comme un levier, une variable a la fois.
+    if os.environ.get("HARNAIS_NU_STRUCTURE"):
+        verify += ["--structure"]
     return [
         "uv",
         "run",
@@ -952,28 +957,22 @@ def run_once(harness, model, scenario_name, timeout, essai=1, total=1):
 
 
 def mediane(valeurs):
-    propres = sorted(v for v in valeurs if v is not None)
-    if not propres:
-        return None
-    milieu = len(propres) // 2
-    if len(propres) % 2:
-        return propres[milieu]
-    # Moyenne des deux valeurs centrales, arrondie : on compte des tests, pas des
-    # fractions de test.
-    return round((propres[milieu - 1] + propres[milieu]) / 2)
+    """Mediane ARRONDIE a l'entier : on compte des tests, pas des fractions.
+
+    L'algorithme vient de `statistics.median` (stdlib) plutot que d'une selection
+    ecrite a la main — cette derniere avait fini par exister en DEUX exemplaires
+    (`mediane` et `mediane_ratio`), et son arrondi code en dur avait failli
+    ecraser un ratio (0,34 et 0,68 donnaient 1). Une seule implementation, deux
+    politiques d'arrondi explicites."""
+    propres = [v for v in valeurs if v is not None]
+    return round(statistics.median(propres)) if propres else None
 
 
 def mediane_ratio(valeurs, decimales=3):
-    """Mediane SANS arrondi a l'entier : `mediane` compte des tests, pas des
-    fractions, donc elle arrondit la moyenne des deux valeurs centrales — ce qui
-    ecraserait un ratio (0,34 et 0,68 donneraient 1)."""
-    propres = sorted(v for v in valeurs if v is not None)
-    if not propres:
-        return None
-    milieu = len(propres) // 2
-    if len(propres) % 2:
-        return round(propres[milieu], decimales)
-    return round((propres[milieu - 1] + propres[milieu]) / 2, decimales)
+    """Mediane d'un RATIO : meme calcul, mais l'arrondi garde des decimales.
+    `mediane` ecraserait la valeur (0,34 et 0,68 donneraient 1)."""
+    propres = [v for v in valeurs if v is not None]
+    return round(statistics.median(propres), decimales) if propres else None
 
 
 def run(harness, model, scenario_name, timeout, runs=1):
