@@ -7,6 +7,25 @@ Complémentaire de `scripts/eval-harness/`, qui mesure un **modèle** sur des pr
 courts (tool-calling isolé, coding d'une fonction). Ici on mesure la **boucle
 complète** : plusieurs fichiers, une vingtaine de tours, un objectif binaire.
 
+## ⚠️ Comparabilité — à lire avant de comparer deux fichiers de `results/`
+
+Deux pièges ont produit des campagnes invalides, tous deux diagnostiqués **après coup** :
+
+1. **Les mesures `pi` d'avant le 2026-07-30 mélangent harnais et budget.** Les défauts du
+   fournisseur (32768 de contexte, 8192 par tour) n'ont été découverts qu'en appariant
+   les budgets ; un écart attribué au harnais venait du budget.
+2. **Les défauts de `nu_command` ne sont PAS la config de référence** (2026-07-31,
+   « piège 21 » dans `harnais-nu/MESURES.md`). Le banc lance `nu` avec 4096 tokens par
+   tour, 100 000 au total, sans porte de vérification et sans réessai de troncature,
+   alors que la référence publiée utilise 16384 / 200000 / porte / 2 réessais. Une
+   campagne lancée « à la variable près » avait en réalité **quatre** variables changées
+   et rendait 0/44 en 5-7 tours.
+
+Depuis, chaque fichier de résultat **se décrit lui-même** : les clés `config_env`
+(toutes les variables `HARNAIS_*` en vigueur) et `commande` (la ligne de commande)
+permettent de vérifier ce qui a réellement tourné. **Les lire avant de comparer deux
+campagnes** — un slug identique ne garantit pas une configuration identique.
+
 ## Pourquoi ce scénario
 
 Un projet Python `taskmgr` avec **7 défauts semés** dans 5 modules et 19 tests, dont

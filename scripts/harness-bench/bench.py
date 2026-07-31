@@ -916,6 +916,19 @@ def mediane(valeurs):
     return round((propres[milieu - 1] + propres[milieu]) / 2)
 
 
+def mediane_ratio(valeurs, decimales=3):
+    """Mediane SANS arrondi a l'entier : `mediane` compte des tests, pas des
+    fractions, donc elle arrondit la moyenne des deux valeurs centrales — ce qui
+    ecraserait un ratio (0,34 et 0,68 donneraient 1)."""
+    propres = sorted(v for v in valeurs if v is not None)
+    if not propres:
+        return None
+    milieu = len(propres) // 2
+    if len(propres) % 2:
+        return round(propres[milieu], decimales)
+    return round((propres[milieu - 1] + propres[milieu]) / 2, decimales)
+
+
 def run(harness, model, scenario_name, timeout, runs=1):
     """Exécute `runs` fois et agrège.
 
@@ -1000,6 +1013,43 @@ def run(harness, model, scenario_name, timeout, runs=1):
         "tours_median": mediane([e.get("tours") for e in essais]),
         "pic_input_median": mediane([e.get("pic_input") for e in essais]),
         "duree_s_median": mediane([e.get("duree_s") for e in essais]),
+        # Metriques de COUT (regle ThinkingCap) : ce qui departage des scores
+        # satures. Calculees sur les seuls essais COMPARABLES et a score non nul —
+        # diviser par 0 test reussi n'a pas de sens, et un 0/44 de collecte
+        # gonflerait artificiellement le ratio.
+        #
+        # ⚠️ Ne JAMAIS lire ces ratios sans le score absolu a cote : biais
+        # d'abandon mesure (bonsai 3,8 tests/tour a 19/44 contre gemma 2,9 a
+        # 41/44 — le plus « efficace » est celui qui a abandonne le plus tot).
+        "sortie_par_test_median": mediane_ratio(
+            [
+                e["total_output"] / e["tests_passed"]
+                for e in essais
+                if e.get("issue") == ISSUE_OK
+                and e.get("tests_passed")
+                and e.get("total_output")
+            ]
+        ),
+        "tours_par_test_median": mediane_ratio(
+            [
+                e["tours"] / e["tests_passed"]
+                for e in essais
+                if e.get("issue") == ISSUE_OK
+                and e.get("tests_passed")
+                and e.get("tours")
+            ]
+        ),
+        # Piege 21 : les defauts de nu_command ne sont PAS la config de reference,
+        # et un resultat qui ne porte pas sa config a produit une campagne
+        # invalide sans que rien ne le signale (2026-07-31 : quatre reglages
+        # differaient, diagnostique seulement apres coup). Chaque fichier de
+        # resultat se decrit desormais lui-meme.
+        "config_env": {
+            cle: valeur
+            for cle, valeur in sorted(os.environ.items())
+            if cle.startswith("HARNAIS_")
+        },
+        "commande": " ".join(sys.argv),
         "format_appels": essais[-1].get("format_appels"),
         "essais": essais,
     }
@@ -1044,6 +1094,15 @@ def run(harness, model, scenario_name, timeout, runs=1):
         )
     print("  tours méd.  : %s" % result["tours_median"])
     print("  pic méd.    : %s" % result["pic_input_median"])
+    # Cout par test reussi : ce qui departage des scores satures. Imprime SOUS la
+    # mediane du score, jamais seul — un ratio sans le score absolu se lit a
+    # l'envers (biais d'abandon : le plus « efficace » est souvent celui qui a
+    # abandonne le plus tot).
+    if result["tours_par_test_median"] is not None:
+        print(
+            "  cout méd.   : %s tours/test  %s tokens sortie/test  (a lire AVEC le score)"
+            % (result["tours_par_test_median"], result["sortie_par_test_median"])
+        )
     print("  verdict     : %s" % result["verdict"])
     if runs == 1:
         print("  ⚠️  UN SEUL ESSAI : c'est un tirage, pas une mesure. --runs 3 minimum")
