@@ -111,6 +111,38 @@ def pr_info(n: int):
         return True, None
 
 
+def release_llamacpp_apres(quand):
+    """Première release llama.cpp publiée APRÈS `quand` → (tag, date) ou (None, None).
+
+    POURQUOI cette étape. Comparer la date de l'image LocalAI à celle du MERGE est
+    nécessaire mais pas suffisant : LocalAI épingle une version de llama.cpp, donc
+    une image reconstruite le 5 août peut embarquer un llama.cpp du 20 juillet. La
+    chaîne honnête est : le kernel entre dans une RELEASE llama.cpp, puis l'image
+    est reconstruite APRÈS cette release.
+    """
+    if quand is None:
+        return None, None
+    d = _get_json(
+        "https://api.github.com/repos/ggml-org/llama.cpp/releases?per_page=100"
+    )
+    if not isinstance(d, list):
+        return None, None
+    candidates = []
+    for r in d:
+        if r.get("draft") or r.get("prerelease"):
+            continue
+        try:
+            pub = datetime.fromisoformat(r["published_at"].replace("Z", "+00:00"))
+        except Exception:
+            continue
+        if pub > quand:
+            candidates.append((pub, r.get("tag_name")))
+    if not candidates:
+        return None, None
+    pub, tag = min(candidates)  # la PREMIÈRE qui contient le merge
+    return tag, pub
+
+
 def load_state() -> dict:
     try:
         with open(STATE) as f:
@@ -161,19 +193,30 @@ def main() -> None:
         if statut == "present":
             dispos.append((nom, tag))
 
-    # 2) Voie stock : le kernel n'arrive QUE si l'image est reconstruite après le
-    #    merge. On compare les dates au lieu de promettre un « prochain build ».
+    # 2) Voie RUNTIME OFFICIEL, en trois maillons qui doivent TOUS tenir :
+    #       merge dans master  ->  release llama.cpp  ->  image LocalAI reconstruite
+    #    On ne saute aucun maillon : un merge ne prouve pas une release, et une
+    #    release ne prouve pas que l'image l'embarque. C'est le raccourci
+    #    « le prochain build portera le kernel » qui a produit la fausse alerte.
     stock_date, stock_statut = tag_date(TAG_STOCK)
-    stock_pret: list[int] = []
-    stock_en_attente: list[int] = []
+    stock_pret: list[int] = []  # les 3 maillons OK -> installable en stock
+    stock_en_attente: list[str] = []  # diagnostic : où ça bloque, PR par PR
     for n in PRS:
         merged, quand = pr_info(n)
         if merged is not True:
             continue
-        if stock_date and quand and stock_date > quand:
+        rel_tag, rel_date = release_llamacpp_apres(quand)
+        if rel_tag is None:
+            stock_en_attente.append(f"#{n}: mergé, pas encore dans une release")
+            continue
+        if stock_date and stock_date > rel_date:
             stock_pret.append(n)
-        elif stock_date and quand:
-            stock_en_attente.append(n)
+        elif stock_date:
+            stock_en_attente.append(
+                f"#{n}: dans la release {rel_tag}, mais image stock plus ancienne"
+            )
+        else:
+            stock_en_attente.append(f"#{n}: dans {rel_tag}, date d'image inconnue")
 
     hits: list[str] = []
     vus = set(st.get("backends_dispo", []))
@@ -188,9 +231,11 @@ def main() -> None:
     for n in stock_pret:
         if n not in vus_stock:
             hits.append(
-                f"🟢 Image stock `{TAG_STOCK}` reconstruite APRÈS le merge du PR "
-                f"#{n} → le backend `llama-cpp` standard porte maintenant le kernel "
-                f"Q2_0. Plus besoin d'un backend dédié."
+                f"🟢 **Runtime OFFICIEL prêt** : les trois maillons tiennent pour le "
+                f"PR #{n} — mergé dans master, présent dans une release llama.cpp, et "
+                f"l'image stock `{TAG_STOCK}` a été reconstruite après cette release. "
+                f"Le backend `llama-cpp` standard porte donc le kernel Q2_0 : **plus "
+                f"besoin de backend dédié**, et plus de tag `master-` mouvant."
             )
 
     save_state(
@@ -224,11 +269,11 @@ def main() -> None:
             "inconnu": "inconnu",
         }[stock_statut]
         print(
-            f"[watch] backends bonsai : {', '.join(etats)} | "
-            f"stock {TAG_STOCK} : {st_txt} | "
-            f"PRs mergés mais image stock trop ancienne : {stock_en_attente or 'aucun'} | "
-            f"PRs couverts par l'image stock : {stock_pret or 'aucun'} "
-            f"— RAS (silencieux en prod)."
+            f"[watch] backends bonsai dédiés : {', '.join(etats)}\n"
+            f"        runtime officiel — image {TAG_STOCK} : {st_txt}\n"
+            f"        maillons manquants : {stock_en_attente or 'aucun'}\n"
+            f"        PRs couverts de bout en bout : {stock_pret or 'aucun'}\n"
+            f"        — RAS (silencieux en prod)."
         )
 
 
