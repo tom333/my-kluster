@@ -131,6 +131,23 @@ obligatoire** ci-dessous, puis ajoute en FIN de digest UNE ligne copiable :
 - `<gguf-url-du-FICHIER>` = l'URL du **.gguf précis**, jamais celle du dépôt. Unsloth
   documente que `Q4_0` est **moins bon** que `UD-Q4_K_XL` **malgré une taille
   supérieure** : le choix du fichier décide autant que le modèle.
+- **Compte les transformations empilées, et REJETTE au-delà d'une.** Chaque
+  transformation est une perte non mesurée : élagage (`REAP`, `pruned`), abliteration
+  (`abliterated`, `heretic`), fusion (`merge`, `slerp`), distillation, quantification
+  exotique non documentée. La quantification standard (`Q4_K_M`, `UD-Q4_K_XL`…) ne compte
+  pas — c'est le format normal. Vu le 2026-07-31 :
+  `lmcoleman/Laguna-XS-2.1-REAP50-MagicQuant-GGUF` empilait **élagage de la moitié des
+  experts MoE + une méthode de quantification non documentée**, sur un excellent modèle de
+  base (`poolside/Laguna-XS-2.1`, 29 567 dl). Signale plutôt le **modèle de base** et
+  attends un quant standard.
+- **Regarde qui a validé le dépôt.** Un re-quant à **112 téléchargements et 0 like créé
+  l'avant-veille** n'a été éprouvé par personne. Compare toujours au dépôt de base : si
+  l'écart est de deux ordres de grandeur, c'est un travail non validé, pas une trouvaille.
+- **Vérifie que le backend sait lire l'architecture, et DEPUIS QUAND.** Même piège que le
+  Q2_0 de bonsai. Si l'API HF annonce une `architecture` inhabituelle (`laguna`, `nanbeige`,
+  `bonsai`…), cherche le PR de support dans `ggml-org/llama.cpp` et compare sa date de merge
+  à celle de l'image backend en place (`latest-gpu-nvidia-cuda-12-llama-cpp` sur quay).
+  Exemple : le support Laguna a été mergé le 28/07, l'image datait du 15/07 → **illisible**.
 - `<provenance>` = `officiel` ou `finetune`. Un finetune peut garder la compétence en
   code et **casser le template d'appel d'outil** : mesuré le 2026-07-29 sur
   `yuxinlu1/gemma-4-12B-coder-…`, qui écrivait 17/44 de code correct dans son message de
