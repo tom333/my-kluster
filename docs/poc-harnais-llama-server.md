@@ -148,6 +148,47 @@ Chacun a été payé comptant le 2026-07-29. Détail complet dans
    relatif qui échoue » était en réalité un chemin absolu amputé de sa barre oblique ; un
    « 0/44 » était un `SyntaxError` d'une ligne qui masquait 17/44.
 
+### Méthode d'évaluation à reprendre — emprunt à ThinkingCap
+
+Repéré le 2026-07-31 dans la carte de `bottlecapai/ThinkingCap-Qwen3.6-27B` et son
+[billet](https://bottlecapai.com/post/thinkingcap-qwen3-6-27b/). **Le modèle ne nous sert à
+rien** (dense 27 B, aucun quant sous 4 bits, donc hors des 12 Go) et **la méthode
+d'entraînement n'est pas publiée** — ni code, ni données, ni hyperparamètres, et leur seul
+dépôt GitHub est un test sans rapport. Mais leur **discipline de mesure** est décrite, et
+elle attaque deux faiblesses connues de notre banc.
+
+**A. Cinq graines, pas trois essais.** Ils évaluent sur cinq graines aléatoires
+indépendantes pour réduire le bruit. Chez nous, à trois essais et après exclusion des
+issues non comparables, la plupart des configurations n'avaient plus **qu'un ou deux
+essais notables** — on ne médianise pas deux valeurs. ⇒ **`--runs 5` devient le défaut**
+pour toute comparaison de réglages ; 3 reste acceptable pour un contrôle binaire
+(« ce modèle appelle-t-il ses outils ? »).
+
+**B. Le biais d'abandon, et comment il nous touche.** Leur « matched Δ% » existe pour
+empêcher un modèle de paraître plus efficace en **renonçant aux questions difficiles**.
+Notre banc a la même faille sous une autre forme : **un modèle qui écrit moins de code
+récolte moins d'échecs de logique**. On a corrigé la falaise de collecte (classes d'issue),
+pas celle-ci. Exemple mesuré sur `tetris`, deux essais tous deux `collecte_ok` :
+
+| modèle | score | lignes | tours | tests par tour |
+|---|---|---|---|---|
+| `bonsai-27b` | 19/44 | 273 | 5 | **3,8** |
+| `gemma-4-12b-it-qat` | 41/44 | 293 | 14 | 2,9 |
+
+Bonsai paraît **plus efficace par tour** tout en plafonnant deux fois plus bas. Une
+métrique d'efficacité seule l'aurait fait gagner. ⇒ **ne jamais publier un ratio
+d'efficacité sans le score absolu à côté**, et ne comparer les coûts qu'à **couverture
+comparable**.
+
+**C. La métrique qui manque : le coût.** Le banc ne rapporte que la réussite. En ajoutant
+**tokens de sortie par test réussi** et **tours par test réussi**, on mesure ce que
+ThinkingCap optimise — la brièveté à correction égale — sans avoir besoin de leur modèle.
+C'est aussi la seule façon de rendre lisible l'effet du MTP et de `--no-kv-offload`, qui
+déplacent le coût sans déplacer la capacité.
+
+⚠️ Ces trois points sont des règles de **comparaison**, pas de nouveaux scénarios : ils ne
+coûtent aucune inférence supplémentaire au-delà du passage de 3 à 5 essais.
+
 ### Sur la boucle d'agent
 
 6bis. **Aucune requête vers un AUTRE modèle pendant une mesure.** Avec un GPU unique et
@@ -284,3 +325,7 @@ rapporté comme métrique séparée.
   fenêtre n'est plus contrainte ?
 - Quel écart de score entre le harnais nu et `pi` — autrement dit, que valent réellement
   ces 1 603 tokens de préambule ?
+- Le passage à 5 essais suffit-il à départager deux réglages voisins, ou l'étendue reste-t-elle
+  trop large même après exclusion des issues non comparables ?
+- Les métriques de coût (tokens et tours par test réussi) classent-elles les modèles
+  autrement que le score seul ? Si oui, laquelle prédit mieux l'utilité réelle ?
