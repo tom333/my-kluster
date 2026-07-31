@@ -86,6 +86,53 @@ SCENARIOS = {
             ("extension", "tests/test_extension.py", 18),
         ),
     },
+    # Fixture 3 — reponse au diagnostic de CONTAMINATION du 2026-07-31 : `tetris`
+    # (44/44 partout) et `repair` (19/19 partout) sont des exercices canoniques,
+    # ecrits des milliers de fois, donc on y mesure en partie la RESTITUTION et non
+    # la capacite. Grossir un tetris n'y change rien.
+    #
+    # Columns (Sega, 1990) est RARE — peu d'implementations publiques — tout en
+    # restant plausible et algorithmiquement profond la ou tetris ne l'est pas :
+    # alignements sur QUATRE axes, suppression simultanee, cascades en chaine.
+    # Les details qui font l'oracle sont INVENTES (sens du cycle, alphabet des
+    # tuiles, table des multiplicateurs, semantique de la simultaneite) : se
+    # souvenir du jeu donne la forme, pas les reponses.
+    #
+    # Dix etages INDEPENDANTS, notes separement : c'est ce qui donne un score
+    # GRADUE. `tetris` est binaire (les 44 tests importent tous le paquet, donc une
+    # coquille donne 0/44), or un instrument tout-ou-rien sature ou s'effondre,
+    # jamais entre les deux — il ne peut pas graduer.
+    "columns": {
+        "fixture": HERE / "fixture-columns",
+        "prompt": HERE / "PROMPT-columns.txt",
+        "expected_tests": 80,
+        "protected": (
+            "tests/test_1_plateau.py",
+            "tests/test_2_colonne.py",
+            "tests/test_3_mouvement.py",
+            "tests/test_4_horizontal.py",
+            "tests/test_5_vertical.py",
+            "tests/test_6_diagonales.py",
+            "tests/test_7_simultane.py",
+            "tests/test_8_cascade.py",
+            "tests/test_9_score.py",
+            "tests/test_10_fin.py",
+            "conftest.py",
+        ),
+        "check_api": False,
+        "etages": (
+            ("plateau", "tests/test_1_plateau.py", 12),
+            ("colonne", "tests/test_2_colonne.py", 8),
+            ("mouvement", "tests/test_3_mouvement.py", 13),
+            ("horizontal", "tests/test_4_horizontal.py", 9),
+            ("vertical", "tests/test_5_vertical.py", 7),
+            ("diagonales", "tests/test_6_diagonales.py", 7),
+            ("simultane", "tests/test_7_simultane.py", 5),
+            ("cascade", "tests/test_8_cascade.py", 6),
+            ("score", "tests/test_9_score.py", 6),
+            ("fin", "tests/test_10_fin.py", 7),
+        ),
+    },
 }
 
 

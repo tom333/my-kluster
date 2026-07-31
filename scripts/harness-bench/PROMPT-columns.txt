@@ -1,0 +1,39 @@
+Ce dossier contient dix fichiers de tests dans `tests/`, et rien d'autre.
+
+Le paquet `colonnes/` qu'ils importent n'existe pas : ecris-le entierement.
+
+Il s'agit d'un jeu de chute de tuiles : des colonnes de trois tuiles tombent une a
+une, et quand trois tuiles identiques ou plus s'alignent, elles disparaissent et ce
+qui etait au-dessus retombe.
+
+Les dix fichiers de tests sont le contrat, et ils sont ORDONNES du plus simple au
+plus difficile :
+
+  tests/test_1_plateau.py       la grille
+  tests/test_2_colonne.py       la piece qui tombe
+  tests/test_3_mouvement.py     apparition, deplacement, chute
+  tests/test_4_horizontal.py    alignements horizontaux
+  tests/test_5_vertical.py      alignements verticaux
+  tests/test_6_diagonales.py    alignements sur les deux diagonales
+  tests/test_7_simultane.py     suppression simultanee
+  tests/test_8_cascade.py       gravite et cascades
+  tests/test_9_score.py         score et multiplicateurs de chaine
+  tests/test_10_fin.py          fin de partie
+
+Chaque fichier commence par un docstring qui decrit precisement l'etage qu'il
+mesure : lis-le en entier avant d'ecrire, puis lis les tests eux-memes.
+
+Chaque etage est note SEPAREMENT. Tu n'es donc pas oblige de tout finir : livrer
+les six premiers etages correctement vaut mieux que dix etages a moitie. Traite-les
+dans l'ordre.
+
+Contraintes :
+- Ne modifie aucun fichier dans tests/ ni conftest.py.
+- Le paquet `colonnes` doit exporter Plateau, Colonne, Jeu et alignements.
+- Organise le code comme tu le juges bon : le contrat impose l'interface publique,
+  pas le decoupage en fichiers.
+
+Lance `pytest -q` pour verifier ta progression. Tu peux aussi lancer un seul etage,
+par exemple `pytest -q tests/test_1_plateau.py`.
+
+Tu as termine quand `pytest -q` affiche 80 passed.
