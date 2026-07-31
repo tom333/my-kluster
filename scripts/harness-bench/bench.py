@@ -55,6 +55,37 @@ SCENARIOS = {
         "protected": ("tests/test_tetris.py", "conftest.py"),
         "check_api": False,
     },
+    # Le trou de mesure que `tetris` et `repair` ne couvrent pas : LIRE du code
+    # existant et l'etendre sans le casser. Les deux autres fixtures partent d'une
+    # page blanche, et toutes deux sont SATUREES (44/44 sur 5/5 essais, 19/19
+    # partout) — un score saturé ne discrimine plus rien.
+    #
+    # Le code existant est une solution 44/44 relue (essai 5 de la campagne
+    # `contrat` du 2026-07-31, 5 modules). Deux defauts latents y ont ete reperes
+    # et VOLONTAIREMENT conserves — c'est du vrai code, pas du code de vitrine :
+    # `Piece._get_matrix` boucle sur la rotation brute (une rotation negative rend
+    # une matrice non tournee) et remplit les cases vides de '' au lieu de '.'. Le
+    # contrat d'extension oriente donc vers `cells()` plutot que `matrix`.
+    "tetris-etendu": {
+        "fixture": HERE / "fixture-tetris-etendu",
+        "prompt": HERE / "PROMPT-tetris-etendu.txt",
+        "expected_tests": 62,
+        "protected": (
+            "tests/test_tetris.py",
+            "tests/test_extension.py",
+            "conftest.py",
+        ),
+        "check_api": False,
+        # Deux etages notes SEPAREMENT : « il a casse l'existant » n'est pas la
+        # meme defaillance que « il n'a pas su etendre ». Chacun dans son propre
+        # appel pytest, car une erreur d'import dans le fichier d'extension
+        # interrompt la collecte de TOUTE la suite — le score de non-regression
+        # serait perdu alors qu'il est precisement ce qu'on veut surveiller.
+        "etages": (
+            ("regression", "tests/test_tetris.py", 44),
+            ("extension", "tests/test_extension.py", 18),
+        ),
+    },
 }
 
 
@@ -203,7 +234,31 @@ def verify(workdir, scenario):
     # modele s'ecrit pour lui (reproduction, exploration) est un bon reflexe, pas une
     # infraction — il ne doit simplement pas entrer dans le score.
     contrat = [rel for rel in scenario["protected"] if "test" in Path(rel).name]
-    passed, failed, tail, issue = run_pytest(workdir, cibles=contrat)
+    etages = {}
+    if scenario.get("etages"):
+        # Un appel pytest PAR etage : une erreur d'import dans le fichier
+        # d'extension interrompt la collecte de toute la suite, ce qui ferait
+        # perdre le score de non-regression (mesure : un modele qui n'ecrit rien
+        # afficherait 0/62 au lieu de 44/62).
+        passed = failed = 0
+        tail, issue = "", None
+        for nom, fichier, attendu in scenario["etages"]:
+            p, f, t, iss = run_pytest(workdir, cibles=[fichier])
+            etages[nom] = {
+                "passed": p,
+                "failed": f,
+                "attendus": attendu,
+                "issue": iss,
+                "verdict": "PASS" if p == attendu and not f else "FAIL",
+            }
+            passed += p
+            failed += f
+            if iss and issue is None:
+                issue = iss
+            if t:
+                tail = ("%s\n[%s]\n%s" % (tail, nom, t)).strip()
+    else:
+        passed, failed, tail, issue = run_pytest(workdir, cibles=contrat)
 
     violations = []
     for rel in scenario["protected"]:
@@ -248,6 +303,10 @@ def verify(workdir, scenario):
         "tests_passed": passed,
         "tests_failed": failed,
         "tests_attendus": expected,
+        # Vide hors scenario a deux etages. Sert a lire une defaillance : 44 en
+        # regression et 0 en extension = « n'a pas su etendre » ; moins de 44 en
+        # regression = « a casse l'existant », ce qui est bien plus grave.
+        "etages": etages,
         "issue": issue,
         # Preuve qu'un "0/44" de collecte n'est pas une page blanche : on compte ce
         # qui a ete ecrit. 197 lignes + IndentationError != 0 ligne.
@@ -889,6 +948,18 @@ def run(harness, model, scenario_name, timeout, runs=1):
             ),
             flush=True,
         )
+        if res.get("etages"):
+            # Les deux etages a l'ecran, pas seulement dans le JSON : « 44 en
+            # regression, 0 en extension » et « 30 en regression » sont deux
+            # defaillances tres differentes, et la seconde doit sauter aux yeux.
+            print(
+                "        %s"
+                % "  ".join(
+                    "%s %s/%s" % (nom, e["passed"], e["attendus"])
+                    for nom, e in res["etages"].items()
+                ),
+                flush=True,
+            )
         RESULTS.mkdir(exist_ok=True)
         (RESULTS / ("%s-r%d.transcript" % (slug, i))).write_text(transcript)
 

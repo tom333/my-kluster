@@ -1,0 +1,24 @@
+Ce dossier contient un paquet `tetris/` QUI FONCTIONNE DEJA : ses 44 tests
+(`tests/test_tetris.py`) passent tous. Ne le casse pas.
+
+Ta tache est d'ETENDRE ce code existant pour faire passer `tests/test_extension.py`,
+qui echoue actuellement.
+
+Le docstring d'entete de `tests/test_extension.py` est le contrat : il decrit les
+deux fonctions a ajouter (`rendu` et `boucle`) et le format EXACT attendu, caractere
+par caractere. Lis-le en entier, puis lis les tests eux-memes.
+
+Commence par lire le code existant : il a cinq modules et tu dois t'appuyer sur son
+API plutot que la reecrire.
+
+Contraintes :
+- Ne modifie AUCUN fichier dans tests/ ni conftest.py.
+- Ne casse aucun des 44 tests existants : ils sont la mesure de non-regression.
+- Le paquet `tetris` doit exporter `rendu` et `boucle` en plus de ce qu'il exporte
+  deja (SHAPES, Piece, Board, Bag, Game).
+- Organise le code comme tu le juges bon : nouveau module ou ajout dans un module
+  existant, le contrat impose l'interface publique, pas le decoupage en fichiers.
+
+Lance `pytest -q` pour verifier ta progression.
+
+Tu as termine quand `pytest -q` affiche 62 passed.
