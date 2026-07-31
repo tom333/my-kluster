@@ -649,15 +649,20 @@ def nu_metrics(transcript):
     return no_metrics(transcript)
 
 
-def nu_pipeline_command(model, workdir, prompt):
+def _nu_pipeline_command(model, workdir, prompt, graphe):
     """Pipeline à phases isolées (harnais-nu, sous-projet 1).
 
     Même serveur, même modèle et mêmes budgets que `nu` : la seule variable est
-    l'isolation de contexte entre phases. C'est ce qui rend la comparaison au
-    plancher (médiane 44/44, pic médian 34 515) interprétable.
+    le GRAPHE. C'est ce qui rend la comparaison au plancher (médiane 44/44, pic
+    médian 34 515) interprétable.
+
+    `graphe` est passé par le HARNAIS et non par variable d'environnement : le
+    slug d'un essai vient du nom du harnais (`slug_de`), donc deux graphes sous
+    un même nom se recouvriraient dans `results/` et rien dans les fichiers ne
+    dirait lequel a produit quoi.
     """
     base_url = os.environ.get("HARNAIS_NU_BASE_URL", "http://127.0.0.1:8080/v1")
-    return [
+    commande = [
         "uv",
         "run",
         "--project",
@@ -671,11 +676,37 @@ def nu_pipeline_command(model, workdir, prompt):
         base_url,
         "--model",
         model.split("/", 1)[-1],
+        "--pipeline",
+        graphe,
         "--verify-cmd",
         os.environ.get("HARNAIS_NU_VERIFY_CMD", PYTEST + " -q"),
         "--max-cycles",
         os.environ.get("HARNAIS_NU_MAX_CYCLES", "10"),
-    ], {}
+        # Le seul plafond qui morde sur `contrat` : son graphe ne repasse jamais
+        # par sa phase de départ, donc --max-cycles y est inerte.
+        "--max-etapes",
+        os.environ.get("HARNAIS_NU_MAX_ETAPES", "24"),
+    ]
+    if graphe == "contrat":
+        # Défaut VIDE, donc phase lint absente du graphe : le linter du harnais
+        # n'est pas celui de la fixture mesurée, et l'ajouter changerait deux
+        # variables au lieu d'une.
+        commande += ["--lint-cmd", os.environ.get("HARNAIS_NU_LINT_CMD", "")]
+    return commande, {}
+
+
+def nu_pipeline_command(model, workdir, prompt):
+    return _nu_pipeline_command(model, workdir, prompt, "neuf")
+
+
+def nu_contrat_command(model, workdir, prompt):
+    """Graphe `contrat` : comprendre → porte → implementer → (lint) → verifier.
+
+    Une phase Agent de plus que le plancher, censée absorber l'exploration (les
+    sorties d'outils font 35,8 % du contexte mesuré) et ne transmettre que ses
+    notes. C'est cette hypothèse-là que l'essai tranche.
+    """
+    return _nu_pipeline_command(model, workdir, prompt, "contrat")
 
 
 def nu_pipeline_metrics(transcript):
@@ -725,6 +756,7 @@ HARNESSES = {
     "aider": (aider_command, aider_metrics),
     "nu": (nu_command, nu_metrics),
     "nu-pipeline": (nu_pipeline_command, nu_pipeline_metrics),
+    "nu-contrat": (nu_contrat_command, nu_pipeline_metrics),
 }
 
 
