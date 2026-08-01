@@ -1,0 +1,20 @@
+Écris un paquet Python `inventaire` en utilisant la bibliothèque **attrs**
+(installée, version 25). La suite de tests dans `tests/` définit le contrat exact
+et ne doit PAS être modifiée. Fais-la passer.
+
+Le paquet est découpé en modules INDÉPENDANTS, un par sujet : un module qui ne
+marche pas ne doit pas empêcher les autres de fonctionner.
+
+- `inventaire/piece.py`
+- `inventaire/evolution.py`
+- `inventaire/serialisation.py`
+- `inventaire/gele.py`
+- `inventaire/derive.py`
+- `inventaire/introspection.py`
+
+Utilise l'API moderne d'attrs. Les tests vérifient des comportements précis
+(slots, validateurs, convertisseurs, champs keyword-only, copie non mutante,
+sérialisation filtrée, classes gelées et hachables, post-initialisation,
+introspection des champs) : lis-les avant d'écrire.
+
+Lance `pytest -q` pour vérifier.

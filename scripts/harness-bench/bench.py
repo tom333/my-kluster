@@ -134,6 +134,44 @@ SCENARIOS = {
             ("fin", "tests/test_10_fin.py", 7),
         ),
     },
+    # Fixture 4 — la SEULE qui puisse mesurer une phase de documentation. Les trois
+    # autres sont en bibliotheque standard pure : une phase `chercheur` n'y serait
+    # jamais sollicitee et ne couterait que ses schemas. On ne mesurerait rien.
+    #
+    # `attrs` a ete choisie apres une sonde, pas par intuition. Interroge sans
+    # documentation, le modele produit du code PLAUSIBLE ET FAUX, de deux facons
+    # independantes : `from attrs import validator` (le module est `validators`, au
+    # pluriel -> ImportError) et `@couleur.validator` pose sur une annotation nue,
+    # qui n'est pas un `field()` -> AttributeError. C'est exactement le regime que
+    # la documentation corrige : le modele connait la FORME de la bibliotheque et se
+    # trompe sur son API.
+    #
+    # Six modules INDEPENDANTS, un par etage : avec un module unique, le premier
+    # mauvais import donnerait 0/38 et l'instrument redeviendrait binaire — le
+    # defaut de `tetris`.
+    "attrs": {
+        "fixture": HERE / "fixture-attrs",
+        "prompt": HERE / "PROMPT-attrs.txt",
+        "expected_tests": 38,
+        "protected": (
+            "tests/test_1_piece.py",
+            "tests/test_2_evolution.py",
+            "tests/test_3_serialisation.py",
+            "tests/test_4_gele.py",
+            "tests/test_5_derive.py",
+            "tests/test_6_introspection.py",
+            "conftest.py",
+        ),
+        "check_api": False,
+        "etages": (
+            ("piece", "tests/test_1_piece.py", 11),
+            ("evolution", "tests/test_2_evolution.py", 7),
+            ("serialisation", "tests/test_3_serialisation.py", 5),
+            ("gele", "tests/test_4_gele.py", 6),
+            ("derive", "tests/test_5_derive.py", 5),
+            ("introspection", "tests/test_6_introspection.py", 4),
+        ),
+    },
 }
 
 
