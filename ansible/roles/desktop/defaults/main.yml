@@ -2,13 +2,18 @@
 # desktop role — minimal max-perf desktop on Ubuntu Server 24.04 for gaming-pc.
 # Use case: Brave (YouTube), Jellyfin Media Player, Lutris. No heavy DE.
 
-# OS guard — this role targets Ubuntu 24.04 (noble) only (glibc 2.39 + nvidia-470).
+# OS guard — this role targets Ubuntu 24.04 (noble) only (glibc 2.39).
 desktop_required_release: "noble"
 
-# NVIDIA legacy driver for the Kepler GeForce 920M. 470 is the LAST branch for
-# Kepler; it only builds against the GA kernel (6.8), NOT the HWE kernel (6.11+)
-# — so we pin GA and hold HWE. 26.04 dropped 470 entirely; do not upgrade.
-desktop_nvidia_driver: "nvidia-driver-470"
+# NVIDIA driver. La machine gaming-pc a changé au swap matériel de juillet 2026 :
+# ce n'est plus le portable Kepler GeForce 920M (branche 470, morte) mais une
+# GTX 1050 Ti (Pascal), qui tourne en 580 — c'est ce qui est réellement installé
+# sur l'hôte. Laisser 470 ici ferait tenter une install par-dessus la pile 580.
+desktop_nvidia_driver: "nvidia-driver-580"
+# Le hold HWE reste actif, mais plus pour la raison d'origine (470 ne buildait
+# pas sur 6.11+) : 580 build sur HWE. On garde le kernel GA figé parce que l'hôte
+# est aussi un worker MicroK8s — un saut de kernel = rebuild DKMS + nvidia
+# container-toolkit à revalider. Bascule à false pour suivre HWE volontairement.
 desktop_hold_hwe_kernel: true
 
 # Enable i386 multiarch (32-bit Wine/Steam GL libs; gaming role asserts it).
@@ -34,7 +39,11 @@ desktop_cpu_epp: ""
 desktop_nvenc_unlimited: false
 
 # --- Optimisations Ubuntu (dé-bloat serveur/cloud + perf) ---
-desktop_purge_snapd: true            # aucun snap utilisé (Brave/Lutris/jeux = deb/AppImage/flatpak)
+# DANGER — ne pas repasser à true sur gaming-pc. L'hôte est devenu un worker
+# MicroK8s (join du 2026-07-25) et MicroK8s EST un snap : `apt purge snapd
+# --autoremove` supprimerait le nœud du cluster. L'hypothèse d'origine
+# ("aucun snap utilisé") n'est plus vraie.
+desktop_purge_snapd: false
 desktop_disable_cloud_init: true     # inutile sur machine physique, ralentit le boot
 desktop_disable_oomd: true           # systemd-oomd peut tuer un jeu sous pression (8 Go)
 desktop_disable_auto_upgrades: true  # pas de MAJ en pleine partie + protège le kernel GA pinné
