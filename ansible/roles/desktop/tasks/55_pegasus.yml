@@ -44,7 +44,7 @@
     - .config/pegasus-frontend
     - Games/apps
 
-- name: Pegasus settings (game dirs + providers Lutris/Steam)
+- name: Pegasus settings (providers Lutris/Steam)
   ansible.builtin.copy:
     dest: "/home/{{ ansible_user }}/.config/pegasus-frontend/settings.txt"
     owner: "{{ ansible_user }}"
@@ -56,7 +56,18 @@
       fullscreen: true
       [providers]
       # Lutris + Steam auto-import (ludothèque en tuiles).
-      [game_dirs]
+
+# Les dossiers de jeux vivent dans game_dirs.txt, PAS dans une section
+# [game_dirs] de settings.txt : Pegasus ignore silencieusement cette section
+# (constaté sur jeux -> "Pegasus Metafiles: No metadata files found", 0 jeu,
+# alors que metadata.pegasus.txt était bien en place).
+- name: Pegasus game dirs
+  ansible.builtin.copy:
+    dest: "/home/{{ ansible_user }}/.config/pegasus-frontend/game_dirs.txt"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: '0644'
+    content: |
       /home/{{ ansible_user }}/Games/apps
 
 - name: Apps launch scripts (Brave, Jellyfin)

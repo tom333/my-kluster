@@ -9,7 +9,11 @@ light-locker &
 {% endif %}
 {% if desktop_frontend == 'pegasus' %}
 # Frontend canapé (shell). Relance si l'utilisateur le quitte (sauf sortie propre).
-{{ ansible_user_dir | default('/home/' ~ ansible_user) }}/Applications/pegasus/pegasus-fe &
+# Pas de `ansible_user_dir` ici : le play tourne en `become: true`, les facts sont
+# donc collectés en root et ce chemin résolvait /root/Applications -> la session
+# openbox (qui tourne en {{ ansible_user }}) se prenait un "Permission denied" et
+# n'affichait qu'un fond vide. 55_pegasus.yml installe bien sous /home/<user>.
+/home/{{ ansible_user }}/Applications/pegasus/pegasus-fe &
 {% else %}
 # Barre + launchers (Brave / Jellyfin / Lutris).
 tint2 &
