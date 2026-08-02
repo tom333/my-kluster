@@ -144,7 +144,31 @@ def main():
         default=0,
         help="nombre de tâches à lancer ; 0 = toutes les combinaisons",
     )
+    p.add_argument(
+        "--tuning-decide",
+        action="store_true",
+        help="obligatoire : atteste que la decision d'entrainer est PRISE",
+    )
     args = p.parse_args()
+
+    # Porte explicite. Generer des traces coute une heure de GPU exclusif, et ces
+    # traces ne servent QU'A un finetune. Tant que la decision d'entrainer n'est
+    # pas prise, c'est du GPU depense pour une hypothese.
+    #
+    # Et la prémisse s'est affaiblie le 2026-08-02 : le finetune visait la
+    # DISCIPLINE DE FORMAT, motivee par un `format_acc` qui tombait de 1,00 a
+    # 0,667 sur les petits modeles — sauf que cette metrique porte sur TROIS
+    # items, donc l'ecart vaut UN item et ne prouve rien. Mesure faite depuis sur
+    # notre propre harnais : Qwen3.5-4B emet des `tool_calls` natifs impeccables
+    # et fait 19/19 sur `repair`. Il n'a pas de probleme de format a corriger.
+    if not args.tuning_decide:
+        print(
+            "REFUS : passe --tuning-decide.\n"
+            "  Ces traces ne servent qu'a un finetune, et une heure de GPU\n"
+            "  exclusif pour une hypothese est du gaspillage. Verifie d'abord\n"
+            "  qu'il reste un ecart de FORMAT a combler : Qwen3.5-4B n'en a pas."
+        )
+        return 0
 
     archive = Path(args.sortie)
     archive.mkdir(parents=True, exist_ok=True)
