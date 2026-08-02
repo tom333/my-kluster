@@ -18,3 +18,8 @@ ansible/routeros/wg-clients/
 __pycache__/
 *.pyc
 .pytest_cache/
+
+# Transcripts de runs : gisement d'entrainement (paires contexte -> tool_call),
+# archives depuis /tmp qui est ephemere. Volumineux et binaire-comme : on garde
+# les fichiers sur disque, pas dans l'historique Git.
+scripts/harness-bench/trajectoires/
