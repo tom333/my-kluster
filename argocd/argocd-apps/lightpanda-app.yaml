@@ -69,7 +69,20 @@ spec:
                   readOnlyRootFilesystem: true
                   capabilities:
                     drop: ["ALL"]
+                # Sans ça, la raison d'un kill est perdue (lastState non conservé,
+                # évènements expirés) : le 2026-08-02, 79 redémarrages en 39 jours
+                # étaient indiagnosticables faute de cette ligne.
+                terminationMessagePolicy: FallbackToLogsOnError
                 probes:
+                  # timeoutSeconds ÉTAIT absent → défaut Kubernetes = 1 s. Un navigateur
+                  # headless en train de rendre une SPA lourde peut ne pas répondre en
+                  # 1 s ; 3 échecs consécutifs et kubelet tue le conteneur, ce qui coupe
+                  # le scrape en vol. Symptôme côté agent : `web_extract` renvoie
+                  # « Renderer error: CDP disconnected » — 1re cause d'erreur d'outil de
+                  # Hermes (23 occurrences), groupée sur le cron de 20 h qui visite des
+                  # pages de recrutement en JS.
+                  # ⚠️ Cause NON prouvée (lastState perdu) : correctif à faible risque,
+                  # à confirmer par le compteur de redémarrages sur 2 semaines.
                   readiness:
                     enabled: true
                     custom: true
@@ -79,6 +92,8 @@ spec:
                         port: 9222
                       initialDelaySeconds: 2
                       periodSeconds: 10
+                      timeoutSeconds: 5
+                      failureThreshold: 3
                   liveness:
                     enabled: true
                     custom: true
@@ -86,6 +101,10 @@ spec:
                       tcpSocket:
                         port: 9222
                       periodSeconds: 20
+                      timeoutSeconds: 5
+                      # 5 × 20 s = 100 s de grâce avant kill, au lieu de 60 s. Un rendu
+                      # lourd doit pouvoir finir ; un vrai gel sera quand même attrapé.
+                      failureThreshold: 5
                 resources:
                   # 2026-06-24: bumped 512Mi -> 2Gi after 25 OOMKills (exit 137) in
                   # 14d. Headless Chromium/CDP spikes well past 512Mi on heavier pages;
