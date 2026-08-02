@@ -1,0 +1,145 @@
+{
+  "scenario": "tetris",
+  "harnais": "nu",
+  "modele": "gemma-4-12b-qat-nu-b10156-t16k-verify",
+  "runs": 3,
+  "tests_passed": 44,
+  "tests_passed_median": 44,
+  "tests_passed_min": 44,
+  "tests_passed_max": 44,
+  "tests_passed_ecart": 0,
+  "tests_passed_tous": [
+    0,
+    44,
+    0
+  ],
+  "tests_passed_notables": [
+    44
+  ],
+  "essais_comparables": 1,
+  "essais_erreur_collecte": 1,
+  "essais_pytest_pend": 1,
+  "tests_attendus": 44,
+  "verdict": "PASS",
+  "tours_median": 13,
+  "pic_input_median": 34448,
+  "duree_s_median": 1474.6,
+  "format_appels": "openai_tool_calls",
+  "essais": [
+    {
+      "essai": 1,
+      "duree_s": 1474.6,
+      "timeout": false,
+      "returncode": 0,
+      "depart": {
+        "passed": 0,
+        "failed": 0
+      },
+      "workdir": "/tmp/harness-bench-tetris-nu-gemma-4-12b-qat-nu-b10156-t16k-verify-r1",
+      "tours": 8,
+      "appels_outils": {
+        "read": 1,
+        "bash": 1,
+        "write": 5
+      },
+      "format_appels": "openai_tool_calls",
+      "pic_input": 34448,
+      "total_input": 100316,
+      "total_output": 45785,
+      "stop_reason": "error",
+      "erreur": "Server error '500 Internal Server Error' for url 'http://127.0.0.1:8080/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500",
+      "verifications": 0,
+      "verif_ok": null,
+      "verdict": "FAIL",
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "tests_attendus": 44,
+      "issue": "erreur_collecte",
+      "lignes_ecrites": 418,
+      "pytest_tail": "1 error in 0.36s",
+      "gardes_violees": [],
+      "api_modifiee": [],
+      "fichiers_modifies": [
+        "tetris/__init__.py"
+      ]
+    },
+    {
+      "essai": 2,
+      "duree_s": 510.7,
+      "timeout": false,
+      "returncode": 0,
+      "depart": {
+        "passed": 0,
+        "failed": 0
+      },
+      "workdir": "/tmp/harness-bench-tetris-nu-gemma-4-12b-qat-nu-b10156-t16k-verify-r2",
+      "tours": 13,
+      "appels_outils": {
+        "read": 1,
+        "bash": 4,
+        "write": 7
+      },
+      "format_appels": "openai_tool_calls",
+      "pic_input": 23415,
+      "total_input": 144002,
+      "total_output": 17450,
+      "stop_reason": "done_verifie",
+      "erreur": null,
+      "verifications": 1,
+      "verif_ok": true,
+      "verdict": "PASS",
+      "tests_passed": 44,
+      "tests_failed": 0,
+      "tests_attendus": 44,
+      "issue": "collecte_ok",
+      "lignes_ecrites": 397,
+      "pytest_tail": "44 passed in 0.03s",
+      "gardes_violees": [],
+      "api_modifiee": [],
+      "fichiers_modifies": [
+        "tetris/__init__.py",
+        "tetris/bag.py",
+        "tetris/board.py",
+        "tetris/game.py",
+        "tetris/piece.py"
+      ]
+    },
+    {
+      "essai": 3,
+      "duree_s": 1515.0,
+      "timeout": false,
+      "returncode": 0,
+      "depart": {
+        "passed": 0,
+        "failed": 0
+      },
+      "workdir": "/tmp/harness-bench-tetris-nu-gemma-4-12b-qat-nu-b10156-t16k-verify-r3",
+      "tours": 24,
+      "appels_outils": {
+        "read": 2,
+        "bash": 12,
+        "write": 9
+      },
+      "format_appels": "openai_tool_calls",
+      "pic_input": 45497,
+      "total_input": 572730,
+      "total_output": 36726,
+      "stop_reason": "truncated",
+      "erreur": null,
+      "verifications": 0,
+      "verif_ok": null,
+      "verdict": "FAIL",
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "tests_attendus": 44,
+      "issue": "pytest_pend",
+      "lignes_ecrites": 261,
+      "pytest_tail": "TIMEOUT pytest apres 180s (boucle infinie dans le code genere)",
+      "gardes_violees": [],
+      "api_modifiee": [],
+      "fichiers_modifies": [
+        "tetris/__init__.py"
+      ]
+    }
+  ]
+}

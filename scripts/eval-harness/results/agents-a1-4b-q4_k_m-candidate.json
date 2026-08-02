@@ -1,0 +1,228 @@
+{
+  "model": "agents-a1-4b-q4_k_m",
+  "tag": "candidate",
+  "metrics": {
+    "coding_pass_rate": 0.5,
+    "toolcall_acc": 1.0,
+    "format_acc": 0.6666666666666666,
+    "reasoning_acc": 0.875,
+    "mean_tokps": 73.76845271578622,
+    "agentic_success_rate": 0.8333333333333334,
+    "agentic_avg_turns": 3.83,
+    "overall": 0.7604,
+    "hermes_ready": 1
+  },
+  "coding": [
+    {
+      "id": "reverse_string",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "id": "fib",
+      "pass": false,
+      "detail": "NameError: name 'fib' is not defined"
+    },
+    {
+      "id": "is_palindrome",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "id": "two_sum",
+      "pass": false,
+      "detail": "NameError: name 'two_sum' is not defined"
+    },
+    {
+      "id": "count_vowels",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "id": "flatten",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "id": "valid_parentheses",
+      "pass": false,
+      "detail": "NameError: name 'valid_parentheses' is not defined"
+    },
+    {
+      "id": "merge_intervals",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "id": "lcs",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "id": "roman_to_int",
+      "pass": false,
+      "detail": "NameError: name 'roman_to_int' is not defined"
+    },
+    {
+      "id": "regex_match",
+      "pass": false,
+      "detail": "NameError: name 'regex_match' is not defined"
+    },
+    {
+      "id": "calc_ii",
+      "pass": false,
+      "detail": "NameError: name 'calc' is not defined"
+    },
+    {
+      "id": "edit_distance",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "id": "median_sorted",
+      "pass": false,
+      "detail": "NameError: name 'median_two' is not defined"
+    }
+  ],
+  "toolcall": [
+    {
+      "id": "weather",
+      "pass": true,
+      "detail": "name=get_weather args={'city': 'Paris'}"
+    },
+    {
+      "id": "add",
+      "pass": true,
+      "detail": "name=add_numbers args={'a': 3, 'b': 5}"
+    },
+    {
+      "id": "todo",
+      "pass": true,
+      "detail": "name=create_todo args={'task': 'buy milk'}"
+    },
+    {
+      "id": "search",
+      "pass": true,
+      "detail": "name=search_web args={'query': 'RTX 3060 price'}"
+    },
+    {
+      "id": "tool_select_stock",
+      "pass": true,
+      "detail": "name=get_stock_price args={'ticker': 'AAPL'}"
+    },
+    {
+      "id": "book_flight_multiarg",
+      "pass": true,
+      "detail": "name=book_flight args={'date': '2026-09-15', 'destination': 'Tokyo', 'origin': 'Paris'}"
+    }
+  ],
+  "format": [
+    {
+      "id": "json_person",
+      "pass": false,
+      "detail": ""
+    },
+    {
+      "id": "exact_word",
+      "pass": true,
+      "detail": "BANANA"
+    },
+    {
+      "id": "csv_fruits",
+      "pass": true,
+      "detail": "Apple, Banana, Orange"
+    }
+  ],
+  "reasoning": [
+    {
+      "id": "apples",
+      "pass": true,
+      "detail": "got=15 exp=15"
+    },
+    {
+      "id": "pencils",
+      "pass": true,
+      "detail": "got=28 exp=28"
+    },
+    {
+      "id": "train",
+      "pass": true,
+      "detail": "got=240 exp=240"
+    },
+    {
+      "id": "ages",
+      "pass": true,
+      "detail": "got=20 exp=20"
+    },
+    {
+      "id": "perimeter",
+      "pass": true,
+      "detail": "got=26 exp=26"
+    },
+    {
+      "id": "tank",
+      "pass": false,
+      "detail": "got=None exp=60"
+    },
+    {
+      "id": "book_pages",
+      "pass": true,
+      "detail": "got=120 exp=120"
+    },
+    {
+      "id": "chickens",
+      "pass": true,
+      "detail": "got=8 exp=8"
+    }
+  ],
+  "agentic": [
+    {
+      "id": "multi_lookup_calc",
+      "pass": true,
+      "turns": 4,
+      "calls": 3,
+      "bad_calls": 0,
+      "detail": "got=80 exp=80"
+    },
+    {
+      "id": "sequential_dependency",
+      "pass": true,
+      "turns": 3,
+      "calls": 2,
+      "bad_calls": 0,
+      "detail": "got=3 exp=3"
+    },
+    {
+      "id": "search_then_read",
+      "pass": true,
+      "turns": 4,
+      "calls": 3,
+      "bad_calls": 0,
+      "detail": "final=The app config uses port **8080**.\n\nHere's the configuration file content:\n```\np"
+    },
+    {
+      "id": "check_then_act",
+      "pass": false,
+      "turns": 6,
+      "calls": 6,
+      "bad_calls": 0,
+      "detail": "pas de r\u00e9ponse finale (boucle \u00e9puis\u00e9e/erreur)"
+    },
+    {
+      "id": "compare_two",
+      "pass": true,
+      "turns": 2,
+      "calls": 2,
+      "bad_calls": 0,
+      "detail": "final=Lyon is warmer right now. It's 20\u00b0C in Lyon, while Paris is 15\u00b0C."
+    },
+    {
+      "id": "three_step_chain",
+      "pass": true,
+      "turns": 4,
+      "calls": 4,
+      "bad_calls": 0,
+      "detail": "final=bob@example.com"
+    }
+  ]
+}

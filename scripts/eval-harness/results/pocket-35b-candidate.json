@@ -1,0 +1,228 @@
+{
+  "model": "pocket-35b",
+  "tag": "candidate",
+  "metrics": {
+    "coding_pass_rate": 0.14285714285714285,
+    "toolcall_acc": 0.5,
+    "format_acc": 1.0,
+    "reasoning_acc": 0.875,
+    "mean_tokps": 62.26236624122685,
+    "agentic_success_rate": 0.16666666666666666,
+    "agentic_avg_turns": 1.67,
+    "overall": 0.6295,
+    "hermes_ready": 0
+  },
+  "coding": [
+    {
+      "id": "reverse_string",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "id": "fib",
+      "pass": false,
+      "detail": "AssertionError"
+    },
+    {
+      "id": "is_palindrome",
+      "pass": false,
+      "detail": "AssertionError"
+    },
+    {
+      "id": "two_sum",
+      "pass": false,
+      "detail": "NameError: name 'two_sum' is not defined"
+    },
+    {
+      "id": "count_vowels",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "id": "flatten",
+      "pass": false,
+      "detail": "NameError: name 'flatten' is not defined"
+    },
+    {
+      "id": "valid_parentheses",
+      "pass": false,
+      "detail": "SyntaxError: unmatched '}'"
+    },
+    {
+      "id": "merge_intervals",
+      "pass": false,
+      "detail": "NameError: name 'merge_intervals' is not defined"
+    },
+    {
+      "id": "lcs",
+      "pass": false,
+      "detail": "AssertionError"
+    },
+    {
+      "id": "roman_to_int",
+      "pass": false,
+      "detail": "AssertionError"
+    },
+    {
+      "id": "regex_match",
+      "pass": false,
+      "detail": "AssertionError"
+    },
+    {
+      "id": "calc_ii",
+      "pass": false,
+      "detail": "AssertionError"
+    },
+    {
+      "id": "edit_distance",
+      "pass": false,
+      "detail": "SyntaxError: invalid syntax"
+    },
+    {
+      "id": "median_sorted",
+      "pass": false,
+      "detail": "NameError: name 'median_two' is not defined"
+    }
+  ],
+  "toolcall": [
+    {
+      "id": "weather",
+      "pass": true,
+      "detail": "name=get_weather args={'city': 'Paris'}"
+    },
+    {
+      "id": "add",
+      "pass": false,
+      "detail": "no tool_call"
+    },
+    {
+      "id": "todo",
+      "pass": true,
+      "detail": "name=create_todo args={'task': 'buy milk'}"
+    },
+    {
+      "id": "search",
+      "pass": false,
+      "detail": "no tool_call"
+    },
+    {
+      "id": "tool_select_stock",
+      "pass": true,
+      "detail": "name=get_stock_price args={'ticker': 'AAPL'}"
+    },
+    {
+      "id": "book_flight_multiarg",
+      "pass": false,
+      "detail": "name=book_flight args={}"
+    }
+  ],
+  "format": [
+    {
+      "id": "json_person",
+      "pass": true,
+      "detail": "{\"name\": \"Bob\", \"age\": 30}"
+    },
+    {
+      "id": "exact_word",
+      "pass": true,
+      "detail": "BANANA"
+    },
+    {
+      "id": "csv_fruits",
+      "pass": true,
+      "detail": "apple, banana, cherry"
+    }
+  ],
+  "reasoning": [
+    {
+      "id": "apples",
+      "pass": true,
+      "detail": "got=15 exp=15"
+    },
+    {
+      "id": "pencils",
+      "pass": true,
+      "detail": "got=28 exp=28"
+    },
+    {
+      "id": "train",
+      "pass": true,
+      "detail": "got=240 exp=240"
+    },
+    {
+      "id": "ages",
+      "pass": true,
+      "detail": "got=20 exp=20"
+    },
+    {
+      "id": "perimeter",
+      "pass": true,
+      "detail": "got=26 exp=26"
+    },
+    {
+      "id": "tank",
+      "pass": true,
+      "detail": "got=60 exp=60"
+    },
+    {
+      "id": "book_pages",
+      "pass": true,
+      "detail": "got=120 exp=120"
+    },
+    {
+      "id": "chickens",
+      "pass": false,
+      "detail": "got=16 exp=8"
+    }
+  ],
+  "agentic": [
+    {
+      "id": "multi_lookup_calc",
+      "pass": false,
+      "turns": 1,
+      "calls": 0,
+      "bad_calls": 0,
+      "detail": "got=15 exp=80"
+    },
+    {
+      "id": "sequential_dependency",
+      "pass": false,
+      "turns": 1,
+      "calls": 0,
+      "bad_calls": 0,
+      "detail": "got=42 exp=3"
+    },
+    {
+      "id": "search_then_read",
+      "pass": false,
+      "turns": 3,
+      "calls": 2,
+      "bad_calls": 0,
+      "detail": "final="
+    },
+    {
+      "id": "check_then_act",
+      "pass": false,
+      "turns": 3,
+      "calls": 2,
+      "bad_calls": 0,
+      "detail": "final="
+    },
+    {
+      "id": "compare_two",
+      "pass": true,
+      "turns": 1,
+      "calls": 0,
+      "bad_calls": 0,
+      "detail": "final=<function=get_weather>\n<parameter=city>\nParis\n</parameter>\n</function>\n<function"
+    },
+    {
+      "id": "three_step_chain",
+      "pass": false,
+      "turns": 1,
+      "calls": 0,
+      "bad_calls": 0,
+      "detail": "final=I need to call the available functions to retrieve the required information. Let"
+    }
+  ]
+}

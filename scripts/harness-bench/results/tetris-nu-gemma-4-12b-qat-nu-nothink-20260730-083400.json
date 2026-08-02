@@ -1,0 +1,58 @@
+{
+  "scenario": "tetris",
+  "harnais": "nu",
+  "modele": "gemma-4-12b-qat-nu-nothink",
+  "runs": 1,
+  "tests_passed": null,
+  "tests_passed_median": null,
+  "tests_passed_min": null,
+  "tests_passed_max": null,
+  "tests_passed_ecart": null,
+  "tests_passed_tous": [
+    0
+  ],
+  "tests_passed_notables": [],
+  "essais_comparables": 0,
+  "essais_erreur_collecte": 1,
+  "essais_pytest_pend": 0,
+  "tests_attendus": 44,
+  "verdict": "FAIL",
+  "tours_median": 3,
+  "pic_input_median": 3263,
+  "duree_s_median": 111.0,
+  "format_appels": "openai_tool_calls",
+  "essais": [
+    {
+      "essai": 1,
+      "duree_s": 111.0,
+      "timeout": false,
+      "returncode": 0,
+      "depart": {
+        "passed": 0,
+        "failed": 0
+      },
+      "workdir": "/tmp/harness-bench-tetris-nu-gemma-4-12b-qat-nu-nothink",
+      "tours": 3,
+      "appels_outils": {
+        "read": 1,
+        "write": 1
+      },
+      "format_appels": "openai_tool_calls",
+      "pic_input": 3263,
+      "total_input": 3783,
+      "total_output": 4116,
+      "stop_reason": "error",
+      "erreur": "Server error '500 Internal Server Error' for url 'http://127.0.0.1:8080/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500",
+      "verdict": "FAIL",
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "tests_attendus": 44,
+      "issue": "erreur_collecte",
+      "lignes_ecrites": 0,
+      "pytest_tail": "1 error in 0.08s",
+      "gardes_violees": [],
+      "api_modifiee": [],
+      "fichiers_modifies": []
+    }
+  ]
+}

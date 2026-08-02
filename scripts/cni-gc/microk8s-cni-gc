@@ -1,0 +1,97 @@
+#!/usr/bin/env bash
+# microk8s-cni-gc — GC des leases IPAM host-local orphelines (MicroK8s + flannel).
+#
+# Contexte : flannel délègue l'IPAM au plugin host-local, qui crée un fichier
+# par IP allouée dans /var/lib/cni/networks/<nom-du-réseau>/ (sur MicroK8s :
+# microk8s-flannel-network). Si CNI DEL n'est pas appelé
+# (crash containerd/kubelet, OOM, redémarrage MicroK8s, upgrade snap), la lease
+# fuit et l'IP reste "occupée". Sur un /24, ~254 IPs → saturation rapide.
+#
+# Ce script compare les leases présentes aux IPs de pods réellement vivantes
+# selon l'API et supprime les fichiers orphelins. Garde-fous :
+#   - kubectl doit répondre (refus de supprimer sans vérité terrain)
+#   - filtre strict des noms de fichiers en IPv4 (on ne touche pas à
+#     last_reserved_ip.*, lock, etc.)
+#   - âge minimum (MIN_AGE_MIN, défaut 5 min) pour éviter de tuer une lease
+#     d'un pod en cours de création
+#
+# Variables d'environnement :
+#   CNI_DIR      Dossier des leases (défaut /var/lib/cni/networks/cbr0)
+#   KUBECTL      Binaire kubectl (défaut /snap/bin/microk8s.kubectl)
+#   MIN_AGE_MIN  Âge minimum d'une lease orpheline avant suppression (défaut 5)
+#   DRY_RUN      Si "1", n'efface rien, log seulement
+#
+# Installation : voir microk8s-cni-gc.service / microk8s-cni-gc.timer.
+
+set -euo pipefail
+
+CNI_DIR="${CNI_DIR:-/var/lib/cni/networks/microk8s-flannel-network}"
+KUBECTL="${KUBECTL:-/snap/bin/microk8s.kubectl}"
+MIN_AGE_MIN="${MIN_AGE_MIN:-5}"
+DRY_RUN="${DRY_RUN:-0}"
+
+# stderr → systemd-journald capte avec le tag de l'unit. Pas de dépendance à
+# logger/rsyslog (qui causaient des échecs silencieux sous systemd).
+log() { printf '%s\n' "$*" >&2; }
+trap 'rc=$?; printf "TRAP ERR ligne %d (rc=%d)\n" "$LINENO" "$rc" >&2; exit "$rc"' ERR
+
+log "démarrage (CNI_DIR=$CNI_DIR KUBECTL=$KUBECTL MIN_AGE_MIN=$MIN_AGE_MIN DRY_RUN=$DRY_RUN)"
+
+if [[ ! -d "$CNI_DIR" ]]; then
+  log "CNI dir $CNI_DIR introuvable, rien à faire"
+  exit 0
+fi
+
+if ! kubectl_err=$("$KUBECTL" version --request-timeout=5s 2>&1); then
+  log "ERREUR: kubectl injoignable ($KUBECTL), abandon. Détail: ${kubectl_err//$'\n'/ | }"
+  exit 1
+fi
+
+# Toutes les IPs de pods connues (toutes phases incluses : Running, Pending,
+# Terminating gardent leur IP côté CNI). Single-node : tous les pods sont ici.
+mapfile -t live_ips < <(
+  "$KUBECTL" get pods -A -o jsonpath='{range .items[*]}{.status.podIP}{"\n"}{end}' \
+    | grep -E '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$' \
+    | sort -u
+)
+
+declare -A live=()
+for ip in "${live_ips[@]}"; do live["$ip"]=1; done
+
+log "IPs de pods vivants vues par kubectl : ${#live_ips[@]}"
+
+removed=0
+kept_recent=0
+total_leases=0
+
+shopt -s nullglob
+for f in "$CNI_DIR"/*; do
+  [[ -f "$f" ]] || continue
+  base="$(basename -- "$f")"
+
+  # On ne touche qu'aux fichiers nommés comme une IPv4 (lock, last_reserved_ip.* ignorés)
+  if ! [[ "$base" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]]; then
+    continue
+  fi
+  total_leases=$((total_leases + 1))
+
+  if [[ -n "${live[$base]:-}" ]]; then
+    continue
+  fi
+
+  # Candidat orphelin — exiger un âge minimum pour éviter une race au démarrage d'un pod
+  if [[ -n "$(find "$f" -mmin -"$MIN_AGE_MIN" -print -quit 2>/dev/null)" ]]; then
+    kept_recent=$((kept_recent + 1))
+    continue
+  fi
+
+  if [[ "$DRY_RUN" = "1" ]]; then
+    log "DRY-RUN: supprimerait $base (mtime $(stat -c %y "$f"))"
+  else
+    rm -f -- "$f"
+    log "Lease orpheline supprimée : $base"
+  fi
+  removed=$((removed + 1))
+done
+
+log "GC terminé : leases=$total_leases live=${#live_ips[@]} removed=$removed kept_recent=$kept_recent"

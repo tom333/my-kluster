@@ -1,0 +1,29 @@
+name: bonsai-27b
+backend: llama-cpp
+known_usecases: [chat]
+context_size: 32768
+gpu_layers: 99
+f16: true
+flash_attention: true
+mmap: true
+cache_type_k: q8_0
+cache_type_v: q8_0
+parameters:
+  model: Bonsai-27B-Q1_0.gguf
+  temperature: 0.6
+  top_p: 0.95
+  top_k: 20
+download_files:
+  - filename: Bonsai-27B-Q1_0.gguf
+    uri: https://huggingface.co/prism-ml/Bonsai-27B-gguf/resolve/main/Bonsai-27B-Q1_0.gguf
+options:
+  - use_jinja:true
+function:
+  automatic_tool_parsing_fallback: true
+  grammar:
+    disable: true
+template:
+  use_tokenizer_template: true
+stopwords:
+  - "<|im_end|>"
+  - "<|endoftext|>"

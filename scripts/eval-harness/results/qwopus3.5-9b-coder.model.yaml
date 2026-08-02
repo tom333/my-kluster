@@ -1,0 +1,29 @@
+name: qwopus3.5-9b-coder
+backend: llama-cpp
+known_usecases: [chat]
+context_size: 32768
+gpu_layers: 99
+f16: true
+flash_attention: true
+mmap: true
+cache_type_k: q8_0
+cache_type_v: q8_0
+parameters:
+  model: Qwopus3.5-9B-Coder-MTP-Q6_K.gguf
+  temperature: 0.6
+  top_p: 0.95
+  top_k: 20
+download_files:
+  - filename: Qwopus3.5-9B-Coder-MTP-Q6_K.gguf
+    uri: https://huggingface.co/Jackrong/Qwopus3.5-9B-Coder-MTP-GGUF/resolve/main/Qwopus3.5-9B-Coder-MTP-Q6_K.gguf
+options:
+  - use_jinja:true
+function:
+  automatic_tool_parsing_fallback: true
+  grammar:
+    disable: true
+template:
+  use_tokenizer_template: true
+stopwords:
+  - "<|im_end|>"
+  - "<|endoftext|>"

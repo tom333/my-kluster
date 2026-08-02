@@ -1,0 +1,345 @@
+{
+  "scenario": "tetris-etendu",
+  "harnais": "nu",
+  "modele": "gemma-4-12b-qat/mtp-verify-t16k-etendu-baseline",
+  "runs": 5,
+  "tests_passed": 62,
+  "tests_passed_median": 62,
+  "tests_passed_min": 62,
+  "tests_passed_max": 62,
+  "tests_passed_ecart": 0,
+  "tests_passed_tous": [
+    62,
+    62,
+    62,
+    62,
+    62
+  ],
+  "tests_passed_notables": [
+    62,
+    62,
+    62,
+    62,
+    62
+  ],
+  "essais_comparables": 5,
+  "essais_erreur_collecte": 0,
+  "essais_pytest_pend": 0,
+  "tests_attendus": 62,
+  "verdict": "PASS",
+  "tours_median": 13,
+  "pic_input_median": 17097,
+  "duree_s_median": 110.8,
+  "sortie_par_test_median": 106.371,
+  "tours_par_test_median": 0.21,
+  "config_env": {
+    "HARNAIS_NU_MAX_RETRY_TRONCATURE": "2",
+    "HARNAIS_NU_MAX_TOKENS_PER_TURN": "16384",
+    "HARNAIS_NU_MAX_TOTAL_TOKENS": "200000",
+    "HARNAIS_NU_MAX_VERIFY": "3",
+    "HARNAIS_NU_VERIFY_CMD": "/usr/bin/pytest -q"
+  },
+  "commande": "bench.py --harness nu --scenario tetris-etendu --runs 5 --model gemma-4-12b-qat/mtp-verify-t16k-etendu-baseline --timeout 2400",
+  "format_appels": "openai_tool_calls",
+  "essais": [
+    {
+      "essai": 1,
+      "duree_s": 110.8,
+      "timeout": false,
+      "returncode": 0,
+      "depart": {
+        "passed": 0,
+        "failed": 0
+      },
+      "workdir": "/tmp/harness-bench-tetris-etendu-nu-gemma-4-12b-qat-mtp-verify-t16k-etendu-baseline-r1",
+      "tours": 14,
+      "appels_outils": {
+        "bash": 4,
+        "read": 7,
+        "write": 2
+      },
+      "format_appels": "openai_tool_calls",
+      "pic_input": 20824,
+      "total_input": 154247,
+      "total_output": 6090,
+      "stop_reason": "done_verifie",
+      "erreur": null,
+      "verifications": 1,
+      "verif_ok": true,
+      "retries_troncature": 0,
+      "hygiene": [],
+      "caracteres_economises": 0,
+      "writes_rattrapes": 0,
+      "verdict": "PASS",
+      "tests_passed": 62,
+      "tests_failed": 0,
+      "tests_attendus": 62,
+      "etages": {
+        "regression": {
+          "passed": 44,
+          "failed": 0,
+          "attendus": 44,
+          "issue": "collecte_ok",
+          "verdict": "PASS"
+        },
+        "extension": {
+          "passed": 18,
+          "failed": 0,
+          "attendus": 18,
+          "issue": "collecte_ok",
+          "verdict": "PASS"
+        }
+      },
+      "issue": "collecte_ok",
+      "lignes_ecrites": 462,
+      "pytest_tail": "[regression]\n\u001b[32m\u001b[32m\u001b[1m44 passed\u001b[0m\u001b[32m in 0.03s\u001b[0m\u001b[0m\n[extension]\n\u001b[32m\u001b[32m\u001b[1m18 passed\u001b[0m\u001b[32m in 0.01s\u001b[0m\u001b[0m",
+      "tests_ajoutes": [],
+      "gardes_violees": [],
+      "api_modifiee": [],
+      "fichiers_modifies": [
+        "tetris/__init__.py",
+        "tetris/game.py"
+      ]
+    },
+    {
+      "essai": 2,
+      "duree_s": 90.0,
+      "timeout": false,
+      "returncode": 0,
+      "depart": {
+        "passed": 0,
+        "failed": 0
+      },
+      "workdir": "/tmp/harness-bench-tetris-etendu-nu-gemma-4-12b-qat-mtp-verify-t16k-etendu-baseline-r2",
+      "tours": 11,
+      "appels_outils": {
+        "bash": 3,
+        "read": 5,
+        "write": 1,
+        "edit": 1
+      },
+      "format_appels": "openai_tool_calls",
+      "pic_input": 10546,
+      "total_input": 62056,
+      "total_output": 5557,
+      "stop_reason": "done_verifie",
+      "erreur": null,
+      "verifications": 1,
+      "verif_ok": true,
+      "retries_troncature": 0,
+      "hygiene": [],
+      "caracteres_economises": 0,
+      "writes_rattrapes": 0,
+      "verdict": "PASS",
+      "tests_passed": 62,
+      "tests_failed": 0,
+      "tests_attendus": 62,
+      "etages": {
+        "regression": {
+          "passed": 44,
+          "failed": 0,
+          "attendus": 44,
+          "issue": "collecte_ok",
+          "verdict": "PASS"
+        },
+        "extension": {
+          "passed": 18,
+          "failed": 0,
+          "attendus": 18,
+          "issue": "collecte_ok",
+          "verdict": "PASS"
+        }
+      },
+      "issue": "collecte_ok",
+      "lignes_ecrites": 463,
+      "pytest_tail": "[regression]\n\u001b[32m\u001b[32m\u001b[1m44 passed\u001b[0m\u001b[32m in 0.03s\u001b[0m\u001b[0m\n[extension]\n\u001b[32m\u001b[32m\u001b[1m18 passed\u001b[0m\u001b[32m in 0.01s\u001b[0m\u001b[0m",
+      "tests_ajoutes": [],
+      "gardes_violees": [],
+      "api_modifiee": [],
+      "fichiers_modifies": [
+        "tetris/__init__.py",
+        "tetris/extension.py"
+      ]
+    },
+    {
+      "essai": 3,
+      "duree_s": 107.2,
+      "timeout": false,
+      "returncode": 0,
+      "depart": {
+        "passed": 0,
+        "failed": 0
+      },
+      "workdir": "/tmp/harness-bench-tetris-etendu-nu-gemma-4-12b-qat-mtp-verify-t16k-etendu-baseline-r3",
+      "tours": 13,
+      "appels_outils": {
+        "bash": 4,
+        "read": 6,
+        "write": 1,
+        "edit": 1
+      },
+      "format_appels": "openai_tool_calls",
+      "pic_input": 14813,
+      "total_input": 85050,
+      "total_output": 6595,
+      "stop_reason": "done_verifie",
+      "erreur": null,
+      "verifications": 1,
+      "verif_ok": true,
+      "retries_troncature": 0,
+      "hygiene": [],
+      "caracteres_economises": 0,
+      "writes_rattrapes": 0,
+      "verdict": "PASS",
+      "tests_passed": 62,
+      "tests_failed": 0,
+      "tests_attendus": 62,
+      "etages": {
+        "regression": {
+          "passed": 44,
+          "failed": 0,
+          "attendus": 44,
+          "issue": "collecte_ok",
+          "verdict": "PASS"
+        },
+        "extension": {
+          "passed": 18,
+          "failed": 0,
+          "attendus": 18,
+          "issue": "collecte_ok",
+          "verdict": "PASS"
+        }
+      },
+      "issue": "collecte_ok",
+      "lignes_ecrites": 466,
+      "pytest_tail": "[regression]\n\u001b[32m\u001b[32m\u001b[1m44 passed\u001b[0m\u001b[32m in 0.03s\u001b[0m\u001b[0m\n[extension]\n\u001b[32m\u001b[32m\u001b[1m18 passed\u001b[0m\u001b[32m in 0.01s\u001b[0m\u001b[0m",
+      "tests_ajoutes": [],
+      "gardes_violees": [],
+      "api_modifiee": [],
+      "fichiers_modifies": [
+        "tetris/__init__.py",
+        "tetris/extra.py"
+      ]
+    },
+    {
+      "essai": 4,
+      "duree_s": 140.9,
+      "timeout": false,
+      "returncode": 0,
+      "depart": {
+        "passed": 0,
+        "failed": 0
+      },
+      "workdir": "/tmp/harness-bench-tetris-etendu-nu-gemma-4-12b-qat-mtp-verify-t16k-etendu-baseline-r4",
+      "tours": 12,
+      "appels_outils": {
+        "bash": 4,
+        "read": 5,
+        "write": 1,
+        "edit": 1
+      },
+      "format_appels": "openai_tool_calls",
+      "pic_input": 17097,
+      "total_input": 98534,
+      "total_output": 9067,
+      "stop_reason": "done_verifie",
+      "erreur": null,
+      "verifications": 1,
+      "verif_ok": true,
+      "retries_troncature": 0,
+      "hygiene": [],
+      "caracteres_economises": 0,
+      "writes_rattrapes": 0,
+      "verdict": "PASS",
+      "tests_passed": 62,
+      "tests_failed": 0,
+      "tests_attendus": 62,
+      "etages": {
+        "regression": {
+          "passed": 44,
+          "failed": 0,
+          "attendus": 44,
+          "issue": "collecte_ok",
+          "verdict": "PASS"
+        },
+        "extension": {
+          "passed": 18,
+          "failed": 0,
+          "attendus": 18,
+          "issue": "collecte_ok",
+          "verdict": "PASS"
+        }
+      },
+      "issue": "collecte_ok",
+      "lignes_ecrites": 460,
+      "pytest_tail": "[regression]\n\u001b[32m\u001b[32m\u001b[1m44 passed\u001b[0m\u001b[32m in 0.03s\u001b[0m\u001b[0m\n[extension]\n\u001b[32m\u001b[32m\u001b[1m18 passed\u001b[0m\u001b[32m in 0.01s\u001b[0m\u001b[0m",
+      "tests_ajoutes": [],
+      "gardes_violees": [],
+      "api_modifiee": [],
+      "fichiers_modifies": [
+        "tetris/__init__.py",
+        "tetris/game.py"
+      ]
+    },
+    {
+      "essai": 5,
+      "duree_s": 174.8,
+      "timeout": false,
+      "returncode": 0,
+      "depart": {
+        "passed": 0,
+        "failed": 0
+      },
+      "workdir": "/tmp/harness-bench-tetris-etendu-nu-gemma-4-12b-qat-mtp-verify-t16k-etendu-baseline-r5",
+      "tours": 15,
+      "appels_outils": {
+        "bash": 5,
+        "read": 6,
+        "write": 1,
+        "edit": 1
+      },
+      "format_appels": "openai_tool_calls",
+      "pic_input": 20403,
+      "total_input": 144214,
+      "total_output": 9936,
+      "stop_reason": "done_verifie",
+      "erreur": null,
+      "verifications": 2,
+      "verif_ok": true,
+      "retries_troncature": 0,
+      "hygiene": [],
+      "caracteres_economises": 0,
+      "writes_rattrapes": 0,
+      "verdict": "PASS",
+      "tests_passed": 62,
+      "tests_failed": 0,
+      "tests_attendus": 62,
+      "etages": {
+        "regression": {
+          "passed": 44,
+          "failed": 0,
+          "attendus": 44,
+          "issue": "collecte_ok",
+          "verdict": "PASS"
+        },
+        "extension": {
+          "passed": 18,
+          "failed": 0,
+          "attendus": 18,
+          "issue": "collecte_ok",
+          "verdict": "PASS"
+        }
+      },
+      "issue": "collecte_ok",
+      "lignes_ecrites": 461,
+      "pytest_tail": "[regression]\n\u001b[32m\u001b[32m\u001b[1m44 passed\u001b[0m\u001b[32m in 0.02s\u001b[0m\u001b[0m\n[extension]\n\u001b[32m\u001b[32m\u001b[1m18 passed\u001b[0m\u001b[32m in 0.01s\u001b[0m\u001b[0m",
+      "tests_ajoutes": [],
+      "gardes_violees": [],
+      "api_modifiee": [],
+      "fichiers_modifies": [
+        "tetris/__init__.py",
+        "tetris/extension.py"
+      ]
+    }
+  ]
+}

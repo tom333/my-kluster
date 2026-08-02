@@ -1,0 +1,126 @@
+{
+  "scenario": "tetris",
+  "harnais": "pi",
+  "modele": "localai/gemma-4-12b-it-qat-p1",
+  "runs": 3,
+  "tests_passed": 13,
+  "tests_passed_median": 13,
+  "tests_passed_min": 0,
+  "tests_passed_max": 29,
+  "tests_passed_ecart": 29,
+  "tests_passed_tous": [
+    13,
+    0,
+    29
+  ],
+  "tests_attendus": 44,
+  "verdict": "FAIL",
+  "tours_median": 12,
+  "pic_input_median": 34139,
+  "duree_s_median": 253.2,
+  "format_appels": "json",
+  "essais": [
+    {
+      "essai": 1,
+      "duree_s": 311.6,
+      "timeout": false,
+      "returncode": 0,
+      "depart": {
+        "passed": 0,
+        "failed": 0
+      },
+      "workdir": "/tmp/harness-bench-tetris-pi-localai-gemma-4-12b-it-qat-p1-r1",
+      "tours": 12,
+      "appels_outils": 10,
+      "outils_utilises": [
+        "bash",
+        "read",
+        "write"
+      ],
+      "format_appels": "json",
+      "pic_input": 45346,
+      "total_input": 173389,
+      "total_output": 12460,
+      "verdict": "FAIL",
+      "tests_passed": 13,
+      "tests_failed": 31,
+      "tests_attendus": 44,
+      "pytest_tail": "\u001b[31m\u001b[31m\u001b[1m31 failed\u001b[0m, \u001b[32m13 passed\u001b[0m\u001b[31m in 0.25s\u001b[0m\u001b[0m",
+      "gardes_violees": [],
+      "api_modifiee": [],
+      "fichiers_modifies": [
+        "tetris/__init__.py",
+        "tetris/bag.py",
+        "tetris/board.py",
+        "tetris/game.py",
+        "tetris/piece.py"
+      ]
+    },
+    {
+      "essai": 2,
+      "duree_s": 247.4,
+      "timeout": false,
+      "returncode": 0,
+      "depart": {
+        "passed": 0,
+        "failed": 0
+      },
+      "workdir": "/tmp/harness-bench-tetris-pi-localai-gemma-4-12b-it-qat-p1-r2",
+      "tours": 11,
+      "appels_outils": 10,
+      "outils_utilises": [
+        "bash",
+        "read",
+        "write"
+      ],
+      "format_appels": "json",
+      "pic_input": 32986,
+      "total_input": 148266,
+      "total_output": 13427,
+      "verdict": "FAIL",
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "tests_attendus": 44,
+      "pytest_tail": "\u001b[31m\u001b[31m\u001b[1m1 error\u001b[0m\u001b[31m in 0.17s\u001b[0m\u001b[0m",
+      "gardes_violees": [],
+      "api_modifiee": [],
+      "fichiers_modifies": [
+        "tetris/__init__.py",
+        "tetris/tetris.py"
+      ]
+    },
+    {
+      "essai": 3,
+      "duree_s": 253.2,
+      "timeout": false,
+      "returncode": 0,
+      "depart": {
+        "passed": 0,
+        "failed": 0
+      },
+      "workdir": "/tmp/harness-bench-tetris-pi-localai-gemma-4-12b-it-qat-p1-r3",
+      "tours": 15,
+      "appels_outils": 14,
+      "outils_utilises": [
+        "bash",
+        "edit",
+        "read",
+        "write"
+      ],
+      "format_appels": "json",
+      "pic_input": 34139,
+      "total_input": 197689,
+      "total_output": 13733,
+      "verdict": "FAIL",
+      "tests_passed": 29,
+      "tests_failed": 15,
+      "tests_attendus": 44,
+      "pytest_tail": "\u001b[31m\u001b[31m\u001b[1m15 failed\u001b[0m, \u001b[32m29 passed\u001b[0m\u001b[31m in 0.13s\u001b[0m\u001b[0m",
+      "gardes_violees": [],
+      "api_modifiee": [],
+      "fichiers_modifies": [
+        "tetris/__init__.py"
+      ]
+    }
+  ]
+}

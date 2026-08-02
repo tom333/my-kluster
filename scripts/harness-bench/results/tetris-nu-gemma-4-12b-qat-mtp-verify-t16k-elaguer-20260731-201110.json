@@ -1,0 +1,270 @@
+{
+  "scenario": "tetris",
+  "harnais": "nu",
+  "modele": "gemma-4-12b-qat/mtp-verify-t16k-elaguer",
+  "runs": 5,
+  "tests_passed": 44,
+  "tests_passed_median": 44,
+  "tests_passed_min": 40,
+  "tests_passed_max": 44,
+  "tests_passed_ecart": 4,
+  "tests_passed_tous": [
+    0,
+    44,
+    44,
+    40,
+    44
+  ],
+  "tests_passed_notables": [
+    44,
+    44,
+    40,
+    44
+  ],
+  "essais_comparables": 4,
+  "essais_erreur_collecte": 1,
+  "essais_pytest_pend": 0,
+  "tests_attendus": 44,
+  "verdict": "PASS",
+  "tours_median": 15,
+  "pic_input_median": 31918,
+  "duree_s_median": 791.5,
+  "format_appels": "openai_tool_calls",
+  "essais": [
+    {
+      "essai": 1,
+      "duree_s": 387.5,
+      "timeout": false,
+      "returncode": 0,
+      "depart": {
+        "passed": 0,
+        "failed": 0
+      },
+      "workdir": "/tmp/harness-bench-tetris-nu-gemma-4-12b-qat-mtp-verify-t16k-elaguer-r1",
+      "tours": 7,
+      "appels_outils": {
+        "read": 1,
+        "write": 4
+      },
+      "format_appels": "openai_tool_calls",
+      "pic_input": 9699,
+      "total_input": 34374,
+      "total_output": 27097,
+      "stop_reason": "error",
+      "erreur": "Server error '500 Internal Server Error' for url 'http://127.0.0.1:8080/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500",
+      "verifications": 1,
+      "verif_ok": false,
+      "retries_troncature": 2,
+      "hygiene": [
+        "elaguer-sorties"
+      ],
+      "caracteres_economises": 90,
+      "writes_rattrapes": 0,
+      "verdict": "FAIL",
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "tests_attendus": 44,
+      "etages": {},
+      "issue": "erreur_collecte",
+      "lignes_ecrites": 179,
+      "pytest_tail": "\u001b[31m\u001b[31m\u001b[1m1 error\u001b[0m\u001b[31m in 0.09s\u001b[0m\u001b[0m",
+      "tests_ajoutes": [],
+      "gardes_violees": [],
+      "api_modifiee": [],
+      "fichiers_modifies": [
+        "tetris/__init__.py"
+      ]
+    },
+    {
+      "essai": 2,
+      "duree_s": 809.6,
+      "timeout": false,
+      "returncode": 0,
+      "depart": {
+        "passed": 0,
+        "failed": 0
+      },
+      "workdir": "/tmp/harness-bench-tetris-nu-gemma-4-12b-qat-mtp-verify-t16k-elaguer-r2",
+      "tours": 13,
+      "appels_outils": {
+        "read": 1,
+        "bash": 5,
+        "write": 6
+      },
+      "format_appels": "openai_tool_calls",
+      "pic_input": 30991,
+      "total_input": 202540,
+      "total_output": 45862,
+      "stop_reason": "done_verifie",
+      "erreur": null,
+      "verifications": 1,
+      "verif_ok": true,
+      "retries_troncature": 1,
+      "hygiene": [
+        "elaguer-sorties"
+      ],
+      "caracteres_economises": 59191,
+      "writes_rattrapes": 0,
+      "verdict": "PASS",
+      "tests_passed": 44,
+      "tests_failed": 0,
+      "tests_attendus": 44,
+      "etages": {},
+      "issue": "collecte_ok",
+      "lignes_ecrites": 206,
+      "pytest_tail": "\u001b[32m\u001b[32m\u001b[1m44 passed\u001b[0m\u001b[32m in 0.03s\u001b[0m\u001b[0m",
+      "tests_ajoutes": [],
+      "gardes_violees": [],
+      "api_modifiee": [],
+      "fichiers_modifies": [
+        "tetris/__init__.py"
+      ]
+    },
+    {
+      "essai": 3,
+      "duree_s": 699.6,
+      "timeout": false,
+      "returncode": 0,
+      "depart": {
+        "passed": 0,
+        "failed": 0
+      },
+      "workdir": "/tmp/harness-bench-tetris-nu-gemma-4-12b-qat-mtp-verify-t16k-elaguer-r3",
+      "tours": 15,
+      "appels_outils": {
+        "read": 1,
+        "bash": 6,
+        "write": 7
+      },
+      "format_appels": "openai_tool_calls",
+      "pic_input": 33780,
+      "total_input": 312696,
+      "total_output": 32152,
+      "stop_reason": "done_verifie",
+      "erreur": null,
+      "verifications": 1,
+      "verif_ok": true,
+      "retries_troncature": 0,
+      "hygiene": [
+        "elaguer-sorties"
+      ],
+      "caracteres_economises": 132197,
+      "writes_rattrapes": 0,
+      "verdict": "PASS",
+      "tests_passed": 44,
+      "tests_failed": 0,
+      "tests_attendus": 44,
+      "etages": {},
+      "issue": "collecte_ok",
+      "lignes_ecrites": 217,
+      "pytest_tail": "\u001b[32m\u001b[32m\u001b[1m44 passed\u001b[0m\u001b[32m in 0.02s\u001b[0m\u001b[0m",
+      "tests_ajoutes": [],
+      "gardes_violees": [],
+      "api_modifiee": [],
+      "fichiers_modifies": [
+        "tetris/__init__.py"
+      ]
+    },
+    {
+      "essai": 4,
+      "duree_s": 937.7,
+      "timeout": false,
+      "returncode": 0,
+      "depart": {
+        "passed": 0,
+        "failed": 0
+      },
+      "workdir": "/tmp/harness-bench-tetris-nu-gemma-4-12b-qat-mtp-verify-t16k-elaguer-r4",
+      "tours": 30,
+      "appels_outils": {
+        "read": 1,
+        "write": 21,
+        "bash": 8
+      },
+      "format_appels": "openai_tool_calls",
+      "pic_input": 45889,
+      "total_input": 626727,
+      "total_output": 39066,
+      "stop_reason": "max_turns",
+      "erreur": null,
+      "verifications": 0,
+      "verif_ok": null,
+      "retries_troncature": 0,
+      "hygiene": [
+        "elaguer-sorties"
+      ],
+      "caracteres_economises": 258717,
+      "writes_rattrapes": 0,
+      "verdict": "FAIL",
+      "tests_passed": 40,
+      "tests_failed": 4,
+      "tests_attendus": 44,
+      "etages": {},
+      "issue": "collecte_ok",
+      "lignes_ecrites": 254,
+      "pytest_tail": "\u001b[31m\u001b[31m\u001b[1m4 failed\u001b[0m, \u001b[32m40 passed\u001b[0m\u001b[31m in 0.07s\u001b[0m\u001b[0m",
+      "tests_ajoutes": [],
+      "gardes_violees": [],
+      "api_modifiee": [],
+      "fichiers_modifies": [
+        "tetris/__init__.py",
+        "tetris/bag.py",
+        "tetris/board.py",
+        "tetris/game.py",
+        "tetris/piece.py",
+        "tetris/shapes.py"
+      ]
+    },
+    {
+      "essai": 5,
+      "duree_s": 791.5,
+      "timeout": false,
+      "returncode": 0,
+      "depart": {
+        "passed": 0,
+        "failed": 0
+      },
+      "workdir": "/tmp/harness-bench-tetris-nu-gemma-4-12b-qat-mtp-verify-t16k-elaguer-r5",
+      "tours": 29,
+      "appels_outils": {
+        "read": 2,
+        "bash": 11,
+        "write": 14,
+        "edit": 1
+      },
+      "format_appels": "openai_tool_calls",
+      "pic_input": 31918,
+      "total_input": 510035,
+      "total_output": 30443,
+      "stop_reason": "done_verifie",
+      "erreur": null,
+      "verifications": 1,
+      "verif_ok": true,
+      "retries_troncature": 0,
+      "hygiene": [
+        "elaguer-sorties"
+      ],
+      "caracteres_economises": 768480,
+      "writes_rattrapes": 0,
+      "verdict": "PASS",
+      "tests_passed": 44,
+      "tests_failed": 0,
+      "tests_attendus": 44,
+      "etages": {},
+      "issue": "collecte_ok",
+      "lignes_ecrites": 241,
+      "pytest_tail": "\u001b[32m\u001b[32m\u001b[1m44 passed\u001b[0m\u001b[32m in 0.03s\u001b[0m\u001b[0m",
+      "tests_ajoutes": [],
+      "gardes_violees": [],
+      "api_modifiee": [],
+      "fichiers_modifies": [
+        "tetris/__init__.py",
+        "tetris/bag.py",
+        "tetris/board.py",
+        "tetris/game.py",
+        "tetris/piece.py",
+        "tetris/shapes.py"
+      ]
+    }
+  ]
+}

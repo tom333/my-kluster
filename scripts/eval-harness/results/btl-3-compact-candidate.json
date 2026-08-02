@@ -1,0 +1,17 @@
+{
+  "model": "btl-3-compact",
+  "tag": "candidate",
+  "metrics": {
+    "coding_pass_rate": 0.0,
+    "toolcall_acc": 0.0,
+    "format_acc": 0.0,
+    "reasoning_acc": 0.0,
+    "mean_tokps": 0.0,
+    "agentic_success_rate": 0.0,
+    "agentic_avg_turns": 0.0,
+    "overall": 0.0,
+    "hermes_ready": 0,
+    "unreachable": 1
+  },
+  "unreachable": true
+}

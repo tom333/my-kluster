@@ -1,0 +1,146 @@
+{
+  "scenario": "tetris",
+  "harnais": "pi",
+  "modele": "llamanu/gemma-qat",
+  "runs": 3,
+  "tests_passed": 40,
+  "tests_passed_median": 40,
+  "tests_passed_min": 40,
+  "tests_passed_max": 40,
+  "tests_passed_ecart": 0,
+  "tests_passed_tous": [
+    0,
+    0,
+    40
+  ],
+  "tests_passed_notables": [
+    40
+  ],
+  "essais_comparables": 1,
+  "essais_erreur_collecte": 0,
+  "essais_pytest_pend": 2,
+  "tests_attendus": 44,
+  "verdict": "FAIL",
+  "tours_median": 17,
+  "pic_input_median": 8272,
+  "duree_s_median": 851.2,
+  "format_appels": "json",
+  "essais": [
+    {
+      "essai": 1,
+      "duree_s": 2400.9,
+      "timeout": true,
+      "returncode": -1,
+      "depart": {
+        "passed": 0,
+        "failed": 0
+      },
+      "workdir": "/tmp/harness-bench-tetris-pi-llamanu-gemma-qat-r1",
+      "tours": 17,
+      "appels_outils": 18,
+      "outils_utilises": [
+        "bash",
+        "edit",
+        "read",
+        "write"
+      ],
+      "format_appels": "json",
+      "pic_input": 8272,
+      "total_input": 32137,
+      "total_output": 17585,
+      "verdict": "FAIL",
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "tests_attendus": 44,
+      "issue": "pytest_pend",
+      "lignes_ecrites": 537,
+      "pytest_tail": "TIMEOUT pytest apres 180s (boucle infinie dans le code genere)",
+      "gardes_violees": [],
+      "api_modifiee": [],
+      "fichiers_modifies": [
+        "test_board_clear.py",
+        "tetris/__init__.py",
+        "tetris/bag.py",
+        "tetris/board.py",
+        "tetris/game.py",
+        "tetris/piece.py",
+        "tetris/shapes.py"
+      ]
+    },
+    {
+      "essai": 2,
+      "duree_s": 723.9,
+      "timeout": false,
+      "returncode": 0,
+      "depart": {
+        "passed": 0,
+        "failed": 0
+      },
+      "workdir": "/tmp/harness-bench-tetris-pi-llamanu-gemma-qat-r2",
+      "tours": 18,
+      "appels_outils": 17,
+      "outils_utilises": [
+        "bash",
+        "edit",
+        "read",
+        "write"
+      ],
+      "format_appels": "json",
+      "pic_input": 17584,
+      "total_input": 43612,
+      "total_output": 22412,
+      "verdict": "FAIL",
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "tests_attendus": 44,
+      "issue": "pytest_pend",
+      "lignes_ecrites": 255,
+      "pytest_tail": "TIMEOUT pytest apres 180s (boucle infinie dans le code genere)",
+      "gardes_violees": [],
+      "api_modifiee": [],
+      "fichiers_modifies": [
+        "tetris/__init__.py",
+        "tetris/bag.py",
+        "tetris/board.py",
+        "tetris/game.py",
+        "tetris/piece.py",
+        "tetris/shapes.py"
+      ]
+    },
+    {
+      "essai": 3,
+      "duree_s": 851.2,
+      "timeout": false,
+      "returncode": 0,
+      "depart": {
+        "passed": 0,
+        "failed": 0
+      },
+      "workdir": "/tmp/harness-bench-tetris-pi-llamanu-gemma-qat-r3",
+      "tours": 16,
+      "appels_outils": 15,
+      "outils_utilises": [
+        "bash",
+        "edit",
+        "read",
+        "write"
+      ],
+      "format_appels": "json",
+      "pic_input": 6300,
+      "total_input": 36954,
+      "total_output": 26586,
+      "verdict": "FAIL",
+      "tests_passed": 40,
+      "tests_failed": 4,
+      "tests_attendus": 44,
+      "issue": "collecte_ok",
+      "lignes_ecrites": 269,
+      "pytest_tail": "4 failed, 40 passed in 0.05s",
+      "gardes_violees": [],
+      "api_modifiee": [],
+      "fichiers_modifies": [
+        "tetris/__init__.py"
+      ]
+    }
+  ]
+}

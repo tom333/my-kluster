@@ -1,0 +1,141 @@
+{
+  "scenario": "tetris",
+  "harnais": "pi",
+  "modele": "localai/bonsai-27b",
+  "runs": 3,
+  "tests_passed": 18,
+  "tests_passed_median": 18,
+  "tests_passed_min": 16,
+  "tests_passed_max": 19,
+  "tests_passed_ecart": 3,
+  "tests_passed_tous": [
+    16,
+    19,
+    0
+  ],
+  "tests_passed_notables": [
+    16,
+    19
+  ],
+  "essais_comparables": 2,
+  "essais_erreur_collecte": 0,
+  "essais_pytest_pend": 1,
+  "tests_attendus": 44,
+  "verdict": "FAIL",
+  "tours_median": 5,
+  "pic_input_median": 11432,
+  "duree_s_median": 299.9,
+  "format_appels": "json",
+  "essais": [
+    {
+      "essai": 1,
+      "duree_s": 299.9,
+      "timeout": false,
+      "returncode": 0,
+      "depart": {
+        "passed": 0,
+        "failed": 0
+      },
+      "workdir": "/tmp/harness-bench-tetris-pi-localai-bonsai-27b-r1",
+      "tours": 11,
+      "appels_outils": 9,
+      "outils_utilises": [
+        "bash",
+        "read",
+        "write"
+      ],
+      "format_appels": "json",
+      "pic_input": 11432,
+      "total_input": 67556,
+      "total_output": 4985,
+      "verdict": "FAIL",
+      "tests_passed": 16,
+      "tests_failed": 28,
+      "tests_attendus": 44,
+      "issue": "collecte_ok",
+      "lignes_ecrites": 312,
+      "pytest_tail": "\u001b[31m\u001b[31m\u001b[1m28 failed\u001b[0m, \u001b[32m16 passed\u001b[0m\u001b[31m in 0.30s\u001b[0m\u001b[0m",
+      "tests_ajoutes": [],
+      "gardes_violees": [],
+      "api_modifiee": [],
+      "fichiers_modifies": [
+        "tetris/__init__.py",
+        "tetris/bag.py",
+        "tetris/board.py",
+        "tetris/game.py",
+        "tetris/piece.py",
+        "tetris/shapes.py"
+      ]
+    },
+    {
+      "essai": 2,
+      "duree_s": 201.5,
+      "timeout": false,
+      "returncode": 0,
+      "depart": {
+        "passed": 0,
+        "failed": 0
+      },
+      "workdir": "/tmp/harness-bench-tetris-pi-localai-bonsai-27b-r2",
+      "tours": 5,
+      "appels_outils": 4,
+      "outils_utilises": [
+        "bash",
+        "read",
+        "write"
+      ],
+      "format_appels": "json",
+      "pic_input": 32720,
+      "total_input": 56832,
+      "total_output": 3033,
+      "verdict": "FAIL",
+      "tests_passed": 19,
+      "tests_failed": 25,
+      "tests_attendus": 44,
+      "issue": "collecte_ok",
+      "lignes_ecrites": 273,
+      "pytest_tail": "\u001b[31m\u001b[31m\u001b[1m25 failed\u001b[0m, \u001b[32m19 passed\u001b[0m\u001b[31m in 0.29s\u001b[0m\u001b[0m",
+      "tests_ajoutes": [],
+      "gardes_violees": [],
+      "api_modifiee": [],
+      "fichiers_modifies": [
+        "tetris/__init__.py"
+      ]
+    },
+    {
+      "essai": 3,
+      "duree_s": 900.1,
+      "timeout": true,
+      "returncode": -1,
+      "depart": {
+        "passed": 0,
+        "failed": 0
+      },
+      "workdir": "/tmp/harness-bench-tetris-pi-localai-bonsai-27b-r3",
+      "tours": 2,
+      "appels_outils": 3,
+      "outils_utilises": [
+        "bash",
+        "read",
+        "write"
+      ],
+      "format_appels": "json",
+      "pic_input": 6355,
+      "total_input": 8141,
+      "total_output": 2915,
+      "verdict": "FAIL",
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "tests_attendus": 44,
+      "issue": "pytest_pend",
+      "lignes_ecrites": 293,
+      "pytest_tail": "TIMEOUT pytest apres 180s (boucle infinie dans le code genere)",
+      "tests_ajoutes": [],
+      "gardes_violees": [],
+      "api_modifiee": [],
+      "fichiers_modifies": [
+        "tetris.py"
+      ]
+    }
+  ]
+}

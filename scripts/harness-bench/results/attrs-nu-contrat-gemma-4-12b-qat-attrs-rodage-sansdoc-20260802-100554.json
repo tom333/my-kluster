@@ -1,0 +1,234 @@
+{
+  "scenario": "attrs",
+  "harnais": "nu-contrat",
+  "modele": "gemma-4-12b-qat/attrs-rodage-sansdoc",
+  "runs": 1,
+  "tests_passed": 38,
+  "tests_passed_median": 38,
+  "tests_passed_min": 38,
+  "tests_passed_max": 38,
+  "tests_passed_ecart": 0,
+  "tests_passed_tous": [
+    38
+  ],
+  "tests_passed_notables": [
+    38
+  ],
+  "essais_comparables": 1,
+  "essais_erreur_collecte": 0,
+  "essais_pytest_pend": 0,
+  "tests_attendus": 38,
+  "verdict": "PASS",
+  "tours_median": 259,
+  "pic_input_median": 39518,
+  "duree_s_median": 1372,
+  "sortie_par_test_median": 2088.026,
+  "tours_par_test_median": 6.816,
+  "config_env": {
+    "HARNAIS_NU_MAX_RETRY_TRONCATURE": "2",
+    "HARNAIS_NU_MAX_TOKENS_PER_TURN": "16384",
+    "HARNAIS_NU_MAX_TOTAL_TOKENS": "400000",
+    "HARNAIS_NU_MAX_TURNS": "60",
+    "HARNAIS_NU_MAX_VERIFY": "3",
+    "HARNAIS_NU_VERIFY_CMD": "/usr/bin/pytest -q"
+  },
+  "commande": "bench.py --harness nu-contrat --scenario attrs --runs 1 --model gemma-4-12b-qat/attrs-rodage-sansdoc --timeout 1500",
+  "format_appels": "phases isolées",
+  "essais": [
+    {
+      "essai": 1,
+      "duree_s": 1371.6,
+      "timeout": false,
+      "returncode": 0,
+      "depart": {
+        "passed": 0,
+        "failed": 0
+      },
+      "workdir": "/tmp/harness-bench-attrs-nu-contrat-gemma-4-12b-qat-attrs-rodage-sansdoc",
+      "tours": 259,
+      "appels_outils": null,
+      "format_appels": "phases isolées",
+      "pic_input": 39518,
+      "total_output": 79345,
+      "cycles": 1,
+      "etapes": 20,
+      "contradictions": 0,
+      "fin": "ok",
+      "journal": [
+        {
+          "phase": "comprendre",
+          "result": "approved",
+          "tours": 9
+        },
+        {
+          "phase": "porte",
+          "result": "ok",
+          "tours": 0
+        },
+        {
+          "phase": "implementer",
+          "result": "done",
+          "tours": 19
+        },
+        {
+          "phase": "verifier",
+          "result": "echec",
+          "tours": 0
+        },
+        {
+          "phase": "implementer",
+          "result": "max_turns",
+          "tours": 30
+        },
+        {
+          "phase": "verifier",
+          "result": "echec",
+          "tours": 0
+        },
+        {
+          "phase": "implementer",
+          "result": "approved",
+          "tours": 21
+        },
+        {
+          "phase": "verifier",
+          "result": "echec",
+          "tours": 0
+        },
+        {
+          "phase": "implementer",
+          "result": "max_turns",
+          "tours": 30
+        },
+        {
+          "phase": "verifier",
+          "result": "echec",
+          "tours": 0
+        },
+        {
+          "phase": "implementer",
+          "result": "max_turns",
+          "tours": 30
+        },
+        {
+          "phase": "verifier",
+          "result": "echec",
+          "tours": 0
+        },
+        {
+          "phase": "implementer",
+          "result": "max_turns",
+          "tours": 30
+        },
+        {
+          "phase": "verifier",
+          "result": "echec",
+          "tours": 0
+        },
+        {
+          "phase": "implementer",
+          "result": "max_turns",
+          "tours": 30
+        },
+        {
+          "phase": "verifier",
+          "result": "echec",
+          "tours": 0
+        },
+        {
+          "phase": "implementer",
+          "result": "max_turns",
+          "tours": 30
+        },
+        {
+          "phase": "verifier",
+          "result": "echec",
+          "tours": 0
+        },
+        {
+          "phase": "implementer",
+          "result": "max_turns",
+          "tours": 30
+        },
+        {
+          "phase": "verifier",
+          "result": "ok",
+          "tours": 0
+        }
+      ],
+      "verdict": "PASS",
+      "tests_passed": 38,
+      "tests_failed": 0,
+      "tests_attendus": 38,
+      "etages": {
+        "piece": {
+          "passed": 11,
+          "failed": 0,
+          "attendus": 11,
+          "issue": "collecte_ok",
+          "verdict": "PASS"
+        },
+        "evolution": {
+          "passed": 7,
+          "failed": 0,
+          "attendus": 7,
+          "issue": "collecte_ok",
+          "verdict": "PASS"
+        },
+        "serialisation": {
+          "passed": 5,
+          "failed": 0,
+          "attendus": 5,
+          "issue": "collecte_ok",
+          "verdict": "PASS"
+        },
+        "gele": {
+          "passed": 6,
+          "failed": 0,
+          "attendus": 6,
+          "issue": "collecte_ok",
+          "verdict": "PASS"
+        },
+        "derive": {
+          "passed": 5,
+          "failed": 0,
+          "attendus": 5,
+          "issue": "collecte_ok",
+          "verdict": "PASS"
+        },
+        "introspection": {
+          "passed": 4,
+          "failed": 0,
+          "attendus": 4,
+          "issue": "collecte_ok",
+          "verdict": "PASS"
+        }
+      },
+      "issue": "collecte_ok",
+      "lignes_ecrites": 149,
+      "pytest_tail": "[piece]\n\u001b[32m\u001b[32m\u001b[1m11 passed\u001b[0m\u001b[32m in 0.02s\u001b[0m\u001b[0m\n[evolution]\n\u001b[32m\u001b[32m\u001b[1m7 passed\u001b[0m\u001b[32m in 0.02s\u001b[0m\u001b[0m\n[serialisation]\n\u001b[32m\u001b[32m\u001b[1m5 passed\u001b[0m\u001b[32m in 0.02s\u001b[0m\u001b[0m\n[gele]\n\u001b[32m\u001b[32m\u001b[1m6 passed\u001b[0m\u001b[32m in 0.02s\u001b[0m\u001b[0m\n[derive]\n\u001b[32m\u001b[32m\u001b[1m5 passed\u001b[0m\u001b[32m in 0.02s\u001b[0m\u001b[0m\n[introspection]\n\u001b[32m\u001b[32m\u001b[1m4 passed\u001b[0m\u001b[32m in 0.02s\u001b[0m\u001b[0m",
+      "tests_ajoutes": [
+        "test_introspection_check.py"
+      ],
+      "gardes_violees": [],
+      "api_modifiee": [],
+      "fichiers_modifies": [
+        "check_attrs.py",
+        "check_attrs2.py",
+        "check_attrs3.py",
+        "check_attrs4.py",
+        "check_attrs5.py",
+        "check_attrs6.py",
+        "check_attrs7.py",
+        "inventaire/__init__.py",
+        "inventaire/derive.py",
+        "inventaire/evolution.py",
+        "inventaire/gele.py",
+        "inventaire/introspection.py",
+        "inventaire/piece.py",
+        "inventaire/serialisation.py",
+        "test_introspection_check.py"
+      ]
+    }
+  ]
+}

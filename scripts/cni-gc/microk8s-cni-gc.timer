@@ -1,0 +1,12 @@
+[Unit]
+Description=Lance le GC CNI MicroK8s toutes les 10 minutes
+
+[Timer]
+OnBootSec=5min
+OnUnitActiveSec=10min
+AccuracySec=30s
+Persistent=true
+Unit=microk8s-cni-gc.service
+
+[Install]
+WantedBy=timers.target

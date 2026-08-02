@@ -1,0 +1,102 @@
+{
+  "scenario": "tetris",
+  "harnais": "pi",
+  "modele": "localai/gemma-4-12b-it-qat-nomtp",
+  "runs": 3,
+  "tests_passed": 0,
+  "tests_passed_median": 0,
+  "tests_passed_min": 0,
+  "tests_passed_max": 0,
+  "tests_passed_ecart": 0,
+  "tests_passed_tous": [
+    0,
+    0,
+    0
+  ],
+  "tests_attendus": 44,
+  "verdict": "FAIL",
+  "tours_median": 0,
+  "pic_input_median": 0,
+  "duree_s_median": 900.1,
+  "format_appels": "aucun",
+  "essais": [
+    {
+      "essai": 1,
+      "duree_s": 900.1,
+      "timeout": true,
+      "returncode": -1,
+      "depart": {
+        "passed": 0,
+        "failed": 0
+      },
+      "workdir": "/tmp/harness-bench-tetris-pi-localai-gemma-4-12b-it-qat-nomtp-r1",
+      "tours": 0,
+      "appels_outils": 0,
+      "outils_utilises": [],
+      "format_appels": "aucun",
+      "pic_input": 0,
+      "total_input": 0,
+      "total_output": 0,
+      "verdict": "FAIL",
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "tests_attendus": 44,
+      "pytest_tail": "\u001b[31m\u001b[31m\u001b[1m1 error\u001b[0m\u001b[31m in 0.09s\u001b[0m\u001b[0m",
+      "gardes_violees": [],
+      "api_modifiee": [],
+      "fichiers_modifies": []
+    },
+    {
+      "essai": 2,
+      "duree_s": 900.1,
+      "timeout": true,
+      "returncode": -1,
+      "depart": {
+        "passed": 0,
+        "failed": 0
+      },
+      "workdir": "/tmp/harness-bench-tetris-pi-localai-gemma-4-12b-it-qat-nomtp-r2",
+      "tours": 0,
+      "appels_outils": 0,
+      "outils_utilises": [],
+      "format_appels": "aucun",
+      "pic_input": 0,
+      "total_input": 0,
+      "total_output": 0,
+      "verdict": "FAIL",
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "tests_attendus": 44,
+      "pytest_tail": "\u001b[31m\u001b[31m\u001b[1m1 error\u001b[0m\u001b[31m in 0.09s\u001b[0m\u001b[0m",
+      "gardes_violees": [],
+      "api_modifiee": [],
+      "fichiers_modifies": []
+    },
+    {
+      "essai": 3,
+      "duree_s": 900.1,
+      "timeout": true,
+      "returncode": -1,
+      "depart": {
+        "passed": 0,
+        "failed": 0
+      },
+      "workdir": "/tmp/harness-bench-tetris-pi-localai-gemma-4-12b-it-qat-nomtp-r3",
+      "tours": 0,
+      "appels_outils": 0,
+      "outils_utilises": [],
+      "format_appels": "aucun",
+      "pic_input": 0,
+      "total_input": 0,
+      "total_output": 0,
+      "verdict": "FAIL",
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "tests_attendus": 44,
+      "pytest_tail": "\u001b[31m\u001b[31m\u001b[1m1 error\u001b[0m\u001b[31m in 0.09s\u001b[0m\u001b[0m",
+      "gardes_violees": [],
+      "api_modifiee": [],
+      "fichiers_modifies": []
+    }
+  ]
+}

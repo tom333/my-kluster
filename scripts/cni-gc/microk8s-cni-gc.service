@@ -1,0 +1,20 @@
+[Unit]
+Description=GC des leases IPAM host-local orphelines (MicroK8s flannel)
+Documentation=https://github.com/tom333/my-kluster
+After=snap.microk8s.daemon-kubelite.service
+Wants=snap.microk8s.daemon-kubelite.service
+ConditionPathIsDirectory=/var/lib/cni/networks/microk8s-flannel-network
+
+[Service]
+Type=oneshot
+# PATH explicite pour que le wrapper snap microk8s.kubectl trouve /snap/bin et /usr/bin.
+Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/snap/bin
+ExecStart=/usr/local/sbin/microk8s-cni-gc
+Nice=10
+IOSchedulingClass=idle
+# Hardening volontairement désactivé :
+# - NoNewPrivileges=true bloque la transition de profil AppArmor de `snap run`
+#   ("cannot change profile for the next exec call: Operation not permitted")
+# - PrivateTmp / ProtectSystem=strict cassent les bind mounts snap-private-tmp
+# Le script n'exécute que `kubectl get pods` et des rm ciblés sur des fichiers
+# IPv4 dans /var/lib/cni/networks/, ce qui rend le hardening peu critique ici.

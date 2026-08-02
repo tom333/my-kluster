@@ -1,0 +1,29 @@
+name: btl-3-compact
+backend: llama-cpp
+known_usecases: [chat]
+context_size: 8192
+gpu_layers: 99
+f16: true
+flash_attention: true
+mmap: true
+cache_type_k: q8_0
+cache_type_v: q8_0
+parameters:
+  model: BTL-3-Compact-AVQ2.gguf
+  temperature: 0.6
+  top_p: 0.95
+  top_k: 20
+download_files:
+  - filename: BTL-3-Compact-AVQ2.gguf
+    uri: https://huggingface.co/badtheorylabs/BTL-3-Compact/resolve/main/model/BTL-3-Compact-AVQ2.gguf
+options:
+  - use_jinja:true
+function:
+  automatic_tool_parsing_fallback: true
+  grammar:
+    disable: true
+template:
+  use_tokenizer_template: true
+stopwords:
+  - "<|im_end|>"
+  - "<|endoftext|>"

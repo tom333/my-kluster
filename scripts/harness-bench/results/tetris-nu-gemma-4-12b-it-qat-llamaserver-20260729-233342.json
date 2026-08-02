@@ -1,0 +1,121 @@
+{
+  "scenario": "tetris",
+  "harnais": "nu",
+  "modele": "gemma-4-12b-it-qat-llamaserver",
+  "runs": 3,
+  "tests_passed": null,
+  "tests_passed_median": null,
+  "tests_passed_min": null,
+  "tests_passed_max": null,
+  "tests_passed_ecart": null,
+  "tests_passed_tous": [
+    0,
+    0,
+    0
+  ],
+  "tests_passed_notables": [],
+  "essais_comparables": 0,
+  "essais_erreur_collecte": 3,
+  "essais_pytest_pend": 0,
+  "tests_attendus": 44,
+  "verdict": "FAIL",
+  "tours_median": 2,
+  "pic_input_median": 3424,
+  "duree_s_median": 114.2,
+  "format_appels": "openai_tool_calls",
+  "essais": [
+    {
+      "essai": 1,
+      "duree_s": 114.2,
+      "timeout": false,
+      "returncode": 0,
+      "depart": {
+        "passed": 0,
+        "failed": 0
+      },
+      "workdir": "/tmp/harness-bench-tetris-nu-gemma-4-12b-it-qat-llamaserver-r1",
+      "tours": 2,
+      "appels_outils": {
+        "read": 1
+      },
+      "format_appels": "openai_tool_calls",
+      "pic_input": 3424,
+      "total_input": 3942,
+      "total_output": 4274,
+      "stop_reason": "done",
+      "erreur": null,
+      "verdict": "FAIL",
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "tests_attendus": 44,
+      "issue": "erreur_collecte",
+      "lignes_ecrites": 0,
+      "pytest_tail": "1 error in 0.07s",
+      "gardes_violees": [],
+      "api_modifiee": [],
+      "fichiers_modifies": []
+    },
+    {
+      "essai": 2,
+      "duree_s": 115.5,
+      "timeout": false,
+      "returncode": 0,
+      "depart": {
+        "passed": 0,
+        "failed": 0
+      },
+      "workdir": "/tmp/harness-bench-tetris-nu-gemma-4-12b-it-qat-llamaserver-r2",
+      "tours": 2,
+      "appels_outils": {
+        "read": 1
+      },
+      "format_appels": "openai_tool_calls",
+      "pic_input": 3481,
+      "total_input": 3999,
+      "total_output": 4331,
+      "stop_reason": "done",
+      "erreur": null,
+      "verdict": "FAIL",
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "tests_attendus": 44,
+      "issue": "erreur_collecte",
+      "lignes_ecrites": 0,
+      "pytest_tail": "1 error in 0.07s",
+      "gardes_violees": [],
+      "api_modifiee": [],
+      "fichiers_modifies": []
+    },
+    {
+      "essai": 3,
+      "duree_s": 113.8,
+      "timeout": false,
+      "returncode": 0,
+      "depart": {
+        "passed": 0,
+        "failed": 0
+      },
+      "workdir": "/tmp/harness-bench-tetris-nu-gemma-4-12b-it-qat-llamaserver-r3",
+      "tours": 2,
+      "appels_outils": {
+        "read": 1
+      },
+      "format_appels": "openai_tool_calls",
+      "pic_input": 3420,
+      "total_input": 3938,
+      "total_output": 4270,
+      "stop_reason": "done",
+      "erreur": null,
+      "verdict": "FAIL",
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "tests_attendus": 44,
+      "issue": "erreur_collecte",
+      "lignes_ecrites": 0,
+      "pytest_tail": "1 error in 0.07s",
+      "gardes_violees": [],
+      "api_modifiee": [],
+      "fichiers_modifies": []
+    }
+  ]
+}

@@ -1,0 +1,256 @@
+{
+  "scenario": "tetris",
+  "harnais": "nu",
+  "modele": "gemma-4-12b-qat-sans-raisonnement",
+  "runs": 5,
+  "tests_passed": 40,
+  "tests_passed_median": 40,
+  "tests_passed_min": 31,
+  "tests_passed_max": 44,
+  "tests_passed_ecart": 13,
+  "tests_passed_tous": [
+    0,
+    37,
+    44,
+    31,
+    42
+  ],
+  "tests_passed_notables": [
+    37,
+    44,
+    31,
+    42
+  ],
+  "essais_comparables": 4,
+  "essais_erreur_collecte": 1,
+  "essais_pytest_pend": 0,
+  "tests_attendus": 44,
+  "verdict": "FAIL",
+  "tours_median": 23,
+  "pic_input_median": 39275,
+  "duree_s_median": 1632.1,
+  "format_appels": "openai_tool_calls",
+  "essais": [
+    {
+      "essai": 1,
+      "duree_s": 465.3,
+      "timeout": false,
+      "returncode": 0,
+      "depart": {
+        "passed": 0,
+        "failed": 0
+      },
+      "workdir": "/tmp/harness-bench-tetris-nu-gemma-4-12b-qat-sans-raisonnement-r1",
+      "tours": 3,
+      "appels_outils": {
+        "read": 1,
+        "write": 1
+      },
+      "format_appels": "openai_tool_calls",
+      "pic_input": 3265,
+      "total_input": 3783,
+      "total_output": 16577,
+      "stop_reason": "error",
+      "erreur": "Server error '500 Internal Server Error' for url 'http://127.0.0.1:8080/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500",
+      "verifications": 0,
+      "verif_ok": null,
+      "retries_troncature": 2,
+      "hygiene": [
+        "sans-raisonnement"
+      ],
+      "caracteres_economises": 560,
+      "writes_rattrapes": 0,
+      "verdict": "FAIL",
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "tests_attendus": 44,
+      "issue": "erreur_collecte",
+      "lignes_ecrites": 0,
+      "pytest_tail": "1 error in 0.08s",
+      "tests_ajoutes": [],
+      "gardes_violees": [],
+      "api_modifiee": [],
+      "fichiers_modifies": []
+    },
+    {
+      "essai": 2,
+      "duree_s": 1693.6,
+      "timeout": false,
+      "returncode": 0,
+      "depart": {
+        "passed": 0,
+        "failed": 0
+      },
+      "workdir": "/tmp/harness-bench-tetris-nu-gemma-4-12b-qat-sans-raisonnement-r2",
+      "tours": 18,
+      "appels_outils": {
+        "read": 1,
+        "bash": 6,
+        "write": 9
+      },
+      "format_appels": "openai_tool_calls",
+      "pic_input": 47790,
+      "total_input": 411999,
+      "total_output": 54027,
+      "stop_reason": "error",
+      "erreur": "Server error '500 Internal Server Error' for url 'http://127.0.0.1:8080/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500",
+      "verifications": 1,
+      "verif_ok": false,
+      "retries_troncature": 2,
+      "hygiene": [
+        "sans-raisonnement"
+      ],
+      "caracteres_economises": 633524,
+      "writes_rattrapes": 0,
+      "verdict": "FAIL",
+      "tests_passed": 37,
+      "tests_failed": 7,
+      "tests_attendus": 44,
+      "issue": "collecte_ok",
+      "lignes_ecrites": 231,
+      "pytest_tail": "7 failed, 37 passed in 0.07s",
+      "tests_ajoutes": [],
+      "gardes_violees": [],
+      "api_modifiee": [],
+      "fichiers_modifies": [
+        "tetris/__init__.py"
+      ]
+    },
+    {
+      "essai": 3,
+      "duree_s": 1632.1,
+      "timeout": false,
+      "returncode": 0,
+      "depart": {
+        "passed": 0,
+        "failed": 0
+      },
+      "workdir": "/tmp/harness-bench-tetris-nu-gemma-4-12b-qat-sans-raisonnement-r3",
+      "tours": 26,
+      "appels_outils": {
+        "bash": 25
+      },
+      "format_appels": "openai_tool_calls",
+      "pic_input": 24551,
+      "total_input": 328939,
+      "total_output": 56544,
+      "stop_reason": "done_verifie",
+      "erreur": null,
+      "verifications": 1,
+      "verif_ok": true,
+      "retries_troncature": 2,
+      "hygiene": [
+        "sans-raisonnement"
+      ],
+      "caracteres_economises": 395821,
+      "writes_rattrapes": 0,
+      "verdict": "PASS",
+      "tests_passed": 44,
+      "tests_failed": 0,
+      "tests_attendus": 44,
+      "issue": "collecte_ok",
+      "lignes_ecrites": 268,
+      "pytest_tail": "44 passed in 0.03s",
+      "tests_ajoutes": [],
+      "gardes_violees": [],
+      "api_modifiee": [],
+      "fichiers_modifies": [
+        "tetris/__init__.py",
+        "tetris/bag.py",
+        "tetris/board.py",
+        "tetris/game.py",
+        "tetris/piece.py",
+        "tetris/shapes.py"
+      ]
+    },
+    {
+      "essai": 4,
+      "duree_s": 1152.2,
+      "timeout": false,
+      "returncode": 0,
+      "depart": {
+        "passed": 0,
+        "failed": 0
+      },
+      "workdir": "/tmp/harness-bench-tetris-nu-gemma-4-12b-qat-sans-raisonnement-r4",
+      "tours": 30,
+      "appels_outils": {
+        "read": 1,
+        "bash": 25,
+        "write": 4
+      },
+      "format_appels": "openai_tool_calls",
+      "pic_input": 46604,
+      "total_input": 786807,
+      "total_output": 36370,
+      "stop_reason": "max_turns",
+      "erreur": null,
+      "verifications": 0,
+      "verif_ok": null,
+      "retries_troncature": 0,
+      "hygiene": [
+        "sans-raisonnement"
+      ],
+      "caracteres_economises": 23809,
+      "writes_rattrapes": 0,
+      "verdict": "FAIL",
+      "tests_passed": 31,
+      "tests_failed": 13,
+      "tests_attendus": 44,
+      "issue": "collecte_ok",
+      "lignes_ecrites": 238,
+      "pytest_tail": "13 failed, 31 passed in 0.23s",
+      "tests_ajoutes": [],
+      "gardes_violees": [],
+      "api_modifiee": [],
+      "fichiers_modifies": [
+        "tetris/__init__.py"
+      ]
+    },
+    {
+      "essai": 5,
+      "duree_s": 2011.9,
+      "timeout": false,
+      "returncode": 0,
+      "depart": {
+        "passed": 0,
+        "failed": 0
+      },
+      "workdir": "/tmp/harness-bench-tetris-nu-gemma-4-12b-qat-sans-raisonnement-r5",
+      "tours": 23,
+      "appels_outils": {
+        "read": 3,
+        "bash": 8,
+        "write": 8,
+        "edit": 3
+      },
+      "format_appels": "openai_tool_calls",
+      "pic_input": 39275,
+      "total_input": 475386,
+      "total_output": 62975,
+      "stop_reason": "truncated",
+      "erreur": null,
+      "verifications": 0,
+      "verif_ok": null,
+      "retries_troncature": 2,
+      "hygiene": [
+        "sans-raisonnement"
+      ],
+      "caracteres_economises": 164598,
+      "writes_rattrapes": 0,
+      "verdict": "FAIL",
+      "tests_passed": 42,
+      "tests_failed": 2,
+      "tests_attendus": 44,
+      "issue": "collecte_ok",
+      "lignes_ecrites": 229,
+      "pytest_tail": "2 failed, 42 passed in 0.04s",
+      "tests_ajoutes": [],
+      "gardes_violees": [],
+      "api_modifiee": [],
+      "fichiers_modifies": [
+        "tetris/__init__.py"
+      ]
+    }
+  ]
+}

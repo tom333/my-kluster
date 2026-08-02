@@ -1,0 +1,557 @@
+{
+  "scenario": "columns",
+  "harnais": "nu-contrat",
+  "modele": "qwen3.5-4b/columns-contrat-e12",
+  "runs": 3,
+  "tests_passed": 52,
+  "tests_passed_median": 52,
+  "tests_passed_min": 36,
+  "tests_passed_max": 73,
+  "tests_passed_ecart": 37,
+  "tests_passed_tous": [
+    73,
+    36,
+    52
+  ],
+  "tests_passed_notables": [
+    73,
+    36,
+    52
+  ],
+  "essais_comparables": 3,
+  "essais_erreur_collecte": 0,
+  "essais_pytest_pend": 0,
+  "tests_attendus": 80,
+  "verdict": "FAIL",
+  "tours_median": 144,
+  "pic_input_median": 48662,
+  "duree_s_median": 2070,
+  "sortie_par_test_median": 1496.154,
+  "tours_par_test_median": 2.769,
+  "config_env": {
+    "HARNAIS_NU_MAX_ETAPES": "12",
+    "HARNAIS_NU_MAX_RETRY_TRONCATURE": "2",
+    "HARNAIS_NU_MAX_TOKENS_PER_TURN": "16384",
+    "HARNAIS_NU_MAX_TOTAL_TOKENS": "400000",
+    "HARNAIS_NU_MAX_TURNS": "60",
+    "HARNAIS_NU_MAX_VERIFY": "3",
+    "HARNAIS_NU_VERIFY_CMD": "/usr/bin/pytest -q"
+  },
+  "commande": "bench.py --harness nu-contrat --scenario columns --runs 3 --model qwen3.5-4b/columns-contrat-e12 --timeout 5400",
+  "format_appels": "phases isolées",
+  "essais": [
+    {
+      "essai": 1,
+      "duree_s": 2075.5,
+      "timeout": false,
+      "returncode": 0,
+      "depart": {
+        "passed": 0,
+        "failed": 0
+      },
+      "workdir": "/tmp/harness-bench-columns-nu-contrat-qwen3-5-4b-columns-contrat-e12-r1",
+      "tours": 138,
+      "appels_outils": null,
+      "format_appels": "phases isolées",
+      "pic_input": 48227,
+      "total_output": 96818,
+      "cycles": 1,
+      "etapes": 12,
+      "contradictions": 0,
+      "fin": "max_etapes",
+      "journal": [
+        {
+          "phase": "comprendre",
+          "result": "max_turns",
+          "tours": 10
+        },
+        {
+          "phase": "porte",
+          "result": "ok",
+          "tours": 0
+        },
+        {
+          "phase": "implementer",
+          "result": "error",
+          "tours": 22
+        },
+        {
+          "phase": "verifier",
+          "result": "echec",
+          "tours": 0
+        },
+        {
+          "phase": "implementer",
+          "result": "error",
+          "tours": 25
+        },
+        {
+          "phase": "verifier",
+          "result": "echec",
+          "tours": 0
+        },
+        {
+          "phase": "implementer",
+          "result": "max_turns",
+          "tours": 30
+        },
+        {
+          "phase": "verifier",
+          "result": "echec",
+          "tours": 0
+        },
+        {
+          "phase": "implementer",
+          "result": "truncated",
+          "tours": 28
+        },
+        {
+          "phase": "verifier",
+          "result": "echec",
+          "tours": 0
+        },
+        {
+          "phase": "implementer",
+          "result": "error",
+          "tours": 23
+        },
+        {
+          "phase": "verifier",
+          "result": "echec",
+          "tours": 0
+        }
+      ],
+      "verdict": "FAIL",
+      "tests_passed": 73,
+      "tests_failed": 7,
+      "tests_attendus": 80,
+      "etages": {
+        "plateau": {
+          "passed": 12,
+          "failed": 0,
+          "attendus": 12,
+          "issue": "collecte_ok",
+          "verdict": "PASS"
+        },
+        "colonne": {
+          "passed": 8,
+          "failed": 0,
+          "attendus": 8,
+          "issue": "collecte_ok",
+          "verdict": "PASS"
+        },
+        "mouvement": {
+          "passed": 12,
+          "failed": 1,
+          "attendus": 13,
+          "issue": "collecte_ok",
+          "verdict": "FAIL"
+        },
+        "horizontal": {
+          "passed": 9,
+          "failed": 0,
+          "attendus": 9,
+          "issue": "collecte_ok",
+          "verdict": "PASS"
+        },
+        "vertical": {
+          "passed": 7,
+          "failed": 0,
+          "attendus": 7,
+          "issue": "collecte_ok",
+          "verdict": "PASS"
+        },
+        "diagonales": {
+          "passed": 7,
+          "failed": 0,
+          "attendus": 7,
+          "issue": "collecte_ok",
+          "verdict": "PASS"
+        },
+        "simultane": {
+          "passed": 5,
+          "failed": 0,
+          "attendus": 5,
+          "issue": "collecte_ok",
+          "verdict": "PASS"
+        },
+        "cascade": {
+          "passed": 3,
+          "failed": 3,
+          "attendus": 6,
+          "issue": "collecte_ok",
+          "verdict": "FAIL"
+        },
+        "score": {
+          "passed": 5,
+          "failed": 1,
+          "attendus": 6,
+          "issue": "collecte_ok",
+          "verdict": "FAIL"
+        },
+        "fin": {
+          "passed": 5,
+          "failed": 2,
+          "attendus": 7,
+          "issue": "collecte_ok",
+          "verdict": "FAIL"
+        }
+      },
+      "issue": "collecte_ok",
+      "lignes_ecrites": 512,
+      "pytest_tail": "[plateau]\n\u001b[32m\u001b[32m\u001b[1m12 passed\u001b[0m\u001b[32m in 0.01s\u001b[0m\u001b[0m\n[colonne]\n\u001b[32m\u001b[32m\u001b[1m8 passed\u001b[0m\u001b[32m in 0.01s\u001b[0m\u001b[0m\n[mouvement]\n\u001b[31m\u001b[31m\u001b[1m1 failed\u001b[0m, \u001b[32m12 passed\u001b[0m\u001b[31m in 0.04s\u001b[0m\u001b[0m\n[horizontal]\n\u001b[32m\u001b[32m\u001b[1m9 passed\u001b[0m\u001b[32m in 0.01s\u001b[0m\u001b[0m\n[vertical]\n\u001b[32m\u001b[32m\u001b[1m7 passed\u001b[0m\u001b[32m in 0.01s\u001b[0m\u001b[0m\n[diagonales]\n\u001b[32m\u001b[32m\u001b[1m7 passed\u001b[0m\u001b[32m in 0.01s\u001b[0m\u001b[0m\n[simultane]\n\u001b[32m\u001b[32m\u001b[1m5 passed\u001b[0m\u001b[32m in 0.01s\u001b[0m\u001b[0m\n[cascade]\n\u001b[31m\u001b[31m\u001b[1m3 failed\u001b[0m, \u001b[32m3 passed\u001b[0m\u001b[31m in 0.03s\u001b[0m\u001b[0m\n[score]\n\u001b[31m\u001b[31m\u001b[1m1 failed\u001b[0m, \u001b[32m5 passed\u001b[0m\u001b[31m in 0.03s\u001b[0m\u001b[0m\n[fin]\n\u001b[31m\u001b[31m\u001b[1m2 failed\u001b[0m, \u001b[32m5 passed\u001b[0m\u001b[31m in 0.03s\u001b[0m\u001b[0m",
+      "tests_ajoutes": [],
+      "gardes_violees": [],
+      "api_modifiee": [],
+      "fichiers_modifies": [
+        "colonnes/__init__.py",
+        "colonnes/_alignements.py",
+        "colonnes/_colonne.py",
+        "colonnes/_jeu.py",
+        "colonnes/_plateau.py"
+      ]
+    },
+    {
+      "essai": 2,
+      "duree_s": 2070.5,
+      "timeout": false,
+      "returncode": 0,
+      "depart": {
+        "passed": 0,
+        "failed": 0
+      },
+      "workdir": "/tmp/harness-bench-columns-nu-contrat-qwen3-5-4b-columns-contrat-e12-r2",
+      "tours": 150,
+      "appels_outils": null,
+      "format_appels": "phases isolées",
+      "pic_input": 48852,
+      "total_output": 82929,
+      "cycles": 1,
+      "etapes": 12,
+      "contradictions": 0,
+      "fin": "max_etapes",
+      "journal": [
+        {
+          "phase": "comprendre",
+          "result": "approved",
+          "tours": 3
+        },
+        {
+          "phase": "porte",
+          "result": "ok",
+          "tours": 0
+        },
+        {
+          "phase": "implementer",
+          "result": "max_turns",
+          "tours": 30
+        },
+        {
+          "phase": "verifier",
+          "result": "echec",
+          "tours": 0
+        },
+        {
+          "phase": "implementer",
+          "result": "max_turns",
+          "tours": 30
+        },
+        {
+          "phase": "verifier",
+          "result": "echec",
+          "tours": 0
+        },
+        {
+          "phase": "implementer",
+          "result": "max_turns",
+          "tours": 30
+        },
+        {
+          "phase": "verifier",
+          "result": "echec",
+          "tours": 0
+        },
+        {
+          "phase": "implementer",
+          "result": "max_turns",
+          "tours": 30
+        },
+        {
+          "phase": "verifier",
+          "result": "echec",
+          "tours": 0
+        },
+        {
+          "phase": "implementer",
+          "result": "error",
+          "tours": 27
+        },
+        {
+          "phase": "verifier",
+          "result": "echec",
+          "tours": 0
+        }
+      ],
+      "verdict": "FAIL",
+      "tests_passed": 36,
+      "tests_failed": 44,
+      "tests_attendus": 80,
+      "etages": {
+        "plateau": {
+          "passed": 12,
+          "failed": 0,
+          "attendus": 12,
+          "issue": "collecte_ok",
+          "verdict": "PASS"
+        },
+        "colonne": {
+          "passed": 8,
+          "failed": 0,
+          "attendus": 8,
+          "issue": "collecte_ok",
+          "verdict": "PASS"
+        },
+        "mouvement": {
+          "passed": 2,
+          "failed": 11,
+          "attendus": 13,
+          "issue": "collecte_ok",
+          "verdict": "FAIL"
+        },
+        "horizontal": {
+          "passed": 4,
+          "failed": 5,
+          "attendus": 9,
+          "issue": "collecte_ok",
+          "verdict": "FAIL"
+        },
+        "vertical": {
+          "passed": 3,
+          "failed": 4,
+          "attendus": 7,
+          "issue": "collecte_ok",
+          "verdict": "FAIL"
+        },
+        "diagonales": {
+          "passed": 2,
+          "failed": 5,
+          "attendus": 7,
+          "issue": "collecte_ok",
+          "verdict": "FAIL"
+        },
+        "simultane": {
+          "passed": 0,
+          "failed": 5,
+          "attendus": 5,
+          "issue": "collecte_ok",
+          "verdict": "FAIL"
+        },
+        "cascade": {
+          "passed": 1,
+          "failed": 5,
+          "attendus": 6,
+          "issue": "collecte_ok",
+          "verdict": "FAIL"
+        },
+        "score": {
+          "passed": 2,
+          "failed": 4,
+          "attendus": 6,
+          "issue": "collecte_ok",
+          "verdict": "FAIL"
+        },
+        "fin": {
+          "passed": 2,
+          "failed": 5,
+          "attendus": 7,
+          "issue": "collecte_ok",
+          "verdict": "FAIL"
+        }
+      },
+      "issue": "collecte_ok",
+      "lignes_ecrites": 592,
+      "pytest_tail": "[plateau]\n\u001b[32m\u001b[32m\u001b[1m12 passed\u001b[0m\u001b[32m in 0.01s\u001b[0m\u001b[0m\n[colonne]\n\u001b[32m\u001b[32m\u001b[1m8 passed\u001b[0m\u001b[32m in 0.01s\u001b[0m\u001b[0m\n[mouvement]\n\u001b[31m\u001b[31m\u001b[1m11 failed\u001b[0m, \u001b[32m2 passed\u001b[0m\u001b[31m in 0.05s\u001b[0m\u001b[0m\n[horizontal]\n\u001b[31m\u001b[31m\u001b[1m5 failed\u001b[0m, \u001b[32m4 passed\u001b[0m\u001b[31m in 0.04s\u001b[0m\u001b[0m\n[vertical]\n\u001b[31m\u001b[31m\u001b[1m4 failed\u001b[0m, \u001b[32m3 passed\u001b[0m\u001b[31m in 0.04s\u001b[0m\u001b[0m\n[diagonales]\n\u001b[31m\u001b[31m\u001b[1m5 failed\u001b[0m, \u001b[32m2 passed\u001b[0m\u001b[31m in 0.04s\u001b[0m\u001b[0m\n[simultane]\n\u001b[31m\u001b[31m\u001b[1m5 failed\u001b[0m\u001b[31m in 0.04s\u001b[0m\u001b[0m\n[cascade]\n\u001b[31m\u001b[31m\u001b[1m5 failed\u001b[0m, \u001b[32m1 passed\u001b[0m\u001b[31m in 0.04s\u001b[0m\u001b[0m\n[score]\n\u001b[31m\u001b[31m\u001b[1m4 failed\u001b[0m, \u001b[32m2 passed\u001b[0m\u001b[31m in 0.04s\u001b[0m\u001b[0m\n[fin]\n\u001b[31m\u001b[31m\u001b[1m5 failed\u001b[0m, \u001b[32m2 passed\u001b[0m\u001b[31m in 0.04s\u001b[0m\u001b[0m",
+      "tests_ajoutes": [],
+      "gardes_violees": [],
+      "api_modifiee": [],
+      "fichiers_modifies": [
+        "colonnes/__init__.py",
+        "colonnes/alignements.py",
+        "colonnes/colonne.py",
+        "colonnes/jeu.py",
+        "colonnes/plateau.py"
+      ]
+    },
+    {
+      "essai": 3,
+      "duree_s": 1649.6,
+      "timeout": false,
+      "returncode": 0,
+      "depart": {
+        "passed": 0,
+        "failed": 0
+      },
+      "workdir": "/tmp/harness-bench-columns-nu-contrat-qwen3-5-4b-columns-contrat-e12-r3",
+      "tours": 144,
+      "appels_outils": null,
+      "format_appels": "phases isolées",
+      "pic_input": 48662,
+      "total_output": 77800,
+      "cycles": 1,
+      "etapes": 12,
+      "contradictions": 0,
+      "fin": "max_etapes",
+      "journal": [
+        {
+          "phase": "comprendre",
+          "result": "max_turns",
+          "tours": 10
+        },
+        {
+          "phase": "porte",
+          "result": "ok",
+          "tours": 0
+        },
+        {
+          "phase": "implementer",
+          "result": "error",
+          "tours": 25
+        },
+        {
+          "phase": "verifier",
+          "result": "echec",
+          "tours": 0
+        },
+        {
+          "phase": "implementer",
+          "result": "max_turns",
+          "tours": 30
+        },
+        {
+          "phase": "verifier",
+          "result": "echec",
+          "tours": 0
+        },
+        {
+          "phase": "implementer",
+          "result": "max_turns",
+          "tours": 30
+        },
+        {
+          "phase": "verifier",
+          "result": "echec",
+          "tours": 0
+        },
+        {
+          "phase": "implementer",
+          "result": "max_turns",
+          "tours": 30
+        },
+        {
+          "phase": "verifier",
+          "result": "echec",
+          "tours": 0
+        },
+        {
+          "phase": "implementer",
+          "result": "truncated",
+          "tours": 19
+        },
+        {
+          "phase": "verifier",
+          "result": "echec",
+          "tours": 0
+        }
+      ],
+      "verdict": "FAIL",
+      "tests_passed": 52,
+      "tests_failed": 28,
+      "tests_attendus": 80,
+      "etages": {
+        "plateau": {
+          "passed": 12,
+          "failed": 0,
+          "attendus": 12,
+          "issue": "collecte_ok",
+          "verdict": "PASS"
+        },
+        "colonne": {
+          "passed": 8,
+          "failed": 0,
+          "attendus": 8,
+          "issue": "collecte_ok",
+          "verdict": "PASS"
+        },
+        "mouvement": {
+          "passed": 11,
+          "failed": 2,
+          "attendus": 13,
+          "issue": "collecte_ok",
+          "verdict": "FAIL"
+        },
+        "horizontal": {
+          "passed": 8,
+          "failed": 1,
+          "attendus": 9,
+          "issue": "collecte_ok",
+          "verdict": "FAIL"
+        },
+        "vertical": {
+          "passed": 6,
+          "failed": 1,
+          "attendus": 7,
+          "issue": "collecte_ok",
+          "verdict": "FAIL"
+        },
+        "diagonales": {
+          "passed": 0,
+          "failed": 7,
+          "attendus": 7,
+          "issue": "collecte_ok",
+          "verdict": "FAIL"
+        },
+        "simultane": {
+          "passed": 1,
+          "failed": 4,
+          "attendus": 5,
+          "issue": "collecte_ok",
+          "verdict": "FAIL"
+        },
+        "cascade": {
+          "passed": 1,
+          "failed": 5,
+          "attendus": 6,
+          "issue": "collecte_ok",
+          "verdict": "FAIL"
+        },
+        "score": {
+          "passed": 2,
+          "failed": 4,
+          "attendus": 6,
+          "issue": "collecte_ok",
+          "verdict": "FAIL"
+        },
+        "fin": {
+          "passed": 3,
+          "failed": 4,
+          "attendus": 7,
+          "issue": "collecte_ok",
+          "verdict": "FAIL"
+        }
+      },
+      "issue": "collecte_ok",
+      "lignes_ecrites": 580,
+      "pytest_tail": "[plateau]\n\u001b[32m\u001b[32m\u001b[1m12 passed\u001b[0m\u001b[32m in 0.01s\u001b[0m\u001b[0m\n[colonne]\n\u001b[32m\u001b[32m\u001b[1m8 passed\u001b[0m\u001b[32m in 0.01s\u001b[0m\u001b[0m\n[mouvement]\n\u001b[31m\u001b[31m\u001b[1m2 failed\u001b[0m, \u001b[32m11 passed\u001b[0m\u001b[31m in 0.04s\u001b[0m\u001b[0m\n[horizontal]\n\u001b[31m\u001b[31m\u001b[1m1 failed\u001b[0m, \u001b[32m8 passed\u001b[0m\u001b[31m in 0.03s\u001b[0m\u001b[0m\n[vertical]\n\u001b[31m\u001b[31m\u001b[1m1 failed\u001b[0m, \u001b[32m6 passed\u001b[0m\u001b[31m in 0.03s\u001b[0m\u001b[0m\n[diagonales]\n\u001b[31m\u001b[31m\u001b[1m7 failed\u001b[0m\u001b[31m in 0.05s\u001b[0m\u001b[0m\n[simultane]\n\u001b[31m\u001b[31m\u001b[1m4 failed\u001b[0m, \u001b[32m1 passed\u001b[0m\u001b[31m in 0.04s\u001b[0m\u001b[0m\n[cascade]\n\u001b[31m\u001b[31m\u001b[1m5 failed\u001b[0m, \u001b[32m1 passed\u001b[0m\u001b[31m in 0.04s\u001b[0m\u001b[0m\n[score]\n\u001b[31m\u001b[31m\u001b[1m4 failed\u001b[0m, \u001b[32m2 passed\u001b[0m\u001b[31m in 0.04s\u001b[0m\u001b[0m\n[fin]\n\u001b[31m\u001b[31m\u001b[1m4 failed\u001b[0m, \u001b[32m3 passed\u001b[0m\u001b[31m in 0.04s\u001b[0m\u001b[0m",
+      "tests_ajoutes": [],
+      "gardes_violees": [],
+      "api_modifiee": [],
+      "fichiers_modifies": [
+        "colonnes/__init__.py",
+        "colonnes/alignements.py",
+        "colonnes/colonne.py",
+        "colonnes/jeu.py",
+        "colonnes/plateau.py"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+name: minicpm5-1b-claude-opus-fable5-thinking
+backend: llama-cpp
+known_usecases: [chat]
+context_size: 8192
+gpu_layers: 99
+f16: true
+flash_attention: true
+mmap: true
+cache_type_k: q8_0
+cache_type_v: q8_0
+parameters:
+  model: MiniCPM5-1B-Claude-Opus-Fable5-Thinking-Q8_0.gguf
+  temperature: 0.6
+  top_p: 0.95
+  top_k: 20
+download_files:
+  - filename: MiniCPM5-1B-Claude-Opus-Fable5-Thinking-Q8_0.gguf
+    uri: https://huggingface.co/GnLOLot/MiniCPM5-1B-Claude-Opus-Fable5-Thinking-GGUF/resolve/main/MiniCPM5-1B-Claude-Opus-Fable5-Thinking-Q8_0.gguf
+options:
+  - use_jinja:true
+function:
+  automatic_tool_parsing_fallback: true
+  grammar:
+    disable: true
+template:
+  use_tokenizer_template: true
+stopwords:
+  - "<|im_end|>"
+  - "<|endoftext|>"

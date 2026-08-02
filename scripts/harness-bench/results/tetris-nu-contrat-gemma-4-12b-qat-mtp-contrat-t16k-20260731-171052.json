@@ -1,0 +1,356 @@
+{
+  "scenario": "tetris",
+  "harnais": "nu-contrat",
+  "modele": "gemma-4-12b-qat/mtp-contrat-t16k",
+  "runs": 5,
+  "tests_passed": 44,
+  "tests_passed_median": 44,
+  "tests_passed_min": 44,
+  "tests_passed_max": 44,
+  "tests_passed_ecart": 0,
+  "tests_passed_tous": [
+    44,
+    44,
+    44,
+    44,
+    44
+  ],
+  "tests_passed_notables": [
+    44,
+    44,
+    44,
+    44,
+    44
+  ],
+  "essais_comparables": 5,
+  "essais_erreur_collecte": 0,
+  "essais_pytest_pend": 0,
+  "tests_attendus": 44,
+  "verdict": "PASS",
+  "tours_median": 21,
+  "pic_input_median": 45672,
+  "duree_s_median": 640.9,
+  "format_appels": "phases isolées",
+  "essais": [
+    {
+      "essai": 1,
+      "duree_s": 468.5,
+      "timeout": false,
+      "returncode": 0,
+      "depart": {
+        "passed": 0,
+        "failed": 0
+      },
+      "workdir": "/tmp/harness-bench-tetris-nu-contrat-gemma-4-12b-qat-mtp-contrat-t16k-r1",
+      "tours": 21,
+      "appels_outils": null,
+      "format_appels": "phases isolées",
+      "pic_input": 38537,
+      "total_output": 28950,
+      "cycles": 1,
+      "etapes": 4,
+      "contradictions": 0,
+      "fin": "ok",
+      "journal": [
+        {
+          "phase": "comprendre",
+          "result": "approved",
+          "tours": 7
+        },
+        {
+          "phase": "porte",
+          "result": "ok",
+          "tours": 0
+        },
+        {
+          "phase": "implementer",
+          "result": "approved",
+          "tours": 14
+        },
+        {
+          "phase": "verifier",
+          "result": "ok",
+          "tours": 0
+        }
+      ],
+      "verdict": "PASS",
+      "tests_passed": 44,
+      "tests_failed": 0,
+      "tests_attendus": 44,
+      "issue": "collecte_ok",
+      "lignes_ecrites": 213,
+      "pytest_tail": "\u001b[32m\u001b[32m\u001b[1m44 passed\u001b[0m\u001b[32m in 0.03s\u001b[0m\u001b[0m",
+      "tests_ajoutes": [],
+      "gardes_violees": [],
+      "api_modifiee": [],
+      "fichiers_modifies": [
+        "tetris/__init__.py"
+      ]
+    },
+    {
+      "essai": 2,
+      "duree_s": 1379.2,
+      "timeout": false,
+      "returncode": 0,
+      "depart": {
+        "passed": 0,
+        "failed": 0
+      },
+      "workdir": "/tmp/harness-bench-tetris-nu-contrat-gemma-4-12b-qat-mtp-contrat-t16k-r2",
+      "tours": 59,
+      "appels_outils": null,
+      "format_appels": "phases isolées",
+      "pic_input": 45672,
+      "total_output": 74705,
+      "cycles": 1,
+      "etapes": 8,
+      "contradictions": 0,
+      "fin": "ok",
+      "journal": [
+        {
+          "phase": "comprendre",
+          "result": "approved",
+          "tours": 7
+        },
+        {
+          "phase": "porte",
+          "result": "ok",
+          "tours": 0
+        },
+        {
+          "phase": "implementer",
+          "result": "error",
+          "tours": 19
+        },
+        {
+          "phase": "verifier",
+          "result": "echec",
+          "tours": 0
+        },
+        {
+          "phase": "implementer",
+          "result": "error",
+          "tours": 23
+        },
+        {
+          "phase": "verifier",
+          "result": "echec",
+          "tours": 0
+        },
+        {
+          "phase": "implementer",
+          "result": "done",
+          "tours": 10
+        },
+        {
+          "phase": "verifier",
+          "result": "ok",
+          "tours": 0
+        }
+      ],
+      "verdict": "PASS",
+      "tests_passed": 44,
+      "tests_failed": 0,
+      "tests_attendus": 44,
+      "issue": "collecte_ok",
+      "lignes_ecrites": 215,
+      "pytest_tail": "\u001b[32m\u001b[32m\u001b[1m44 passed\u001b[0m\u001b[32m in 0.03s\u001b[0m\u001b[0m",
+      "tests_ajoutes": [],
+      "gardes_violees": [],
+      "api_modifiee": [],
+      "fichiers_modifies": [
+        "tetris/__init__.py"
+      ]
+    },
+    {
+      "essai": 3,
+      "duree_s": 640.9,
+      "timeout": false,
+      "returncode": 0,
+      "depart": {
+        "passed": 0,
+        "failed": 0
+      },
+      "workdir": "/tmp/harness-bench-tetris-nu-contrat-gemma-4-12b-qat-mtp-contrat-t16k-r3",
+      "tours": 19,
+      "appels_outils": null,
+      "format_appels": "phases isolées",
+      "pic_input": 48476,
+      "total_output": 38784,
+      "cycles": 1,
+      "etapes": 4,
+      "contradictions": 0,
+      "fin": "ok",
+      "journal": [
+        {
+          "phase": "comprendre",
+          "result": "approved",
+          "tours": 2
+        },
+        {
+          "phase": "porte",
+          "result": "ok",
+          "tours": 0
+        },
+        {
+          "phase": "implementer",
+          "result": "done",
+          "tours": 17
+        },
+        {
+          "phase": "verifier",
+          "result": "ok",
+          "tours": 0
+        }
+      ],
+      "verdict": "PASS",
+      "tests_passed": 44,
+      "tests_failed": 0,
+      "tests_attendus": 44,
+      "issue": "collecte_ok",
+      "lignes_ecrites": 230,
+      "pytest_tail": "\u001b[32m\u001b[32m\u001b[1m44 passed\u001b[0m\u001b[32m in 0.03s\u001b[0m\u001b[0m",
+      "tests_ajoutes": [],
+      "gardes_violees": [],
+      "api_modifiee": [],
+      "fichiers_modifies": [
+        "tetris/__init__.py"
+      ]
+    },
+    {
+      "essai": 4,
+      "duree_s": 190.5,
+      "timeout": false,
+      "returncode": 0,
+      "depart": {
+        "passed": 0,
+        "failed": 0
+      },
+      "workdir": "/tmp/harness-bench-tetris-nu-contrat-gemma-4-12b-qat-mtp-contrat-t16k-r4",
+      "tours": 13,
+      "appels_outils": null,
+      "format_appels": "phases isolées",
+      "pic_input": 13711,
+      "total_output": 12362,
+      "cycles": 1,
+      "etapes": 4,
+      "contradictions": 0,
+      "fin": "ok",
+      "journal": [
+        {
+          "phase": "comprendre",
+          "result": "approved",
+          "tours": 5
+        },
+        {
+          "phase": "porte",
+          "result": "ok",
+          "tours": 0
+        },
+        {
+          "phase": "implementer",
+          "result": "approved",
+          "tours": 8
+        },
+        {
+          "phase": "verifier",
+          "result": "ok",
+          "tours": 0
+        }
+      ],
+      "verdict": "PASS",
+      "tests_passed": 44,
+      "tests_failed": 0,
+      "tests_attendus": 44,
+      "issue": "collecte_ok",
+      "lignes_ecrites": 207,
+      "pytest_tail": "\u001b[32m\u001b[32m\u001b[1m44 passed\u001b[0m\u001b[32m in 0.02s\u001b[0m\u001b[0m",
+      "tests_ajoutes": [],
+      "gardes_violees": [],
+      "api_modifiee": [],
+      "fichiers_modifies": [
+        "tetris/__init__.py"
+      ]
+    },
+    {
+      "essai": 5,
+      "duree_s": 1030.1,
+      "timeout": false,
+      "returncode": 0,
+      "depart": {
+        "passed": 0,
+        "failed": 0
+      },
+      "workdir": "/tmp/harness-bench-tetris-nu-contrat-gemma-4-12b-qat-mtp-contrat-t16k-r5",
+      "tours": 60,
+      "appels_outils": null,
+      "format_appels": "phases isolées",
+      "pic_input": 48088,
+      "total_output": 60056,
+      "cycles": 1,
+      "etapes": 8,
+      "contradictions": 0,
+      "fin": "ok",
+      "journal": [
+        {
+          "phase": "comprendre",
+          "result": "max_turns",
+          "tours": 10
+        },
+        {
+          "phase": "porte",
+          "result": "ok",
+          "tours": 0
+        },
+        {
+          "phase": "implementer",
+          "result": "done",
+          "tours": 11
+        },
+        {
+          "phase": "verifier",
+          "result": "echec",
+          "tours": 0
+        },
+        {
+          "phase": "implementer",
+          "result": "truncated",
+          "tours": 21
+        },
+        {
+          "phase": "verifier",
+          "result": "echec",
+          "tours": 0
+        },
+        {
+          "phase": "implementer",
+          "result": "approved",
+          "tours": 18
+        },
+        {
+          "phase": "verifier",
+          "result": "ok",
+          "tours": 0
+        }
+      ],
+      "verdict": "PASS",
+      "tests_passed": 44,
+      "tests_failed": 0,
+      "tests_attendus": 44,
+      "issue": "collecte_ok",
+      "lignes_ecrites": 426,
+      "pytest_tail": "\u001b[32m\u001b[32m\u001b[1m44 passed\u001b[0m\u001b[32m in 0.03s\u001b[0m\u001b[0m",
+      "tests_ajoutes": [],
+      "gardes_violees": [],
+      "api_modifiee": [],
+      "fichiers_modifies": [
+        "tetris/__init__.py",
+        "tetris/bag.py",
+        "tetris/board.py",
+        "tetris/game.py",
+        "tetris/piece.py",
+        "tetris/shapes.py"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,283 @@
+{
+  "scenario": "tetris",
+  "harnais": "nu-pipeline",
+  "modele": "gemma-4-12b-qat-pipeline",
+  "runs": 5,
+  "tests_passed": 44,
+  "tests_passed_median": 44,
+  "tests_passed_min": 36,
+  "tests_passed_max": 46,
+  "tests_passed_ecart": 10,
+  "tests_passed_tous": [
+    44,
+    44,
+    44,
+    36,
+    46
+  ],
+  "tests_passed_notables": [
+    44,
+    44,
+    44,
+    36,
+    46
+  ],
+  "essais_comparables": 5,
+  "essais_erreur_collecte": 0,
+  "essais_pytest_pend": 0,
+  "tests_attendus": 44,
+  "verdict": "PASS",
+  "tours_median": 31,
+  "pic_input_median": 45446,
+  "duree_s_median": 1654.4,
+  "format_appels": "phases isolées",
+  "essais": [
+    {
+      "essai": 1,
+      "duree_s": 1654.4,
+      "timeout": false,
+      "returncode": 0,
+      "depart": {
+        "passed": 0,
+        "failed": 0
+      },
+      "workdir": "/tmp/harness-bench-tetris-nu-pipeline-gemma-4-12b-qat-pipeline-r1",
+      "tours": 39,
+      "appels_outils": null,
+      "format_appels": "phases isolées",
+      "pic_input": 46239,
+      "total_output": 55434,
+      "cycles": 2,
+      "etapes": 4,
+      "contradictions": 0,
+      "fin": "ok",
+      "journal": [
+        {
+          "phase": "implementer",
+          "result": "error",
+          "tours": 20
+        },
+        {
+          "phase": "verifier",
+          "result": "echec",
+          "tours": 0
+        },
+        {
+          "phase": "implementer",
+          "result": "done",
+          "tours": 19
+        },
+        {
+          "phase": "verifier",
+          "result": "ok",
+          "tours": 0
+        }
+      ],
+      "verdict": "PASS",
+      "tests_passed": 44,
+      "tests_failed": 0,
+      "tests_attendus": 44,
+      "issue": "collecte_ok",
+      "lignes_ecrites": 227,
+      "pytest_tail": "44 passed in 0.02s",
+      "gardes_violees": [],
+      "api_modifiee": [],
+      "fichiers_modifies": [
+        "reproduce_fail.py",
+        "tetris/__init__.py"
+      ]
+    },
+    {
+      "essai": 2,
+      "duree_s": 1445.4,
+      "timeout": false,
+      "returncode": 0,
+      "depart": {
+        "passed": 0,
+        "failed": 0
+      },
+      "workdir": "/tmp/harness-bench-tetris-nu-pipeline-gemma-4-12b-qat-pipeline-r2",
+      "tours": 27,
+      "appels_outils": null,
+      "format_appels": "phases isolées",
+      "pic_input": 34012,
+      "total_output": 49209,
+      "cycles": 2,
+      "etapes": 4,
+      "contradictions": 0,
+      "fin": "ok",
+      "journal": [
+        {
+          "phase": "implementer",
+          "result": "error",
+          "tours": 13
+        },
+        {
+          "phase": "verifier",
+          "result": "echec",
+          "tours": 0
+        },
+        {
+          "phase": "implementer",
+          "result": "done",
+          "tours": 14
+        },
+        {
+          "phase": "verifier",
+          "result": "ok",
+          "tours": 0
+        }
+      ],
+      "verdict": "PASS",
+      "tests_passed": 44,
+      "tests_failed": 0,
+      "tests_attendus": 44,
+      "issue": "collecte_ok",
+      "lignes_ecrites": 270,
+      "pytest_tail": "44 passed in 0.02s",
+      "gardes_violees": [],
+      "api_modifiee": [],
+      "fichiers_modifies": [
+        "tetris/__init__.py"
+      ]
+    },
+    {
+      "essai": 3,
+      "duree_s": 1719.6,
+      "timeout": false,
+      "returncode": 0,
+      "depart": {
+        "passed": 0,
+        "failed": 0
+      },
+      "workdir": "/tmp/harness-bench-tetris-nu-pipeline-gemma-4-12b-qat-pipeline-r3",
+      "tours": 30,
+      "appels_outils": null,
+      "format_appels": "phases isolées",
+      "pic_input": 48283,
+      "total_output": 57651,
+      "cycles": 2,
+      "etapes": 4,
+      "contradictions": 0,
+      "fin": "ok",
+      "journal": [
+        {
+          "phase": "implementer",
+          "result": "error",
+          "tours": 16
+        },
+        {
+          "phase": "verifier",
+          "result": "echec",
+          "tours": 0
+        },
+        {
+          "phase": "implementer",
+          "result": "approved",
+          "tours": 14
+        },
+        {
+          "phase": "verifier",
+          "result": "ok",
+          "tours": 0
+        }
+      ],
+      "verdict": "PASS",
+      "tests_passed": 44,
+      "tests_failed": 0,
+      "tests_attendus": 44,
+      "issue": "collecte_ok",
+      "lignes_ecrites": 254,
+      "pytest_tail": "44 passed in 0.03s",
+      "gardes_violees": [],
+      "api_modifiee": [],
+      "fichiers_modifies": [
+        "tetris/__init__.py"
+      ]
+    },
+    {
+      "essai": 4,
+      "duree_s": 2400.1,
+      "timeout": true,
+      "returncode": -1,
+      "depart": {
+        "passed": 0,
+        "failed": 0
+      },
+      "workdir": "/tmp/harness-bench-tetris-nu-pipeline-gemma-4-12b-qat-pipeline-r4",
+      "tours": null,
+      "appels_outils": null,
+      "format_appels": "non instrumente",
+      "verdict": "FAIL",
+      "tests_passed": 36,
+      "tests_failed": 8,
+      "tests_attendus": 44,
+      "issue": "collecte_ok",
+      "lignes_ecrites": 247,
+      "pytest_tail": "8 failed, 36 passed in 0.07s",
+      "gardes_violees": [],
+      "api_modifiee": [],
+      "fichiers_modifies": [
+        "read_file.py",
+        "repro.py",
+        "tetris/__init__.py"
+      ]
+    },
+    {
+      "essai": 5,
+      "duree_s": 1452.1,
+      "timeout": false,
+      "returncode": 0,
+      "depart": {
+        "passed": 0,
+        "failed": 0
+      },
+      "workdir": "/tmp/harness-bench-tetris-nu-pipeline-gemma-4-12b-qat-pipeline-r5",
+      "tours": 32,
+      "appels_outils": null,
+      "format_appels": "phases isolées",
+      "pic_input": 44654,
+      "total_output": 48604,
+      "cycles": 2,
+      "etapes": 4,
+      "contradictions": 0,
+      "fin": "ok",
+      "journal": [
+        {
+          "phase": "implementer",
+          "result": "error",
+          "tours": 23
+        },
+        {
+          "phase": "verifier",
+          "result": "echec",
+          "tours": 0
+        },
+        {
+          "phase": "implementer",
+          "result": "approved",
+          "tours": 9
+        },
+        {
+          "phase": "verifier",
+          "result": "ok",
+          "tours": 0
+        }
+      ],
+      "verdict": "FAIL",
+      "tests_passed": 46,
+      "tests_failed": 0,
+      "tests_attendus": 44,
+      "issue": "collecte_ok",
+      "lignes_ecrites": 241,
+      "pytest_tail": "46 passed in 0.03s",
+      "gardes_violees": [],
+      "api_modifiee": [],
+      "fichiers_modifies": [
+        "reproduce_test.py",
+        "tetris/__init__.py",
+        "tetris/core.py"
+      ]
+    }
+  ]
+}
