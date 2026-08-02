@@ -37,6 +37,19 @@ gaming_apt_games:
 # Steam (multiverse). Game launcher.
 gaming_install_steam: true
 
+# --- RetroArch (moteur d'émulation appelé par ES-DE) ---
+gaming_install_retroarch: true
+# PPA libretro/stable = 1.22.2 ; noble/universe = 1.18.0. Les cores du buildbot
+# n'existent qu'en "latest" -> on prend le RetroArch le plus proche d'eux.
+gaming_retroarch_use_ppa: true
+# Cores tirés du buildbot (aucun n'est packagé pour noble). Liste calée sur les
+# ROMs réellement présentes sur gaming-pc : dreamcast 37, n64 16, gba 2.
+# Nom = celui du buildbot, sans le suffixe _libretro.
+gaming_retroarch_cores:
+  - flycast           # Dreamcast
+  - mupen64plus_next  # N64
+  - mgba              # GBA
+
 # --- Bluetooth stability (carte combo RTL8723BE de l'ANCIEN portable) ---
 # BT firmware hangs (hci tx timeout) -> USB reset loop -> controller vanishes.
 # Keep the USB BT controller from autosuspending (harmless everywhere).

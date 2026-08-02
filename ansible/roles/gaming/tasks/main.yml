@@ -59,6 +59,10 @@
     update_cache: false
   when: gaming_apt_games | length > 0
 
+- ansible.builtin.import_tasks: 20_retroarch.yml
+  when: gaming_install_retroarch | bool
+  tags: [games, retroarch]
+
 - name: Install Steam (multiverse)
   ansible.builtin.apt:
     name: steam-installer

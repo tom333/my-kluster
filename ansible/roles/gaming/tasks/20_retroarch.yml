@@ -1,0 +1,54 @@
+---
+# RetroArch — moteur d'émulation derrière ES-DE (chaîne : Pegasus -> ES-DE -> RetroArch).
+#
+# Version depuis le PPA libretro/stable (1.22.2) et pas noble/universe (1.18.0) :
+# les cores ne sont publiés par le buildbot qu'en "latest", donc appairer un
+# RetroArch de 2024 avec des cores de 2026 est le seul vrai risque d'ABI ici.
+# Basculer gaming_retroarch_use_ppa à false pour rester sur l'archive Ubuntu.
+#
+# Les cores NE passent PAS par apt : noble/universe n'expose que 15 paquets
+# libretro-* et le PPA n'en publie aucun (11 paquets, tous runtime). flycast —
+# indispensable au Dreamcast, qui est le gros de la ludothèque — n'est packagé
+# nulle part. Le buildbot est donc la seule source déclarative.
+#
+# Destination ~/.config/retroarch/cores : première entrée du <rule type="corepath">
+# de RETROARCH dans le es_find_rules.xml d'ES-DE -> trouvé sans configuration.
+# ES-DE localise le binaire par systempath "retroarch", d'où l'install apt.
+
+- name: RetroArch — PPA libretro/stable
+  ansible.builtin.apt_repository:
+    repo: "ppa:libretro/stable"
+    filename: libretro-ubuntu-stable
+    state: present
+  when: gaming_retroarch_use_ppa | bool
+
+- name: RetroArch — install (unzip requis pour dézipper les cores)
+  ansible.builtin.apt:
+    name:
+      - retroarch
+      - retroarch-assets
+      - libretro-core-info
+      - unzip
+    state: present
+    update_cache: true
+
+- name: RetroArch — dossier cores
+  ansible.builtin.file:
+    path: "/home/{{ ansible_user }}/.config/retroarch/cores"
+    state: directory
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: '0755'
+
+# `creates:` porte sur le .so extrait -> pas de re-téléchargement à chaque run.
+# Corollaire assumé : une fois posé, un core ne se met plus à jour tout seul.
+# Pour forcer, supprimer le .so visé et relancer.
+- name: RetroArch — cores depuis le buildbot libretro
+  ansible.builtin.unarchive:
+    src: "https://buildbot.libretro.com/nightly/linux/x86_64/latest/{{ item }}_libretro.so.zip"
+    dest: "/home/{{ ansible_user }}/.config/retroarch/cores"
+    remote_src: true
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    creates: "/home/{{ ansible_user }}/.config/retroarch/cores/{{ item }}_libretro.so"
+  loop: "{{ gaming_retroarch_cores }}"

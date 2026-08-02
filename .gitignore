@@ -23,3 +23,9 @@ __pycache__/
 # archives depuis /tmp qui est ephemere. Volumineux et binaire-comme : on garde
 # les fichiers sur disque, pas dans l'historique Git.
 scripts/harness-bench/trajectoires/
+
+# Poste local, jamais versionne
+.kube/
+*.pdf
+# Contient une URL MCP avec un jeton dans le chemin (Home Assistant)
+.mcp.json
