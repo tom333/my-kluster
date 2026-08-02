@@ -27,6 +27,13 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 RESULTS = HERE / "results"
+# Chaque essai produit des paires (contexte -> appel d'outil -> OK:/ERREUR:), qui
+# sont le jeu d'entrainement du finetune de FORMAT (cf. generateur_traces.py). Ces
+# transcripts vivaient dans /tmp et disparaissaient au redemarrage : 88 fichiers
+# ont failli etre perdus le 2026-08-02. Les campagnes les archivent desormais
+# elles-memes — mesurer et produire de la donnee coutent le meme GPU, autant
+# garder les deux.
+TRAJECTOIRES = HERE / "trajectoires"
 PYTEST = os.environ.get("BENCH_PYTEST", "/usr/bin/pytest")
 
 # Deux scenarios de difficulte tres differente.
@@ -798,6 +805,32 @@ def nu_metrics(transcript):
     return no_metrics(transcript)
 
 
+def archive_trajectoire(workdir, etiquette):
+    """Met le transcript de l'essai a l'abri, hors de /tmp.
+
+    Ne leve JAMAIS : perdre une trace est sans gravite, perdre la campagne qui la
+    produisait ne l'est pas. Meme discipline que le journal par tour.
+
+    Seuls `nu` et `nu-contrat` ecrivent ce fichier ; les autres harnais (pi,
+    aider) produisent des logs texte, inexploitables comme paires — on sort donc
+    en silence plutot que de signaler une absence normale.
+
+    ⚠️ L'etiquette porte le nom du SCENARIO : c'est ce qui permettra d'exclure
+    `columns` du jeu d'entrainement. 62 % des traces en viennent, et c'est aussi
+    l'instrument de mesure — s'entrainer dessus puis y mesurer ne mesurerait rien.
+    """
+    if not workdir:
+        return
+    source = Path(workdir) / ".harnais-nu-transcript.json"
+    try:
+        if not source.is_file():
+            return
+        TRAJECTOIRES.mkdir(exist_ok=True)
+        shutil.copy2(source, TRAJECTOIRES / ("%s.json" % etiquette))
+    except OSError:
+        pass
+
+
 def _nu_pipeline_command(model, workdir, prompt, graphe):
     """Pipeline à phases isolées (harnais-nu, sous-projet 1).
 
@@ -1059,6 +1092,7 @@ def run(harness, model, scenario_name, timeout, runs=1):
             )
         RESULTS.mkdir(exist_ok=True)
         (RESULTS / ("%s-r%d.transcript" % (slug, i))).write_text(transcript)
+        archive_trajectoire(res.get("workdir"), "%s-r%d" % (slug, i))
 
     scores = [e["tests_passed"] for e in essais]
     attendus = scenario["expected_tests"]
