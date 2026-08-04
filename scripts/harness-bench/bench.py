@@ -141,6 +141,37 @@ SCENARIOS = {
             ("fin", "tests/test_10_fin.py", 7),
         ),
     },
+    "columns-global": {
+        "fixture": HERE / "fixture-columns",
+        "prompt": HERE / "PROMPT-columns-global.txt",
+        "expected_tests": 80,
+        "protected": (
+            "tests/test_1_plateau.py",
+            "tests/test_2_colonne.py",
+            "tests/test_3_mouvement.py",
+            "tests/test_4_horizontal.py",
+            "tests/test_5_vertical.py",
+            "tests/test_6_diagonales.py",
+            "tests/test_7_simultane.py",
+            "tests/test_8_cascade.py",
+            "tests/test_9_score.py",
+            "tests/test_10_fin.py",
+            "conftest.py",
+        ),
+        "check_api": False,
+        "etages": (
+            ("plateau", "tests/test_1_plateau.py", 12),
+            ("colonne", "tests/test_2_colonne.py", 8),
+            ("mouvement", "tests/test_3_mouvement.py", 13),
+            ("horizontal", "tests/test_4_horizontal.py", 9),
+            ("vertical", "tests/test_5_vertical.py", 7),
+            ("diagonales", "tests/test_6_diagonales.py", 7),
+            ("simultane", "tests/test_7_simultane.py", 5),
+            ("cascade", "tests/test_8_cascade.py", 6),
+            ("score", "tests/test_9_score.py", 6),
+            ("fin", "tests/test_10_fin.py", 7),
+        ),
+    },
     # Fixture 4 — la SEULE qui puisse mesurer une phase de documentation. Les trois
     # autres sont en bibliotheque standard pure : une phase `chercheur` n'y serait
     # jamais sollicitee et ne couterait que ses schemas. On ne mesurerait rien.
@@ -261,6 +292,30 @@ def _fichiers_de_test(racine):
         and "__pycache__" not in p.parts
         and ".pytest_cache" not in p.parts
     }
+
+
+def _sha_prompt(nom_scenario):
+    """SHA-256 de l'enonce du scenario, ou None s'il est illisible."""
+    import hashlib
+
+    try:
+        brut = Path(SCENARIOS[nom_scenario]["prompt"]).read_bytes()
+    except Exception:
+        return None
+    return hashlib.sha256(brut).hexdigest()[:16]
+
+
+def _serveur_actif():
+    """Contenu de logs-serveur/actif.json, ou None s'il n'existe pas.
+
+    Ne leve jamais : une campagne lancee sans serveur.sh doit produire un
+    resultat, simplement sans la config serveur — et l'absence est alors VISIBLE
+    dans le JSON au lieu d'etre supposee.
+    """
+    try:
+        return json.loads((HERE / "logs-serveur" / "actif.json").read_text())
+    except Exception:
+        return None
 
 
 def run_pytest(workdir, cibles=()):
@@ -738,6 +793,27 @@ def nu_command(model, workdir, prompt):
     # changement du temoin — a mesurer comme un levier, une variable a la fois.
     if os.environ.get("HARNAIS_NU_STRUCTURE"):
         verify += ["--structure"]
+    # Porter le resultat des tests DANS le write/edit, au lieu d un `bash pytest`
+    # separe. Levier sur le NOMBRE de tours : 48 des 61 `bash` mesures sur columns
+    # etaient des pytest suivant une ecriture, et 100 % des tours ne portent qu un
+    # seul appel d outil.
+    if os.environ.get("HARNAIS_NU_TESTS_APRES_ECRITURE"):
+        verify += ["--tests-apres-ecriture"]
+        # Trois variants a departager (cf. MESURES.md) : `complet` fait -3 bash
+        # mais +60 % de pic, `bilan` laisse le pic intact sans gain de tours,
+        # `echecs` parie que les NOMS suffisent.
+        if os.environ.get("HARNAIS_NU_TESTS_DETAIL"):
+            verify += ["--tests-detail", os.environ["HARNAIS_NU_TESTS_DETAIL"]]
+    # Compaction (harnais-nu/compaction.py), inerte sans --fenetre. Declarer une
+    # fenetre PLUS PETITE que celle du serveur force le declenchement tot : c'est
+    # ainsi qu'on teste la mecanique sur `repair` (93 s) au lieu d'attendre le mur.
+    if os.environ.get("HARNAIS_NU_FENETRE"):
+        verify += ["--fenetre", os.environ["HARNAIS_NU_FENETRE"]]
+        if os.environ.get("HARNAIS_NU_SEUIL_COMPACTION"):
+            verify += [
+                "--seuil-compaction",
+                os.environ["HARNAIS_NU_SEUIL_COMPACTION"],
+            ]
     return [
         "uv",
         "run",
@@ -801,6 +877,16 @@ def nu_metrics(transcript):
             "hygiene": m.get("hygiene"),
             "caracteres_economises": m.get("caracteres_economises"),
             "writes_rattrapes": m.get("writes_rattrapes"),
+            # `modes_compaction` distingue un resume reussi d'un repli mecanique :
+            # sans lui, une campagne ou le modele echoue a resumer se lirait comme
+            # une campagne de compaction par resume.
+            "compactions": m.get("compactions"),
+            "modes_compaction": m.get("modes_compaction"),
+            # `tests_auto` doit rester COMPARABLE au nombre de `bash pytest` qu il
+            # remplace : s il le depasse largement, le levier gagne des tours et
+            # paie du temps sur un paquet incomplet (risque predit, cf. MESURES.md).
+            "tests_auto": m.get("tests_auto"),
+            "tests_auto_ok": m.get("tests_auto_ok"),
         }
     return no_metrics(transcript)
 
@@ -1168,6 +1254,16 @@ def run(harness, model, scenario_name, timeout, runs=1):
             if cle.startswith("HARNAIS_")
         },
         "commande": " ".join(sys.argv),
+        # Config SERVEUR active, publiee par serveur.sh. Sans elle, un drapeau
+        # comme `-n 16384` plafonne le rejeu de troncature en silence : trois
+        # campagnes d'Ornith ont ete invalidees ainsi le 2026-08-04, et l'argv
+        # n'existait que dans l'historique du shell. Il voyage desormais avec
+        # les scores.
+        "serveur_actif": _serveur_actif(),
+        # Hash de l'ENONCE tel qu'il etait AU MOMENT du run. `columns` et
+        # `columns-global` ne different que par lui, et l'ecart mesure entre eux
+        # (tours/test 0,470 -> 0,312) serait invisible sans ce champ.
+        "prompt_sha256": _sha_prompt(scenario),
         "format_appels": essais[-1].get("format_appels"),
         "essais": essais,
     }

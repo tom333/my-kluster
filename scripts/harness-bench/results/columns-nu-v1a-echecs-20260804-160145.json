@@ -1,0 +1,409 @@
+{
+  "scenario": "columns",
+  "harnais": "nu",
+  "modele": "v1a-echecs",
+  "runs": 3,
+  "tests_passed": 79,
+  "tests_passed_median": 79,
+  "tests_passed_min": 76,
+  "tests_passed_max": 79,
+  "tests_passed_ecart": 3,
+  "tests_passed_tous": [
+    79,
+    76,
+    79
+  ],
+  "tests_passed_notables": [
+    79,
+    76,
+    79
+  ],
+  "essais_comparables": 3,
+  "essais_erreur_collecte": 0,
+  "essais_pytest_pend": 0,
+  "tests_attendus": 80,
+  "verdict": "FAIL",
+  "tours_median": 39,
+  "pic_input_median": 47883,
+  "duree_s_median": 539,
+  "sortie_par_test_median": 426.709,
+  "tours_par_test_median": 0.494,
+  "config_env": {
+    "HARNAIS_NU_MAX_RETRY_TRONCATURE": "2",
+    "HARNAIS_NU_MAX_TOTAL_TOKENS": "400000",
+    "HARNAIS_NU_MAX_TURNS": "60",
+    "HARNAIS_NU_TESTS_APRES_ECRITURE": "1",
+    "HARNAIS_NU_TESTS_DETAIL": "echecs",
+    "HARNAIS_NU_VERIFY_CMD": "uv run pytest -q -rf"
+  },
+  "commande": "bench.py --harness nu --scenario columns --model v1a-echecs --runs 3 --timeout 2400",
+  "format_appels": "openai_tool_calls",
+  "essais": [
+    {
+      "essai": 1,
+      "duree_s": 687.0,
+      "timeout": false,
+      "returncode": 0,
+      "depart": {
+        "passed": 0,
+        "failed": 0
+      },
+      "workdir": "/tmp/harness-bench-columns-nu-v1a-echecs-r1",
+      "tours": 39,
+      "appels_outils": {
+        "bash": 8,
+        "read": 10,
+        "write": 20
+      },
+      "format_appels": "openai_tool_calls",
+      "pic_input": 46853,
+      "total_input": 751987,
+      "total_output": 43203,
+      "stop_reason": "truncated",
+      "erreur": null,
+      "verifications": 0,
+      "verif_ok": null,
+      "retries_troncature": 2,
+      "hygiene": [],
+      "caracteres_economises": 0,
+      "writes_rattrapes": 0,
+      "compactions": 0,
+      "modes_compaction": [],
+      "tests_auto": 20,
+      "tests_auto_ok": 0,
+      "verdict": "FAIL",
+      "tests_passed": 79,
+      "tests_failed": 1,
+      "tests_attendus": 80,
+      "etages": {
+        "plateau": {
+          "passed": 12,
+          "failed": 0,
+          "attendus": 12,
+          "issue": "collecte_ok",
+          "verdict": "PASS"
+        },
+        "colonne": {
+          "passed": 8,
+          "failed": 0,
+          "attendus": 8,
+          "issue": "collecte_ok",
+          "verdict": "PASS"
+        },
+        "mouvement": {
+          "passed": 13,
+          "failed": 0,
+          "attendus": 13,
+          "issue": "collecte_ok",
+          "verdict": "PASS"
+        },
+        "horizontal": {
+          "passed": 9,
+          "failed": 0,
+          "attendus": 9,
+          "issue": "collecte_ok",
+          "verdict": "PASS"
+        },
+        "vertical": {
+          "passed": 7,
+          "failed": 0,
+          "attendus": 7,
+          "issue": "collecte_ok",
+          "verdict": "PASS"
+        },
+        "diagonales": {
+          "passed": 7,
+          "failed": 0,
+          "attendus": 7,
+          "issue": "collecte_ok",
+          "verdict": "PASS"
+        },
+        "simultane": {
+          "passed": 5,
+          "failed": 0,
+          "attendus": 5,
+          "issue": "collecte_ok",
+          "verdict": "PASS"
+        },
+        "cascade": {
+          "passed": 6,
+          "failed": 0,
+          "attendus": 6,
+          "issue": "collecte_ok",
+          "verdict": "PASS"
+        },
+        "score": {
+          "passed": 6,
+          "failed": 0,
+          "attendus": 6,
+          "issue": "collecte_ok",
+          "verdict": "PASS"
+        },
+        "fin": {
+          "passed": 6,
+          "failed": 1,
+          "attendus": 7,
+          "issue": "collecte_ok",
+          "verdict": "FAIL"
+        }
+      },
+      "issue": "collecte_ok",
+      "lignes_ecrites": 246,
+      "pytest_tail": "[plateau]\n12 passed in 0.01s\n[colonne]\n8 passed in 0.01s\n[mouvement]\n13 passed in 0.01s\n[horizontal]\n9 passed in 0.01s\n[vertical]\n7 passed in 0.01s\n[diagonales]\n7 passed in 0.01s\n[simultane]\n5 passed in 0.01s\n[cascade]\n6 passed in 0.01s\n[score]\n6 passed in 0.01s\n[fin]\n1 failed, 6 passed in 0.02s",
+      "tests_ajoutes": [],
+      "gardes_violees": [],
+      "api_modifiee": [],
+      "fichiers_modifies": [
+        "colonnes/__init__.py",
+        "colonnes/alignements.py",
+        "colonnes/colonne.py",
+        "colonnes/jeu.py",
+        "colonnes/plateau.py"
+      ]
+    },
+    {
+      "essai": 2,
+      "duree_s": 482.5,
+      "timeout": false,
+      "returncode": 0,
+      "depart": {
+        "passed": 0,
+        "failed": 0
+      },
+      "workdir": "/tmp/harness-bench-columns-nu-v1a-echecs-r2",
+      "tours": 57,
+      "appels_outils": {
+        "bash": 23,
+        "read": 13,
+        "write": 20
+      },
+      "format_appels": "openai_tool_calls",
+      "pic_input": 48438,
+      "total_input": 1111945,
+      "total_output": 28464,
+      "stop_reason": "error",
+      "erreur": "Server error '500 Internal Server Error' for url 'http://127.0.0.1:8080/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500",
+      "verifications": 0,
+      "verif_ok": null,
+      "retries_troncature": 2,
+      "hygiene": [],
+      "caracteres_economises": 0,
+      "writes_rattrapes": 0,
+      "compactions": 0,
+      "modes_compaction": [],
+      "tests_auto": 19,
+      "tests_auto_ok": 0,
+      "verdict": "FAIL",
+      "tests_passed": 76,
+      "tests_failed": 4,
+      "tests_attendus": 80,
+      "etages": {
+        "plateau": {
+          "passed": 12,
+          "failed": 0,
+          "attendus": 12,
+          "issue": "collecte_ok",
+          "verdict": "PASS"
+        },
+        "colonne": {
+          "passed": 8,
+          "failed": 0,
+          "attendus": 8,
+          "issue": "collecte_ok",
+          "verdict": "PASS"
+        },
+        "mouvement": {
+          "passed": 13,
+          "failed": 0,
+          "attendus": 13,
+          "issue": "collecte_ok",
+          "verdict": "PASS"
+        },
+        "horizontal": {
+          "passed": 9,
+          "failed": 0,
+          "attendus": 9,
+          "issue": "collecte_ok",
+          "verdict": "PASS"
+        },
+        "vertical": {
+          "passed": 7,
+          "failed": 0,
+          "attendus": 7,
+          "issue": "collecte_ok",
+          "verdict": "PASS"
+        },
+        "diagonales": {
+          "passed": 7,
+          "failed": 0,
+          "attendus": 7,
+          "issue": "collecte_ok",
+          "verdict": "PASS"
+        },
+        "simultane": {
+          "passed": 5,
+          "failed": 0,
+          "attendus": 5,
+          "issue": "collecte_ok",
+          "verdict": "PASS"
+        },
+        "cascade": {
+          "passed": 6,
+          "failed": 0,
+          "attendus": 6,
+          "issue": "collecte_ok",
+          "verdict": "PASS"
+        },
+        "score": {
+          "passed": 2,
+          "failed": 4,
+          "attendus": 6,
+          "issue": "collecte_ok",
+          "verdict": "FAIL"
+        },
+        "fin": {
+          "passed": 7,
+          "failed": 0,
+          "attendus": 7,
+          "issue": "collecte_ok",
+          "verdict": "PASS"
+        }
+      },
+      "issue": "collecte_ok",
+      "lignes_ecrites": 269,
+      "pytest_tail": "[plateau]\n12 passed in 0.01s\n[colonne]\n8 passed in 0.01s\n[mouvement]\n13 passed in 0.01s\n[horizontal]\n9 passed in 0.01s\n[vertical]\n7 passed in 0.01s\n[diagonales]\n7 passed in 0.01s\n[simultane]\n5 passed in 0.01s\n[cascade]\n6 passed in 0.01s\n[score]\n4 failed, 2 passed in 0.02s\n[fin]\n7 passed in 0.01s",
+      "tests_ajoutes": [],
+      "gardes_violees": [],
+      "api_modifiee": [],
+      "fichiers_modifies": [
+        "colonnes/__init__.py",
+        "colonnes/alignements.py",
+        "colonnes/colonne.py",
+        "colonnes/jeu.py",
+        "colonnes/plateau.py"
+      ]
+    },
+    {
+      "essai": 3,
+      "duree_s": 539.2,
+      "timeout": false,
+      "returncode": 0,
+      "depart": {
+        "passed": 0,
+        "failed": 0
+      },
+      "workdir": "/tmp/harness-bench-columns-nu-v1a-echecs-r3",
+      "tours": 35,
+      "appels_outils": {
+        "bash": 4,
+        "read": 10,
+        "write": 21
+      },
+      "format_appels": "openai_tool_calls",
+      "pic_input": 47883,
+      "total_input": 826423,
+      "total_output": 33710,
+      "stop_reason": "truncated",
+      "erreur": null,
+      "verifications": 0,
+      "verif_ok": null,
+      "retries_troncature": 1,
+      "hygiene": [],
+      "caracteres_economises": 0,
+      "writes_rattrapes": 0,
+      "compactions": 0,
+      "modes_compaction": [],
+      "tests_auto": 15,
+      "tests_auto_ok": 0,
+      "verdict": "FAIL",
+      "tests_passed": 79,
+      "tests_failed": 1,
+      "tests_attendus": 80,
+      "etages": {
+        "plateau": {
+          "passed": 12,
+          "failed": 0,
+          "attendus": 12,
+          "issue": "collecte_ok",
+          "verdict": "PASS"
+        },
+        "colonne": {
+          "passed": 8,
+          "failed": 0,
+          "attendus": 8,
+          "issue": "collecte_ok",
+          "verdict": "PASS"
+        },
+        "mouvement": {
+          "passed": 13,
+          "failed": 0,
+          "attendus": 13,
+          "issue": "collecte_ok",
+          "verdict": "PASS"
+        },
+        "horizontal": {
+          "passed": 9,
+          "failed": 0,
+          "attendus": 9,
+          "issue": "collecte_ok",
+          "verdict": "PASS"
+        },
+        "vertical": {
+          "passed": 7,
+          "failed": 0,
+          "attendus": 7,
+          "issue": "collecte_ok",
+          "verdict": "PASS"
+        },
+        "diagonales": {
+          "passed": 7,
+          "failed": 0,
+          "attendus": 7,
+          "issue": "collecte_ok",
+          "verdict": "PASS"
+        },
+        "simultane": {
+          "passed": 5,
+          "failed": 0,
+          "attendus": 5,
+          "issue": "collecte_ok",
+          "verdict": "PASS"
+        },
+        "cascade": {
+          "passed": 6,
+          "failed": 0,
+          "attendus": 6,
+          "issue": "collecte_ok",
+          "verdict": "PASS"
+        },
+        "score": {
+          "passed": 6,
+          "failed": 0,
+          "attendus": 6,
+          "issue": "collecte_ok",
+          "verdict": "PASS"
+        },
+        "fin": {
+          "passed": 6,
+          "failed": 1,
+          "attendus": 7,
+          "issue": "collecte_ok",
+          "verdict": "FAIL"
+        }
+      },
+      "issue": "collecte_ok",
+      "lignes_ecrites": 279,
+      "pytest_tail": "[plateau]\n12 passed in 0.01s\n[colonne]\n8 passed in 0.01s\n[mouvement]\n13 passed in 0.01s\n[horizontal]\n9 passed in 0.01s\n[vertical]\n7 passed in 0.01s\n[diagonales]\n7 passed in 0.01s\n[simultane]\n5 passed in 0.01s\n[cascade]\n6 passed in 0.01s\n[score]\n6 passed in 0.01s\n[fin]\n1 failed, 6 passed in 0.02s",
+      "tests_ajoutes": [],
+      "gardes_violees": [],
+      "api_modifiee": [],
+      "fichiers_modifies": [
+        "colonnes/__init__.py",
+        "colonnes/alignements.py",
+        "colonnes/colonne.py",
+        "colonnes/jeu.py",
+        "colonnes/plateau.py"
+      ]
+    }
+  ]
+}

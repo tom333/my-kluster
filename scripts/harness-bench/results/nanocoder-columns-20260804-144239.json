@@ -1,0 +1,14 @@
+[
+  {
+    "essai": 1,
+    "passed": 0,
+    "failed": 0,
+    "attendus": 80,
+    "issue": "erreur_collecte",
+    "duree_s": 18.8,
+    "returncode": 2,
+    "workdir": "/tmp/nanocoder-columns-807545-1",
+    "sortie_queue": "ide s'écrit\\n  `'.'`, une case occupée s'écrit sa tuile.\\n\\\"\\\"\\\"\\n\\nimport pytest\\n\\nfrom colonnes import Plateau\\n\\n\\ndef test_dimensions_par_defaut():\\n    p = Plateau()\\n    assert (p.largeur, p.hauteur) == (6, 13)\\n\\n\\ndef test_dimensions_choisies():\\n    p = Plateau(4, 3)\\n    assert (p.largeur, p.hauteur) == (4, 3)\\n\\n\\ndef test_plateau_neuf_est_vide():\\n    p = Plateau(4, 3)\\n    assert all(p.libre(l, c) for l in range(p.hauteur) for c in range(p.largeur))\\n    assert p.case(0, 0) is None\\n\\n\\ndef test_dedans():\\n    p = Plateau(4, 3)\\n    assert p.dedans(0, 0)\\n    assert p.dedans(2, 3)\\n    assert not p.dedans(3, 0)\\n    assert not p.dedans(0, 4)\\n    assert not p.dedans(-1, 0)\\n    assert not p.dedans(0, -1)\\n\\n\\ndef test_poser_puis_lire():\\n    p = Plateau(4, 3)\\n    p.poser(1, 2, \\\"A\\\")\\n    assert p.case(1, 2) == \\\"A\\\"\\n    assert not p.libre(1, 2)\\n\\n\\ndef test_case_hors_plateau_rend_none():\\n    p = Plateau(4, 3)\\n    assert p.case(9, 9) is None\\n\\n\\ndef test_libre_hors_plateau_est_faux():\\n    \\\"\\\"\\\"Hors grille n'est pas « libre » : c'est ce qui borne les chutes.\\\"\\\"\\\"\\n    p = Plateau(4, 3)\\n    assert not p.libre(3, 0)\\n    assert not p.libre(0, 4)\\n\\n\\ndef test_poser_hors_plateau_leve():\\n    p = Plateau(4, 3)\\n    with pytest.raises(IndexError):\\n        p.poser(3, 0, \\\"A\\\")\\n\\n\\ndef test_rendu_plateau_vide():\\n    assert Plateau(4, 3).rendu() == \\\"....\\\\n....\\\\n....\\\"\\n\\n\\ndef test_rendu_avec_tuiles():\\n    p = Plateau(4, 3)\\n    p.poser(0, 0, \\\"A\\\")\\n    p.poser(2, 3, \\\"B\\\")\\n    assert p.rendu() == \\\"A...\\\\n....\\\\n...B\\\"\\n\\n\\ndef test_rendu_sans_saut_de_ligne_final():\\n    assert not Plateau(4, 3).rendu().endswith(\\\"\\\\n\\\")\\n\\n\\ndef test_rendu_dimensions():\\n    lignes = Plateau(6, 13).rendu().split(\\\"\\\\n\\\")\\n    assert len(lignes) == 13\\n    assert all(len(ligne) == 6 for ligne in lignes)\\n\",\n      \"error\": null\n    }\n  ],\n  \"filesChanged\": [],\n  \"toolNames\": [\n    \"execute_bash\"\n  ]\n}\nnanocoder · llama-cpp · gemma-4-12b-qat-mtp · auto-accept\n",
+    "pytest_court": "10 errors in 0.15s"
+  }
+]

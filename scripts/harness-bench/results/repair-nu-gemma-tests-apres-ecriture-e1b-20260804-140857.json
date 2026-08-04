@@ -1,0 +1,87 @@
+{
+  "scenario": "repair",
+  "harnais": "nu",
+  "modele": "gemma-tests-apres-ecriture-e1b",
+  "runs": 1,
+  "tests_passed": 19,
+  "tests_passed_median": 19,
+  "tests_passed_min": 19,
+  "tests_passed_max": 19,
+  "tests_passed_ecart": 0,
+  "tests_passed_tous": [
+    19
+  ],
+  "tests_passed_notables": [
+    19
+  ],
+  "essais_comparables": 1,
+  "essais_erreur_collecte": 0,
+  "essais_pytest_pend": 0,
+  "tests_attendus": 19,
+  "verdict": "PASS",
+  "tours_median": 18,
+  "pic_input_median": 21406,
+  "duree_s_median": 102,
+  "sortie_par_test_median": 313.737,
+  "tours_par_test_median": 0.947,
+  "config_env": {
+    "HARNAIS_NU_MAX_RETRY_TRONCATURE": "2",
+    "HARNAIS_NU_TESTS_APRES_ECRITURE": "1",
+    "HARNAIS_NU_VERIFY_CMD": "uv run pytest -q"
+  },
+  "commande": "bench.py --harness nu --scenario repair --model gemma-tests-apres-ecriture-e1b --runs 1",
+  "format_appels": "openai_tool_calls",
+  "essais": [
+    {
+      "essai": 1,
+      "duree_s": 102.1,
+      "timeout": false,
+      "returncode": 0,
+      "depart": {
+        "passed": 6,
+        "failed": 13
+      },
+      "workdir": "/tmp/harness-bench-repair-nu-gemma-tests-apres-ecriture-e1b",
+      "tours": 18,
+      "appels_outils": {
+        "bash": 3,
+        "read": 7,
+        "edit": 7
+      },
+      "format_appels": "openai_tool_calls",
+      "pic_input": 21406,
+      "total_input": 235021,
+      "total_output": 5961,
+      "stop_reason": "done_verifie",
+      "erreur": null,
+      "verifications": 1,
+      "verif_ok": true,
+      "retries_troncature": 0,
+      "hygiene": [],
+      "caracteres_economises": 0,
+      "writes_rattrapes": 0,
+      "compactions": 0,
+      "modes_compaction": [],
+      "tests_auto": 7,
+      "tests_auto_ok": 1,
+      "verdict": "PASS",
+      "tests_passed": 19,
+      "tests_failed": 0,
+      "tests_attendus": 19,
+      "etages": {},
+      "issue": "collecte_ok",
+      "lignes_ecrites": 141,
+      "pytest_tail": "19 passed in 0.01s",
+      "tests_ajoutes": [],
+      "gardes_violees": [],
+      "api_modifiee": [],
+      "fichiers_modifies": [
+        "taskmgr/dates.py",
+        "taskmgr/filters.py",
+        "taskmgr/priority.py",
+        "taskmgr/report.py",
+        "taskmgr/store.py"
+      ]
+    }
+  ]
+}
