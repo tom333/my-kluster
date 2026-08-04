@@ -172,6 +172,60 @@ SCENARIOS = {
             ("fin", "tests/test_10_fin.py", 7),
         ),
     },
+    # Fixture 3bis — `columns` DEJA RESOLU, a etendre. Les dix etages d'origine sont
+    # livres verts (une vraie solution 80/80, tirage 4 de a3b-iq4-e3) et servent de
+    # NON-REGRESSION ; trois etages neufs decrivent une interface web.
+    #
+    # Ce que cette fixture mesure et qu'aucune autre ne mesure : LIRE du code
+    # existant pour s'y raccrocher. `columns` part de zero, donc tout ce qui compte
+    # y est dans l'enonce ; ici l'interface publique (Plateau, Colonne, Jeu) est sur
+    # le disque, et l'etage 13 impose des choix aux etages 11 et 12 — c'est la forme
+    # de tache ou l'ecart Opus/local etait le plus large (6 tours contre 35).
+    #
+    # Contrat verifie SATISFAISABLE avant tout tirage : une implementation de
+    # reference a affiche 109 passed, puis a ete retiree. Sans elle, `pytest -q`
+    # annonce « Interrupted: 3 errors during collection » et les 80 de regression ne
+    # tournent meme pas — d'ou les etages separes, obligatoires ici.
+    #
+    # `colonnes/__init__.py` n'est PAS protege : l'etendre est permis, et les dix
+    # etages de regression sont la garde qui punit une reecriture ratee.
+    "columns-web": {
+        "fixture": HERE / "fixture-columns-web",
+        "prompt": HERE / "PROMPT-columns-web.txt",
+        "expected_tests": 109,
+        "protected": (
+            "tests/test_1_plateau.py",
+            "tests/test_2_colonne.py",
+            "tests/test_3_mouvement.py",
+            "tests/test_4_horizontal.py",
+            "tests/test_5_vertical.py",
+            "tests/test_6_diagonales.py",
+            "tests/test_7_simultane.py",
+            "tests/test_8_cascade.py",
+            "tests/test_9_score.py",
+            "tests/test_10_fin.py",
+            "tests/test_11_rendu.py",
+            "tests/test_12_etat.py",
+            "tests/test_13_http.py",
+            "conftest.py",
+        ),
+        "check_api": False,
+        "etages": (
+            ("plateau", "tests/test_1_plateau.py", 12),
+            ("colonne", "tests/test_2_colonne.py", 8),
+            ("mouvement", "tests/test_3_mouvement.py", 13),
+            ("horizontal", "tests/test_4_horizontal.py", 9),
+            ("vertical", "tests/test_5_vertical.py", 7),
+            ("diagonales", "tests/test_6_diagonales.py", 7),
+            ("simultane", "tests/test_7_simultane.py", 5),
+            ("cascade", "tests/test_8_cascade.py", 6),
+            ("score", "tests/test_9_score.py", 6),
+            ("fin", "tests/test_10_fin.py", 7),
+            ("rendu", "tests/test_11_rendu.py", 9),
+            ("etat", "tests/test_12_etat.py", 8),
+            ("http", "tests/test_13_http.py", 12),
+        ),
+    },
     # Fixture 4 — la SEULE qui puisse mesurer une phase de documentation. Les trois
     # autres sont en bibliotheque standard pure : une phase `chercheur` n'y serait
     # jamais sollicitee et ne couterait que ses schemas. On ne mesurerait rien.
@@ -295,12 +349,19 @@ def _fichiers_de_test(racine):
 
 
 def _sha_prompt(nom_scenario):
-    """SHA-256 de l'enonce du scenario, ou None s'il est illisible."""
+    """SHA-256 de l'enonce du scenario, ou None si le FICHIER est illisible.
+
+    Un `except Exception` global avalait ici un bug d'appelant (le dict passe a la
+    place du nom) : le champ est reste a None dans TOUS les resultats jusqu'au
+    2026-08-05 sans que rien ne le signale. Un scenario inconnu est une erreur de
+    programmation, elle doit crier ; seul un fichier absent se degrade en None.
+    """
     import hashlib
 
+    chemin = Path(SCENARIOS[nom_scenario]["prompt"])
     try:
-        brut = Path(SCENARIOS[nom_scenario]["prompt"]).read_bytes()
-    except Exception:
+        brut = chemin.read_bytes()
+    except OSError:
         return None
     return hashlib.sha256(brut).hexdigest()[:16]
 
@@ -814,6 +875,15 @@ def nu_command(model, workdir, prompt):
                 "--seuil-compaction",
                 os.environ["HARNAIS_NU_SEUIL_COMPACTION"],
             ]
+    # Budget du CANAL DE PENSEE, envoye par requete. Sur `columns-web` un tour a
+    # brule 26 161 caracteres de `reasoning_content` sans un seul tool_call, et
+    # doubler le plafond par tour (4096 -> 8192) n'a fait que doubler le monologue :
+    # ce n'est pas le meme levier, il faut borner la PENSEE et pas la reponse.
+    if os.environ.get("HARNAIS_NU_BUDGET_RAISONNEMENT"):
+        verify += [
+            "--budget-raisonnement",
+            os.environ["HARNAIS_NU_BUDGET_RAISONNEMENT"],
+        ]
     return [
         "uv",
         "run",
@@ -1057,7 +1127,19 @@ def run_once(harness, model, scenario_name, timeout, essai=1, total=1):
     for cache in workdir.rglob("__pycache__"):
         shutil.rmtree(cache, ignore_errors=True)
 
-    before = run_pytest(workdir)
+    # Par ETAGE quand le scenario en a : sur une fixture deja partiellement verte
+    # (`columns-web` demarre a 80/109), un seul appel pytest annonce 0 passed, parce
+    # que l'import manquant de l'etage a ecrire interrompt la collecte de TOUTE la
+    # suite. Le verdict n'en dependait pas, mais la ligne se lisait « part de zero ».
+    if scenario.get("etages"):
+        p = f = 0
+        for _, fichier, _ in scenario["etages"]:
+            pe, fe, _, _ = run_pytest(workdir, cibles=[fichier])
+            p += pe
+            f += fe
+        before = (p, f, "", None)
+    else:
+        before = run_pytest(workdir)
     print("depart : %s passed, %s failed" % (before[0], before[1]), flush=True)
 
     argv, env_extra = build_command(model, workdir, prompt)
@@ -1263,7 +1345,7 @@ def run(harness, model, scenario_name, timeout, runs=1):
         # Hash de l'ENONCE tel qu'il etait AU MOMENT du run. `columns` et
         # `columns-global` ne different que par lui, et l'ecart mesure entre eux
         # (tours/test 0,470 -> 0,312) serait invisible sans ce champ.
-        "prompt_sha256": _sha_prompt(scenario),
+        "prompt_sha256": _sha_prompt(scenario_name),
         "format_appels": essais[-1].get("format_appels"),
         "essais": essais,
     }

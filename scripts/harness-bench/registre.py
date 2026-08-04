@@ -70,7 +70,12 @@ CREATE TABLE IF NOT EXISTS configs (
     prompt_sha  TEXT,
     commande    TEXT,
     config_env  TEXT,
-    serveur     TEXT
+    serveur     TEXT,
+    serveur_log TEXT,
+    -- Compte les `truncated = 1` sur TOUTE la session serveur, pas sur la seule
+    -- campagne : un meme serveur peut servir plusieurs campagnes successives. La
+    -- valeur est donc un majorant, et c'est dit plutot que suppose.
+    serveur_tronque INTEGER
 );
 CREATE TABLE IF NOT EXISTS tirages (
     campagne    TEXT,
@@ -128,7 +133,7 @@ def indexe(conn, chemin):
     emp = empreinte(res)
     serveur = res.get("serveur_actif")
     conn.execute(
-        "INSERT OR REPLACE INTO configs VALUES (?,?,?,?,?,?,?,?)",
+        "INSERT OR REPLACE INTO configs VALUES (?,?,?,?,?,?,?,?,?,?)",
         (
             emp,
             res.get("scenario"),
@@ -138,6 +143,8 @@ def indexe(conn, chemin):
             res.get("commande"),
             json.dumps(res.get("config_env"), ensure_ascii=False),
             json.dumps(serveur, ensure_ascii=False) if serveur else None,
+            (serveur or {}).get("log"),
+            serveur_tronque((serveur or {}).get("log")) if serveur else None,
         ),
     )
     nom = Path(chemin).name
@@ -158,6 +165,30 @@ def indexe(conn, chemin):
         n += 1
     conn.commit()
     return n
+
+
+def serveur_tronque(chemin_log):
+    """Nombre d'amputations d'historique par llama-server (`truncated = 1`).
+
+    Metrique ajoutee le 2026-08-04, une heure apres la capture des logs : le
+    serveur JETTE de l'historique quand la requete ne tient pas, et nos chiffres
+    ne le voyaient pas — `peak_input_tokens` vient de `usage.prompt_tokens`, donc
+    du prompt APRES coupe. Une campagne peut tourner avec une memoire trouee sans
+    qu'aucun compteur ne l'indique (5 fois sur un bras d'Ornith).
+
+    Rétroactif seulement a partir du 2026-08-04 : avant, les logs n'existaient pas.
+
+    Seul un log ABSENT se degrade en None. Un `except Exception` global avalerait un
+    bug d'appelant : c'est ainsi que `prompt_sha256` est reste a None dans tous les
+    resultats du banc jusqu'au 2026-08-05, sans que rien ne le signale.
+    """
+    if not chemin_log:
+        return None
+    try:
+        brut = Path(chemin_log).read_text(errors="replace")
+    except OSError:
+        return None
+    return sum(1 for ligne in brut.splitlines() if "truncated = 1" in ligne)
 
 
 def reindexe(conn, dossier=HERE / "results"):
@@ -210,9 +241,7 @@ def comparer(conn, scenario):
         # deux divergent (0,684 contre 0,720 sur la campagne de compaction) et
         # deux chiffres pour la meme grandeur rendent tout journal incomparable.
         rapports = [
-            int(t[1]) / int(t[0])
-            for t in tirages
-            if t[0] and t[1] and int(t[0]) > 0
+            int(t[1]) / int(t[0]) for t in tirages if t[0] and t[1] and int(t[0]) > 0
         ]
         cout = mediane(rapports)
         print("  %s  n=%d  modele=%s  prompt=%s" % (emp, nb, cfg[0], cfg[1]))

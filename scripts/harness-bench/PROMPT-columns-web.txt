@@ -1,0 +1,28 @@
+Ce dossier contient un paquet `colonnes/` QUI FONCTIONNE : les dix fichiers de tests
+`tests/test_1_*.py` a `tests/test_10_*.py` passent tous, et ils ne doivent pas casser.
+
+Trois nouveaux fichiers de tests decrivent une INTERFACE WEB a ajouter :
+
+  tests/test_11_rendu.py     rendu HTML de l'etat du jeu
+  tests/test_12_etat.py      etat serialisable en JSON
+  tests/test_13_http.py      application WSGI (routes, redirections, persistance)
+
+Ils importent `colonnes.web`, qui n'existe pas : ecris-le.
+
+Chaque fichier commence par un docstring qui decrit precisement le contrat de son
+etage. Lis les TROIS fichiers en entier AVANT d'ecrire la moindre ligne de code : le
+contrat entier tient en une seule lecture, et l'etage 13 impose des choix que les
+etages 11 et 12 doivent respecter.
+
+Lis aussi `colonnes/__init__.py` : l'interface publique existante (Plateau, Colonne,
+Jeu, alignements) est ce sur quoi tu dois t'appuyer, pas la reecrire.
+
+Contraintes :
+- Ne modifie AUCUN fichier dans tests/ ni conftest.py.
+- Ne casse pas les dix etages existants.
+- Bibliotheque standard UNIQUEMENT : aucune dependance a installer, aucun serveur a
+  lancer. L'application WSGI s'appelle directement, sans socket.
+- Organise le code comme tu le juges bon, tant que `colonnes.web` expose
+  `rendu_html`, `etat`, `nouvelle_partie` et `application`.
+
+Lance `pytest -q` pour verifier. Tu as termine quand il affiche 109 passed.

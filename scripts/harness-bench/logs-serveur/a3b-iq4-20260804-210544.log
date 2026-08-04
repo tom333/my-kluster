@@ -1,0 +1,41 @@
+warn: LLAMA_ARG_HOST environment variable is set, but will be overwritten by command line argument --host
+0.03.459.381 I cmn  common_param: common_params_print_info: verbosity = 3 (adjust with the `-lv N` CLI arg)
+0.03.586.491 I srv          init: The UI is disabled
+0.03.586.497 I srv          init: Use --ui/--no-ui (or deprecated --webui/--no-webui) to enable/disable
+0.03.587.464 W srv  llama_server: -----------------
+0.03.587.466 W srv  llama_server: CORS is set to allow all origins ('*') and no API key is set
+0.03.587.466 W srv  llama_server: this can be a security risk (cross-origin attacks)
+0.03.587.466 W srv  llama_server: more info: https://github.com/ggml-org/llama.cpp/pull/25655
+0.03.587.466 W srv  llama_server: -----------------
+0.03.589.266 I srv    load_model: loading model '/models/Qwen3.6-27B-A3B-Coder-CD-IQ4_K_M.gguf'
+0.04.699.676 W llama_model_loader: tensor overrides to CPU are used with mmap enabled - consider using --no-mmap for better performance
+0.11.132.789 I srv    load_model: initializing, n_slots = 1, n_ctx_slot = 49152, kv_unified = 'false'
+0.11.150.705 I srv          init: chat template supports preserving reasoning, consider enabling it via --reasoning-preserve
+0.11.150.755 I srv  llama_server: model loaded
+0.11.150.760 I srv  llama_server: listening on http://0.0.0.0:8080
+0.13.594.706 I slot get_availabl: id  0 | task -1 | selected slot by LRU, t_last = -1
+0.13.594.766 I slot launch_slot_: id  0 | task 0 | processing task, is_child = 0
+0.17.761.083 I slot print_timing: id  0 | task 0 | prompt processing, n_tokens =     28, progress = 0.88, t =   4.17 s / 6.72 tokens per second
+0.21.493.373 I slot print_timing: id  0 | task 0 | n_decoded =    100, tg =  27.88 t/s, tg_3s =  27.88 t/s
+0.24.499.882 I slot print_timing: id  0 | task 0 | n_decoded =    186, tg =  28.21 t/s, tg_3s =  28.60 t/s
+0.27.508.000 I slot print_timing: id  0 | task 0 | n_decoded =    273, tg =  28.43 t/s, tg_3s =  28.92 t/s
+0.30.523.818 I slot print_timing: id  0 | task 0 | n_decoded =    359, tg =  28.45 t/s, tg_3s =  28.52 t/s
+0.33.542.886 I slot print_timing: id  0 | task 0 | n_decoded =    446, tg =  28.52 t/s, tg_3s =  28.82 t/s
+0.35.812.669 I slot print_timing: id  0 | task 0 | prompt eval time =    4312.32 ms /    32 tokens (  134.76 ms per token,     7.42 tokens per second)
+0.35.812.674 I slot print_timing: id  0 | task 0 |        eval time =   17905.55 ms /   512 tokens (   34.97 ms per token,    28.59 tokens per second)
+0.35.812.674 I slot print_timing: id  0 | task 0 |       total time =   22217.87 ms /   544 tokens
+0.35.812.680 I slot print_timing: id  0 | task 0 |    graphs reused =        509
+0.35.812.724 I slot      release: id  0 | task 0 | stop processing: n_tokens = 543, truncated = 0
+0.36.025.137 I slot get_availabl: id  0 | task -1 | selected slot by LCP similarity, sim_best = 1.000 (> 0.100 thold), f_keep = 0.059
+0.36.107.132 I slot launch_slot_: id  0 | task 514 | processing task, is_child = 0
+0.39.676.269 I slot print_timing: id  0 | task 514 | n_decoded =    100, tg =  29.17 t/s, tg_3s =  29.17 t/s
+0.42.697.558 I slot print_timing: id  0 | task 514 | n_decoded =    186, tg =  28.84 t/s, tg_3s =  28.46 t/s
+0.45.714.055 I slot print_timing: id  0 | task 514 | n_decoded =    273, tg =  28.84 t/s, tg_3s =  28.84 t/s
+0.48.731.718 I slot print_timing: id  0 | task 514 | n_decoded =    361, tg =  28.92 t/s, tg_3s =  29.16 t/s
+0.51.740.119 I slot print_timing: id  0 | task 514 | n_decoded =    448, tg =  28.92 t/s, tg_3s =  28.92 t/s
+0.54.014.473 I slot print_timing: id  0 | task 514 | prompt eval time =     140.76 ms /     4 tokens (   35.19 ms per token,    28.42 tokens per second)
+0.54.014.478 I slot print_timing: id  0 | task 514 |        eval time =   17766.55 ms /   512 tokens (   34.70 ms per token,    28.82 tokens per second)
+0.54.014.479 I slot print_timing: id  0 | task 514 |       total time =   17907.31 ms /   516 tokens
+0.54.014.480 I slot print_timing: id  0 | task 514 |    graphs reused =       1017
+0.54.014.504 I slot      release: id  0 | task 514 | stop processing: n_tokens = 543, truncated = 0
+1.22.759.134 I srv    operator(): operator(): cleaning up before exit...

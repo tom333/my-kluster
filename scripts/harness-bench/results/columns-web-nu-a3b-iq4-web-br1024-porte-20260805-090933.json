@@ -1,0 +1,192 @@
+{
+  "scenario": "columns-web",
+  "harnais": "nu",
+  "modele": "a3b-iq4-web-br1024-porte",
+  "runs": 1,
+  "tests_passed": 109,
+  "tests_passed_median": 109,
+  "tests_passed_min": 109,
+  "tests_passed_max": 109,
+  "tests_passed_ecart": 0,
+  "tests_passed_tous": [
+    109
+  ],
+  "tests_passed_notables": [
+    109
+  ],
+  "essais_comparables": 1,
+  "essais_erreur_collecte": 0,
+  "essais_pytest_pend": 0,
+  "tests_attendus": 109,
+  "verdict": "PASS",
+  "tours_median": 13,
+  "pic_input_median": 22349,
+  "duree_s_median": 462,
+  "sortie_par_test_median": 97.073,
+  "tours_par_test_median": 0.119,
+  "config_env": {
+    "HARNAIS_NU_BUDGET_RAISONNEMENT": "1024",
+    "HARNAIS_NU_MAX_TOKENS_PER_TURN": "8192",
+    "HARNAIS_NU_MAX_VERIFY": "3",
+    "HARNAIS_NU_TESTS_DETAIL": "bilan",
+    "HARNAIS_NU_VERIFY_CMD": "/usr/bin/pytest -q"
+  },
+  "commande": "bench.py --harness nu --scenario columns-web --model a3b-iq4-web-br1024-porte --runs 1 --timeout 3000",
+  "serveur_actif": {
+    "nom": "a3b",
+    "modele": "Qwen3.6-27B-A3B-Coder-CD-IQ4_K_M.gguf",
+    "log": "logs-serveur/a3b-iq4-ncmoe24-20260804-213103.log",
+    "drapeaux": [
+      "--n-cpu-moe",
+      "24"
+    ],
+    "ctx_size": 32768,
+    "parallel": 1,
+    "flash_attn": true,
+    "kv": "q8_0"
+  },
+  "prompt_sha256": "df273cfd5562f219",
+  "format_appels": "openai_tool_calls",
+  "essais": [
+    {
+      "essai": 1,
+      "duree_s": 461.5,
+      "timeout": false,
+      "returncode": 0,
+      "depart": {
+        "passed": 80,
+        "failed": 0
+      },
+      "workdir": "/tmp/harness-bench-columns-web-nu-a3b-iq4-web-br1024-porte",
+      "tours": 13,
+      "appels_outils": {
+        "read": 5,
+        "write": 3,
+        "bash": 6,
+        "edit": 1
+      },
+      "format_appels": "openai_tool_calls",
+      "pic_input": 22349,
+      "total_input": 189478,
+      "total_output": 10581,
+      "stop_reason": "done_verifie",
+      "erreur": null,
+      "verifications": 1,
+      "verif_ok": true,
+      "retries_troncature": 0,
+      "hygiene": [],
+      "caracteres_economises": 0,
+      "writes_rattrapes": 0,
+      "compactions": 0,
+      "modes_compaction": [],
+      "tests_auto": 0,
+      "tests_auto_ok": 0,
+      "verdict": "PASS",
+      "tests_passed": 109,
+      "tests_failed": 0,
+      "tests_attendus": 109,
+      "etages": {
+        "plateau": {
+          "passed": 12,
+          "failed": 0,
+          "attendus": 12,
+          "issue": "collecte_ok",
+          "verdict": "PASS"
+        },
+        "colonne": {
+          "passed": 8,
+          "failed": 0,
+          "attendus": 8,
+          "issue": "collecte_ok",
+          "verdict": "PASS"
+        },
+        "mouvement": {
+          "passed": 13,
+          "failed": 0,
+          "attendus": 13,
+          "issue": "collecte_ok",
+          "verdict": "PASS"
+        },
+        "horizontal": {
+          "passed": 9,
+          "failed": 0,
+          "attendus": 9,
+          "issue": "collecte_ok",
+          "verdict": "PASS"
+        },
+        "vertical": {
+          "passed": 7,
+          "failed": 0,
+          "attendus": 7,
+          "issue": "collecte_ok",
+          "verdict": "PASS"
+        },
+        "diagonales": {
+          "passed": 7,
+          "failed": 0,
+          "attendus": 7,
+          "issue": "collecte_ok",
+          "verdict": "PASS"
+        },
+        "simultane": {
+          "passed": 5,
+          "failed": 0,
+          "attendus": 5,
+          "issue": "collecte_ok",
+          "verdict": "PASS"
+        },
+        "cascade": {
+          "passed": 6,
+          "failed": 0,
+          "attendus": 6,
+          "issue": "collecte_ok",
+          "verdict": "PASS"
+        },
+        "score": {
+          "passed": 6,
+          "failed": 0,
+          "attendus": 6,
+          "issue": "collecte_ok",
+          "verdict": "PASS"
+        },
+        "fin": {
+          "passed": 7,
+          "failed": 0,
+          "attendus": 7,
+          "issue": "collecte_ok",
+          "verdict": "PASS"
+        },
+        "rendu": {
+          "passed": 9,
+          "failed": 0,
+          "attendus": 9,
+          "issue": "collecte_ok",
+          "verdict": "PASS"
+        },
+        "etat": {
+          "passed": 8,
+          "failed": 0,
+          "attendus": 8,
+          "issue": "collecte_ok",
+          "verdict": "PASS"
+        },
+        "http": {
+          "passed": 12,
+          "failed": 0,
+          "attendus": 12,
+          "issue": "collecte_ok",
+          "verdict": "PASS"
+        }
+      },
+      "issue": "collecte_ok",
+      "lignes_ecrites": 399,
+      "pytest_tail": "[plateau]\n12 passed in 0.01s\n[colonne]\n8 passed in 0.01s\n[mouvement]\n13 passed in 0.01s\n[horizontal]\n9 passed in 0.01s\n[vertical]\n7 passed in 0.01s\n[diagonales]\n7 passed in 0.01s\n[simultane]\n5 passed in 0.01s\n[cascade]\n6 passed in 0.01s\n[score]\n6 passed in 0.01s\n[fin]\n7 passed in 0.01s\n[rendu]\n9 passed in 0.01s\n[etat]\n8 passed in 0.01s\n[http]\n12 passed in 0.01s",
+      "tests_ajoutes": [],
+      "gardes_violees": [],
+      "api_modifiee": [],
+      "fichiers_modifies": [
+        "colonnes/web.py"
+      ]
+    }
+  ]
+}

@@ -14,27 +14,53 @@ M=/var/snap/microk8s/common/default-storage/localai-localai-models-pvc-1372f466-
 HORO=$(date +%Y%m%d-%H%M%S)
 LOG="$(dirname "$0")/logs-serveur/${NOM}-${HORO}.log"
 
+CTX="${CTX:-49152}"
+IMAGE="${IMAGE:-ghcr.io/ggml-org/llama.cpp:server-cuda-b10156}"
+
+# L'argv EXACT, dans un tableau : c'est lui qu'on passe a podman ET qu'on recopie
+# dans actif.json. Recopier des champs a la main (`ctx_size: 49152` code en dur)
+# les laisse divergier du serveur reel des qu'on edite le script — constate le
+# 2026-08-05, ou actif.json annoncait 49152 pour un serveur lance a 32768.
+ARGS=(
+  --model "/models/$MODELE" --ctx-size "$CTX" --parallel 1
+  -fa on -ctk q8_0 -ctv q8_0 --jinja --no-webui
+  --host 0.0.0.0 --port 8080 "$@"
+)
+
 podman rm -f "$NOM" >/dev/null 2>&1 || true
 sleep 2
 podman run -d --rm --name "$NOM" --device nvidia.com/gpu=all \
   -p 127.0.0.1:8080:8080 -v "$M":/models:ro \
-  ghcr.io/ggml-org/llama.cpp:server-cuda-b10156 \
-  --model "/models/$MODELE" --ctx-size 49152 --parallel 1 \
-  -fa on -ctk q8_0 -ctv q8_0 --jinja --no-webui \
-  --host 0.0.0.0 --port 8080 "$@" >/dev/null
+  "$IMAGE" "${ARGS[@]}" >/dev/null
 
 # La config ACTIVE du serveur, publiee pour que bench.py la recopie dans chaque
 # resultat. Motif (2026-08-04) : `-n 16384` plafonnait en silence le rejeu de
 # troncature et a invalide trois campagnes d'Ornith. L'argv serveur doit voyager
 # AVEC les scores, pas rester dans ma memoire.
-python3 - "$NOM" "$MODELE" "$LOG" "$@" <<'PY'
+python3 - "$NOM" "$MODELE" "$LOG" "$IMAGE" "${ARGS[@]}" <<'PY'
 import json, sys
 from pathlib import Path
-nom, modele, log, *drapeaux = sys.argv[1:]
+nom, modele, log, image, *argv = sys.argv[1:]
+
+
+def valeur(drapeau, defaut=None):
+    """Valeur LUE dans l'argv reel, pas une constante recopiee a cote."""
+    return argv[argv.index(drapeau) + 1] if drapeau in argv else defaut
+
+
+# Les drapeaux SUPPLEMENTAIRES, ceux qui distinguent deux campagnes : tout ce qui
+# suit `--port 8080` dans le tableau construit par le script.
+extra = argv[argv.index("--port") + 2:]
 Path(log).parent.mkdir(parents=True, exist_ok=True)
 Path(Path(log).parent / "actif.json").write_text(json.dumps({
-    "nom": nom, "modele": modele, "log": log, "drapeaux": drapeaux,
-    "ctx_size": 49152, "parallel": 1, "flash_attn": True, "kv": "q8_0",
+    "nom": nom, "modele": modele, "log": log, "image": image,
+    "drapeaux": extra,
+    "ctx_size": int(valeur("--ctx-size")),
+    "parallel": int(valeur("--parallel")),
+    "flash_attn": valeur("-fa") == "on",
+    "kv": valeur("-ctk"),
+    # L'argv COMPLET, pour ne plus dependre du sous-ensemble qu'on a pense a lire.
+    "argv": argv,
 }, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 PY
 

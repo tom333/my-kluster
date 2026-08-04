@@ -7,3 +7,13 @@ __pycache__/
 # `registre.py --reindexer`. Le commiter creerait une seconde source de verite
 # qui pourrait divenger de celle qu'il indexe.
 registre.sqlite
+
+# Etat TRANSIENT du serveur courant, publie par serveur.sh et deja recopie dans
+# chaque resultat (champ `serveur_actif`). Le suivre ne ferait que du bruit.
+logs-serveur/actif.json
+
+# Caches d'outils dans les fixtures : `copytree` les recopierait dans CHAQUE
+# workdir, et `.pytest_cache/v/cache/nodeids` y livrerait la liste complete des
+# identifiants de tests. Les fixtures doivent partir propres.
+fixture-*/.pytest_cache/
+fixture-*/.ruff_cache/
