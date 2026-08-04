@@ -366,6 +366,33 @@ def _sha_prompt(nom_scenario):
     return hashlib.sha256(brut).hexdigest()[:16]
 
 
+def _sha_contrat(nom_scenario):
+    """SHA-256 des fichiers de tests PROTEGES : le contrat que le modele doit tenir.
+
+    Motif (2026-08-05) : `prompt_sha256` ne couvre que l'enonce, or le contrat vit
+    dans les DOCSTRINGS et les assertions des tests. Un resserrement de la prose de
+    `test_11_rendu.py` (les tuiles en chute occupent leur case au lieu d'etre ajoutees
+    apres `</table>`) ne changeait pas d'un bit l'empreinte des campagnes — les
+    tirages d'avant et d'apres se seraient melanges en silence dans la meme mediane.
+
+    Les fichiers sont hashes dans l'ordre trie, chemin inclus : renommer un etage
+    change l'empreinte, comme il se doit.
+    """
+    import hashlib
+
+    sc = SCENARIOS[nom_scenario]
+    h = hashlib.sha256()
+    for rel in sorted(sc["protected"]):
+        chemin = Path(sc["fixture"]) / rel
+        try:
+            brut = chemin.read_bytes()
+        except OSError:
+            continue
+        h.update(rel.encode("utf-8"))
+        h.update(brut)
+    return h.hexdigest()[:16]
+
+
 def _serveur_actif():
     """Contenu de logs-serveur/actif.json, ou None s'il n'existe pas.
 
@@ -1346,6 +1373,10 @@ def run(harness, model, scenario_name, timeout, runs=1):
         # `columns-global` ne different que par lui, et l'ecart mesure entre eux
         # (tours/test 0,470 -> 0,312) serait invisible sans ce champ.
         "prompt_sha256": _sha_prompt(scenario_name),
+        # Le CONTRAT (docstrings + assertions des tests proteges). Distinct de
+        # l'enonce : on peut resserrer l'un sans toucher l'autre, et l'empreinte doit
+        # bouger dans les deux cas.
+        "contrat_sha256": _sha_contrat(scenario_name),
         "format_appels": essais[-1].get("format_appels"),
         "essais": essais,
     }

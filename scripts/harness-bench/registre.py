@@ -116,6 +116,11 @@ def empreinte(res):
             "scenario": res.get("scenario"),
             "harnais": res.get("harnais"),
             "prompt_sha": res.get("prompt_sha256"),
+            # Le CONTRAT, distinct de l'enonce. Resserrer une docstring de test ne
+            # changeait pas d'un bit l'empreinte : les tirages d'avant et d'apres se
+            # melangeaient dans la meme mediane. Absent des campagnes anterieures au
+            # 2026-08-05, donc None y fait un groupe a part — ce qui est correct.
+            "contrat_sha": res.get("contrat_sha256"),
             "env": res.get("config_env"),
             "etiquette": res.get("modele"),
             "modele_servi": serveur.get("modele"),

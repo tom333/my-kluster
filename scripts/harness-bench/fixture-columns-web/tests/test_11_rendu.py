@@ -10,7 +10,10 @@ représentant l'état du jeu.
 - Une case occupée par la tuile `X` s'écrit `<td class="tuile-X">X</td>`.
 - Les trois tuiles de la colonne EN CHUTE apparaissent aussi, avec la classe
   supplémentaire `chute` : `<td class="tuile-X chute">X</td>`. Elles ne sont pas
-  sur le plateau, mais le joueur doit les voir.
+  posées sur le `Plateau`, mais le joueur doit les voir : chacune OCCUPE SA CASE
+  DANS LE TABLEAU, à la ligne `jeu.ligne + i` et la colonne `jeu.col`, et REMPLACE
+  la cellule qui s'y trouverait. Le tableau garde donc exactement
+  `hauteur * largeur` cellules, jamais trois de plus.
 - Le score apparaît dans `<span id="score">…</span>`.
 - Quand la partie est terminée, la page contient `<p id="fin">Partie terminée</p>`
   et ne le contient pas sinon.
