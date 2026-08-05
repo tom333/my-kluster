@@ -56,6 +56,18 @@ GRAINES = (11, 2027, 40507, 606061, 8009)
 # l'empreinte du registre le voit via HARNAIS_NU_SEED dans config_env.
 GRAINES_ACTIVES = bool(os.environ.get("BENCH_GRAINES"))
 
+# Une graine posee A LA MAIN par l'appelant a la priorite, et elle est capturee ICI,
+# au chargement du module, PAS relue a chaque tirage.
+#
+# Le piege (constate le 2026-08-05, deux tirages en production avant de le voir) :
+# `os.environ` PERSISTE entre les tirages d'une meme campagne. Une garde
+# `if "HARNAIS_NU_SEED" not in os.environ` est vraie au tirage 1, ou l'on pose la
+# graine, et FAUSSE ensuite — les cinq tirages heritent donc de la graine du
+# premier. Le symptome : deux tirages a 6 tours et pic 16 881 identiques au token
+# pres. L'appariement se serait retourne contre lui-meme, en fabriquant deux bras
+# artificiellement constants d'ou l'on aurait conclu a tort a une neutralite.
+GRAINE_IMPOSEE = os.environ.get("HARNAIS_NU_SEED")
+
 # Deux scenarios de difficulte tres differente.
 #
 # `repair` : 7 defauts semes dans 5 modules existants, chacun une inversion d'UN
@@ -942,6 +954,7 @@ def nu_command(model, workdir, prompt):
     # inchange et historique toujours comparable.
     for var, drapeau in (
         ("HARNAIS_NU_SEED", "--seed"),
+        ("HARNAIS_NU_MESSAGE_RAISONNEMENT", "--message-raisonnement"),
         ("HARNAIS_NU_TEMPERATURE", "--temperature"),
         ("HARNAIS_NU_MIN_P", "--min-p"),
         ("HARNAIS_NU_TOP_P", "--top-p"),
@@ -1227,7 +1240,7 @@ def run_once(harness, model, scenario_name, timeout, essai=1, total=1):
     # autres reglages d'echantillonnage. Ne s'active que si GRAINES_ACTIVES : sans
     # ca le temoin garderait ses graines aleatoires et l'historique resterait
     # comparable.
-    if GRAINES_ACTIVES and "HARNAIS_NU_SEED" not in os.environ:
+    if GRAINES_ACTIVES and GRAINE_IMPOSEE is None:
         os.environ["HARNAIS_NU_SEED"] = str(GRAINES[(essai - 1) % len(GRAINES)])
     argv, env_extra = build_command(model, workdir, prompt)
     env = dict(os.environ)
