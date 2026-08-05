@@ -36,6 +36,26 @@ RESULTS = HERE / "results"
 TRAJECTOIRES = HERE / "trajectoires"
 PYTEST = os.environ.get("BENCH_PYTEST", "/usr/bin/pytest")
 
+# APPARIEMENT DES TIRAGES (2026-08-05). Cinq graines figees, arbitraires mais
+# STABLES : le tirage i de tout bras utilise GRAINES[i-1].
+#
+# Motif : sur `columns-web` un reglage IDENTIQUE produit 4 a 21 tours et 280 a
+# 1 590 s, avec un aneantissement sur cinq. Les leviers cherches valent 10 a 20 %,
+# donc on mesurait sous le bruit — trois verdicts du 2026-08-05 (budget de pensee,
+# reprise sur troncature, temperature) portent sur des ecarts plus petits que la
+# dispersion de leur propre bras, et aucun n'est solide. Apparier convertit une
+# comparaison 5 contre 5 non appariee en 5 differences appariees, a depense egale.
+#
+# Ne jamais reordonner ni reechantillonner cette liste : ce sont les graines de
+# TOUS les bras appariables. En ajouter a la fin est sans danger, changer les cinq
+# premieres invalide l'appariement avec l'historique.
+GRAINES = (11, 2027, 40507, 606061, 8009)
+
+# Desactive par defaut : le temoin garde ses graines aleatoires, donc les campagnes
+# deja indexees restent comparables. `BENCH_GRAINES=1` active l'appariement, et
+# l'empreinte du registre le voit via HARNAIS_NU_SEED dans config_env.
+GRAINES_ACTIVES = bool(os.environ.get("BENCH_GRAINES"))
+
 # Deux scenarios de difficulte tres differente.
 #
 # `repair` : 7 defauts semes dans 5 modules existants, chacun une inversion d'UN
@@ -921,6 +941,7 @@ def nu_command(model, workdir, prompt):
     # reglage identique). Chaque variable absente = champ non envoye, donc temoin
     # inchange et historique toujours comparable.
     for var, drapeau in (
+        ("HARNAIS_NU_SEED", "--seed"),
         ("HARNAIS_NU_TEMPERATURE", "--temperature"),
         ("HARNAIS_NU_MIN_P", "--min-p"),
         ("HARNAIS_NU_TOP_P", "--top-p"),
@@ -1197,6 +1218,17 @@ def run_once(harness, model, scenario_name, timeout, essai=1, total=1):
         before = run_pytest(workdir)
     print("depart : %s passed, %s failed" % (before[0], before[1]), flush=True)
 
+    # APPARIEMENT : le tirage i de tout bras utilise GRAINES[i-1]. La graine varie
+    # d'un tirage a l'autre (sinon les cinq seraient identiques) et reste la meme
+    # d'un bras a l'autre — c'est ce qui transforme une comparaison 5 contre 5 noyee
+    # dans la variance en 5 differences appariees. Voir GRAINES.
+    #
+    # Pose dans os.environ AVANT build_command, qui lit HARNAIS_NU_SEED comme les
+    # autres reglages d'echantillonnage. Ne s'active que si GRAINES_ACTIVES : sans
+    # ca le temoin garderait ses graines aleatoires et l'historique resterait
+    # comparable.
+    if GRAINES_ACTIVES and "HARNAIS_NU_SEED" not in os.environ:
+        os.environ["HARNAIS_NU_SEED"] = str(GRAINES[(essai - 1) % len(GRAINES)])
     argv, env_extra = build_command(model, workdir, prompt)
     env = dict(os.environ)
     env.update(env_extra)

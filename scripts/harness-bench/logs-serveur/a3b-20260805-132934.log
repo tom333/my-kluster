@@ -1,0 +1,30 @@
+warn: LLAMA_ARG_HOST environment variable is set, but will be overwritten by command line argument --host
+0.00.405.184 I cmn  common_param: common_params_print_info: verbosity = 3 (adjust with the `-lv N` CLI arg)
+0.00.534.174 I srv          init: The UI is disabled
+0.00.534.178 I srv          init: Use --ui/--no-ui (or deprecated --webui/--no-webui) to enable/disable
+0.00.534.348 W srv  llama_server: -----------------
+0.00.534.351 W srv  llama_server: CORS is set to allow all origins ('*') and no API key is set
+0.00.534.352 W srv  llama_server: this can be a security risk (cross-origin attacks)
+0.00.534.352 W srv  llama_server: more info: https://github.com/ggml-org/llama.cpp/pull/25655
+0.00.534.352 W srv  llama_server: -----------------
+0.00.535.677 I srv    load_model: loading model '/models/Qwen3.6-27B-A3B-Coder-CD-IQ4_K_M.gguf'
+0.02.118.658 W llama_model_loader: tensor overrides to CPU are used with mmap enabled - consider using --no-mmap for better performance
+0.04.534.058 I common_speculative_init_result: creating MTP draft context against the target model '/models/Qwen3.6-27B-A3B-Coder-CD-IQ4_K_M.gguf'
+0.04.646.177 I srv    load_model: initializing, n_slots = 1, n_ctx_slot = 32768, kv_unified = 'false'
+0.04.707.306 I srv          init: chat template supports preserving reasoning, consider enabling it via --reasoning-preserve
+0.04.707.360 I srv  llama_server: model loaded
+0.04.707.365 I srv  llama_server: listening on http://0.0.0.0:8080
+0.07.352.161 I slot get_availabl: id  0 | task -1 | selected slot by LRU, t_last = -1
+0.07.352.212 I slot launch_slot_: id  0 | task 0 | processing task, is_child = 0
+0.11.118.257 I slot print_timing: id  0 | task 0 | n_decoded =    131, tg =  43.51 t/s, tg_3s =  43.51 t/s
+0.14.159.659 I slot print_timing: id  0 | task 0 | n_decoded =    231, tg =  38.17 t/s, tg_3s =  32.88 t/s
+0.17.173.045 I slot print_timing: id  0 | task 0 | n_decoded =    327, tg =  36.07 t/s, tg_3s =  31.86 t/s
+0.20.250.250 I slot print_timing: id  0 | task 0 | n_decoded =    434, tg =  35.74 t/s, tg_3s =  34.77 t/s
+0.23.323.598 I slot print_timing: id  0 | task 0 | n_decoded =    539, tg =  35.42 t/s, tg_3s =  34.16 t/s
+0.25.081.869 I slot print_timing: id  0 | task 0 | prompt eval time =     755.13 ms /    39 tokens (   19.36 ms per token,    51.65 tokens per second)
+0.25.081.874 I slot print_timing: id  0 | task 0 |        eval time =   16974.46 ms /   600 tokens (   28.29 ms per token,    35.35 tokens per second)
+0.25.081.874 I slot print_timing: id  0 | task 0 |       total time =   17729.59 ms /   639 tokens
+0.25.081.878 I slot print_timing: id  0 | task 0 |    graphs reused =        190
+0.25.081.882 I slot print_timing: id  0 | task 0 | draft acceptance = 0.52796 (  406 accepted /   769 generated), mean len =  3.10
+0.25.081.938 I slot      release: id  0 | task 0 | stop processing: n_tokens = 638, truncated = 0
+0.27.557.154 I srv    operator(): operator(): cleaning up before exit...
