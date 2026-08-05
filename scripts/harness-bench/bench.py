@@ -942,6 +942,10 @@ def nu_command(model, workdir, prompt):
     # Cible revisee : elle ne sauve plus un run (le plafond desserre a fait
     # disparaitre les aneantissements), elle freine le VOLUME — un tirage du bras
     # gagnant a produit 41 705 tokens de sortie pour 8 tours.
+    # Graphe de code : index bati par le HARNAIS (demarrage + apres chaque ecriture),
+    # jamais par le modele. Ne lui expose que deux outils, pas les 14 de CBM.
+    if os.environ.get("HARNAIS_NU_GRAPHE"):
+        verify += ["--graphe"]
     if os.environ.get("HARNAIS_NU_DEDUPE_RELECTURES"):
         verify += ["--dedupe-relectures"]
     # ECHANTILLONNAGE. Jusqu'au 2026-08-05 le harnais n'en envoyait AUCUN et le serveur
@@ -955,6 +959,11 @@ def nu_command(model, workdir, prompt):
     for var, drapeau in (
         ("HARNAIS_NU_SEED", "--seed"),
         ("HARNAIS_NU_MESSAGE_RAISONNEMENT", "--message-raisonnement"),
+        # Restreint le jeu d'outils du temoin. `bash` seul reproduit la forme de
+        # mini-SWE-agent (>74 % sur SWE-bench verified, ~100 lignes, un seul outil).
+        # Le banc l'avait suggere sans qu'on le voie : deux tirages a 109/109 avec
+        # `write: 0`, le modele ecrivant par heredoc shell.
+        ("HARNAIS_NU_OUTILS", "--outils"),
         ("HARNAIS_NU_TEMPERATURE", "--temperature"),
         ("HARNAIS_NU_MIN_P", "--min-p"),
         ("HARNAIS_NU_TOP_P", "--top-p"),
