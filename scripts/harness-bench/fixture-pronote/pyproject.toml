@@ -1,0 +1,195 @@
+# Custom Component pyproject.toml — adapted from jpawlowski/hacs.integration_blueprint
+# (which itself is based on HA Core master pyproject.toml).
+
+[project]
+name = "ha_pronote"
+version = "0.0.0"              # Authoritative version is in custom_components/ha_pronote/manifest.json
+requires-python = ">=3.14.2"
+
+[tool.setuptools]
+packages = ["custom_components.ha_pronote"]
+
+# ---------------------------------------------------------------------------
+# Pyright (type checking) — mode: basic, matches modern blueprint pattern
+# ---------------------------------------------------------------------------
+[tool.pyright]
+# tests/ excluded — MagicMock-based tests fight pyright basic mode; the integration code is the contract.
+include = ["custom_components/ha_pronote"]
+exclude = [
+    "**/.*",
+    "**/__pycache__",
+    "**/node_modules",
+    "**/.venv",
+]
+venvPath = "."
+venv = ".venv"
+pythonVersion = "3.14"
+typeCheckingMode = "basic"
+reportUnusedImport = "none"
+reportUnusedVariable = "none"
+reportUnusedCoroutine = "none"
+reportMissingTypeStubs = "none"
+
+# ---------------------------------------------------------------------------
+# Pytest — asyncio_mode=auto required by pytest-homeassistant-custom-component
+# ---------------------------------------------------------------------------
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+norecursedirs = [".git", "testing_config"]
+log_format = "%(asctime)s.%(msecs)03d %(levelname)-8s %(threadName)s %(name)s:%(filename)s:%(lineno)s %(message)s"
+log_date_format = "%Y-%m-%d %H:%M:%S"
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+addopts = "-ra -q --strict-markers"
+timeout = 1   # D-28: per-test 1s timeout (sub-2s gate via pytest-timeout 2.4.0 transitive via PHACC)
+markers = [
+    "unit: Unit tests (fast, no external dependencies)",
+    "integration: Integration tests (use hass fixture)",
+]
+filterwarnings = [
+    "error",
+    # Ignore pronotepy / autoslot deprecation warnings if any surface
+    # "ignore::DeprecationWarning:autoslot",
+    # Phase 4 — HA Core 2026.4.x http/__init__.py:432 still sets app["hass"]
+    # (dict-key form); aiohttp >=3.10 raises NotAppKeyWarning which PHACC
+    # promotes to error via the "error" filter above, breaking
+    # async_setup_component(hass, "http", {}). Our Phase 4 calendar platform
+    # depends on http — ignore this specific upstream warning so http setup
+    # completes and calendar registers.
+    "ignore::aiohttp.web_exceptions.NotAppKeyWarning",
+]
+
+[tool.coverage.run]
+source = ["custom_components/ha_pronote"]
+omit = [
+    "tests/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "raise NotImplementedError",
+    "if TYPE_CHECKING:",
+]
+
+# ---------------------------------------------------------------------------
+# Ruff — lint + format. Block adapted from HA Core master pyproject.toml
+# (https://github.com/home-assistant/core/blob/master/pyproject.toml).
+# Customizations:
+#   - target-version py314 (matches D-10)
+#   - line-length 120 (matches jpawlowski blueprint)
+# ---------------------------------------------------------------------------
+[tool.ruff]
+required-version = ">=0.15.1"
+target-version = "py314"
+line-length = 120
+# `.claude/` holds local agent tooling, including a full repo copy under
+# `.claude/worktrees/` — never lint it (it is not part of the integration).
+extend-exclude = [".claude"]
+
+[tool.ruff.lint]
+select = [
+    "A001",   # Variable {name} is shadowing a Python builtin
+    "ASYNC",  # flake8-async
+    "B",      # flake8-bugbear (subset — see jpawlowski for full list)
+    "BLE",    # blind-except
+    "C",      # complexity
+    "COM818", # Trailing comma on bare tuple prohibited
+    "D",      # pydocstyle
+    "DTZ003", # Use datetime.now(tz=) instead of datetime.utcnow()
+    "DTZ004", # Use datetime.fromtimestamp(ts, tz=) instead of utcfromtimestamp
+    "E",      # pycodestyle errors
+    "F",      # pyflakes
+    "FLY",    # flynt
+    "FURB",   # refurb
+    "G",      # flake8-logging-format
+    "I",      # isort
+    "ICN001", # Import conventions
+    "INP",    # flake8-no-pep420
+    "ISC",    # flake8-implicit-str-concat
+    "LOG",    # flake8-logging
+    "N804",   # Class methods should have cls
+    "N805",   # Methods should have self
+    "PERF",   # Perflint
+    "PGH",    # pygrep-hooks
+    "PIE",    # flake8-pie
+    "PL",     # pylint
+    "PT",     # flake8-pytest-style
+    "PTH",    # flake8-pathlib
+    "PYI",    # flake8-pyi
+    "RET",    # flake8-return
+    "RSE",    # flake8-raise
+    "RUF",    # ruff-specific
+    "SIM",    # flake8-simplify
+    "SLF",    # flake8-self
+    "SLOT",   # flake8-slots
+    "T20",    # flake8-print
+    "TC",     # flake8-type-checking
+    "TID",    # Tidy imports
+    "TRY",    # tryceratops
+    "UP",     # pyupgrade
+    "W",      # pycodestyle warnings
+]
+
+ignore = [
+    "ANN401",   # Dynamically typed expressions (typing.Any) are disallowed
+    "ASYNC109", # Async def with timeout param — use asyncio.timeout()
+    "D203",     # 1 blank line required before class docstring
+    "D213",     # Multi-line docstring summary should start at second line
+    "E501",     # line too long (handled by formatter)
+    "PLR2004",  # Magic value used in comparison
+    "TRY003",   # Avoid specifying long messages outside the exception class
+    # Complexity / arg-count — ignored to match HA Core conventions (design,
+    # not a defect; mccabe max-complexity below bounds the genuinely hairy ones).
+    "PLR0911", "PLR0912", "PLR0913", "PLR0915",
+    "PLW0108",  # Unnecessary lambda — the project mandates `lambda v: v.strip()`
+                # inside vol.All (no vol.Strip; see CLAUDE.md).
+    "RUF003",   # Ambiguous unicode in comments — French accents are expected.
+    # Conflicts with ruff formatter:
+    "W191", "E111", "E114", "E117", "D206", "D212", "D300",
+    "Q", "COM812", "COM819", "ISC001",
+]
+
+[tool.ruff.lint.flake8-import-conventions.extend-aliases]
+voluptuous = "vol"
+"homeassistant.helpers.config_validation" = "cv"
+"homeassistant.helpers.device_registry" = "dr"
+"homeassistant.helpers.entity_registry" = "er"
+"homeassistant.util.dt" = "dt_util"
+
+[tool.ruff.lint.flake8-tidy-imports.banned-api]
+"async_timeout".msg = "use asyncio.timeout instead"  # D-30
+"pytz".msg = "use zoneinfo instead"                  # D-31
+"requests".msg = "use pronotepy via executor (D-32)"
+
+[tool.ruff.lint.isort]
+force-sort-within-sections = true
+known-first-party = ["custom_components", "homeassistant"]
+combine-as-imports = true
+split-on-trailing-comma = false
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = [
+    "S101",    # assert is fine in tests
+    "PLR2004", # Magic values are fine in tests
+    "D",       # Docstrings not required in tests
+    "PLC0415", # local imports inside test functions are idiomatic
+]
+"scripts/**" = [
+    "T20",     # print is the script's UX
+    "INP001",  # scripts/ is intentionally not a package
+    "S603",    # subprocess (in case Plan 02-02 adds shell helpers)
+    "S607",
+    "D",       # full docstring set not required for one-shot tools
+    "PLC0415", # local imports inside script functions are idiomatic
+    "C901",    # probe scripts may be complex
+]
+"tests/fixtures/**" = [
+    "T20",     # the heavy-class generator legitimately prints progress
+]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 25
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"

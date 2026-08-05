@@ -1,0 +1,101 @@
+name: Upstream canary
+
+# Early warning when pronotepy's upstream HEAD breaks our suite. The production
+# pin (pronotepy==2.14.6) is unaffected — this job only warns.
+on:
+  schedule:
+    - cron: "0 6 * * *"   # 06:00 UTC daily
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  canary:
+    name: Tests vs pronotepy@HEAD
+    runs-on: ubuntu-latest
+    env:
+      TZ: Europe/Paris   # single TZ — this job targets upstream drift, not the TZ matrix
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6.2.0
+        with:
+          python-version: "3.14"
+      - uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b  # v8.1.0
+        with:
+          enable-cache: true
+          cache-dependency-glob: "requirements*.txt"
+
+      - name: Install pinned test deps
+        run: uv pip install --system -r requirements_test.txt
+
+      - name: Override pronotepy with upstream HEAD
+        run: |
+          uv pip install --system "pronotepy @ git+https://github.com/bain3/pronotepy"
+          echo "Resolved pronotepy:"
+          uv pip show pronotepy | grep -E "^(Name|Version|Location):"
+
+      - name: Run full suite
+        id: tests
+        run: pytest -q
+
+      - name: Open or update regression issue
+        if: always() && steps.tests.outcome == 'failure'
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea  # v7.0.1
+        with:
+          script: |
+            const label = "pronotepy-upstream";
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+
+            // Ensure the dedup label exists — issues.create silently drops
+            // unknown labels, which would break the open-issue filter below.
+            try {
+              await github.rest.issues.getLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                name: label,
+              });
+            } catch {
+              await github.rest.issues.createLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                name: label,
+                color: "e4e669",
+                description: "pronotepy upstream HEAD canary regression",
+              });
+            }
+
+            const body = [
+              "The daily canary suite failed against **pronotepy upstream HEAD**.",
+              "",
+              `Run: ${runUrl}`,
+              "",
+              "The production pin (`pronotepy==2.14.6`) still protects installed users —",
+              "this is an early warning that upstream has drifted. Investigate before",
+              "the next pronotepy bump.",
+            ].join("\n");
+
+            const existing = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: "open",
+              labels: label,
+            });
+
+            if (existing.data.length > 0) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: existing.data[0].number,
+                body: `Canary still failing. ${runUrl}`,
+              });
+            } else {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: "pronotepy upstream regression",
+                body,
+                labels: [label],
+              });
+            }

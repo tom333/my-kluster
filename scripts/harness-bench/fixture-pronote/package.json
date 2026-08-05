@@ -1,0 +1,9 @@
+{
+  "name": "ha-pronote-tools",
+  "version": "1.0.0",
+  "description": "Development tools for HA-Pronote",
+  "private": true,
+  "devDependencies": {
+    "pyright": "1.1.409"
+  }
+}

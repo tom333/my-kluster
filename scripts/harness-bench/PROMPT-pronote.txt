@@ -1,0 +1,7 @@
+Ce depot est un plugin Home Assistant qui suit un emploi du temps Pronote.
+
+Je suis cense recevoir une notification quand un cours est annule. Mais les cours
+annotes "absence admin" sont des cours annules qui restent dans l'emploi du temps,
+et je ne recois aucune notification pour eux.
+
+Corrige le bug.

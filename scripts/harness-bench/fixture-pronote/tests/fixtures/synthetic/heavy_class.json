@@ -1,0 +1,2632 @@
+{
+  "today": "2026-05-26",
+  "school_tz": "Pacific/Noumea",
+  "lessons": [
+    {
+      "date": "2026-05-19",
+      "start": "2026-05-19T07:30:00+11:00",
+      "end": "2026-05-19T08:25:00+11:00",
+      "subject": "Math\u00e9matiques",
+      "teacher": "M. Dupont",
+      "classroom": "B204",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-19",
+      "start": "2026-05-19T08:30:00+11:00",
+      "end": "2026-05-19T09:25:00+11:00",
+      "subject": "Fran\u00e7ais",
+      "teacher": "Mme Martin",
+      "classroom": "S102",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-19",
+      "start": "2026-05-19T09:30:00+11:00",
+      "end": "2026-05-19T10:25:00+11:00",
+      "subject": "Histoire-G\u00e9ographie",
+      "teacher": "M. Bernard",
+      "classroom": "GYM",
+      "canceled": true,
+      "status": "Cours annul\u00e9"
+    },
+    {
+      "date": "2026-05-19",
+      "start": "2026-05-19T10:40:00+11:00",
+      "end": "2026-05-19T11:35:00+11:00",
+      "subject": "EPS",
+      "teacher": "Mme Leroy",
+      "classroom": "A301",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-19",
+      "start": "2026-05-19T12:00:00+11:00",
+      "end": "2026-05-19T12:55:00+11:00",
+      "subject": "Physique-Chimie",
+      "teacher": "M. Moreau",
+      "classroom": "B105",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-19",
+      "start": "2026-05-19T13:00:00+11:00",
+      "end": "2026-05-19T13:55:00+11:00",
+      "subject": "Anglais",
+      "teacher": "Mme Simon",
+      "classroom": "EXT",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-19",
+      "start": "2026-05-19T14:00:00+11:00",
+      "end": "2026-05-19T14:55:00+11:00",
+      "subject": "Math\u00e9matiques",
+      "teacher": "M. Dupont",
+      "classroom": "B204",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-19",
+      "start": "2026-05-19T15:00:00+11:00",
+      "end": "2026-05-19T15:55:00+11:00",
+      "subject": "Fran\u00e7ais",
+      "teacher": "Mme Martin",
+      "classroom": "S102",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-20",
+      "start": "2026-05-20T07:30:00+11:00",
+      "end": "2026-05-20T08:25:00+11:00",
+      "subject": "Math\u00e9matiques",
+      "teacher": "M. Dupont",
+      "classroom": "B204",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-20",
+      "start": "2026-05-20T08:30:00+11:00",
+      "end": "2026-05-20T09:25:00+11:00",
+      "subject": "Fran\u00e7ais",
+      "teacher": "Mme Martin",
+      "classroom": "S102",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-20",
+      "start": "2026-05-20T09:30:00+11:00",
+      "end": "2026-05-20T10:25:00+11:00",
+      "subject": "Histoire-G\u00e9ographie",
+      "teacher": "M. Bernard",
+      "classroom": "GYM",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-20",
+      "start": "2026-05-20T10:40:00+11:00",
+      "end": "2026-05-20T11:35:00+11:00",
+      "subject": "EPS",
+      "teacher": "Mme Leroy",
+      "classroom": "A301",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-20",
+      "start": "2026-05-20T12:00:00+11:00",
+      "end": "2026-05-20T12:55:00+11:00",
+      "subject": "Physique-Chimie",
+      "teacher": "M. Moreau",
+      "classroom": "B105",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-20",
+      "start": "2026-05-20T13:00:00+11:00",
+      "end": "2026-05-20T13:55:00+11:00",
+      "subject": "Anglais",
+      "teacher": "Mme Simon",
+      "classroom": "EXT",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-20",
+      "start": "2026-05-20T14:00:00+11:00",
+      "end": "2026-05-20T14:55:00+11:00",
+      "subject": "Math\u00e9matiques",
+      "teacher": "M. Dupont",
+      "classroom": "B204",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-20",
+      "start": "2026-05-20T15:00:00+11:00",
+      "end": "2026-05-20T15:55:00+11:00",
+      "subject": "Fran\u00e7ais",
+      "teacher": "Mme Martin",
+      "classroom": "S102",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-21",
+      "start": "2026-05-21T07:30:00+11:00",
+      "end": "2026-05-21T08:25:00+11:00",
+      "subject": "Math\u00e9matiques",
+      "teacher": "M. Dupont",
+      "classroom": "B204",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-21",
+      "start": "2026-05-21T08:30:00+11:00",
+      "end": "2026-05-21T09:25:00+11:00",
+      "subject": "Fran\u00e7ais",
+      "teacher": "Mme Martin",
+      "classroom": "S102",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-21",
+      "start": "2026-05-21T09:30:00+11:00",
+      "end": "2026-05-21T10:25:00+11:00",
+      "subject": "Histoire-G\u00e9ographie",
+      "teacher": "M. Bernard",
+      "classroom": "GYM",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-21",
+      "start": "2026-05-21T10:40:00+11:00",
+      "end": "2026-05-21T11:35:00+11:00",
+      "subject": "EPS",
+      "teacher": "Mme Leroy",
+      "classroom": "A301",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-21",
+      "start": "2026-05-21T12:00:00+11:00",
+      "end": "2026-05-21T12:55:00+11:00",
+      "subject": "Physique-Chimie",
+      "teacher": "M. Moreau",
+      "classroom": "B105",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-21",
+      "start": "2026-05-21T13:00:00+11:00",
+      "end": "2026-05-21T13:55:00+11:00",
+      "subject": "Anglais",
+      "teacher": "Mme Simon",
+      "classroom": "EXT",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-21",
+      "start": "2026-05-21T14:00:00+11:00",
+      "end": "2026-05-21T14:55:00+11:00",
+      "subject": "Math\u00e9matiques",
+      "teacher": "M. Dupont",
+      "classroom": "B204",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-21",
+      "start": "2026-05-21T15:00:00+11:00",
+      "end": "2026-05-21T15:55:00+11:00",
+      "subject": "Fran\u00e7ais",
+      "teacher": "Mme Martin",
+      "classroom": "S102",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-22",
+      "start": "2026-05-22T07:30:00+11:00",
+      "end": "2026-05-22T08:25:00+11:00",
+      "subject": "Math\u00e9matiques",
+      "teacher": "M. Dupont",
+      "classroom": "B204",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-22",
+      "start": "2026-05-22T08:30:00+11:00",
+      "end": "2026-05-22T09:25:00+11:00",
+      "subject": "Fran\u00e7ais",
+      "teacher": "Mme Martin",
+      "classroom": "S102",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-22",
+      "start": "2026-05-22T09:30:00+11:00",
+      "end": "2026-05-22T10:25:00+11:00",
+      "subject": "Histoire-G\u00e9ographie",
+      "teacher": "M. Bernard",
+      "classroom": "GYM",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-22",
+      "start": "2026-05-22T10:40:00+11:00",
+      "end": "2026-05-22T11:35:00+11:00",
+      "subject": "EPS",
+      "teacher": "Mme Leroy",
+      "classroom": "A301",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-22",
+      "start": "2026-05-22T12:00:00+11:00",
+      "end": "2026-05-22T12:55:00+11:00",
+      "subject": "Physique-Chimie",
+      "teacher": "M. Moreau",
+      "classroom": "B105",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-22",
+      "start": "2026-05-22T13:00:00+11:00",
+      "end": "2026-05-22T13:55:00+11:00",
+      "subject": "Anglais",
+      "teacher": "Mme Simon",
+      "classroom": "EXT",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-22",
+      "start": "2026-05-22T14:00:00+11:00",
+      "end": "2026-05-22T14:55:00+11:00",
+      "subject": "Math\u00e9matiques",
+      "teacher": "M. Dupont",
+      "classroom": "B204",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-22",
+      "start": "2026-05-22T15:00:00+11:00",
+      "end": "2026-05-22T15:55:00+11:00",
+      "subject": "Fran\u00e7ais",
+      "teacher": "Mme Martin",
+      "classroom": "S102",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-25",
+      "start": "2026-05-25T07:30:00+11:00",
+      "end": "2026-05-25T08:25:00+11:00",
+      "subject": "Math\u00e9matiques",
+      "teacher": "M. Dupont",
+      "classroom": "B204",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-25",
+      "start": "2026-05-25T08:30:00+11:00",
+      "end": "2026-05-25T09:25:00+11:00",
+      "subject": "Fran\u00e7ais",
+      "teacher": "Mme Martin",
+      "classroom": "S102",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-25",
+      "start": "2026-05-25T09:30:00+11:00",
+      "end": "2026-05-25T10:25:00+11:00",
+      "subject": "Histoire-G\u00e9ographie",
+      "teacher": "M. Bernard",
+      "classroom": "GYM",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-25",
+      "start": "2026-05-25T10:40:00+11:00",
+      "end": "2026-05-25T11:35:00+11:00",
+      "subject": "EPS",
+      "teacher": "Mme Leroy",
+      "classroom": "A301",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-25",
+      "start": "2026-05-25T12:00:00+11:00",
+      "end": "2026-05-25T12:55:00+11:00",
+      "subject": "Physique-Chimie",
+      "teacher": "M. Moreau",
+      "classroom": "B105",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-25",
+      "start": "2026-05-25T13:00:00+11:00",
+      "end": "2026-05-25T13:55:00+11:00",
+      "subject": "Anglais",
+      "teacher": "Mme Simon",
+      "classroom": "EXT",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-25",
+      "start": "2026-05-25T14:00:00+11:00",
+      "end": "2026-05-25T14:55:00+11:00",
+      "subject": "Math\u00e9matiques",
+      "teacher": "M. Dupont",
+      "classroom": "B204",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-25",
+      "start": "2026-05-25T15:00:00+11:00",
+      "end": "2026-05-25T15:55:00+11:00",
+      "subject": "Fran\u00e7ais",
+      "teacher": "Mme Martin",
+      "classroom": "S102",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-26",
+      "start": "2026-05-26T07:30:00+11:00",
+      "end": "2026-05-26T08:25:00+11:00",
+      "subject": "Math\u00e9matiques",
+      "teacher": "M. Dupont",
+      "classroom": "B204",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-26",
+      "start": "2026-05-26T08:30:00+11:00",
+      "end": "2026-05-26T09:25:00+11:00",
+      "subject": "Fran\u00e7ais",
+      "teacher": "Mme Martin",
+      "classroom": "S102",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-26",
+      "start": "2026-05-26T09:30:00+11:00",
+      "end": "2026-05-26T10:25:00+11:00",
+      "subject": "Histoire-G\u00e9ographie",
+      "teacher": "M. Bernard",
+      "classroom": "GYM",
+      "canceled": true,
+      "status": "Cours annul\u00e9"
+    },
+    {
+      "date": "2026-05-26",
+      "start": "2026-05-26T10:40:00+11:00",
+      "end": "2026-05-26T11:35:00+11:00",
+      "subject": "EPS",
+      "teacher": "Mme Leroy",
+      "classroom": "A301",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-26",
+      "start": "2026-05-26T12:00:00+11:00",
+      "end": "2026-05-26T12:55:00+11:00",
+      "subject": "Physique-Chimie",
+      "teacher": "M. Moreau",
+      "classroom": "B105",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-26",
+      "start": "2026-05-26T13:00:00+11:00",
+      "end": "2026-05-26T13:55:00+11:00",
+      "subject": "Anglais",
+      "teacher": "Mme Simon",
+      "classroom": "EXT",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-26",
+      "start": "2026-05-26T14:00:00+11:00",
+      "end": "2026-05-26T14:55:00+11:00",
+      "subject": "Math\u00e9matiques",
+      "teacher": "M. Dupont",
+      "classroom": "B204",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-26",
+      "start": "2026-05-26T15:00:00+11:00",
+      "end": "2026-05-26T15:55:00+11:00",
+      "subject": "Fran\u00e7ais",
+      "teacher": "Mme Martin",
+      "classroom": "S102",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-27",
+      "start": "2026-05-27T07:30:00+11:00",
+      "end": "2026-05-27T08:25:00+11:00",
+      "subject": "Math\u00e9matiques",
+      "teacher": "M. Dupont",
+      "classroom": "B204",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-27",
+      "start": "2026-05-27T08:30:00+11:00",
+      "end": "2026-05-27T09:25:00+11:00",
+      "subject": "Fran\u00e7ais",
+      "teacher": "Mme Martin",
+      "classroom": "S102",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-27",
+      "start": "2026-05-27T09:30:00+11:00",
+      "end": "2026-05-27T10:25:00+11:00",
+      "subject": "Histoire-G\u00e9ographie",
+      "teacher": "M. Bernard",
+      "classroom": "GYM",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-27",
+      "start": "2026-05-27T10:40:00+11:00",
+      "end": "2026-05-27T11:35:00+11:00",
+      "subject": "EPS",
+      "teacher": "Mme Leroy",
+      "classroom": "A301",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-27",
+      "start": "2026-05-27T12:00:00+11:00",
+      "end": "2026-05-27T12:55:00+11:00",
+      "subject": "Physique-Chimie",
+      "teacher": "M. Moreau",
+      "classroom": "B105",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-27",
+      "start": "2026-05-27T13:00:00+11:00",
+      "end": "2026-05-27T13:55:00+11:00",
+      "subject": "Anglais",
+      "teacher": "Mme Simon",
+      "classroom": "EXT",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-27",
+      "start": "2026-05-27T14:00:00+11:00",
+      "end": "2026-05-27T14:55:00+11:00",
+      "subject": "Math\u00e9matiques",
+      "teacher": "M. Dupont",
+      "classroom": "B204",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-27",
+      "start": "2026-05-27T15:00:00+11:00",
+      "end": "2026-05-27T15:55:00+11:00",
+      "subject": "Fran\u00e7ais",
+      "teacher": "Mme Martin",
+      "classroom": "S102",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-28",
+      "start": "2026-05-28T07:30:00+11:00",
+      "end": "2026-05-28T08:25:00+11:00",
+      "subject": "Math\u00e9matiques",
+      "teacher": "M. Dupont",
+      "classroom": "B204",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-28",
+      "start": "2026-05-28T08:30:00+11:00",
+      "end": "2026-05-28T09:25:00+11:00",
+      "subject": "Fran\u00e7ais",
+      "teacher": "Mme Martin",
+      "classroom": "S102",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-28",
+      "start": "2026-05-28T09:30:00+11:00",
+      "end": "2026-05-28T10:25:00+11:00",
+      "subject": "Histoire-G\u00e9ographie",
+      "teacher": "M. Bernard",
+      "classroom": "GYM",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-28",
+      "start": "2026-05-28T10:40:00+11:00",
+      "end": "2026-05-28T11:35:00+11:00",
+      "subject": "EPS",
+      "teacher": "Mme Leroy",
+      "classroom": "A301",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-28",
+      "start": "2026-05-28T12:00:00+11:00",
+      "end": "2026-05-28T12:55:00+11:00",
+      "subject": "Physique-Chimie",
+      "teacher": "M. Moreau",
+      "classroom": "B105",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-28",
+      "start": "2026-05-28T13:00:00+11:00",
+      "end": "2026-05-28T13:55:00+11:00",
+      "subject": "Anglais",
+      "teacher": "Mme Simon",
+      "classroom": "EXT",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-28",
+      "start": "2026-05-28T14:00:00+11:00",
+      "end": "2026-05-28T14:55:00+11:00",
+      "subject": "Math\u00e9matiques",
+      "teacher": "M. Dupont",
+      "classroom": "B204",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-28",
+      "start": "2026-05-28T15:00:00+11:00",
+      "end": "2026-05-28T15:55:00+11:00",
+      "subject": "Fran\u00e7ais",
+      "teacher": "Mme Martin",
+      "classroom": "S102",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-29",
+      "start": "2026-05-29T07:30:00+11:00",
+      "end": "2026-05-29T08:25:00+11:00",
+      "subject": "Math\u00e9matiques",
+      "teacher": "M. Dupont",
+      "classroom": "B204",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-29",
+      "start": "2026-05-29T08:30:00+11:00",
+      "end": "2026-05-29T09:25:00+11:00",
+      "subject": "Fran\u00e7ais",
+      "teacher": "Mme Martin",
+      "classroom": "S102",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-29",
+      "start": "2026-05-29T09:30:00+11:00",
+      "end": "2026-05-29T10:25:00+11:00",
+      "subject": "Histoire-G\u00e9ographie",
+      "teacher": "M. Bernard",
+      "classroom": "GYM",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-29",
+      "start": "2026-05-29T10:40:00+11:00",
+      "end": "2026-05-29T11:35:00+11:00",
+      "subject": "EPS",
+      "teacher": "Mme Leroy",
+      "classroom": "A301",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-29",
+      "start": "2026-05-29T12:00:00+11:00",
+      "end": "2026-05-29T12:55:00+11:00",
+      "subject": "Physique-Chimie",
+      "teacher": "M. Moreau",
+      "classroom": "B105",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-29",
+      "start": "2026-05-29T13:00:00+11:00",
+      "end": "2026-05-29T13:55:00+11:00",
+      "subject": "Anglais",
+      "teacher": "Mme Simon",
+      "classroom": "EXT",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-29",
+      "start": "2026-05-29T14:00:00+11:00",
+      "end": "2026-05-29T14:55:00+11:00",
+      "subject": "Math\u00e9matiques",
+      "teacher": "M. Dupont",
+      "classroom": "B204",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-29",
+      "start": "2026-05-29T15:00:00+11:00",
+      "end": "2026-05-29T15:55:00+11:00",
+      "subject": "Fran\u00e7ais",
+      "teacher": "Mme Martin",
+      "classroom": "S102",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-06-01",
+      "start": "2026-06-01T07:30:00+11:00",
+      "end": "2026-06-01T08:25:00+11:00",
+      "subject": "Math\u00e9matiques",
+      "teacher": "M. Dupont",
+      "classroom": "B204",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-06-01",
+      "start": "2026-06-01T08:30:00+11:00",
+      "end": "2026-06-01T09:25:00+11:00",
+      "subject": "Fran\u00e7ais",
+      "teacher": "Mme Martin",
+      "classroom": "S102",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-06-01",
+      "start": "2026-06-01T09:30:00+11:00",
+      "end": "2026-06-01T10:25:00+11:00",
+      "subject": "Histoire-G\u00e9ographie",
+      "teacher": "M. Bernard",
+      "classroom": "GYM",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-06-01",
+      "start": "2026-06-01T10:40:00+11:00",
+      "end": "2026-06-01T11:35:00+11:00",
+      "subject": "EPS",
+      "teacher": "Mme Leroy",
+      "classroom": "A301",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-06-01",
+      "start": "2026-06-01T12:00:00+11:00",
+      "end": "2026-06-01T12:55:00+11:00",
+      "subject": "Physique-Chimie",
+      "teacher": "M. Moreau",
+      "classroom": "B105",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-06-01",
+      "start": "2026-06-01T13:00:00+11:00",
+      "end": "2026-06-01T13:55:00+11:00",
+      "subject": "Anglais",
+      "teacher": "Mme Simon",
+      "classroom": "EXT",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-06-01",
+      "start": "2026-06-01T14:00:00+11:00",
+      "end": "2026-06-01T14:55:00+11:00",
+      "subject": "Math\u00e9matiques",
+      "teacher": "M. Dupont",
+      "classroom": "B204",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-06-01",
+      "start": "2026-06-01T15:00:00+11:00",
+      "end": "2026-06-01T15:55:00+11:00",
+      "subject": "Fran\u00e7ais",
+      "teacher": "Mme Martin",
+      "classroom": "S102",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-06-02",
+      "start": "2026-06-02T07:30:00+11:00",
+      "end": "2026-06-02T08:25:00+11:00",
+      "subject": "Math\u00e9matiques",
+      "teacher": "M. Dupont",
+      "classroom": "B204",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-06-02",
+      "start": "2026-06-02T08:30:00+11:00",
+      "end": "2026-06-02T09:25:00+11:00",
+      "subject": "Fran\u00e7ais",
+      "teacher": "Mme Martin",
+      "classroom": "S102",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-06-02",
+      "start": "2026-06-02T09:30:00+11:00",
+      "end": "2026-06-02T10:25:00+11:00",
+      "subject": "Histoire-G\u00e9ographie",
+      "teacher": "M. Bernard",
+      "classroom": "GYM",
+      "canceled": true,
+      "status": "Cours annul\u00e9"
+    },
+    {
+      "date": "2026-06-02",
+      "start": "2026-06-02T10:40:00+11:00",
+      "end": "2026-06-02T11:35:00+11:00",
+      "subject": "EPS",
+      "teacher": "Mme Leroy",
+      "classroom": "A301",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-06-02",
+      "start": "2026-06-02T12:00:00+11:00",
+      "end": "2026-06-02T12:55:00+11:00",
+      "subject": "Physique-Chimie",
+      "teacher": "M. Moreau",
+      "classroom": "B105",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-06-02",
+      "start": "2026-06-02T13:00:00+11:00",
+      "end": "2026-06-02T13:55:00+11:00",
+      "subject": "Anglais",
+      "teacher": "Mme Simon",
+      "classroom": "EXT",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-06-02",
+      "start": "2026-06-02T14:00:00+11:00",
+      "end": "2026-06-02T14:55:00+11:00",
+      "subject": "Math\u00e9matiques",
+      "teacher": "M. Dupont",
+      "classroom": "B204",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-06-02",
+      "start": "2026-06-02T15:00:00+11:00",
+      "end": "2026-06-02T15:55:00+11:00",
+      "subject": "Fran\u00e7ais",
+      "teacher": "Mme Martin",
+      "classroom": "S102",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-06-03",
+      "start": "2026-06-03T07:30:00+11:00",
+      "end": "2026-06-03T08:25:00+11:00",
+      "subject": "Math\u00e9matiques",
+      "teacher": "M. Dupont",
+      "classroom": "B204",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-06-03",
+      "start": "2026-06-03T08:30:00+11:00",
+      "end": "2026-06-03T09:25:00+11:00",
+      "subject": "Fran\u00e7ais",
+      "teacher": "Mme Martin",
+      "classroom": "S102",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-06-03",
+      "start": "2026-06-03T09:30:00+11:00",
+      "end": "2026-06-03T10:25:00+11:00",
+      "subject": "Histoire-G\u00e9ographie",
+      "teacher": "M. Bernard",
+      "classroom": "GYM",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-06-03",
+      "start": "2026-06-03T10:40:00+11:00",
+      "end": "2026-06-03T11:35:00+11:00",
+      "subject": "EPS",
+      "teacher": "Mme Leroy",
+      "classroom": "A301",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-06-03",
+      "start": "2026-06-03T12:00:00+11:00",
+      "end": "2026-06-03T12:55:00+11:00",
+      "subject": "Physique-Chimie",
+      "teacher": "M. Moreau",
+      "classroom": "B105",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-06-03",
+      "start": "2026-06-03T13:00:00+11:00",
+      "end": "2026-06-03T13:55:00+11:00",
+      "subject": "Anglais",
+      "teacher": "Mme Simon",
+      "classroom": "EXT",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-06-03",
+      "start": "2026-06-03T14:00:00+11:00",
+      "end": "2026-06-03T14:55:00+11:00",
+      "subject": "Math\u00e9matiques",
+      "teacher": "M. Dupont",
+      "classroom": "B204",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-06-03",
+      "start": "2026-06-03T15:00:00+11:00",
+      "end": "2026-06-03T15:55:00+11:00",
+      "subject": "Fran\u00e7ais",
+      "teacher": "Mme Martin",
+      "classroom": "S102",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-06-04",
+      "start": "2026-06-04T07:30:00+11:00",
+      "end": "2026-06-04T08:25:00+11:00",
+      "subject": "Math\u00e9matiques",
+      "teacher": "M. Dupont",
+      "classroom": "B204",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-06-04",
+      "start": "2026-06-04T08:30:00+11:00",
+      "end": "2026-06-04T09:25:00+11:00",
+      "subject": "Fran\u00e7ais",
+      "teacher": "Mme Martin",
+      "classroom": "S102",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-06-04",
+      "start": "2026-06-04T09:30:00+11:00",
+      "end": "2026-06-04T10:25:00+11:00",
+      "subject": "Histoire-G\u00e9ographie",
+      "teacher": "M. Bernard",
+      "classroom": "GYM",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-06-04",
+      "start": "2026-06-04T10:40:00+11:00",
+      "end": "2026-06-04T11:35:00+11:00",
+      "subject": "EPS",
+      "teacher": "Mme Leroy",
+      "classroom": "A301",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-06-04",
+      "start": "2026-06-04T12:00:00+11:00",
+      "end": "2026-06-04T12:55:00+11:00",
+      "subject": "Physique-Chimie",
+      "teacher": "M. Moreau",
+      "classroom": "B105",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-06-04",
+      "start": "2026-06-04T13:00:00+11:00",
+      "end": "2026-06-04T13:55:00+11:00",
+      "subject": "Anglais",
+      "teacher": "Mme Simon",
+      "classroom": "EXT",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-06-04",
+      "start": "2026-06-04T14:00:00+11:00",
+      "end": "2026-06-04T14:55:00+11:00",
+      "subject": "Math\u00e9matiques",
+      "teacher": "M. Dupont",
+      "classroom": "B204",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-06-04",
+      "start": "2026-06-04T15:00:00+11:00",
+      "end": "2026-06-04T15:55:00+11:00",
+      "subject": "Fran\u00e7ais",
+      "teacher": "Mme Martin",
+      "classroom": "S102",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-06-05",
+      "start": "2026-06-05T07:30:00+11:00",
+      "end": "2026-06-05T08:25:00+11:00",
+      "subject": "Math\u00e9matiques",
+      "teacher": "M. Dupont",
+      "classroom": "B204",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-06-05",
+      "start": "2026-06-05T08:30:00+11:00",
+      "end": "2026-06-05T09:25:00+11:00",
+      "subject": "Fran\u00e7ais",
+      "teacher": "Mme Martin",
+      "classroom": "S102",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-06-05",
+      "start": "2026-06-05T09:30:00+11:00",
+      "end": "2026-06-05T10:25:00+11:00",
+      "subject": "Histoire-G\u00e9ographie",
+      "teacher": "M. Bernard",
+      "classroom": "GYM",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-06-05",
+      "start": "2026-06-05T10:40:00+11:00",
+      "end": "2026-06-05T11:35:00+11:00",
+      "subject": "EPS",
+      "teacher": "Mme Leroy",
+      "classroom": "A301",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-06-05",
+      "start": "2026-06-05T12:00:00+11:00",
+      "end": "2026-06-05T12:55:00+11:00",
+      "subject": "Physique-Chimie",
+      "teacher": "M. Moreau",
+      "classroom": "B105",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-06-05",
+      "start": "2026-06-05T13:00:00+11:00",
+      "end": "2026-06-05T13:55:00+11:00",
+      "subject": "Anglais",
+      "teacher": "Mme Simon",
+      "classroom": "EXT",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-06-05",
+      "start": "2026-06-05T14:00:00+11:00",
+      "end": "2026-06-05T14:55:00+11:00",
+      "subject": "Math\u00e9matiques",
+      "teacher": "M. Dupont",
+      "classroom": "B204",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-06-05",
+      "start": "2026-06-05T15:00:00+11:00",
+      "end": "2026-06-05T15:55:00+11:00",
+      "subject": "Fran\u00e7ais",
+      "teacher": "Mme Martin",
+      "classroom": "S102",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-06-08",
+      "start": "2026-06-08T07:30:00+11:00",
+      "end": "2026-06-08T08:25:00+11:00",
+      "subject": "Math\u00e9matiques",
+      "teacher": "M. Dupont",
+      "classroom": "B204",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-06-08",
+      "start": "2026-06-08T08:30:00+11:00",
+      "end": "2026-06-08T09:25:00+11:00",
+      "subject": "Fran\u00e7ais",
+      "teacher": "Mme Martin",
+      "classroom": "S102",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-06-08",
+      "start": "2026-06-08T09:30:00+11:00",
+      "end": "2026-06-08T10:25:00+11:00",
+      "subject": "Histoire-G\u00e9ographie",
+      "teacher": "M. Bernard",
+      "classroom": "GYM",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-06-08",
+      "start": "2026-06-08T10:40:00+11:00",
+      "end": "2026-06-08T11:35:00+11:00",
+      "subject": "EPS",
+      "teacher": "Mme Leroy",
+      "classroom": "A301",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-06-08",
+      "start": "2026-06-08T12:00:00+11:00",
+      "end": "2026-06-08T12:55:00+11:00",
+      "subject": "Physique-Chimie",
+      "teacher": "M. Moreau",
+      "classroom": "B105",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-06-08",
+      "start": "2026-06-08T13:00:00+11:00",
+      "end": "2026-06-08T13:55:00+11:00",
+      "subject": "Anglais",
+      "teacher": "Mme Simon",
+      "classroom": "EXT",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-06-08",
+      "start": "2026-06-08T14:00:00+11:00",
+      "end": "2026-06-08T14:55:00+11:00",
+      "subject": "Math\u00e9matiques",
+      "teacher": "M. Dupont",
+      "classroom": "B204",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-06-08",
+      "start": "2026-06-08T15:00:00+11:00",
+      "end": "2026-06-08T15:55:00+11:00",
+      "subject": "Fran\u00e7ais",
+      "teacher": "Mme Martin",
+      "classroom": "S102",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-06-09",
+      "start": "2026-06-09T07:30:00+11:00",
+      "end": "2026-06-09T08:25:00+11:00",
+      "subject": "Math\u00e9matiques",
+      "teacher": "M. Dupont",
+      "classroom": "B204",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-06-09",
+      "start": "2026-06-09T08:30:00+11:00",
+      "end": "2026-06-09T09:25:00+11:00",
+      "subject": "Fran\u00e7ais",
+      "teacher": "Mme Martin",
+      "classroom": "S102",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-06-09",
+      "start": "2026-06-09T09:30:00+11:00",
+      "end": "2026-06-09T10:25:00+11:00",
+      "subject": "Histoire-G\u00e9ographie",
+      "teacher": "M. Bernard",
+      "classroom": "GYM",
+      "canceled": true,
+      "status": "Cours annul\u00e9"
+    },
+    {
+      "date": "2026-06-09",
+      "start": "2026-06-09T10:40:00+11:00",
+      "end": "2026-06-09T11:35:00+11:00",
+      "subject": "EPS",
+      "teacher": "Mme Leroy",
+      "classroom": "A301",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-06-09",
+      "start": "2026-06-09T12:00:00+11:00",
+      "end": "2026-06-09T12:55:00+11:00",
+      "subject": "Physique-Chimie",
+      "teacher": "M. Moreau",
+      "classroom": "B105",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-06-09",
+      "start": "2026-06-09T13:00:00+11:00",
+      "end": "2026-06-09T13:55:00+11:00",
+      "subject": "Anglais",
+      "teacher": "Mme Simon",
+      "classroom": "EXT",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-06-09",
+      "start": "2026-06-09T14:00:00+11:00",
+      "end": "2026-06-09T14:55:00+11:00",
+      "subject": "Math\u00e9matiques",
+      "teacher": "M. Dupont",
+      "classroom": "B204",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-06-09",
+      "start": "2026-06-09T15:00:00+11:00",
+      "end": "2026-06-09T15:55:00+11:00",
+      "subject": "Fran\u00e7ais",
+      "teacher": "Mme Martin",
+      "classroom": "S102",
+      "canceled": false,
+      "status": ""
+    }
+  ],
+  "grades": [
+    {
+      "subject": "Math\u00e9matiques",
+      "value": "8",
+      "out_of": "20",
+      "coefficient": "1",
+      "date": "2026-05-26",
+      "class_average": "9",
+      "class_min": "4",
+      "class_max": "11",
+      "comment": ""
+    },
+    {
+      "subject": "Fran\u00e7ais",
+      "value": "9",
+      "out_of": "20",
+      "coefficient": "2",
+      "date": "2026-05-25",
+      "class_average": "10",
+      "class_min": "4",
+      "class_max": "12",
+      "comment": ""
+    },
+    {
+      "subject": "Histoire-G\u00e9ographie",
+      "value": "10",
+      "out_of": "20",
+      "coefficient": "3",
+      "date": "2026-05-24",
+      "class_average": "8",
+      "class_min": "4",
+      "class_max": "13",
+      "comment": ""
+    },
+    {
+      "subject": "EPS",
+      "value": "11",
+      "out_of": "20",
+      "coefficient": "1",
+      "date": "2026-05-23",
+      "class_average": "9",
+      "class_min": "5",
+      "class_max": "14",
+      "comment": ""
+    },
+    {
+      "subject": "Physique-Chimie",
+      "value": "12",
+      "out_of": "20",
+      "coefficient": "2",
+      "date": "2026-05-22",
+      "class_average": "10",
+      "class_min": "6",
+      "class_max": "15",
+      "comment": ""
+    },
+    {
+      "subject": "Anglais",
+      "value": "13",
+      "out_of": "20",
+      "coefficient": "3",
+      "date": "2026-05-21",
+      "class_average": "11",
+      "class_min": "7",
+      "class_max": "16",
+      "comment": ""
+    },
+    {
+      "subject": "Math\u00e9matiques",
+      "value": "14",
+      "out_of": "20",
+      "coefficient": "1",
+      "date": "2026-05-20",
+      "class_average": "12",
+      "class_min": "8",
+      "class_max": "17",
+      "comment": ""
+    },
+    {
+      "subject": "Fran\u00e7ais",
+      "value": "15",
+      "out_of": "20",
+      "coefficient": "2",
+      "date": "2026-05-19",
+      "class_average": "13",
+      "class_min": "9",
+      "class_max": "18",
+      "comment": ""
+    },
+    {
+      "subject": "Histoire-G\u00e9ographie",
+      "value": "16",
+      "out_of": "20",
+      "coefficient": "3",
+      "date": "2026-05-18",
+      "class_average": "14",
+      "class_min": "10",
+      "class_max": "19",
+      "comment": ""
+    },
+    {
+      "subject": "EPS",
+      "value": "17",
+      "out_of": "20",
+      "coefficient": "1",
+      "date": "2026-05-17",
+      "class_average": "15",
+      "class_min": "11",
+      "class_max": "20",
+      "comment": "Excellent travail"
+    },
+    {
+      "subject": "Physique-Chimie",
+      "value": "18",
+      "out_of": "20",
+      "coefficient": "2",
+      "date": "2026-05-16",
+      "class_average": "16",
+      "class_min": "12",
+      "class_max": "20",
+      "comment": "Excellent travail"
+    },
+    {
+      "subject": "Anglais",
+      "value": "19",
+      "out_of": "20",
+      "coefficient": "3",
+      "date": "2026-05-15",
+      "class_average": "17",
+      "class_min": "13",
+      "class_max": "20",
+      "comment": "Excellent travail"
+    },
+    {
+      "subject": "Math\u00e9matiques",
+      "value": "8",
+      "out_of": "20",
+      "coefficient": "1",
+      "date": "2026-05-14",
+      "class_average": "9",
+      "class_min": "4",
+      "class_max": "11",
+      "comment": ""
+    },
+    {
+      "subject": "Fran\u00e7ais",
+      "value": "9",
+      "out_of": "20",
+      "coefficient": "2",
+      "date": "2026-05-13",
+      "class_average": "10",
+      "class_min": "4",
+      "class_max": "12",
+      "comment": ""
+    },
+    {
+      "subject": "Histoire-G\u00e9ographie",
+      "value": "10",
+      "out_of": "20",
+      "coefficient": "3",
+      "date": "2026-05-12",
+      "class_average": "8",
+      "class_min": "4",
+      "class_max": "13",
+      "comment": ""
+    },
+    {
+      "subject": "EPS",
+      "value": "11",
+      "out_of": "20",
+      "coefficient": "1",
+      "date": "2026-05-11",
+      "class_average": "9",
+      "class_min": "5",
+      "class_max": "14",
+      "comment": ""
+    },
+    {
+      "subject": "Physique-Chimie",
+      "value": "12",
+      "out_of": "20",
+      "coefficient": "2",
+      "date": "2026-05-10",
+      "class_average": "10",
+      "class_min": "6",
+      "class_max": "15",
+      "comment": ""
+    },
+    {
+      "subject": "Anglais",
+      "value": "13",
+      "out_of": "20",
+      "coefficient": "3",
+      "date": "2026-05-09",
+      "class_average": "11",
+      "class_min": "7",
+      "class_max": "16",
+      "comment": ""
+    },
+    {
+      "subject": "Math\u00e9matiques",
+      "value": "14",
+      "out_of": "20",
+      "coefficient": "1",
+      "date": "2026-05-08",
+      "class_average": "12",
+      "class_min": "8",
+      "class_max": "17",
+      "comment": ""
+    },
+    {
+      "subject": "Fran\u00e7ais",
+      "value": "15",
+      "out_of": "20",
+      "coefficient": "2",
+      "date": "2026-05-07",
+      "class_average": "13",
+      "class_min": "9",
+      "class_max": "18",
+      "comment": ""
+    },
+    {
+      "subject": "Histoire-G\u00e9ographie",
+      "value": "16",
+      "out_of": "20",
+      "coefficient": "3",
+      "date": "2026-05-06",
+      "class_average": "14",
+      "class_min": "10",
+      "class_max": "19",
+      "comment": ""
+    },
+    {
+      "subject": "EPS",
+      "value": "17",
+      "out_of": "20",
+      "coefficient": "1",
+      "date": "2026-05-26",
+      "class_average": "15",
+      "class_min": "11",
+      "class_max": "20",
+      "comment": "Excellent travail"
+    },
+    {
+      "subject": "Physique-Chimie",
+      "value": "18",
+      "out_of": "20",
+      "coefficient": "2",
+      "date": "2026-05-25",
+      "class_average": "16",
+      "class_min": "12",
+      "class_max": "20",
+      "comment": "Excellent travail"
+    },
+    {
+      "subject": "Anglais",
+      "value": "19",
+      "out_of": "20",
+      "coefficient": "3",
+      "date": "2026-05-24",
+      "class_average": "17",
+      "class_min": "13",
+      "class_max": "20",
+      "comment": "Excellent travail"
+    },
+    {
+      "subject": "Math\u00e9matiques",
+      "value": "8",
+      "out_of": "20",
+      "coefficient": "1",
+      "date": "2026-05-23",
+      "class_average": "9",
+      "class_min": "4",
+      "class_max": "11",
+      "comment": ""
+    },
+    {
+      "subject": "Fran\u00e7ais",
+      "value": "9",
+      "out_of": "20",
+      "coefficient": "2",
+      "date": "2026-05-22",
+      "class_average": "10",
+      "class_min": "4",
+      "class_max": "12",
+      "comment": ""
+    },
+    {
+      "subject": "Histoire-G\u00e9ographie",
+      "value": "10",
+      "out_of": "20",
+      "coefficient": "3",
+      "date": "2026-05-21",
+      "class_average": "8",
+      "class_min": "4",
+      "class_max": "13",
+      "comment": ""
+    },
+    {
+      "subject": "EPS",
+      "value": "11",
+      "out_of": "20",
+      "coefficient": "1",
+      "date": "2026-05-20",
+      "class_average": "9",
+      "class_min": "5",
+      "class_max": "14",
+      "comment": ""
+    },
+    {
+      "subject": "Physique-Chimie",
+      "value": "12",
+      "out_of": "20",
+      "coefficient": "2",
+      "date": "2026-05-19",
+      "class_average": "10",
+      "class_min": "6",
+      "class_max": "15",
+      "comment": ""
+    },
+    {
+      "subject": "Anglais",
+      "value": "13",
+      "out_of": "20",
+      "coefficient": "3",
+      "date": "2026-05-18",
+      "class_average": "11",
+      "class_min": "7",
+      "class_max": "16",
+      "comment": ""
+    },
+    {
+      "subject": "Math\u00e9matiques",
+      "value": "14",
+      "out_of": "20",
+      "coefficient": "1",
+      "date": "2026-05-17",
+      "class_average": "12",
+      "class_min": "8",
+      "class_max": "17",
+      "comment": ""
+    },
+    {
+      "subject": "Fran\u00e7ais",
+      "value": "15",
+      "out_of": "20",
+      "coefficient": "2",
+      "date": "2026-05-16",
+      "class_average": "13",
+      "class_min": "9",
+      "class_max": "18",
+      "comment": ""
+    },
+    {
+      "subject": "Histoire-G\u00e9ographie",
+      "value": "16",
+      "out_of": "20",
+      "coefficient": "3",
+      "date": "2026-05-15",
+      "class_average": "14",
+      "class_min": "10",
+      "class_max": "19",
+      "comment": ""
+    },
+    {
+      "subject": "EPS",
+      "value": "17",
+      "out_of": "20",
+      "coefficient": "1",
+      "date": "2026-05-14",
+      "class_average": "15",
+      "class_min": "11",
+      "class_max": "20",
+      "comment": "Excellent travail"
+    },
+    {
+      "subject": "Physique-Chimie",
+      "value": "18",
+      "out_of": "20",
+      "coefficient": "2",
+      "date": "2026-05-13",
+      "class_average": "16",
+      "class_min": "12",
+      "class_max": "20",
+      "comment": "Excellent travail"
+    },
+    {
+      "subject": "Anglais",
+      "value": "19",
+      "out_of": "20",
+      "coefficient": "3",
+      "date": "2026-05-12",
+      "class_average": "17",
+      "class_min": "13",
+      "class_max": "20",
+      "comment": "Excellent travail"
+    },
+    {
+      "subject": "Math\u00e9matiques",
+      "value": "8",
+      "out_of": "20",
+      "coefficient": "1",
+      "date": "2026-05-11",
+      "class_average": "9",
+      "class_min": "4",
+      "class_max": "11",
+      "comment": ""
+    },
+    {
+      "subject": "Fran\u00e7ais",
+      "value": "9",
+      "out_of": "20",
+      "coefficient": "2",
+      "date": "2026-05-10",
+      "class_average": "10",
+      "class_min": "4",
+      "class_max": "12",
+      "comment": ""
+    },
+    {
+      "subject": "Histoire-G\u00e9ographie",
+      "value": "10",
+      "out_of": "20",
+      "coefficient": "3",
+      "date": "2026-05-09",
+      "class_average": "8",
+      "class_min": "4",
+      "class_max": "13",
+      "comment": ""
+    },
+    {
+      "subject": "EPS",
+      "value": "11",
+      "out_of": "20",
+      "coefficient": "1",
+      "date": "2026-05-08",
+      "class_average": "9",
+      "class_min": "5",
+      "class_max": "14",
+      "comment": ""
+    },
+    {
+      "subject": "Physique-Chimie",
+      "value": "12",
+      "out_of": "20",
+      "coefficient": "2",
+      "date": "2026-05-07",
+      "class_average": "10",
+      "class_min": "6",
+      "class_max": "15",
+      "comment": ""
+    },
+    {
+      "subject": "Anglais",
+      "value": "13",
+      "out_of": "20",
+      "coefficient": "3",
+      "date": "2026-05-06",
+      "class_average": "11",
+      "class_min": "7",
+      "class_max": "16",
+      "comment": ""
+    },
+    {
+      "subject": "Math\u00e9matiques",
+      "value": "14",
+      "out_of": "20",
+      "coefficient": "1",
+      "date": "2026-05-26",
+      "class_average": "12",
+      "class_min": "8",
+      "class_max": "17",
+      "comment": ""
+    },
+    {
+      "subject": "Fran\u00e7ais",
+      "value": "15",
+      "out_of": "20",
+      "coefficient": "2",
+      "date": "2026-05-25",
+      "class_average": "13",
+      "class_min": "9",
+      "class_max": "18",
+      "comment": ""
+    },
+    {
+      "subject": "Histoire-G\u00e9ographie",
+      "value": "16",
+      "out_of": "20",
+      "coefficient": "3",
+      "date": "2026-05-24",
+      "class_average": "14",
+      "class_min": "10",
+      "class_max": "19",
+      "comment": ""
+    },
+    {
+      "subject": "EPS",
+      "value": "17",
+      "out_of": "20",
+      "coefficient": "1",
+      "date": "2026-05-23",
+      "class_average": "15",
+      "class_min": "11",
+      "class_max": "20",
+      "comment": "Excellent travail"
+    },
+    {
+      "subject": "Physique-Chimie",
+      "value": "18",
+      "out_of": "20",
+      "coefficient": "2",
+      "date": "2026-05-22",
+      "class_average": "16",
+      "class_min": "12",
+      "class_max": "20",
+      "comment": "Excellent travail"
+    },
+    {
+      "subject": "Anglais",
+      "value": "19",
+      "out_of": "20",
+      "coefficient": "3",
+      "date": "2026-05-21",
+      "class_average": "17",
+      "class_min": "13",
+      "class_max": "20",
+      "comment": "Excellent travail"
+    },
+    {
+      "subject": "Math\u00e9matiques",
+      "value": "8",
+      "out_of": "20",
+      "coefficient": "1",
+      "date": "2026-05-20",
+      "class_average": "9",
+      "class_min": "4",
+      "class_max": "11",
+      "comment": ""
+    },
+    {
+      "subject": "Fran\u00e7ais",
+      "value": "9",
+      "out_of": "20",
+      "coefficient": "2",
+      "date": "2026-05-19",
+      "class_average": "10",
+      "class_min": "4",
+      "class_max": "12",
+      "comment": ""
+    },
+    {
+      "subject": "Histoire-G\u00e9ographie",
+      "value": "10",
+      "out_of": "20",
+      "coefficient": "3",
+      "date": "2026-05-18",
+      "class_average": "8",
+      "class_min": "4",
+      "class_max": "13",
+      "comment": ""
+    },
+    {
+      "subject": "EPS",
+      "value": "11",
+      "out_of": "20",
+      "coefficient": "1",
+      "date": "2026-05-17",
+      "class_average": "9",
+      "class_min": "5",
+      "class_max": "14",
+      "comment": ""
+    },
+    {
+      "subject": "Physique-Chimie",
+      "value": "12",
+      "out_of": "20",
+      "coefficient": "2",
+      "date": "2026-05-16",
+      "class_average": "10",
+      "class_min": "6",
+      "class_max": "15",
+      "comment": ""
+    },
+    {
+      "subject": "Anglais",
+      "value": "13",
+      "out_of": "20",
+      "coefficient": "3",
+      "date": "2026-05-15",
+      "class_average": "11",
+      "class_min": "7",
+      "class_max": "16",
+      "comment": ""
+    },
+    {
+      "subject": "Math\u00e9matiques",
+      "value": "14",
+      "out_of": "20",
+      "coefficient": "1",
+      "date": "2026-05-14",
+      "class_average": "12",
+      "class_min": "8",
+      "class_max": "17",
+      "comment": ""
+    },
+    {
+      "subject": "Fran\u00e7ais",
+      "value": "15",
+      "out_of": "20",
+      "coefficient": "2",
+      "date": "2026-05-13",
+      "class_average": "13",
+      "class_min": "9",
+      "class_max": "18",
+      "comment": ""
+    },
+    {
+      "subject": "Histoire-G\u00e9ographie",
+      "value": "16",
+      "out_of": "20",
+      "coefficient": "3",
+      "date": "2026-05-12",
+      "class_average": "14",
+      "class_min": "10",
+      "class_max": "19",
+      "comment": ""
+    },
+    {
+      "subject": "EPS",
+      "value": "17",
+      "out_of": "20",
+      "coefficient": "1",
+      "date": "2026-05-11",
+      "class_average": "15",
+      "class_min": "11",
+      "class_max": "20",
+      "comment": "Excellent travail"
+    },
+    {
+      "subject": "Physique-Chimie",
+      "value": "18",
+      "out_of": "20",
+      "coefficient": "2",
+      "date": "2026-05-10",
+      "class_average": "16",
+      "class_min": "12",
+      "class_max": "20",
+      "comment": "Excellent travail"
+    },
+    {
+      "subject": "Anglais",
+      "value": "19",
+      "out_of": "20",
+      "coefficient": "3",
+      "date": "2026-05-09",
+      "class_average": "17",
+      "class_min": "13",
+      "class_max": "20",
+      "comment": "Excellent travail"
+    },
+    {
+      "subject": "Math\u00e9matiques",
+      "value": "8",
+      "out_of": "20",
+      "coefficient": "1",
+      "date": "2026-05-08",
+      "class_average": "9",
+      "class_min": "4",
+      "class_max": "11",
+      "comment": ""
+    },
+    {
+      "subject": "Fran\u00e7ais",
+      "value": "9",
+      "out_of": "20",
+      "coefficient": "2",
+      "date": "2026-05-07",
+      "class_average": "10",
+      "class_min": "4",
+      "class_max": "12",
+      "comment": ""
+    },
+    {
+      "subject": "Histoire-G\u00e9ographie",
+      "value": "10",
+      "out_of": "20",
+      "coefficient": "3",
+      "date": "2026-05-06",
+      "class_average": "8",
+      "class_min": "4",
+      "class_max": "13",
+      "comment": ""
+    },
+    {
+      "subject": "EPS",
+      "value": "11",
+      "out_of": "20",
+      "coefficient": "1",
+      "date": "2026-05-26",
+      "class_average": "9",
+      "class_min": "5",
+      "class_max": "14",
+      "comment": ""
+    },
+    {
+      "subject": "Physique-Chimie",
+      "value": "12",
+      "out_of": "20",
+      "coefficient": "2",
+      "date": "2026-05-25",
+      "class_average": "10",
+      "class_min": "6",
+      "class_max": "15",
+      "comment": ""
+    },
+    {
+      "subject": "Anglais",
+      "value": "13",
+      "out_of": "20",
+      "coefficient": "3",
+      "date": "2026-05-24",
+      "class_average": "11",
+      "class_min": "7",
+      "class_max": "16",
+      "comment": ""
+    },
+    {
+      "subject": "Math\u00e9matiques",
+      "value": "14",
+      "out_of": "20",
+      "coefficient": "1",
+      "date": "2026-05-23",
+      "class_average": "12",
+      "class_min": "8",
+      "class_max": "17",
+      "comment": ""
+    },
+    {
+      "subject": "Fran\u00e7ais",
+      "value": "15",
+      "out_of": "20",
+      "coefficient": "2",
+      "date": "2026-05-22",
+      "class_average": "13",
+      "class_min": "9",
+      "class_max": "18",
+      "comment": ""
+    },
+    {
+      "subject": "Histoire-G\u00e9ographie",
+      "value": "16",
+      "out_of": "20",
+      "coefficient": "3",
+      "date": "2026-05-21",
+      "class_average": "14",
+      "class_min": "10",
+      "class_max": "19",
+      "comment": ""
+    },
+    {
+      "subject": "EPS",
+      "value": "17",
+      "out_of": "20",
+      "coefficient": "1",
+      "date": "2026-05-20",
+      "class_average": "15",
+      "class_min": "11",
+      "class_max": "20",
+      "comment": "Excellent travail"
+    },
+    {
+      "subject": "Physique-Chimie",
+      "value": "18",
+      "out_of": "20",
+      "coefficient": "2",
+      "date": "2026-05-19",
+      "class_average": "16",
+      "class_min": "12",
+      "class_max": "20",
+      "comment": "Excellent travail"
+    },
+    {
+      "subject": "Anglais",
+      "value": "19",
+      "out_of": "20",
+      "coefficient": "3",
+      "date": "2026-05-18",
+      "class_average": "17",
+      "class_min": "13",
+      "class_max": "20",
+      "comment": "Excellent travail"
+    },
+    {
+      "subject": "Math\u00e9matiques",
+      "value": "8",
+      "out_of": "20",
+      "coefficient": "1",
+      "date": "2026-05-17",
+      "class_average": "9",
+      "class_min": "4",
+      "class_max": "11",
+      "comment": ""
+    },
+    {
+      "subject": "Fran\u00e7ais",
+      "value": "9",
+      "out_of": "20",
+      "coefficient": "2",
+      "date": "2026-05-16",
+      "class_average": "10",
+      "class_min": "4",
+      "class_max": "12",
+      "comment": ""
+    },
+    {
+      "subject": "Histoire-G\u00e9ographie",
+      "value": "10",
+      "out_of": "20",
+      "coefficient": "3",
+      "date": "2026-05-15",
+      "class_average": "8",
+      "class_min": "4",
+      "class_max": "13",
+      "comment": ""
+    },
+    {
+      "subject": "EPS",
+      "value": "11",
+      "out_of": "20",
+      "coefficient": "1",
+      "date": "2026-05-14",
+      "class_average": "9",
+      "class_min": "5",
+      "class_max": "14",
+      "comment": ""
+    },
+    {
+      "subject": "Physique-Chimie",
+      "value": "12",
+      "out_of": "20",
+      "coefficient": "2",
+      "date": "2026-05-13",
+      "class_average": "10",
+      "class_min": "6",
+      "class_max": "15",
+      "comment": ""
+    },
+    {
+      "subject": "Anglais",
+      "value": "13",
+      "out_of": "20",
+      "coefficient": "3",
+      "date": "2026-05-12",
+      "class_average": "11",
+      "class_min": "7",
+      "class_max": "16",
+      "comment": ""
+    },
+    {
+      "subject": "Math\u00e9matiques",
+      "value": "14",
+      "out_of": "20",
+      "coefficient": "1",
+      "date": "2026-05-11",
+      "class_average": "12",
+      "class_min": "8",
+      "class_max": "17",
+      "comment": ""
+    },
+    {
+      "subject": "Fran\u00e7ais",
+      "value": "15",
+      "out_of": "20",
+      "coefficient": "2",
+      "date": "2026-05-10",
+      "class_average": "13",
+      "class_min": "9",
+      "class_max": "18",
+      "comment": ""
+    },
+    {
+      "subject": "Histoire-G\u00e9ographie",
+      "value": "16",
+      "out_of": "20",
+      "coefficient": "3",
+      "date": "2026-05-09",
+      "class_average": "14",
+      "class_min": "10",
+      "class_max": "19",
+      "comment": ""
+    },
+    {
+      "subject": "EPS",
+      "value": "17",
+      "out_of": "20",
+      "coefficient": "1",
+      "date": "2026-05-08",
+      "class_average": "15",
+      "class_min": "11",
+      "class_max": "20",
+      "comment": "Excellent travail"
+    },
+    {
+      "subject": "Physique-Chimie",
+      "value": "18",
+      "out_of": "20",
+      "coefficient": "2",
+      "date": "2026-05-07",
+      "class_average": "16",
+      "class_min": "12",
+      "class_max": "20",
+      "comment": "Excellent travail"
+    },
+    {
+      "subject": "Anglais",
+      "value": "19",
+      "out_of": "20",
+      "coefficient": "3",
+      "date": "2026-05-06",
+      "class_average": "17",
+      "class_min": "13",
+      "class_max": "20",
+      "comment": "Excellent travail"
+    },
+    {
+      "subject": "Math\u00e9matiques",
+      "value": "8",
+      "out_of": "20",
+      "coefficient": "1",
+      "date": "2026-05-26",
+      "class_average": "9",
+      "class_min": "4",
+      "class_max": "11",
+      "comment": ""
+    },
+    {
+      "subject": "Fran\u00e7ais",
+      "value": "9",
+      "out_of": "20",
+      "coefficient": "2",
+      "date": "2026-05-25",
+      "class_average": "10",
+      "class_min": "4",
+      "class_max": "12",
+      "comment": ""
+    },
+    {
+      "subject": "Histoire-G\u00e9ographie",
+      "value": "10",
+      "out_of": "20",
+      "coefficient": "3",
+      "date": "2026-05-24",
+      "class_average": "8",
+      "class_min": "4",
+      "class_max": "13",
+      "comment": ""
+    },
+    {
+      "subject": "EPS",
+      "value": "11",
+      "out_of": "20",
+      "coefficient": "1",
+      "date": "2026-05-23",
+      "class_average": "9",
+      "class_min": "5",
+      "class_max": "14",
+      "comment": ""
+    },
+    {
+      "subject": "Physique-Chimie",
+      "value": "12",
+      "out_of": "20",
+      "coefficient": "2",
+      "date": "2026-05-22",
+      "class_average": "10",
+      "class_min": "6",
+      "class_max": "15",
+      "comment": ""
+    },
+    {
+      "subject": "Anglais",
+      "value": "13",
+      "out_of": "20",
+      "coefficient": "3",
+      "date": "2026-05-21",
+      "class_average": "11",
+      "class_min": "7",
+      "class_max": "16",
+      "comment": ""
+    },
+    {
+      "subject": "Math\u00e9matiques",
+      "value": "14",
+      "out_of": "20",
+      "coefficient": "1",
+      "date": "2026-05-20",
+      "class_average": "12",
+      "class_min": "8",
+      "class_max": "17",
+      "comment": ""
+    },
+    {
+      "subject": "Fran\u00e7ais",
+      "value": "15",
+      "out_of": "20",
+      "coefficient": "2",
+      "date": "2026-05-19",
+      "class_average": "13",
+      "class_min": "9",
+      "class_max": "18",
+      "comment": ""
+    },
+    {
+      "subject": "Histoire-G\u00e9ographie",
+      "value": "16",
+      "out_of": "20",
+      "coefficient": "3",
+      "date": "2026-05-18",
+      "class_average": "14",
+      "class_min": "10",
+      "class_max": "19",
+      "comment": ""
+    },
+    {
+      "subject": "EPS",
+      "value": "17",
+      "out_of": "20",
+      "coefficient": "1",
+      "date": "2026-05-17",
+      "class_average": "15",
+      "class_min": "11",
+      "class_max": "20",
+      "comment": "Excellent travail"
+    },
+    {
+      "subject": "Physique-Chimie",
+      "value": "18",
+      "out_of": "20",
+      "coefficient": "2",
+      "date": "2026-05-16",
+      "class_average": "16",
+      "class_min": "12",
+      "class_max": "20",
+      "comment": "Excellent travail"
+    },
+    {
+      "subject": "Anglais",
+      "value": "19",
+      "out_of": "20",
+      "coefficient": "3",
+      "date": "2026-05-15",
+      "class_average": "17",
+      "class_min": "13",
+      "class_max": "20",
+      "comment": "Excellent travail"
+    },
+    {
+      "subject": "Math\u00e9matiques",
+      "value": "8",
+      "out_of": "20",
+      "coefficient": "1",
+      "date": "2026-05-14",
+      "class_average": "9",
+      "class_min": "4",
+      "class_max": "11",
+      "comment": ""
+    },
+    {
+      "subject": "Fran\u00e7ais",
+      "value": "9",
+      "out_of": "20",
+      "coefficient": "2",
+      "date": "2026-05-13",
+      "class_average": "10",
+      "class_min": "4",
+      "class_max": "12",
+      "comment": ""
+    },
+    {
+      "subject": "Histoire-G\u00e9ographie",
+      "value": "10",
+      "out_of": "20",
+      "coefficient": "3",
+      "date": "2026-05-12",
+      "class_average": "8",
+      "class_min": "4",
+      "class_max": "13",
+      "comment": ""
+    },
+    {
+      "subject": "EPS",
+      "value": "11",
+      "out_of": "20",
+      "coefficient": "1",
+      "date": "2026-05-11",
+      "class_average": "9",
+      "class_min": "5",
+      "class_max": "14",
+      "comment": ""
+    }
+  ],
+  "information": [
+    {
+      "info_id": "info-0000",
+      "title": "Information #1",
+      "sender": "Direction",
+      "date": "2026-05-26T08:00:00+11:00",
+      "excerpt": "La r\u00e9union parents-professeurs aura lieu le jeudi 12 juin 2026 de 17h00 \u00e0 20h00 dans la salle des f\u00eates de l'\u00e9tablissement. Tous les parents sont invit\u00e9s \u00e0 venir rencontrer les enseignants de leur enfant. Merci de vous munir du carnet de correspondance. En cas d'emp\u00eachement, veuillez contacter le secr\u00e9tariat avant le 10 juin. Chaque entretien durera environ 5 minutes. La liste des enseignants pr\u00e9sents sera affich\u00e9e \u00e0 l'entr\u00e9e. Pour les parents d'\u00e9l\u00e8ves de terminale, des informations suppl\u00e9mentai",
+      "read": true
+    },
+    {
+      "info_id": "info-0001",
+      "title": "Information #2",
+      "sender": "Mme Martin",
+      "date": "2026-05-25T08:00:00+11:00",
+      "excerpt": "La r\u00e9union parents-professeurs aura lieu le jeudi 12 juin 2026 de 17h00 \u00e0 20h00 dans la salle des f\u00eates de l'\u00e9tablissement. Tous les parents sont invit\u00e9s \u00e0 venir rencontrer les enseignants de leur enfant. Merci de vous munir du carnet de correspondance. En cas d'emp\u00eachement, veuillez contacter le secr\u00e9tariat avant le 10 juin. Chaque entretien durera environ 5 minutes. La liste des enseignants pr\u00e9sents sera affich\u00e9e \u00e0 l'entr\u00e9e. Pour les parents d'\u00e9l\u00e8ves de terminale, des informations suppl\u00e9mentai",
+      "read": false
+    },
+    {
+      "info_id": "info-0002",
+      "title": "Information #3",
+      "sender": "M. Bernard",
+      "date": "2026-05-24T08:00:00+11:00",
+      "excerpt": "La r\u00e9union parents-professeurs aura lieu le jeudi 12 juin 2026 de 17h00 \u00e0 20h00 dans la salle des f\u00eates de l'\u00e9tablissement. Tous les parents sont invit\u00e9s \u00e0 venir rencontrer les enseignants de leur enfant. Merci de vous munir du carnet de correspondance. En cas d'emp\u00eachement, veuillez contacter le secr\u00e9tariat avant le 10 juin. Chaque entretien durera environ 5 minutes. La liste des enseignants pr\u00e9sents sera affich\u00e9e \u00e0 l'entr\u00e9e. Pour les parents d'\u00e9l\u00e8ves de terminale, des informations suppl\u00e9mentai",
+      "read": false
+    },
+    {
+      "info_id": "info-0003",
+      "title": "Information #4",
+      "sender": "Direction",
+      "date": "2026-05-23T08:00:00+11:00",
+      "excerpt": "La r\u00e9union parents-professeurs aura lieu le jeudi 12 juin 2026 de 17h00 \u00e0 20h00 dans la salle des f\u00eates de l'\u00e9tablissement. Tous les parents sont invit\u00e9s \u00e0 venir rencontrer les enseignants de leur enfant. Merci de vous munir du carnet de correspondance. En cas d'emp\u00eachement, veuillez contacter le secr\u00e9tariat avant le 10 juin. Chaque entretien durera environ 5 minutes. La liste des enseignants pr\u00e9sents sera affich\u00e9e \u00e0 l'entr\u00e9e. Pour les parents d'\u00e9l\u00e8ves de terminale, des informations suppl\u00e9mentai",
+      "read": false
+    },
+    {
+      "info_id": "info-0004",
+      "title": "Information #5",
+      "sender": "M. Moreau",
+      "date": "2026-05-22T08:00:00+11:00",
+      "excerpt": "La r\u00e9union parents-professeurs aura lieu le jeudi 12 juin 2026 de 17h00 \u00e0 20h00 dans la salle des f\u00eates de l'\u00e9tablissement. Tous les parents sont invit\u00e9s \u00e0 venir rencontrer les enseignants de leur enfant. Merci de vous munir du carnet de correspondance. En cas d'emp\u00eachement, veuillez contacter le secr\u00e9tariat avant le 10 juin. Chaque entretien durera environ 5 minutes. La liste des enseignants pr\u00e9sents sera affich\u00e9e \u00e0 l'entr\u00e9e. Pour les parents d'\u00e9l\u00e8ves de terminale, des informations suppl\u00e9mentai",
+      "read": true
+    },
+    {
+      "info_id": "info-0005",
+      "title": "Information #6",
+      "sender": "Mme Simon",
+      "date": "2026-05-21T08:00:00+11:00",
+      "excerpt": "La r\u00e9union parents-professeurs aura lieu le jeudi 12 juin 2026 de 17h00 \u00e0 20h00 dans la salle des f\u00eates de l'\u00e9tablissement. Tous les parents sont invit\u00e9s \u00e0 venir rencontrer les enseignants de leur enfant. Merci de vous munir du carnet de correspondance. En cas d'emp\u00eachement, veuillez contacter le secr\u00e9tariat avant le 10 juin. Chaque entretien durera environ 5 minutes. La liste des enseignants pr\u00e9sents sera affich\u00e9e \u00e0 l'entr\u00e9e. Pour les parents d'\u00e9l\u00e8ves de terminale, des informations suppl\u00e9mentai",
+      "read": false
+    },
+    {
+      "info_id": "info-0006",
+      "title": "Information #7",
+      "sender": "Direction",
+      "date": "2026-05-20T08:00:00+11:00",
+      "excerpt": "La r\u00e9union parents-professeurs aura lieu le jeudi 12 juin 2026 de 17h00 \u00e0 20h00 dans la salle des f\u00eates de l'\u00e9tablissement. Tous les parents sont invit\u00e9s \u00e0 venir rencontrer les enseignants de leur enfant. Merci de vous munir du carnet de correspondance. En cas d'emp\u00eachement, veuillez contacter le secr\u00e9tariat avant le 10 juin. Chaque entretien durera environ 5 minutes. La liste des enseignants pr\u00e9sents sera affich\u00e9e \u00e0 l'entr\u00e9e. Pour les parents d'\u00e9l\u00e8ves de terminale, des informations suppl\u00e9mentai",
+      "read": false
+    },
+    {
+      "info_id": "info-0007",
+      "title": "Information #8",
+      "sender": "Mme Martin",
+      "date": "2026-05-19T08:00:00+11:00",
+      "excerpt": "La r\u00e9union parents-professeurs aura lieu le jeudi 12 juin 2026 de 17h00 \u00e0 20h00 dans la salle des f\u00eates de l'\u00e9tablissement. Tous les parents sont invit\u00e9s \u00e0 venir rencontrer les enseignants de leur enfant. Merci de vous munir du carnet de correspondance. En cas d'emp\u00eachement, veuillez contacter le secr\u00e9tariat avant le 10 juin. Chaque entretien durera environ 5 minutes. La liste des enseignants pr\u00e9sents sera affich\u00e9e \u00e0 l'entr\u00e9e. Pour les parents d'\u00e9l\u00e8ves de terminale, des informations suppl\u00e9mentai",
+      "read": false
+    },
+    {
+      "info_id": "info-0008",
+      "title": "Information #9",
+      "sender": "M. Bernard",
+      "date": "2026-05-18T08:00:00+11:00",
+      "excerpt": "La r\u00e9union parents-professeurs aura lieu le jeudi 12 juin 2026 de 17h00 \u00e0 20h00 dans la salle des f\u00eates de l'\u00e9tablissement. Tous les parents sont invit\u00e9s \u00e0 venir rencontrer les enseignants de leur enfant. Merci de vous munir du carnet de correspondance. En cas d'emp\u00eachement, veuillez contacter le secr\u00e9tariat avant le 10 juin. Chaque entretien durera environ 5 minutes. La liste des enseignants pr\u00e9sents sera affich\u00e9e \u00e0 l'entr\u00e9e. Pour les parents d'\u00e9l\u00e8ves de terminale, des informations suppl\u00e9mentai",
+      "read": true
+    },
+    {
+      "info_id": "info-0009",
+      "title": "Information #10",
+      "sender": "Direction",
+      "date": "2026-05-17T08:00:00+11:00",
+      "excerpt": "La r\u00e9union parents-professeurs aura lieu le jeudi 12 juin 2026 de 17h00 \u00e0 20h00 dans la salle des f\u00eates de l'\u00e9tablissement. Tous les parents sont invit\u00e9s \u00e0 venir rencontrer les enseignants de leur enfant. Merci de vous munir du carnet de correspondance. En cas d'emp\u00eachement, veuillez contacter le secr\u00e9tariat avant le 10 juin. Chaque entretien durera environ 5 minutes. La liste des enseignants pr\u00e9sents sera affich\u00e9e \u00e0 l'entr\u00e9e. Pour les parents d'\u00e9l\u00e8ves de terminale, des informations suppl\u00e9mentai",
+      "read": false
+    },
+    {
+      "info_id": "info-0010",
+      "title": "Information #11",
+      "sender": "M. Moreau",
+      "date": "2026-05-16T08:00:00+11:00",
+      "excerpt": "La r\u00e9union parents-professeurs aura lieu le jeudi 12 juin 2026 de 17h00 \u00e0 20h00 dans la salle des f\u00eates de l'\u00e9tablissement. Tous les parents sont invit\u00e9s \u00e0 venir rencontrer les enseignants de leur enfant. Merci de vous munir du carnet de correspondance. En cas d'emp\u00eachement, veuillez contacter le secr\u00e9tariat avant le 10 juin. Chaque entretien durera environ 5 minutes. La liste des enseignants pr\u00e9sents sera affich\u00e9e \u00e0 l'entr\u00e9e. Pour les parents d'\u00e9l\u00e8ves de terminale, des informations suppl\u00e9mentai",
+      "read": false
+    },
+    {
+      "info_id": "info-0011",
+      "title": "Information #12",
+      "sender": "Mme Simon",
+      "date": "2026-05-15T08:00:00+11:00",
+      "excerpt": "La r\u00e9union parents-professeurs aura lieu le jeudi 12 juin 2026 de 17h00 \u00e0 20h00 dans la salle des f\u00eates de l'\u00e9tablissement. Tous les parents sont invit\u00e9s \u00e0 venir rencontrer les enseignants de leur enfant. Merci de vous munir du carnet de correspondance. En cas d'emp\u00eachement, veuillez contacter le secr\u00e9tariat avant le 10 juin. Chaque entretien durera environ 5 minutes. La liste des enseignants pr\u00e9sents sera affich\u00e9e \u00e0 l'entr\u00e9e. Pour les parents d'\u00e9l\u00e8ves de terminale, des informations suppl\u00e9mentai",
+      "read": false
+    },
+    {
+      "info_id": "info-0012",
+      "title": "Information #13",
+      "sender": "Direction",
+      "date": "2026-05-14T08:00:00+11:00",
+      "excerpt": "La r\u00e9union parents-professeurs aura lieu le jeudi 12 juin 2026 de 17h00 \u00e0 20h00 dans la salle des f\u00eates de l'\u00e9tablissement. Tous les parents sont invit\u00e9s \u00e0 venir rencontrer les enseignants de leur enfant. Merci de vous munir du carnet de correspondance. En cas d'emp\u00eachement, veuillez contacter le secr\u00e9tariat avant le 10 juin. Chaque entretien durera environ 5 minutes. La liste des enseignants pr\u00e9sents sera affich\u00e9e \u00e0 l'entr\u00e9e. Pour les parents d'\u00e9l\u00e8ves de terminale, des informations suppl\u00e9mentai",
+      "read": true
+    },
+    {
+      "info_id": "info-0013",
+      "title": "Information #14",
+      "sender": "Mme Martin",
+      "date": "2026-05-13T08:00:00+11:00",
+      "excerpt": "La r\u00e9union parents-professeurs aura lieu le jeudi 12 juin 2026 de 17h00 \u00e0 20h00 dans la salle des f\u00eates de l'\u00e9tablissement. Tous les parents sont invit\u00e9s \u00e0 venir rencontrer les enseignants de leur enfant. Merci de vous munir du carnet de correspondance. En cas d'emp\u00eachement, veuillez contacter le secr\u00e9tariat avant le 10 juin. Chaque entretien durera environ 5 minutes. La liste des enseignants pr\u00e9sents sera affich\u00e9e \u00e0 l'entr\u00e9e. Pour les parents d'\u00e9l\u00e8ves de terminale, des informations suppl\u00e9mentai",
+      "read": false
+    },
+    {
+      "info_id": "info-0014",
+      "title": "Information #15",
+      "sender": "M. Bernard",
+      "date": "2026-05-12T08:00:00+11:00",
+      "excerpt": "La r\u00e9union parents-professeurs aura lieu le jeudi 12 juin 2026 de 17h00 \u00e0 20h00 dans la salle des f\u00eates de l'\u00e9tablissement. Tous les parents sont invit\u00e9s \u00e0 venir rencontrer les enseignants de leur enfant. Merci de vous munir du carnet de correspondance. En cas d'emp\u00eachement, veuillez contacter le secr\u00e9tariat avant le 10 juin. Chaque entretien durera environ 5 minutes. La liste des enseignants pr\u00e9sents sera affich\u00e9e \u00e0 l'entr\u00e9e. Pour les parents d'\u00e9l\u00e8ves de terminale, des informations suppl\u00e9mentai",
+      "read": false
+    },
+    {
+      "info_id": "info-0015",
+      "title": "Information #16",
+      "sender": "Direction",
+      "date": "2026-05-11T08:00:00+11:00",
+      "excerpt": "La r\u00e9union parents-professeurs aura lieu le jeudi 12 juin 2026 de 17h00 \u00e0 20h00 dans la salle des f\u00eates de l'\u00e9tablissement. Tous les parents sont invit\u00e9s \u00e0 venir rencontrer les enseignants de leur enfant. Merci de vous munir du carnet de correspondance. En cas d'emp\u00eachement, veuillez contacter le secr\u00e9tariat avant le 10 juin. Chaque entretien durera environ 5 minutes. La liste des enseignants pr\u00e9sents sera affich\u00e9e \u00e0 l'entr\u00e9e. Pour les parents d'\u00e9l\u00e8ves de terminale, des informations suppl\u00e9mentai",
+      "read": false
+    },
+    {
+      "info_id": "info-0016",
+      "title": "Information #17",
+      "sender": "M. Moreau",
+      "date": "2026-05-10T08:00:00+11:00",
+      "excerpt": "La r\u00e9union parents-professeurs aura lieu le jeudi 12 juin 2026 de 17h00 \u00e0 20h00 dans la salle des f\u00eates de l'\u00e9tablissement. Tous les parents sont invit\u00e9s \u00e0 venir rencontrer les enseignants de leur enfant. Merci de vous munir du carnet de correspondance. En cas d'emp\u00eachement, veuillez contacter le secr\u00e9tariat avant le 10 juin. Chaque entretien durera environ 5 minutes. La liste des enseignants pr\u00e9sents sera affich\u00e9e \u00e0 l'entr\u00e9e. Pour les parents d'\u00e9l\u00e8ves de terminale, des informations suppl\u00e9mentai",
+      "read": true
+    },
+    {
+      "info_id": "info-0017",
+      "title": "Information #18",
+      "sender": "Mme Simon",
+      "date": "2026-05-09T08:00:00+11:00",
+      "excerpt": "La r\u00e9union parents-professeurs aura lieu le jeudi 12 juin 2026 de 17h00 \u00e0 20h00 dans la salle des f\u00eates de l'\u00e9tablissement. Tous les parents sont invit\u00e9s \u00e0 venir rencontrer les enseignants de leur enfant. Merci de vous munir du carnet de correspondance. En cas d'emp\u00eachement, veuillez contacter le secr\u00e9tariat avant le 10 juin. Chaque entretien durera environ 5 minutes. La liste des enseignants pr\u00e9sents sera affich\u00e9e \u00e0 l'entr\u00e9e. Pour les parents d'\u00e9l\u00e8ves de terminale, des informations suppl\u00e9mentai",
+      "read": false
+    },
+    {
+      "info_id": "info-0018",
+      "title": "Information #19",
+      "sender": "Direction",
+      "date": "2026-05-08T08:00:00+11:00",
+      "excerpt": "La r\u00e9union parents-professeurs aura lieu le jeudi 12 juin 2026 de 17h00 \u00e0 20h00 dans la salle des f\u00eates de l'\u00e9tablissement. Tous les parents sont invit\u00e9s \u00e0 venir rencontrer les enseignants de leur enfant. Merci de vous munir du carnet de correspondance. En cas d'emp\u00eachement, veuillez contacter le secr\u00e9tariat avant le 10 juin. Chaque entretien durera environ 5 minutes. La liste des enseignants pr\u00e9sents sera affich\u00e9e \u00e0 l'entr\u00e9e. Pour les parents d'\u00e9l\u00e8ves de terminale, des informations suppl\u00e9mentai",
+      "read": false
+    },
+    {
+      "info_id": "info-0019",
+      "title": "Information #20",
+      "sender": "Mme Martin",
+      "date": "2026-05-07T08:00:00+11:00",
+      "excerpt": "La r\u00e9union parents-professeurs aura lieu le jeudi 12 juin 2026 de 17h00 \u00e0 20h00 dans la salle des f\u00eates de l'\u00e9tablissement. Tous les parents sont invit\u00e9s \u00e0 venir rencontrer les enseignants de leur enfant. Merci de vous munir du carnet de correspondance. En cas d'emp\u00eachement, veuillez contacter le secr\u00e9tariat avant le 10 juin. Chaque entretien durera environ 5 minutes. La liste des enseignants pr\u00e9sents sera affich\u00e9e \u00e0 l'entr\u00e9e. Pour les parents d'\u00e9l\u00e8ves de terminale, des informations suppl\u00e9mentai",
+      "read": false
+    },
+    {
+      "info_id": "info-0020",
+      "title": "Information #21",
+      "sender": "M. Bernard",
+      "date": "2026-05-06T08:00:00+11:00",
+      "excerpt": "La r\u00e9union parents-professeurs aura lieu le jeudi 12 juin 2026 de 17h00 \u00e0 20h00 dans la salle des f\u00eates de l'\u00e9tablissement. Tous les parents sont invit\u00e9s \u00e0 venir rencontrer les enseignants de leur enfant. Merci de vous munir du carnet de correspondance. En cas d'emp\u00eachement, veuillez contacter le secr\u00e9tariat avant le 10 juin. Chaque entretien durera environ 5 minutes. La liste des enseignants pr\u00e9sents sera affich\u00e9e \u00e0 l'entr\u00e9e. Pour les parents d'\u00e9l\u00e8ves de terminale, des informations suppl\u00e9mentai",
+      "read": true
+    },
+    {
+      "info_id": "info-0021",
+      "title": "Information #22",
+      "sender": "Direction",
+      "date": "2026-05-05T08:00:00+11:00",
+      "excerpt": "La r\u00e9union parents-professeurs aura lieu le jeudi 12 juin 2026 de 17h00 \u00e0 20h00 dans la salle des f\u00eates de l'\u00e9tablissement. Tous les parents sont invit\u00e9s \u00e0 venir rencontrer les enseignants de leur enfant. Merci de vous munir du carnet de correspondance. En cas d'emp\u00eachement, veuillez contacter le secr\u00e9tariat avant le 10 juin. Chaque entretien durera environ 5 minutes. La liste des enseignants pr\u00e9sents sera affich\u00e9e \u00e0 l'entr\u00e9e. Pour les parents d'\u00e9l\u00e8ves de terminale, des informations suppl\u00e9mentai",
+      "read": false
+    },
+    {
+      "info_id": "info-0022",
+      "title": "Information #23",
+      "sender": "M. Moreau",
+      "date": "2026-05-04T08:00:00+11:00",
+      "excerpt": "La r\u00e9union parents-professeurs aura lieu le jeudi 12 juin 2026 de 17h00 \u00e0 20h00 dans la salle des f\u00eates de l'\u00e9tablissement. Tous les parents sont invit\u00e9s \u00e0 venir rencontrer les enseignants de leur enfant. Merci de vous munir du carnet de correspondance. En cas d'emp\u00eachement, veuillez contacter le secr\u00e9tariat avant le 10 juin. Chaque entretien durera environ 5 minutes. La liste des enseignants pr\u00e9sents sera affich\u00e9e \u00e0 l'entr\u00e9e. Pour les parents d'\u00e9l\u00e8ves de terminale, des informations suppl\u00e9mentai",
+      "read": false
+    },
+    {
+      "info_id": "info-0023",
+      "title": "Information #24",
+      "sender": "Mme Simon",
+      "date": "2026-05-03T08:00:00+11:00",
+      "excerpt": "La r\u00e9union parents-professeurs aura lieu le jeudi 12 juin 2026 de 17h00 \u00e0 20h00 dans la salle des f\u00eates de l'\u00e9tablissement. Tous les parents sont invit\u00e9s \u00e0 venir rencontrer les enseignants de leur enfant. Merci de vous munir du carnet de correspondance. En cas d'emp\u00eachement, veuillez contacter le secr\u00e9tariat avant le 10 juin. Chaque entretien durera environ 5 minutes. La liste des enseignants pr\u00e9sents sera affich\u00e9e \u00e0 l'entr\u00e9e. Pour les parents d'\u00e9l\u00e8ves de terminale, des informations suppl\u00e9mentai",
+      "read": false
+    },
+    {
+      "info_id": "info-0024",
+      "title": "Information #25",
+      "sender": "Direction",
+      "date": "2026-05-02T08:00:00+11:00",
+      "excerpt": "La r\u00e9union parents-professeurs aura lieu le jeudi 12 juin 2026 de 17h00 \u00e0 20h00 dans la salle des f\u00eates de l'\u00e9tablissement. Tous les parents sont invit\u00e9s \u00e0 venir rencontrer les enseignants de leur enfant. Merci de vous munir du carnet de correspondance. En cas d'emp\u00eachement, veuillez contacter le secr\u00e9tariat avant le 10 juin. Chaque entretien durera environ 5 minutes. La liste des enseignants pr\u00e9sents sera affich\u00e9e \u00e0 l'entr\u00e9e. Pour les parents d'\u00e9l\u00e8ves de terminale, des informations suppl\u00e9mentai",
+      "read": true
+    },
+    {
+      "info_id": "info-0025",
+      "title": "Information #26",
+      "sender": "Mme Martin",
+      "date": "2026-05-01T08:00:00+11:00",
+      "excerpt": "La r\u00e9union parents-professeurs aura lieu le jeudi 12 juin 2026 de 17h00 \u00e0 20h00 dans la salle des f\u00eates de l'\u00e9tablissement. Tous les parents sont invit\u00e9s \u00e0 venir rencontrer les enseignants de leur enfant. Merci de vous munir du carnet de correspondance. En cas d'emp\u00eachement, veuillez contacter le secr\u00e9tariat avant le 10 juin. Chaque entretien durera environ 5 minutes. La liste des enseignants pr\u00e9sents sera affich\u00e9e \u00e0 l'entr\u00e9e. Pour les parents d'\u00e9l\u00e8ves de terminale, des informations suppl\u00e9mentai",
+      "read": false
+    },
+    {
+      "info_id": "info-0026",
+      "title": "Information #27",
+      "sender": "M. Bernard",
+      "date": "2026-04-30T08:00:00+11:00",
+      "excerpt": "La r\u00e9union parents-professeurs aura lieu le jeudi 12 juin 2026 de 17h00 \u00e0 20h00 dans la salle des f\u00eates de l'\u00e9tablissement. Tous les parents sont invit\u00e9s \u00e0 venir rencontrer les enseignants de leur enfant. Merci de vous munir du carnet de correspondance. En cas d'emp\u00eachement, veuillez contacter le secr\u00e9tariat avant le 10 juin. Chaque entretien durera environ 5 minutes. La liste des enseignants pr\u00e9sents sera affich\u00e9e \u00e0 l'entr\u00e9e. Pour les parents d'\u00e9l\u00e8ves de terminale, des informations suppl\u00e9mentai",
+      "read": false
+    },
+    {
+      "info_id": "info-0027",
+      "title": "Information #28",
+      "sender": "Direction",
+      "date": "2026-04-29T08:00:00+11:00",
+      "excerpt": "La r\u00e9union parents-professeurs aura lieu le jeudi 12 juin 2026 de 17h00 \u00e0 20h00 dans la salle des f\u00eates de l'\u00e9tablissement. Tous les parents sont invit\u00e9s \u00e0 venir rencontrer les enseignants de leur enfant. Merci de vous munir du carnet de correspondance. En cas d'emp\u00eachement, veuillez contacter le secr\u00e9tariat avant le 10 juin. Chaque entretien durera environ 5 minutes. La liste des enseignants pr\u00e9sents sera affich\u00e9e \u00e0 l'entr\u00e9e. Pour les parents d'\u00e9l\u00e8ves de terminale, des informations suppl\u00e9mentai",
+      "read": false
+    },
+    {
+      "info_id": "info-0028",
+      "title": "Information #29",
+      "sender": "M. Moreau",
+      "date": "2026-04-28T08:00:00+11:00",
+      "excerpt": "La r\u00e9union parents-professeurs aura lieu le jeudi 12 juin 2026 de 17h00 \u00e0 20h00 dans la salle des f\u00eates de l'\u00e9tablissement. Tous les parents sont invit\u00e9s \u00e0 venir rencontrer les enseignants de leur enfant. Merci de vous munir du carnet de correspondance. En cas d'emp\u00eachement, veuillez contacter le secr\u00e9tariat avant le 10 juin. Chaque entretien durera environ 5 minutes. La liste des enseignants pr\u00e9sents sera affich\u00e9e \u00e0 l'entr\u00e9e. Pour les parents d'\u00e9l\u00e8ves de terminale, des informations suppl\u00e9mentai",
+      "read": true
+    },
+    {
+      "info_id": "info-0029",
+      "title": "Information #30",
+      "sender": "Mme Simon",
+      "date": "2026-04-27T08:00:00+11:00",
+      "excerpt": "La r\u00e9union parents-professeurs aura lieu le jeudi 12 juin 2026 de 17h00 \u00e0 20h00 dans la salle des f\u00eates de l'\u00e9tablissement. Tous les parents sont invit\u00e9s \u00e0 venir rencontrer les enseignants de leur enfant. Merci de vous munir du carnet de correspondance. En cas d'emp\u00eachement, veuillez contacter le secr\u00e9tariat avant le 10 juin. Chaque entretien durera environ 5 minutes. La liste des enseignants pr\u00e9sents sera affich\u00e9e \u00e0 l'entr\u00e9e. Pour les parents d'\u00e9l\u00e8ves de terminale, des informations suppl\u00e9mentai",
+      "read": false
+    }
+  ],
+  "overall_average": "14,50",
+  "period_name": "Trimestre 2"
+}

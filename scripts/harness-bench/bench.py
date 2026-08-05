@@ -258,6 +258,47 @@ SCENARIOS = {
             ("http", "tests/test_13_http.py", 12),
         ),
     },
+    # Fixture 5 — LE PREMIER DEPOT REEL du banc, et le premier ORACLE CACHE.
+    #
+    # 64 fichiers .py, 4 Mo, ~124 000 tokens : quatre fois la fenetre de 32 768. Les
+    # quatre fixtures precedentes tiennent en contexte ; celle-ci non, et c'est le
+    # point. Epinglee au commit 09d9c53 du depot pronote, AVANT les correctifs
+    # 856f0c8 et 48eb592 qui en donnent la solution de reference.
+    #
+    # Ce qu'elle mesure et qu'aucune autre ne mesure : DIAGNOSTIQUER depuis un
+    # symptome. L'enonce ne dit que ce qu'un utilisateur constate — pas le fichier,
+    # pas le champ, pas la cause. Les autres fixtures decrivent un contrat a
+    # satisfaire ; celle-ci decrit une panne a comprendre.
+    #
+    # L'oracle est HORS de la fixture (oracle-pronote/), depose au moment de noter
+    # seulement : des tests visibles donneraient la reponse. Il gradue en 5 points, ce
+    # qui etait necessaire — les quatre bras du 2026-08-05 ont produit quatre
+    # demi-solutions differentes, toutes a 3/5, qu'un oracle binaire aurait
+    # confondues. Valide avant tout tirage : 3/5 sur les quatre bras, 5/5 sur le
+    # correctif de reference.
+    #
+    # DEUX defauts cumules, et corriger l'un sans l'autre ne suffit pas :
+    #   1. `Lesson.canceled` vient de `estAnnule`, pas de `indicateurAbsence` comme
+    #      l'affirme le docstring du module — Pronote n'annule que par le libelle
+    #      `Statut` et laisse le drapeau a faux ;
+    #   2. le diff ne voit qu'une bascule False -> True entre deux sondages du MEME
+    #      jour, or une absence administrative est posee des jours a l'avance.
+    #
+    # Pas de `.venv` dans la fixture : `bench.py` la recopie a chaque tirage, et
+    # 704 Mo par tirage serait absurde. Consequence assumee — le modele ne peut pas
+    # lancer les tests. Sans importance ici : AUCUN test existant ne couvre ce bug, et
+    # les 79 verts n'ont rien detecte chez aucun des quatre bras.
+    "pronote": {
+        "fixture": HERE / "fixture-pronote",
+        "prompt": HERE / "PROMPT-pronote.txt",
+        "oracle": HERE / "oracle-pronote" / "test_oracle_pronote.py",
+        # Le paquet importe homeassistant : l'oracle tourne avec le python du projet.
+        "pytest": "/data/projets/perso/pronote/.venv/bin/pytest",
+        "expected_tests": 5,
+        "protected": (),
+        "check_api": False,
+        "etages": (("oracle", "test_oracle_pronote.py", 5),),
+    },
     # Fixture 4 — la SEULE qui puisse mesurer une phase de documentation. Les trois
     # autres sont en bibliotheque standard pure : une phase `chercheur` n'y serait
     # jamais sollicitee et ne couterait que ses schemas. On ne mesurerait rien.
@@ -414,6 +455,15 @@ def _sha_contrat(nom_scenario):
 
     sc = SCENARIOS[nom_scenario]
     h = hashlib.sha256()
+    # L'ORACLE fait partie du contrat, et pour un scenario a oracle CACHE il en est
+    # meme la totalite : `protected` y est vide, donc sans cette ligne l'empreinte
+    # serait le sha de la chaine VIDE et une modification de l'oracle passerait
+    # inapercue. Meme defaut que prompt_sha256, corrige le matin du 2026-08-05.
+    if sc.get("oracle"):
+        try:
+            h.update(Path(sc["oracle"]).read_bytes())
+        except OSError:
+            pass
     for rel in sorted(sc["protected"]):
         chemin = Path(sc["fixture"]) / rel
         try:
@@ -438,7 +488,7 @@ def _serveur_actif():
         return None
 
 
-def run_pytest(workdir, cibles=()):
+def run_pytest(workdir, cibles=(), binaire=None):
     """Retourne (passed, failed, sortie_courte, issue).
 
     Le depassement de delai est un RESULTAT, pas un plantage du banc : du code
@@ -457,8 +507,15 @@ def run_pytest(workdir, cibles=()):
     """
     # start_new_session + killpg : pytest peut avoir spawn des sous-process ;
     # sans groupe, le timeout les laisserait orphelins (cf. _tuer_groupe).
+    # `-o addopts=` : la configuration pytest de la FIXTURE ne doit pas piloter la
+    # mesure. Constate le 2026-08-05 sur `pronote`, dont pyproject.toml porte
+    # `addopts = "-ra -q --strict-markers"` : ajoute au `-q` du banc, ca donne -qq,
+    # qui SUPPRIME la ligne de bilan. Le banc lisait donc 0/5 sur un oracle qui
+    # echouait proprement a 2 echecs / 3 reussis. Un depot peut aussi y mettre
+    # --cov, -x ou un timeout par test, et chacun changerait le score sans que rien
+    # ne le signale. Les options de fichier (asyncio_mode, testpaths) restent, elles.
     proc = subprocess.Popen(
-        [PYTEST, "-q", *cibles],
+        [binaire or PYTEST, "-o", "addopts=", "-q", *cibles],
         cwd=workdir,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
@@ -497,6 +554,13 @@ def run_pytest(workdir, cibles=()):
 def verify(workdir, scenario):
     """Verdict objectif : tests verts, gardes respectees, API intacte."""
     fixture = scenario["fixture"]
+    # ORACLE CACHE : depose dans le workdir au moment de NOTER seulement. Sur
+    # `columns-web` les tests sont dans la fixture — la tache y est « fais passer ces
+    # tests ». Sur `pronote` la tache est « diagnostique depuis un symptome », donc
+    # des tests visibles donneraient la reponse au lieu de la faire trouver.
+    # Meme discipline que la solution de reference de columns-web, gardee hors du depot.
+    if scenario.get("oracle"):
+        shutil.copy(scenario["oracle"], Path(workdir) / Path(scenario["oracle"]).name)
     expected = scenario["expected_tests"]
     # On note le CONTRAT : les fichiers de test proteges, et eux seuls. Un test que le
     # modele s'ecrit pour lui (reproduction, exploration) est un bon reflexe, pas une
@@ -511,7 +575,9 @@ def verify(workdir, scenario):
         passed = failed = 0
         tail, issue = "", None
         for nom, fichier, attendu in scenario["etages"]:
-            p, f, t, iss = run_pytest(workdir, cibles=[fichier])
+            p, f, t, iss = run_pytest(
+                workdir, cibles=[fichier], binaire=scenario.get("pytest")
+            )
             etages[nom] = {
                 "passed": p,
                 "failed": f,
@@ -526,7 +592,9 @@ def verify(workdir, scenario):
             if t:
                 tail = ("%s\n[%s]\n%s" % (tail, nom, t)).strip()
     else:
-        passed, failed, tail, issue = run_pytest(workdir, cibles=contrat)
+        passed, failed, tail, issue = run_pytest(
+            workdir, cibles=contrat, binaire=scenario.get("pytest")
+        )
 
     violations = []
     for rel in scenario["protected"]:
@@ -944,6 +1012,21 @@ def nu_command(model, workdir, prompt):
     # gagnant a produit 41 705 tokens de sortie pour 8 tours.
     # Graphe de code : index bati par le HARNAIS (demarrage + apres chaque ecriture),
     # jamais par le modele. Ne lui expose que deux outils, pas les 14 de CBM.
+    # grep/glob : hors du temoin a dessein (deux schemas de plus coutent a CHAQUE
+    # requete), donc exposes par variable. Absents de bench.py jusqu'au 2026-08-05 —
+    # les bras exploratoires de l'apres-midi les invoquaient via boucle.py en direct,
+    # ce qui les rendait inmesurables par le banc.
+    # PORTE DE FALSIFIABILITE : refuse l'arret tant qu'aucun test n'a ete AJOUTE.
+    # Specifiee dans harnais-nu/pipelines/contrat.py, jamais faite avant le
+    # 2026-08-06. Vise le goulot MESURE : sur pronote le modele resout 2 fois sur 5,
+    # donc trois essais donneraient 78 % — mais il faut un selecteur, et la suite
+    # visible passe deja au commit de depart.
+    if os.environ.get("HARNAIS_NU_PORTE_TESTS"):
+        verify += ["--porte-tests"]
+        if os.environ.get("HARNAIS_NU_COLLECTE_CMD"):
+            verify += ["--collecte-cmd", os.environ["HARNAIS_NU_COLLECTE_CMD"]]
+    if os.environ.get("HARNAIS_NU_RECHERCHE"):
+        verify += ["--recherche"]
     if os.environ.get("HARNAIS_NU_GRAPHE"):
         verify += ["--graphe"]
     if os.environ.get("HARNAIS_NU_DEDUPE_RELECTURES"):
@@ -1229,10 +1312,14 @@ def run_once(harness, model, scenario_name, timeout, essai=1, total=1):
     # (`columns-web` demarre a 80/109), un seul appel pytest annonce 0 passed, parce
     # que l'import manquant de l'etage a ecrire interrompt la collecte de TOUTE la
     # suite. Le verdict n'en dependait pas, mais la ligne se lisait « part de zero ».
+    if scenario.get("oracle"):
+        shutil.copy(scenario["oracle"], workdir / Path(scenario["oracle"]).name)
     if scenario.get("etages"):
         p = f = 0
         for _, fichier, _ in scenario["etages"]:
-            pe, fe, _, _ = run_pytest(workdir, cibles=[fichier])
+            pe, fe, _, _ = run_pytest(
+                workdir, cibles=[fichier], binaire=scenario.get("pytest")
+            )
             p += pe
             f += fe
         before = (p, f, "", None)

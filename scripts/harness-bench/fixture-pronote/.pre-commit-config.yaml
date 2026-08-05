@@ -1,0 +1,28 @@
+# Hooks adapted from HA Core master .pre-commit-config.yaml.
+# Locally runs the same checks as CI lint.yml so contributors fail fast.
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.1
+    hooks:
+      - id: ruff-format
+        files: ^((custom_components|tests)/.+)?[^/]+\.(py|pyi)$
+      - id: ruff-check
+        args: [--fix]
+        files: ^((custom_components|tests)/.+)?[^/]+\.(py|pyi)$
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.4.1
+    hooks:
+      - id: codespell
+        args:
+          - --ignore-words-list=hass
+          - --quiet-level=2
+        exclude_types: [csv, json, html]
+        exclude: ^tests/fixtures/
+  - repo: local
+    hooks:
+      - id: pyright
+        name: pyright
+        entry: npx pyright
+        language: node
+        types: [python]
+        pass_filenames: false

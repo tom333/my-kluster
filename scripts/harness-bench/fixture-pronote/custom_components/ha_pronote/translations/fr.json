@@ -1,0 +1,119 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connexion à Pronote",
+        "data": {
+          "url": "URL de votre espace Pronote",
+          "account_type": "Type de compte",
+          "username": "Identifiant",
+          "password": "Mot de passe"
+        },
+        "data_description": {
+          "url": "URL complète de votre espace Pronote, telle qu'elle apparaît dans la barre d'adresse de votre navigateur sur la page de connexion.",
+          "account_type": "'eleve' pour le compte élève, 'parent' pour le portail parent."
+        }
+      },
+      "pick_child": {
+        "title": "Sélectionner un enfant",
+        "description": "Votre compte Pronote regroupe plusieurs enfants. Choisissez celui à ajouter. Pour en ajouter un autre, relancez la configuration.",
+        "data": {
+          "child_index": "Enfant"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Ré-authentification Pronote",
+        "description": "Pronote a rejeté les identifiants enregistrés pour {child_name}. Saisissez l'identifiant et le mot de passe actuels.",
+        "data": {
+          "username": "Identifiant",
+          "password": "Mot de passe"
+        }
+      },
+      "reconfigure": {
+        "title": "Modifier l'URL ou le type de compte Pronote",
+        "description": "Modifiez l'URL de l'espace Pronote ou le type de compte pour {child_name}. L'identifiant et le mot de passe restent inchangés.",
+        "data": {
+          "url": "URL de votre espace Pronote",
+          "account_type": "Type de compte"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "Identifiants invalides. Vérifiez votre identifiant et votre mot de passe.",
+      "cannot_connect": "Impossible de joindre Pronote. Vérifiez l'URL et votre connexion réseau.",
+      "ip_suspended": "Votre IP a été suspendue temporairement par Pronote. Patientez quelques minutes avant de réessayer.",
+      "unknown": "Une erreur inattendue est survenue."
+    },
+    "abort": {
+      "already_configured": "Ce compte / enfant Pronote est déjà configuré.",
+      "reauth_successful": "Ré-authentification réussie — identifiants Pronote mis à jour.",
+      "reconfigure_successful": "Configuration réussie — paramètres Pronote mis à jour.",
+      "child_identifier_changed": "La nouvelle URL ou le nouveau compte expose un enfant différent. Supprimez cette entrée et recréez-la pour suivre le nouvel enfant."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "lessons_today": {
+        "name": "Cours du jour"
+      },
+      "grades": {
+        "name": "Notes"
+      },
+      "notifications": {
+        "name": "Notifications"
+      }
+    },
+    "calendar": {
+      "calendar": {
+        "name": "Emploi du temps"
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "polling": {
+        "title": "Interrogation",
+        "description": "Fréquence des requêtes Pronote, fenêtres de polling renforcé et heures calmes. Réglages appliqués à {child_name}.",
+        "data": {
+          "refresh_interval": "Intervalle de rafraîchissement (min)",
+          "adaptive_polling_enabled": "Resserrer le polling 17h–20h les soirs d'école",
+          "afternoon_interval": "Intervalle après-midi (min)",
+          "afternoon_window_start": "Début fenêtre après-midi",
+          "afternoon_window_end": "Fin fenêtre après-midi",
+          "suspended_cadence": "Cadence en suspension (week-ends, vacances) (min)",
+          "quiet_cadence": "Cadence heures calmes (nuit) (min)",
+          "quiet_hours_start": "Début heures calmes",
+          "quiet_hours_end": "Fin heures calmes"
+        }
+      },
+      "display": {
+        "title": "Affichage",
+        "description": "Surnom optionnel et fuseau horaire pour {child_name}.",
+        "data": {
+          "nickname": "Surnom de l'enfant (affichage uniquement)",
+          "school_tz": "Fuseau horaire scolaire (IANA, ex. Pacific/Noumea ou Europe/Paris)"
+        }
+      }
+    },
+    "error": {
+      "invalid_school_tz": "Fuseau horaire inconnu. Utilisez un nom IANA comme Pacific/Noumea ou Europe/Paris."
+    }
+  },
+  "issues": {
+    "ip_suspended": {
+      "title": "Pronote a suspendu votre adresse IP",
+      "description": "Le serveur Pronote a temporairement suspendu l'IP de cette instance Home Assistant (tentative N°{strike_count}). Prochaine tentative à {retry_at}. Si cela se reproduit, augmentez votre intervalle de polling dans les options de l'intégration. Détail technique : {detail}. Aide : {help_url}"
+    },
+    "auth_circuit": {
+      "title": "Pronote a rejeté vos identifiants",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Ré-authentification Pronote",
+            "description": "Lancez la procédure de ré-authentification pour saisir vos identifiants Pronote actuels pour {child_name}."
+          }
+        }
+      }
+    }
+  }
+}

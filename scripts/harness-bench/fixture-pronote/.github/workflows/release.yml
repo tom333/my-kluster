@@ -1,0 +1,36 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build and attach release zip
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+
+      - name: Inject release version into manifest.json
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          # yq is preinstalled on ubuntu-latest runners.
+          # Strip leading 'v' if present — HA expects PEP 440 / semver without prefix,
+          # but git tag convention often carries 'v' (e.g. v0.1.0-alpha.1 → 0.1.0-alpha.1).
+          VERSION="${RELEASE_TAG#v}"
+          yq -i -o json ".version=\"${VERSION}\"" \
+            "${{ github.workspace }}/custom_components/ha_pronote/manifest.json"
+
+      - name: Build ha_pronote.zip
+        run: |
+          cd "${{ github.workspace }}/custom_components/ha_pronote"
+          zip ha_pronote.zip -r ./
+
+      - name: Upload zip to release
+        uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda  # v3.0.0
+        with:
+          files: ${{ github.workspace }}/custom_components/ha_pronote/ha_pronote.zip

@@ -1,0 +1,200 @@
+---
+phase: 03-coordinator-first-sensor
+reviewed: 2026-05-07T00:00:00Z
+depth: standard
+files_reviewed: 19
+files_reviewed_list:
+  - custom_components/ha_pronote/__init__.py
+  - custom_components/ha_pronote/api/__init__.py
+  - custom_components/ha_pronote/api/client.py
+  - custom_components/ha_pronote/api/errors.py
+  - custom_components/ha_pronote/config_flow.py
+  - custom_components/ha_pronote/const.py
+  - custom_components/ha_pronote/coordinator.py
+  - custom_components/ha_pronote/data.py
+  - custom_components/ha_pronote/entity.py
+  - custom_components/ha_pronote/sensor.py
+  - custom_components/ha_pronote/strings.json
+  - tests/conftest.py
+  - tests/test_api/test_client.py
+  - tests/test_api/test_errors.py
+  - tests/test_config_flow.py
+  - tests/test_coordinator.py
+  - tests/test_init.py
+  - tests/test_sensor.py
+  - tests/test_token_persistence.py
+findings:
+  blocker: 1
+  warning: 1
+  info: 3
+  total: 5
+status: issues_found
+---
+
+# Phase 3: Code Review Report — Cycle 2
+
+**Reviewed:** 2026-05-07
+**Depth:** standard
+**Files Reviewed:** 19
+**Cycle:** 2 of 3 (--auto fix loop)
+**Status:** issues_found
+
+## Summary
+
+All 13 cycle-1 findings (5 BLOCKER + 8 WARNING) are RESOLVED. The fixes match what cycle 1 demanded — the cooldown gate, the redact helper, the typed-error wrapper, the token-capture reordering, the password masking, the unload shutdown call, and the substantive blocking-call test all land correctly. Test coverage on the regressions is solid (each cycle-1 ID has at least one named regression test asserting the corrected behaviour).
+
+However, cycle-1 CR-04 was **scoped too narrowly**. The fix added `set_active_child` and applied it to the 3 sites cycle 1 enumerated (`__init__.py`, `coordinator._recover_from_auth_error`, `config_flow._create_entry`), but a **4th call site exists in `api/fetcher.py:54`** — `client.set_child(child_index_or_identifier)` invoked directly on every poll for `ParentClient`, outside the surrounding try/except. A `pronotepy.exceptions.CryptoError` raised here on a stale parent session bypasses the typed-exception facade entirely, defeats D-09's silent-recovery routing, and surfaces in HA logs with un-redacted pronotepy text. This is a BLOCKER because it nullifies the recovery contract for parent accounts — exactly the path WR-04's cooldown was added to protect.
+
+One WARNING and three INFO items round out the report: the WARNING is a reauth-loop hazard around `_last_recovery_at` not being reset on a successful recovery (cooldown will continue blocking even after the user fixes their password), and the INFO items cover redact-pattern gaps and a fragile mock construction.
+
+---
+
+## Cycle-1 Regression Check
+
+| Cycle-1 ID | Status | Notes |
+|---|---|---|
+| CR-01 (password masked) | RESOLVED | `config_flow.py:59` uses `TextSelector(TextSelectorConfig(type=TextSelectorType.PASSWORD))`. Regression test `test_user_schema_masks_password_field` introspects the schema. |
+| CR-02 (recovery error routing) | RESOLVED | `coordinator.py:195-203` splits the catch into `AuthError` → `ConfigEntryAuthFailed`, `RateLimitedError` → `UpdateFailed`, `(CommunicationError, PronoteIntegrationError)` → `UpdateFailed`. Three named regression tests (`test_recovery_rate_limited_raises_update_failed`, `test_recovery_network_error_raises_update_failed`, `test_recovery_auth_failed_again_raises_config_entry_auth_failed`) cover each branch. |
+| CR-03 (snapshot lost on token-write failure) | RESOLVED | `coordinator.py:139` writes `_previous_snapshot` BEFORE `_capture_session`; `coordinator.py:144-147` wraps the capture in a best-effort try. `test_export_credentials_failure_does_not_invalidate_poll` asserts `coordinator.last_update_success is True` AND `_previous_snapshot is snapshot`. |
+| CR-04 (set_child error mapping) | **PARTIAL** | `set_active_child` helper added in `api/client.py:143-181` and applied to the 3 sites cycle-1 named (`__init__.py:93`, `coordinator.py:178`, `config_flow.py:137`). However, `api/fetcher.py:54` still calls raw `client.set_child(child_index_or_identifier)` outside the try/except. See **CR-06 BLOCKER** below. |
+| CR-05 (`_capture_session` exception swallowing + race) | RESOLVED | `coordinator.py:217-221` wraps `export_credentials` in `try/except Exception` with a warning log; the test `test_export_credentials_failure_does_not_invalidate_poll` exercises the path. |
+| WR-01 (available property override) | RESOLVED | `entity.py` no longer defines `def available`; the comment block at lines 19-23 and 63-67 explicitly documents the deletion. CoordinatorEntity's chained behaviour is preserved. |
+| WR-02 (missing entry.data keys) | RESOLVED | `__init__.py:41-60` validates the 6 required keys upfront and raises `ConfigEntryNotReady`. `test_setup_entry_missing_required_key_raises_config_entry_not_ready` asserts setup returns False on missing keys. |
+| WR-03 (token_login fast-path swallows IP-suspended) | RESOLVED | `api/client.py:108-117` checks `_IP_SUSPENDED_LITERAL` in the `token_login` exception handler and raises `RateLimitedError` before falling through. `test_build_or_resume_client_token_login_ip_suspended_raises_rate_limited` asserts the fresh-login init was NEVER called. |
+| WR-04 (recovery cooldown gate) | RESOLVED (with caveat — see WR-09 below) | `coordinator.py:120-125` gates `_recover_from_auth_error` on a 5-minute cooldown; `test_recovery_cooldown_skips_back_to_back_auth_errors` asserts the second AuthError within the window does NOT call `build_or_resume_client`. Wall-clock timestamp (`dt_util.utcnow()`) is acceptable here — concurrent calls are serialized by HA's coordinator lock and a brief NTP step backward at worst lengthens the cooldown harmlessly. |
+| WR-05 (credential redaction) | RESOLVED | `api/errors.py:14-38` defines `redact()` with 5 patterns (password, pwd, token, session, Authorization). Five unit tests cover the patterns. The coordinator wraps every `err.message` in `redact()` before constructing `UpdateFailed` / `ConfigEntryAuthFailed`. `api/client.py` redacts at every wrap site. |
+| WR-06 (config_flow set_child / export_credentials errors) | RESOLVED | `config_flow.py:132-151` wraps the set_active_child path in the D-04 mapping; `config_flow.py:180-183` wraps `export_credentials` and aborts with `cannot_connect`. Four parametrized regression tests cover the auth/rate-limit/network paths plus the export failure. |
+| WR-07 (unload does not stop coordinator) | RESOLVED | `__init__.py:130-131` calls `await coordinator.async_shutdown()` BEFORE `async_unload_platforms`. `test_unload_entry_shuts_down_coordinator` patches `async_shutdown` (auto-detected as AsyncMock) and asserts it was awaited. |
+| WR-08 (blocking-call test was vacuous) | RESOLVED | `test_no_blocking_calls_during_poll` no longer patches `fetch_all` away. The mock client's `lessons` and `information_and_surveys` perform real `time.sleep(0.001)` calls, which HA's blocking-call detector would catch on the loop thread. The assertion `"Detected blocking call" not in caplog.text` is now substantive — removing the `async_add_executor_job` wrap in `_async_update_data` would surface a log line and fail the test. |
+
+**Cycle-1 outcome:** 12 RESOLVED, 1 PARTIAL (CR-04). The PARTIAL is upgraded to a new BLOCKER (CR-06) below because it leaves a real defect on the parent-account recovery path.
+
+Note on the cycle-1-flagged ruff `except (X, Y):` formatting issue: `config_flow.py:144-151` uses 4 separate `except` arms instead of a tuple, per the cycle-1 reviewer's note that this is a tooling workaround. Not re-flagged. **TODO follow-up:** investigate why ruff reformats the tuple form unstably so this can be cleaned up in a later phase.
+
+---
+
+## BLOCKER
+
+### CR-06: `api/fetcher.py:54` calls raw `client.set_child` — CR-04 fix is incomplete
+
+**Class:** BLOCKER (incorrect error handling — defeats D-09 silent recovery for parent accounts)
+**File:** `custom_components/ha_pronote/api/fetcher.py:53-54`
+**Issue:** Cycle-1 CR-04 enumerated 3 call sites for `client.set_child` and the fix added `set_active_child` to all 3. But a **4th call site exists inside `fetch_all`** at line 53-54:
+
+```python
+if isinstance(client, pronotepy.ParentClient) and child_index_or_identifier is not None:
+    client.set_child(child_index_or_identifier)
+```
+
+This call is invoked on **every poll** for parent accounts. It is OUTSIDE the surrounding `try/except pronotepy.PronoteAPIError` block (which starts at line 59), so any pronotepy exception raised here escapes raw — bypassing the typed-exception facade entirely. The consequences:
+
+1. **D-09 silent recovery is defeated for parent accounts.** A stale parent session causes `set_child` to raise `pronotepy.exceptions.CryptoError`. Because `CryptoError` is a subclass of `pronotepy.PronoteAPIError` (verified in pronotepy 2.14.6 `exceptions.py` line 36), it WOULD be caught by the inner try (line 72) — but the call at line 54 is before the try block, so it escapes. The coordinator's `_async_update_data` only catches `AuthError`, `RateLimitedError`, `CommunicationError`, `PronoteIntegrationError`. A raw `pronotepy.exceptions.CryptoError` matches none of these, propagates to HA's `DataUpdateCoordinator._async_refresh` safety net, gets wrapped as a generic `UpdateFailed` — **silent recovery never triggers**, the user is stuck with an "unknown" failure state, and the WR-04 cooldown protections are never engaged because the AuthError branch was never taken.
+2. **Credential leakage risk.** The raw pronotepy message is not passed through `redact()`. HA's safety-net wrapping ends up with `repr(err)` in logs (CLAUDE.md "jamais en clair dans les logs" violated for this code path).
+3. **IP-suspended literal mishandled.** If pronotepy returns "Your IP address is suspended" during `set_child`, the fetcher does not check `_IP_SUSPENDED_LITERAL` — Phase 5's circuit-breaker has nothing to read.
+
+This is observable today: any parent account whose session expires mid-poll hits this path. Cycle 1 missed it because the `set_child` site inside fetcher was hidden behind the `child_index_or_identifier` parameter — the CR-04 enumeration only walked the HA-side modules.
+
+**Fix:** Use `set_active_child` from the same module:
+
+```python
+# api/fetcher.py
+from .client import set_active_child  # NEW import
+
+# inside fetch_all:
+if isinstance(client, pronotepy.ParentClient) and child_index_or_identifier is not None:
+    set_active_child(client, child_index_or_identifier)  # raises typed exceptions
+```
+
+Then either let those typed exceptions propagate (the coordinator already catches them) or wrap them in the same `try/except` band used for the fetch calls below — preferable because it puts every pronotepy interaction behind a single error-handling perimeter:
+
+```python
+try:
+    if isinstance(client, pronotepy.ParentClient) and child_index_or_identifier is not None:
+        set_active_child(client, child_index_or_identifier)
+    raw_lessons = list(client.lessons(date_from=start, date_to=end))
+    ...
+```
+
+Add a regression test in `tests/test_api/test_fetcher.py` asserting that `fetch_all` raises `AuthError` (not raw `pronotepy.exceptions.CryptoError`) when `set_child` raises CryptoError, and asserts `RateLimitedError` when set_child raises the IP-suspended literal.
+
+Also add a coordinator-level regression: a `ParentClient` with `set_child` raising `CryptoError` triggers the D-09 silent recovery path — proves the typed exception is now visible to `_async_update_data`.
+
+---
+
+## WARNING
+
+### WR-09: `_last_recovery_at` is never reset, so a successful recovery still blocks the NEXT poll's recovery
+
+**File:** `custom_components/ha_pronote/coordinator.py:96, 120-125, 195-203`
+**Issue:** The cooldown gate is set unconditionally at line 125 (`self._last_recovery_at = now`) BEFORE `_recover_from_auth_error` is called. The timestamp is never cleared on a successful recovery. This produces a counter-intuitive behaviour:
+
+1. Poll N: `fetch_all` raises AuthError. Recovery succeeds. `_last_recovery_at` is set. Snapshot returned, coordinator marks success.
+2. Poll N+1 (≤5 min later, i.e. the next 30-min poll happens within an hour): `fetch_all` raises AuthError again (the user's password was actually rotated). The cooldown gate (line 121) short-circuits to `UpdateFailed("auth recovery rate-limited; skipping this poll")`. The user never gets the `ConfigEntryAuthFailed` that would trigger reauth.
+3. Same outcome on Poll N+2 if it lands within the cooldown window.
+
+Effectively, the cooldown can swallow a genuine subsequent auth failure for up to 5 minutes after a recent successful recovery. For the 30-minute polling cadence, this only blocks at most one extra poll, but during the heightened 17h–20h window (Phase 5) the cadence will shorten and the cooldown could swallow multiple legitimate auth signals.
+
+The cycle-1 fix description explicitly framed the cooldown as an "aliased exception loop" hedge — to avoid re-attempting login when the AuthError was actually a soft-rate-limit. A successful recovery PROVES the AuthError was real auth (not aliased rate-limit), and the cooldown should be cleared.
+
+**Fix:**
+```python
+# In _async_update_data, after the recovery returns successfully:
+now = dt_util.utcnow()
+if self._last_recovery_at is not None and now - self._last_recovery_at < _SILENT_RECOVERY_COOLDOWN:
+    raise UpdateFailed(
+        f"[{err.reason}] auth recovery rate-limited; skipping this poll: {redact(err.message)}"
+    ) from err
+self._last_recovery_at = now
+snapshot = await self._recover_from_auth_error(err, today)
+self._last_recovery_at = None  # SUCCESSFUL recovery clears the cooldown.
+```
+
+Or equivalently, only set `_last_recovery_at` in the FAILURE arms of `_recover_from_auth_error` (line 197 / 200 / 203), so it's only blocking the next attempt when the previous attempt actually failed.
+
+Add a regression test:
+- Poll 1: AuthError on initial fetch, recovery's retry succeeds — assert `_last_recovery_at is None` after the call returns.
+- Poll 2 (immediately after): AuthError again — assert `build_or_resume_client` IS called (not short-circuited by stale cooldown).
+
+---
+
+## INFO
+
+### IN-01: `redact()` URL-with-credentials pattern not covered
+
+**File:** `custom_components/ha_pronote/api/errors.py:16-24`
+**Issue:** The redact patterns cover `password=`, `pwd=`, `token=`, `session=`, and `Authorization:` — but NOT `https://user:pass@host/...` URL-embedded credentials. If pronotepy or upstream Pronote echoes the request URL back in an exception message and the user configured a URL with embedded credentials (rare but valid per RFC 3986), the credentials would leak into HA logs.
+**Fix (low-priority, defense-in-depth):**
+```python
+re.compile(r"(?i)(https?://)[^/\s:@]+:[^/\s@]+@"),  # strip user:pass@ from URLs
+```
+And replace with `\1<redacted>@`. Add a unit test:
+```python
+def test_redact_strips_userinfo_from_url():
+    assert "secret" not in redact("connect failed: https://alice:secret@pronote.example.com/")
+```
+
+### IN-02: `redact()` `password=\S+` greedily captures across a single space
+
+**File:** `custom_components/ha_pronote/api/errors.py:17`
+**Issue:** `password=\S+` matches one whitespace-delimited token. A message like `password=foo bar` redacts `password=foo` to `<redacted>` but leaves ` bar` exposed. Pronote passwords don't contain spaces in practice, but the pattern's brittleness is worth noting. Same caveat for `pwd=\S+`. Not exploitable today; document as a known scope.
+**Fix:** Bound the match to a stop class (e.g. `[^\s&]+` to also handle URL query separators) or use a longer lookahead. Acceptable to defer.
+
+### IN-03: `tests/test_init.py:90` mock-shutdown assertion uses a fragile fallback
+
+**File:** `tests/test_init.py:90`
+**Issue:** `assert mock_shutdown.await_count + mock_shutdown.call_count >= 1` — the `+ call_count` term is dead code IF `patch.object` correctly auto-detects `async_shutdown` as a coroutine function (which it does for `TimestampDataUpdateCoordinator.async_shutdown`, returning an `AsyncMock`). The assertion still passes if a future HA refactor changes `async_shutdown` to a sync method, masking a real regression where the production code is no longer awaiting the coordinator shutdown. A tighter assertion is `mock_shutdown.assert_awaited_once()`.
+**Fix:**
+```python
+with patch.object(coordinator, "async_shutdown", new_callable=AsyncMock) as mock_shutdown:
+    assert await hass.config_entries.async_unload(mock_config_entry.entry_id)
+    await hass.async_block_till_done()
+    mock_shutdown.assert_awaited_once()
+```
+Make the AsyncMock explicit so the assertion is unambiguous and survives HA refactors.
+
+---
+
+_Reviewed: 2026-05-07_
+_Reviewer: Claude (gsd-code-reviewer)_
+_Depth: standard_
+_Cycle: 2 of 3_

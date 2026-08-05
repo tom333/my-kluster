@@ -1,0 +1,639 @@
+{
+  "today": "2026-05-06",
+  "school_tz": "Pacific/Noumea",
+  "lessons": [
+    {
+      "date": "2026-04-30",
+      "start": "2026-04-30T15:10:00+11:00",
+      "end": "2026-04-30T16:10:00+11:00",
+      "subject": "TECHNOLOGIE",
+      "teacher": "prof 1",
+      "classroom": "010 Techno 1",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-04-30",
+      "start": "2026-04-30T14:00:00+11:00",
+      "end": "2026-04-30T14:55:00+11:00",
+      "subject": "ARTS PLASTIQUES",
+      "teacher": "prof 2",
+      "classroom": "110 Arts Plastiques",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-04-30",
+      "start": "2026-04-30T08:15:00+11:00",
+      "end": "2026-04-30T09:10:00+11:00",
+      "subject": "S.V.T.",
+      "teacher": "prof 3",
+      "classroom": "117 SVT 1",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-04-30",
+      "start": "2026-04-30T13:00:00+11:00",
+      "end": "2026-04-30T13:55:00+11:00",
+      "subject": "ESPAGNOL LV2",
+      "teacher": "prof 4",
+      "classroom": "108 AN2",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-04-29",
+      "start": "2026-04-29T07:15:00+11:00",
+      "end": "2026-04-29T08:10:00+11:00",
+      "subject": "HISTOIRE-GEOGRAPHIE",
+      "teacher": "prof 7",
+      "classroom": "116 HG2",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-04-30",
+      "start": "2026-04-30T09:25:00+11:00",
+      "end": "2026-04-30T10:20:00+11:00",
+      "subject": "ANGLAIS LV1",
+      "teacher": "prof 11",
+      "classroom": "107 AN1",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-04-30",
+      "start": "2026-04-30T10:25:00+11:00",
+      "end": "2026-04-30T11:20:00+11:00",
+      "subject": "FRANCAIS",
+      "teacher": "prof 8",
+      "classroom": "002 FR2",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-04-29",
+      "start": "2026-04-29T09:25:00+11:00",
+      "end": "2026-04-29T11:20:00+11:00",
+      "subject": "EPS",
+      "teacher": "prof 9",
+      "classroom": "",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-04-29",
+      "start": "2026-04-29T08:15:00+11:00",
+      "end": "2026-04-29T09:10:00+11:00",
+      "subject": "MATHS",
+      "teacher": "prof 10",
+      "classroom": "102 MA1",
+      "canceled": true,
+      "status": "cours d\u00e9plac\u00e9"
+    },
+    {
+      "date": "2026-05-04",
+      "start": "2026-05-04T08:15:00+11:00",
+      "end": "2026-05-04T09:10:00+11:00",
+      "subject": "HISTOIRE-GEOGRAPHIE",
+      "teacher": "prof 7",
+      "classroom": "116 HG2",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-04",
+      "start": "2026-05-04T12:00:00+11:00",
+      "end": "2026-05-04T13:00:00+11:00",
+      "subject": "EDUCATION MUSICALE",
+      "teacher": "prof 6",
+      "classroom": "",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-04",
+      "start": "2026-05-04T15:10:00+11:00",
+      "end": "2026-05-04T16:10:00+11:00",
+      "subject": "ANGLAIS APPROFONDI",
+      "teacher": "prof 5",
+      "classroom": "101 AN1",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-07",
+      "start": "2026-05-07T14:00:00+11:00",
+      "end": "2026-05-07T14:55:00+11:00",
+      "subject": "ARTS PLASTIQUES",
+      "teacher": "prof 2",
+      "classroom": "110 Arts Plastiques",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-04",
+      "start": "2026-05-04T13:00:00+11:00",
+      "end": "2026-05-04T14:55:00+11:00",
+      "subject": "FRANCAIS",
+      "teacher": "prof 8",
+      "classroom": "002 FR2",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-05",
+      "start": "2026-05-05T13:00:00+11:00",
+      "end": "2026-05-05T13:55:00+11:00",
+      "subject": "MATHS",
+      "teacher": "prof 10",
+      "classroom": "008 Techno 2",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-04",
+      "start": "2026-05-04T09:25:00+11:00",
+      "end": "2026-05-04T10:20:00+11:00",
+      "subject": "FRANCAIS",
+      "teacher": "prof 12",
+      "classroom": "105 FR4",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-06",
+      "start": "2026-05-06T08:15:00+11:00",
+      "end": "2026-05-06T09:10:00+11:00",
+      "subject": "S.V.T.",
+      "teacher": "prof 3",
+      "classroom": "117 SVT 1",
+      "canceled": true,
+      "status": "Cours annul\u00e9"
+    },
+    {
+      "date": "2026-05-04",
+      "start": "2026-05-04T07:15:00+11:00",
+      "end": "2026-05-04T08:10:00+11:00",
+      "subject": "ANGLAIS LV1",
+      "teacher": "prof 11",
+      "classroom": "107 AN1",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-05",
+      "start": "2026-05-05T08:15:00+11:00",
+      "end": "2026-05-05T10:20:00+11:00",
+      "subject": "TECHNOLOGIE",
+      "teacher": "prof 1",
+      "classroom": "010 Techno 1",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-04",
+      "start": "2026-05-04T10:25:00+11:00",
+      "end": "2026-05-04T11:20:00+11:00",
+      "subject": "MATHS",
+      "teacher": "prof 10",
+      "classroom": "008 Techno 2",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-07",
+      "start": "2026-05-07T13:00:00+11:00",
+      "end": "2026-05-07T13:55:00+11:00",
+      "subject": "ESPAGNOL LV2",
+      "teacher": "prof 4",
+      "classroom": "108 AN2",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-07",
+      "start": "2026-05-07T07:15:00+11:00",
+      "end": "2026-05-07T08:10:00+11:00",
+      "subject": "S.V.T.",
+      "teacher": "prof 3",
+      "classroom": "117 SVT 1",
+      "canceled": false,
+      "status": "Cours d\u00e9plac\u00e9"
+    },
+    {
+      "date": "2026-05-05",
+      "start": "2026-05-05T10:25:00+11:00",
+      "end": "2026-05-05T11:20:00+11:00",
+      "subject": "MATHS",
+      "teacher": "prof 10",
+      "classroom": "008 Techno 2",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-07",
+      "start": "2026-05-07T08:15:00+11:00",
+      "end": "2026-05-07T09:10:00+11:00",
+      "subject": "HISTOIRE-GEOGRAPHIE",
+      "teacher": "prof 7",
+      "classroom": "116 HG2",
+      "canceled": false,
+      "status": "Cours d\u00e9plac\u00e9"
+    },
+    {
+      "date": "2026-05-06",
+      "start": "2026-05-06T07:15:00+11:00",
+      "end": "2026-05-06T08:10:00+11:00",
+      "subject": "HISTOIRE-GEOGRAPHIE",
+      "teacher": "prof 7",
+      "classroom": "116 HG2",
+      "canceled": true,
+      "status": "Cours annul\u00e9"
+    },
+    {
+      "date": "2026-05-07",
+      "start": "2026-05-07T09:25:00+11:00",
+      "end": "2026-05-07T10:20:00+11:00",
+      "subject": "ANGLAIS LV1",
+      "teacher": "prof 11",
+      "classroom": "107 AN1",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-07",
+      "start": "2026-05-07T10:25:00+11:00",
+      "end": "2026-05-07T11:20:00+11:00",
+      "subject": "FRANCAIS",
+      "teacher": "prof 8",
+      "classroom": "002 FR2",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-06",
+      "start": "2026-05-06T09:25:00+11:00",
+      "end": "2026-05-06T11:20:00+11:00",
+      "subject": "EPS",
+      "teacher": "prof 9",
+      "classroom": "",
+      "canceled": true,
+      "status": "Prof. absent"
+    },
+    {
+      "date": "2026-05-07",
+      "start": "2026-05-07T07:15:00+11:00",
+      "end": "2026-05-07T09:10:00+11:00",
+      "subject": "EPS",
+      "teacher": "prof 9",
+      "classroom": "",
+      "canceled": true,
+      "status": "Prof. absent"
+    },
+    {
+      "date": "2026-05-05",
+      "start": "2026-05-05T14:00:00+11:00",
+      "end": "2026-05-05T14:55:00+11:00",
+      "subject": "ANGLAIS LV1",
+      "teacher": "prof 11",
+      "classroom": "107 AN1",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-05",
+      "start": "2026-05-05T07:15:00+11:00",
+      "end": "2026-05-05T08:10:00+11:00",
+      "subject": "S.V.T.",
+      "teacher": "prof 3",
+      "classroom": "117 SVT 1",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-12",
+      "start": "2026-05-12T14:00:00+11:00",
+      "end": "2026-05-12T14:55:00+11:00",
+      "subject": "HISTOIRE-GEOGRAPHIE",
+      "teacher": "prof 7",
+      "classroom": "116 HG2",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-13",
+      "start": "2026-05-13T07:15:00+11:00",
+      "end": "2026-05-13T08:10:00+11:00",
+      "subject": "HISTOIRE-GEOGRAPHIE",
+      "teacher": "prof 7",
+      "classroom": "116 HG2",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-13",
+      "start": "2026-05-13T09:25:00+11:00",
+      "end": "2026-05-13T11:20:00+11:00",
+      "subject": "EPS",
+      "teacher": "prof 9",
+      "classroom": "",
+      "canceled": true,
+      "status": "Prof. absent"
+    },
+    {
+      "date": "2026-05-12",
+      "start": "2026-05-12T10:25:00+11:00",
+      "end": "2026-05-12T11:20:00+11:00",
+      "subject": "AP MATHS",
+      "teacher": "prof 13",
+      "classroom": "112 MA2",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-11",
+      "start": "2026-05-11T08:15:00+11:00",
+      "end": "2026-05-11T09:10:00+11:00",
+      "subject": "PHYSIQUE-CHIMIE",
+      "teacher": "prof 14",
+      "classroom": "115 PHYCH 2",
+      "canceled": false,
+      "status": "rattrapage antic. P4"
+    },
+    {
+      "date": "2026-05-11",
+      "start": "2026-05-11T15:10:00+11:00",
+      "end": "2026-05-11T16:10:00+11:00",
+      "subject": "ANGLAIS APPROFONDI",
+      "teacher": "prof 5",
+      "classroom": "101 AN1",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-11",
+      "start": "2026-05-11T09:25:00+11:00",
+      "end": "2026-05-11T10:20:00+11:00",
+      "subject": "ANGLAIS LV1",
+      "teacher": "prof 11",
+      "classroom": "107 AN1",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-11",
+      "start": "2026-05-11T13:00:00+11:00",
+      "end": "2026-05-11T14:55:00+11:00",
+      "subject": "FRANCAIS",
+      "teacher": "prof 8",
+      "classroom": "002 FR2",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-11",
+      "start": "2026-05-11T12:00:00+11:00",
+      "end": "2026-05-11T13:00:00+11:00",
+      "subject": "EDUCATION MUSICALE",
+      "teacher": "prof 6",
+      "classroom": "",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-13",
+      "start": "2026-05-13T10:25:00+11:00",
+      "end": "2026-05-13T11:20:00+11:00",
+      "subject": "MATHS",
+      "teacher": "prof 10",
+      "classroom": "008 Techno 2",
+      "canceled": false,
+      "status": "Cours modifi\u00e9"
+    },
+    {
+      "date": "2026-05-13",
+      "start": "2026-05-13T08:15:00+11:00",
+      "end": "2026-05-13T09:10:00+11:00",
+      "subject": "MATHS",
+      "teacher": "prof 10",
+      "classroom": "102 MA1",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-12",
+      "start": "2026-05-12T13:00:00+11:00",
+      "end": "2026-05-12T13:55:00+11:00",
+      "subject": "FRANCAIS",
+      "teacher": "prof 8",
+      "classroom": "002 FR2",
+      "canceled": true,
+      "status": "Prof./pers. absent"
+    },
+    {
+      "date": "2026-05-12",
+      "start": "2026-05-12T09:25:00+11:00",
+      "end": "2026-05-12T10:20:00+11:00",
+      "subject": "ANGLAIS LV1",
+      "teacher": "prof 11",
+      "classroom": "107 AN1",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-11",
+      "start": "2026-05-11T10:25:00+11:00",
+      "end": "2026-05-11T11:20:00+11:00",
+      "subject": "MATHS",
+      "teacher": "prof 10",
+      "classroom": "008 Techno 2",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-12",
+      "start": "2026-05-12T07:15:00+11:00",
+      "end": "2026-05-12T09:10:00+11:00",
+      "subject": "PHYSIQUE-CHIMIE",
+      "teacher": "prof 14",
+      "classroom": "115 PHYCH 2",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-18",
+      "start": "2026-05-18T08:15:00+11:00",
+      "end": "2026-05-18T09:10:00+11:00",
+      "subject": "HISTOIRE-GEOGRAPHIE",
+      "teacher": "prof 7",
+      "classroom": "116 HG2",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-18",
+      "start": "2026-05-18T15:10:00+11:00",
+      "end": "2026-05-18T16:10:00+11:00",
+      "subject": "ANGLAIS APPROFONDI",
+      "teacher": "prof 5",
+      "classroom": "101 AN1",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-18",
+      "start": "2026-05-18T13:00:00+11:00",
+      "end": "2026-05-18T14:55:00+11:00",
+      "subject": "FRANCAIS",
+      "teacher": "prof 8",
+      "classroom": "002 FR2",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-19",
+      "start": "2026-05-19T13:00:00+11:00",
+      "end": "2026-05-19T13:55:00+11:00",
+      "subject": "MATHS",
+      "teacher": "prof 10",
+      "classroom": "008 Techno 2",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-18",
+      "start": "2026-05-18T09:25:00+11:00",
+      "end": "2026-05-18T10:20:00+11:00",
+      "subject": "FRANCAIS",
+      "teacher": "prof 12",
+      "classroom": "105 FR4",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-18",
+      "start": "2026-05-18T07:15:00+11:00",
+      "end": "2026-05-18T08:10:00+11:00",
+      "subject": "ANGLAIS LV1",
+      "teacher": "prof 11",
+      "classroom": "107 AN1",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-19",
+      "start": "2026-05-19T08:15:00+11:00",
+      "end": "2026-05-19T10:20:00+11:00",
+      "subject": "TECHNOLOGIE",
+      "teacher": "prof 1",
+      "classroom": "010 Techno 1",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-18",
+      "start": "2026-05-18T10:25:00+11:00",
+      "end": "2026-05-18T11:20:00+11:00",
+      "subject": "MATHS",
+      "teacher": "prof 10",
+      "classroom": "008 Techno 2",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-19",
+      "start": "2026-05-19T10:25:00+11:00",
+      "end": "2026-05-19T11:20:00+11:00",
+      "subject": "MATHS",
+      "teacher": "prof 10",
+      "classroom": "008 Techno 2",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-18",
+      "start": "2026-05-18T12:00:00+11:00",
+      "end": "2026-05-18T13:00:00+11:00",
+      "subject": "EDUCATION MUSICALE",
+      "teacher": "prof 6",
+      "classroom": "",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-19",
+      "start": "2026-05-19T14:00:00+11:00",
+      "end": "2026-05-19T14:55:00+11:00",
+      "subject": "ANGLAIS LV1",
+      "teacher": "prof 11",
+      "classroom": "107 AN1",
+      "canceled": false,
+      "status": ""
+    },
+    {
+      "date": "2026-05-19",
+      "start": "2026-05-19T07:15:00+11:00",
+      "end": "2026-05-19T08:10:00+11:00",
+      "subject": "S.V.T.",
+      "teacher": "prof 3",
+      "classroom": "117 SVT 1",
+      "canceled": false,
+      "status": ""
+    }
+  ],
+  "grades": [],
+  "information": [
+    {
+      "info_id": "65#bMM7gYs8wXvDUUUCvXOjhlZQ77LxsGwnme0Pcxuh6us",
+      "title": "",
+      "sender": "prof 15",
+      "date": "2026-02-17T00:00:00+11:00",
+      "excerpt": "\n\nBonjour \u00e0 tous\nNous avons re\u00e7u une note du m\u00e9decin scolaire, via la DASS :La dengue\u00a0circule en Nouvelle Cal\u00e9donie.\n\u00a0\nLa\u00a0dengue\u00a0est une maladie virale transmise par les moustiques (Aedes aegypti). Depuis l'alerte lanc\u00e9e le\u00a014 janvier 2026 par les autorit\u00e9s sanitaires\u00a0 la situation a \u00e9volu\u00e9 avec une augmentation des cas autochtones confirm\u00e9s, notamment dans les zones non couvertes par la m\u00e9thode Wolbachia.\n\nDans le contexte actuel, les mesures de pr\u00e9vention individuelle sont particuli\u00e8rement ind",
+      "read": true
+    },
+    {
+      "info_id": "65#7GttwjEDIZGk-SkeMOKgejKgpcRRNZRLXT_N5tsvX_4",
+      "title": "EMPLOIS DU TEMPS DES CLASSE DE 6e 5e 4e 3e VALIDES jusqu'\u00e0 la fin du mois de FEVRIER",
+      "sender": "M. prof 16",
+      "date": "2026-02-17T00:00:00+11:00",
+      "excerpt": "Bonjour \u00e0 toutes et tous,\n\u00a0\nLes emplois du temps actuels sont valables jusqu'\u00e0 la fin du mois de F\u00e9vrier\nLes emplois du temps des \u00e9l\u00e8ves ULIS vont \u00eatre pr\u00e9cis\u00e9s d'ici demain\n\u00a0\nNous vous remercions de votre compr\u00e9hension\n\u00a0\nLe Principal\nM Principal\n\u00a0",
+      "read": true
+    },
+    {
+      "info_id": "65#iM1icz0Uilm1Vb7rjs-inSGpgBJYLeJIsWsAmvmCsis",
+      "title": "\u00ab\u00a0Quart d\u2019heure lecture\u00a0\u00bb national",
+      "sender": "Mme prof 17",
+      "date": "2026-03-06T00:00:00+11:00",
+      "excerpt": "Bonjour \u00e0 tous,\u00a0\n\u00a0\nMardi 10 mars aura lieu le quart d\u2019heure lecture national: op\u00e9ration men\u00e9e dans le cadre de la lutte contre l\u2019illettrisme mais aussi de la promotion de la lecture.\u00a0\n\u00a0\nDe quoi s\u2019agit-il?\u00a0\nPendant un quart d\u2019heure, tous les \u00e9l\u00e8ves et tous le personnels de l\u2019\u00e9tablissement sont invit\u00e9s \u00e0 lire. Les supports peuvent \u00eatre divers et vari\u00e9s ( \u00e9vitons n\u00e9anmoins le support num\u00e9rique) en langue fran\u00e7aise ou \u00e9trang\u00e8res. Les \u00e9l\u00e8ves pourront apporter un livre de la maison.\u00a0\n\u00a0\nO\u00f9 et quand?\u00a0\nC",
+      "read": true
+    },
+    {
+      "info_id": "65#Fz73mVAZ0Q2UW9A8OtQIr0c9qsNbWTOuIGtONb3g__c",
+      "title": "REUNION AUX PARENTS DE 5e au sujet de la TABLETTE NUMERIQUE",
+      "sender": "M. prof 16",
+      "date": "2026-03-16T00:00:00+11:00",
+      "excerpt": "Bonjour chers parents, \u00e9l\u00e8ves de 5e et personnels,\n\u00a0\nJEUDI SOIR \u00e0 17h au coll\u00e8ge, nous vous convions \u00e0 un \u00e9change au sujet de la TABLETTE NUMERIQUE confi\u00e9e \u00e0 votre enfant et \u00e0 vous m\u00eames\nNous serons aux c\u00f4t\u00e9s de la DERES (direction de l'Education et de la r\u00e9ussite de la Province-Sud)\u00a0\n\u00a0\nPetit \u00e0 petit, votre enfant pourra ramener r\u00e9guli\u00e8rement cette tablette \u00e0 la maison et m\u00eame la conserver hors vacances.\u00a0\n\u00a0\nNous tenterons d'apporter des r\u00e9ponses \u00e0 toutes vos questions et\u00a0 de vous apporter des so",
+      "read": true
+    },
+    {
+      "info_id": "65#vgUh9Og8eG99obOBXoicG8p2ZNUwFZEUg912CNNLw8w",
+      "title": "L\u2019\u00e9lection des repr\u00e9sentants des parents d\u2019\u00e9l\u00e8ves au Conseil d\u2019Administration 2026",
+      "sender": "Mme prof 18",
+      "date": "2026-03-18T00:00:00+11:00",
+      "excerpt": "\nL\u2019\u00e9lection des repr\u00e9sentants des parents d\u2019\u00e9l\u00e8ves au Conseil d\u2019Administration 2026 \n(4 titulaires, 4 suppl\u00e9ants) est fix\u00e9e au lundi 30 mars 2026.\n\u00a0\nELECTEURS\u00a0: \nLes parents d\u2019\u00e9l\u00e8ves ou \u00e0 d\u00e9faut, les personnes qui ont la garde judiciaire d\u2019\u00e9l\u00e8ves, sont \u00e9lecteurs, chaque parent dispose d\u2019une voix.\n\u00a0(Le p\u00e8re dispose d\u2019une voix, la m\u00e8re dispose d\u2019une voix quel que soit le nombre d\u2019enfants inscrits au coll\u00e8ge).\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0 1 parent = 1 vote\nLes organismes sociaux, qui ont la garde judiciaire d\u2019enfants",
+      "read": true
+    },
+    {
+      "info_id": "65#8qOJ94e5bsKx-g3rF9nPJ0THVgVevwOWFpwSEKkC_zg",
+      "title": "vaccin HPV",
+      "sender": "prof 15",
+      "date": "2026-04-23T00:00:00+11:00",
+      "excerpt": "Bonjour\nDans le c\u00e2dre de sa vaccination contre le \"HPV\", l'ASSNC viendra vacciner le enfants dont les parents ont sign\u00e9 l'autorisation parentale en d\u00e9but d'ann\u00e9e ( ou en 2025)\nPour les 4\u00e8me \u00e7a sera la 2\u00e8me dose , pour les 5\u00e8me , la 1\u00e8re dose.\nChaque \u00e9l\u00e8ve concern\u00e9 a re\u00e7u son RDV en main propre et devra se pr\u00e9senter \u00e0 l'infirmerie \u00e0 l'heure indiqu\u00e9e avec son carnet de sant\u00e9 et son carnet de correspondance, o\u00f9 l'\u00e9quipe des vaccinations sera pr\u00e9sente.\nToutes les places ont prises , je ne peux plus ",
+      "read": true
+    }
+  ],
+  "overall_average": "",
+  "period_name": ""
+}

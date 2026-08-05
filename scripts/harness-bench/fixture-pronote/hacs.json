@@ -1,0 +1,9 @@
+{
+  "name": "HA-Pronote",
+  "homeassistant": "2026.4.0",
+  "hacs": "2.0.5",
+  "country": "FR",
+  "render_readme": true,
+  "zip_release": true,
+  "filename": "ha_pronote.zip"
+}

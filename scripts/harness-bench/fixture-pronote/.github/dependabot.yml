@@ -1,0 +1,39 @@
+# Dependabot — keep dev/CI dependencies current and prevent the pin-drift class
+# of breakage (e.g. pytest-homeassistant-custom-component requiring a newer
+# homeassistant than the one pinned) that silently kept CI red.
+#
+# NOTE: the integration's *runtime* requirements (pronotepy, python-slugify,
+# holidays) live in custom_components/ha_pronote/manifest.json, which Dependabot
+# does NOT parse. Bump those by hand; the daily upstream-canary workflow flags
+# pronotepy upstream drift. Keep manifest.json and requirements_test.txt in
+# lockstep when bumping a shared runtime dep.
+version: 2
+updates:
+  # Python dev/test deps (requirements_test.txt + pyproject).
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    groups:
+      # PHACC pins an exact homeassistant; bumping them apart re-creates the
+      # unsatisfiable pair that broke CI. Force them into one PR.
+      ha-test-stack:
+        patterns:
+          - "homeassistant"
+          - "pytest-homeassistant-custom-component"
+
+  # GitHub Actions — the workflows pin actions by commit SHA (tags are stale);
+  # Dependabot keeps those SHAs fresh.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+
+  # npm — pyright (type checker) declared in package.json.
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 3

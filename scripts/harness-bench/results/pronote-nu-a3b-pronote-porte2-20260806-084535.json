@@ -1,0 +1,389 @@
+{
+  "scenario": "pronote",
+  "harnais": "nu",
+  "modele": "a3b-pronote-porte2",
+  "runs": 5,
+  "tests_passed": 3,
+  "tests_passed_median": 3,
+  "tests_passed_min": 3,
+  "tests_passed_max": 5,
+  "tests_passed_ecart": 2,
+  "tests_passed_tous": [
+    4,
+    3,
+    3,
+    3,
+    5
+  ],
+  "tests_passed_notables": [
+    4,
+    3,
+    3,
+    3,
+    5
+  ],
+  "essais_comparables": 5,
+  "essais_erreur_collecte": 0,
+  "essais_pytest_pend": 0,
+  "tests_attendus": 5,
+  "verdict": "FAIL",
+  "tours_median": 30,
+  "pic_input_median": 30108,
+  "duree_s_median": 432,
+  "sortie_par_test_median": 2457.667,
+  "tours_par_test_median": 7.667,
+  "config_env": {
+    "HARNAIS_NU_BUDGET_RAISONNEMENT": "8192",
+    "HARNAIS_NU_COLLECTE_CMD": "/data/projets/perso/pronote/.venv/bin/pytest -o addopts= -q --collect-only tests/",
+    "HARNAIS_NU_MAX_RETRY_TRONCATURE": "2",
+    "HARNAIS_NU_MAX_TOKENS_PER_TURN": "32768",
+    "HARNAIS_NU_MAX_TOTAL_TOKENS": "600000",
+    "HARNAIS_NU_MAX_TURNS": "60",
+    "HARNAIS_NU_MESSAGE_RAISONNEMENT": "\n\nConsidering the limited time by the user, I have to give the solution based on the thinking directly now.\n",
+    "HARNAIS_NU_PORTE_TESTS": "1",
+    "HARNAIS_NU_SEED": "8009"
+  },
+  "commande": "bench.py --harness nu --scenario pronote --model a3b-pronote-porte2 --runs 5 --timeout 3000",
+  "serveur_actif": {
+    "nom": "a3b",
+    "modele": "Qwen3.6-27B-A3B-Coder-CD-IQ4_K_M.gguf",
+    "log": "./logs-serveur/a3b-20260805-171550.log",
+    "image": "ghcr.io/ggml-org/llama.cpp:server-cuda-b10156",
+    "drapeaux": [
+      "--n-cpu-moe",
+      "24"
+    ],
+    "ctx_size": 32768,
+    "parallel": 1,
+    "flash_attn": true,
+    "kv": "q8_0",
+    "argv": [
+      "--model",
+      "/models/Qwen3.6-27B-A3B-Coder-CD-IQ4_K_M.gguf",
+      "--ctx-size",
+      "32768",
+      "--parallel",
+      "1",
+      "-fa",
+      "on",
+      "-ctk",
+      "q8_0",
+      "-ctv",
+      "q8_0",
+      "--jinja",
+      "--no-webui",
+      "--host",
+      "0.0.0.0",
+      "--port",
+      "8080",
+      "--n-cpu-moe",
+      "24"
+    ]
+  },
+  "prompt_sha256": "359b53aadf1a56d7",
+  "contrat_sha256": "ddcf45291fd899a4",
+  "format_appels": "openai_tool_calls",
+  "essais": [
+    {
+      "essai": 1,
+      "duree_s": 746.5,
+      "timeout": false,
+      "returncode": 0,
+      "depart": {
+        "passed": 3,
+        "failed": 2
+      },
+      "workdir": "/tmp/harness-bench-pronote-nu-a3b-pronote-porte2-r1",
+      "tours": 19,
+      "appels_outils": {
+        "bash": 9,
+        "read": 6,
+        "edit": 3
+      },
+      "format_appels": "openai_tool_calls",
+      "pic_input": 30108,
+      "total_input": 360685,
+      "total_output": 23438,
+      "stop_reason": "truncated",
+      "erreur": null,
+      "verifications": 0,
+      "verif_ok": null,
+      "retries_troncature": 1,
+      "hygiene": [],
+      "caracteres_economises": 0,
+      "writes_rattrapes": 0,
+      "compactions": 0,
+      "modes_compaction": [],
+      "dedups": 0,
+      "dedup_economises": 0,
+      "tests_auto": 0,
+      "tests_auto_ok": 0,
+      "verdict": "FAIL",
+      "tests_passed": 4,
+      "tests_failed": 1,
+      "tests_attendus": 5,
+      "etages": {
+        "oracle": {
+          "passed": 4,
+          "failed": 1,
+          "attendus": 5,
+          "issue": "collecte_ok",
+          "verdict": "FAIL"
+        }
+      },
+      "issue": "collecte_ok",
+      "lignes_ecrites": 4430,
+      "pytest_tail": "[oracle]\n1 failed, 4 passed in 0.34s",
+      "tests_ajoutes": [
+        "test_oracle_pronote.py"
+      ],
+      "gardes_violees": [],
+      "api_modifiee": [],
+      "fichiers_modifies": [
+        "custom_components/ha_pronote/diff/lessons.py",
+        "homeassistant/__init__.py",
+        "homeassistant/exceptions/__init__.py",
+        "test_oracle_pronote.py"
+      ]
+    },
+    {
+      "essai": 2,
+      "duree_s": 347.7,
+      "timeout": false,
+      "returncode": 0,
+      "depart": {
+        "passed": 3,
+        "failed": 2
+      },
+      "workdir": "/tmp/harness-bench-pronote-nu-a3b-pronote-porte2-r2",
+      "tours": 31,
+      "appels_outils": {
+        "bash": 11,
+        "read": 15,
+        "edit": 3
+      },
+      "format_appels": "openai_tool_calls",
+      "pic_input": 26670,
+      "total_input": 509938,
+      "total_output": 7373,
+      "stop_reason": "done",
+      "erreur": null,
+      "verifications": 0,
+      "verif_ok": null,
+      "retries_troncature": 0,
+      "hygiene": [],
+      "caracteres_economises": 0,
+      "writes_rattrapes": 0,
+      "compactions": 0,
+      "modes_compaction": [],
+      "dedups": 0,
+      "dedup_economises": 0,
+      "tests_auto": 0,
+      "tests_auto_ok": 0,
+      "verdict": "FAIL",
+      "tests_passed": 3,
+      "tests_failed": 2,
+      "tests_attendus": 5,
+      "etages": {
+        "oracle": {
+          "passed": 3,
+          "failed": 2,
+          "attendus": 5,
+          "issue": "collecte_ok",
+          "verdict": "FAIL"
+        }
+      },
+      "issue": "collecte_ok",
+      "lignes_ecrites": 4424,
+      "pytest_tail": "[oracle]\n2 failed, 3 passed in 0.33s",
+      "tests_ajoutes": [
+        "test_oracle_pronote.py"
+      ],
+      "gardes_violees": [],
+      "api_modifiee": [],
+      "fichiers_modifies": [
+        "custom_components/ha_pronote/api/fetcher.py",
+        "test_oracle_pronote.py",
+        "tests/test_api/test_fetcher.py"
+      ]
+    },
+    {
+      "essai": 3,
+      "duree_s": 486.2,
+      "timeout": false,
+      "returncode": 0,
+      "depart": {
+        "passed": 3,
+        "failed": 2
+      },
+      "workdir": "/tmp/harness-bench-pronote-nu-a3b-pronote-porte2-r3",
+      "tours": 23,
+      "appels_outils": {
+        "bash": 7,
+        "read": 15
+      },
+      "format_appels": "openai_tool_calls",
+      "pic_input": 27428,
+      "total_input": 328526,
+      "total_output": 13106,
+      "stop_reason": "truncated",
+      "erreur": null,
+      "verifications": 0,
+      "verif_ok": null,
+      "retries_troncature": 1,
+      "hygiene": [],
+      "caracteres_economises": 0,
+      "writes_rattrapes": 0,
+      "compactions": 0,
+      "modes_compaction": [],
+      "dedups": 0,
+      "dedup_economises": 0,
+      "tests_auto": 0,
+      "tests_auto_ok": 0,
+      "verdict": "FAIL",
+      "tests_passed": 3,
+      "tests_failed": 2,
+      "tests_attendus": 5,
+      "etages": {
+        "oracle": {
+          "passed": 3,
+          "failed": 2,
+          "attendus": 5,
+          "issue": "collecte_ok",
+          "verdict": "FAIL"
+        }
+      },
+      "issue": "collecte_ok",
+      "lignes_ecrites": 4424,
+      "pytest_tail": "[oracle]\n2 failed, 3 passed in 0.34s",
+      "tests_ajoutes": [
+        "test_oracle_pronote.py"
+      ],
+      "gardes_violees": [],
+      "api_modifiee": [],
+      "fichiers_modifies": [
+        "test_oracle_pronote.py"
+      ]
+    },
+    {
+      "essai": 4,
+      "duree_s": 194.4,
+      "timeout": false,
+      "returncode": 0,
+      "depart": {
+        "passed": 3,
+        "failed": 2
+      },
+      "workdir": "/tmp/harness-bench-pronote-nu-a3b-pronote-porte2-r4",
+      "tours": 30,
+      "appels_outils": {
+        "bash": 11,
+        "read": 18
+      },
+      "format_appels": "openai_tool_calls",
+      "pic_input": 31527,
+      "total_input": 413950,
+      "total_output": 3474,
+      "stop_reason": "error",
+      "erreur": "Client error '400 Bad Request' for url 'http://127.0.0.1:8080/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400",
+      "verifications": 0,
+      "verif_ok": null,
+      "retries_troncature": 0,
+      "hygiene": [],
+      "caracteres_economises": 0,
+      "writes_rattrapes": 0,
+      "compactions": 0,
+      "modes_compaction": [],
+      "dedups": 0,
+      "dedup_economises": 0,
+      "tests_auto": 0,
+      "tests_auto_ok": 0,
+      "verdict": "FAIL",
+      "tests_passed": 3,
+      "tests_failed": 2,
+      "tests_attendus": 5,
+      "etages": {
+        "oracle": {
+          "passed": 3,
+          "failed": 2,
+          "attendus": 5,
+          "issue": "collecte_ok",
+          "verdict": "FAIL"
+        }
+      },
+      "issue": "collecte_ok",
+      "lignes_ecrites": 4424,
+      "pytest_tail": "[oracle]\n2 failed, 3 passed in 0.33s",
+      "tests_ajoutes": [
+        "test_oracle_pronote.py"
+      ],
+      "gardes_violees": [],
+      "api_modifiee": [],
+      "fichiers_modifies": [
+        "test_oracle_pronote.py"
+      ]
+    },
+    {
+      "essai": 5,
+      "duree_s": 431.8,
+      "timeout": false,
+      "returncode": 0,
+      "depart": {
+        "passed": 3,
+        "failed": 2
+      },
+      "workdir": "/tmp/harness-bench-pronote-nu-a3b-pronote-porte2-r5",
+      "tours": 30,
+      "appels_outils": {
+        "bash": 13,
+        "read": 11,
+        "edit": 3,
+        "write": 2
+      },
+      "format_appels": "openai_tool_calls",
+      "pic_input": 32273,
+      "total_input": 472124,
+      "total_output": 11559,
+      "stop_reason": "truncated",
+      "erreur": null,
+      "verifications": 0,
+      "verif_ok": null,
+      "retries_troncature": 1,
+      "hygiene": [],
+      "caracteres_economises": 0,
+      "writes_rattrapes": 0,
+      "compactions": 0,
+      "modes_compaction": [],
+      "dedups": 0,
+      "dedup_economises": 0,
+      "tests_auto": 0,
+      "tests_auto_ok": 0,
+      "verdict": "PASS",
+      "tests_passed": 5,
+      "tests_failed": 0,
+      "tests_attendus": 5,
+      "etages": {
+        "oracle": {
+          "passed": 5,
+          "failed": 0,
+          "attendus": 5,
+          "issue": "collecte_ok",
+          "verdict": "PASS"
+        }
+      },
+      "issue": "collecte_ok",
+      "lignes_ecrites": 4439,
+      "pytest_tail": "[oracle]\n5 passed in 0.26s",
+      "tests_ajoutes": [
+        "test_oracle_pronote.py"
+      ],
+      "gardes_violees": [],
+      "api_modifiee": [],
+      "fichiers_modifies": [
+        "custom_components/ha_pronote/__init__.py",
+        "custom_components/ha_pronote/diff/lessons.py",
+        "test_oracle_pronote.py"
+      ]
+    }
+  ]
+}
