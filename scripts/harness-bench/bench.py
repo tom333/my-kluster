@@ -906,6 +906,29 @@ def nu_command(model, workdir, prompt):
     # brule 26 161 caracteres de `reasoning_content` sans un seul tool_call, et
     # doubler le plafond par tour (4096 -> 8192) n'a fait que doubler le monologue :
     # ce n'est pas le meme levier, il faut borner la PENSEE et pas la reponse.
+    # Deduplication des relectures RIGOUREUSEMENT identiques, mutee en place.
+    # Cible revisee : elle ne sauve plus un run (le plafond desserre a fait
+    # disparaitre les aneantissements), elle freine le VOLUME — un tirage du bras
+    # gagnant a produit 41 705 tokens de sortie pour 8 tours.
+    if os.environ.get("HARNAIS_NU_DEDUPE_RELECTURES"):
+        verify += ["--dedupe-relectures"]
+    # ECHANTILLONNAGE. Jusqu'au 2026-08-05 le harnais n'en envoyait AUCUN et le serveur
+    # appliquait ses defauts : temp 1.0, min_p 0.05. Or la doc Qwen3.6 distingue deux
+    # regimes en mode pensee — temp 1.0 pour les taches GENERALES, temp 0.6 pour le
+    # CODE PRECIS — et ce banc ne fait que du code precis. Toutes les campagnes
+    # anterieures ont donc tourne au mauvais regime, ce qui est le premier suspect pour
+    # la variance qui a rendu chaque verdict penible (ecart 29, tours de 9 a 45 sur
+    # reglage identique). Chaque variable absente = champ non envoye, donc temoin
+    # inchange et historique toujours comparable.
+    for var, drapeau in (
+        ("HARNAIS_NU_TEMPERATURE", "--temperature"),
+        ("HARNAIS_NU_MIN_P", "--min-p"),
+        ("HARNAIS_NU_TOP_P", "--top-p"),
+        ("HARNAIS_NU_TOP_K", "--top-k"),
+        ("HARNAIS_NU_PRESENCE_PENALTY", "--presence-penalty"),
+    ):
+        if os.environ.get(var):
+            verify += [drapeau, os.environ[var]]
     if os.environ.get("HARNAIS_NU_BUDGET_RAISONNEMENT"):
         verify += [
             "--budget-raisonnement",
@@ -979,6 +1002,11 @@ def nu_metrics(transcript):
             # une campagne de compaction par resume.
             "compactions": m.get("compactions"),
             "modes_compaction": m.get("modes_compaction"),
+            # Deduplication : le COMPTE de relectures elaguees separe « le levier n a
+            # pas mordu » de « il n y avait aucun doublon ». Sans lui, un bras sans
+            # gain serait illisible — c est l erreur faite sur compactions=0.
+            "dedups": m.get("dedups"),
+            "dedup_economises": m.get("dedup_economises"),
             # `tests_auto` doit rester COMPARABLE au nombre de `bash pytest` qu il
             # remplace : s il le depasse largement, le levier gagne des tours et
             # paie du temps sur un paquet incomplet (risque predit, cf. MESURES.md).
