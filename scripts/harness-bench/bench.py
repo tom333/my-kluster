@@ -1052,6 +1052,12 @@ def nu_command(model, workdir, prompt):
         ("HARNAIS_NU_TOP_P", "--top-p"),
         ("HARNAIS_NU_TOP_K", "--top-k"),
         ("HARNAIS_NU_PRESENCE_PENALTY", "--presence-penalty"),
+        # Renomme la SURFACE des outils (Read/Write/Edit/Bash + file_path,
+        # old_string, new_string). Mesure du 2026-08-06 : KAT-Coder n'a emis AUCUN
+        # write ni edit sur les 8 tirages `pronote` (165 tours en `bash`), alors
+        # qu'il en emet sur `columns-web` ou la tache est de CREER des fichiers.
+        # a3b, meme scenario, appelle `edit` 3 fois par tirage.
+        ("HARNAIS_NU_CONVENTION_OUTILS", "--convention-outils"),
     ):
         if os.environ.get(var):
             verify += [drapeau, os.environ[var]]
