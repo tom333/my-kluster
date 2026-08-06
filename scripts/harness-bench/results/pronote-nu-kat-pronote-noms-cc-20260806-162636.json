@@ -1,0 +1,391 @@
+{
+  "scenario": "pronote",
+  "harnais": "nu",
+  "modele": "kat-pronote-noms-cc",
+  "runs": 5,
+  "tests_passed": 3,
+  "tests_passed_median": 3,
+  "tests_passed_min": 3,
+  "tests_passed_max": 5,
+  "tests_passed_ecart": 2,
+  "tests_passed_tous": [
+    3,
+    3,
+    3,
+    3,
+    5
+  ],
+  "tests_passed_notables": [
+    3,
+    3,
+    3,
+    3,
+    5
+  ],
+  "essais_comparables": 5,
+  "essais_erreur_collecte": 0,
+  "essais_pytest_pend": 0,
+  "tests_attendus": 5,
+  "verdict": "FAIL",
+  "tours_median": 43,
+  "pic_input_median": 63920,
+  "duree_s_median": 676,
+  "sortie_par_test_median": 2893.333,
+  "tours_par_test_median": 13.333,
+  "config_env": {
+    "HARNAIS_NU_CONVENTION_OUTILS": "claude-code",
+    "HARNAIS_NU_MAX_RETRY_TRONCATURE": "2",
+    "HARNAIS_NU_MAX_TOKENS_PER_TURN": "32768",
+    "HARNAIS_NU_MAX_TOTAL_TOKENS": "600000",
+    "HARNAIS_NU_MAX_TURNS": "60",
+    "HARNAIS_NU_PRESENCE_PENALTY": "1.5",
+    "HARNAIS_NU_SANS_PENSEE": "1",
+    "HARNAIS_NU_SEED": "8009",
+    "HARNAIS_NU_TEMPERATURE": "0.7",
+    "HARNAIS_NU_TOP_K": "20",
+    "HARNAIS_NU_TOP_P": "0.8"
+  },
+  "commande": "bench.py --harness nu --model kat-pronote-noms-cc --scenario pronote --runs 5",
+  "serveur_actif": {
+    "nom": "kat65k",
+    "modele": "Kwaipilot_KAT-Coder-V2.5-Dev-IQ4_XS.gguf",
+    "log": "./logs-serveur/kat65k-20260806-143644.log",
+    "image": "ghcr.io/ggml-org/llama.cpp:server-cuda-b10156",
+    "drapeaux": [
+      "--n-cpu-moe",
+      "24",
+      "--no-mmap"
+    ],
+    "ctx_size": 65536,
+    "parallel": 1,
+    "flash_attn": true,
+    "kv": "q8_0",
+    "argv": [
+      "--model",
+      "/models/Kwaipilot_KAT-Coder-V2.5-Dev-IQ4_XS.gguf",
+      "--ctx-size",
+      "65536",
+      "--parallel",
+      "1",
+      "-fa",
+      "on",
+      "-ctk",
+      "q8_0",
+      "-ctv",
+      "q8_0",
+      "--jinja",
+      "--no-webui",
+      "--host",
+      "0.0.0.0",
+      "--port",
+      "8080",
+      "--n-cpu-moe",
+      "24",
+      "--no-mmap"
+    ]
+  },
+  "prompt_sha256": "359b53aadf1a56d7",
+  "contrat_sha256": "ddcf45291fd899a4",
+  "format_appels": "openai_tool_calls",
+  "essais": [
+    {
+      "essai": 1,
+      "duree_s": 842.0,
+      "timeout": false,
+      "returncode": 0,
+      "depart": {
+        "passed": 3,
+        "failed": 2
+      },
+      "workdir": "/tmp/harness-bench-pronote-nu-kat-pronote-noms-cc-r1",
+      "tours": 43,
+      "appels_outils": {
+        "bash": 70,
+        "read": 12,
+        "Bash": 1
+      },
+      "format_appels": "openai_tool_calls",
+      "pic_input": 64453,
+      "total_input": 1486917,
+      "total_output": 23579,
+      "stop_reason": "error",
+      "erreur": "Server error '500 Internal Server Error' for url 'http://127.0.0.1:8080/v1/chat/completions' | corps: {\"error\":{\"code\":500,\"message\":\"Failed to parse tool call arguments as JSON: [json.exception.parse_error.101] parse error at line 1, column 1827: syntax error while parsing value - invalid string: missing closing quote; last read: '\\\"python3 -c \\\\\\\"\\\\n# Actually, let me re-read the oracle test comment one more time:\\\\n# 'Défaut 2. Une absence administrative est posée plusieurs jours à l'avance : i…",
+      "verifications": 0,
+      "verif_ok": null,
+      "tours_tronques": 1,
+      "retries_troncature": 2,
+      "hygiene": [],
+      "caracteres_economises": 0,
+      "writes_rattrapes": 0,
+      "compactions": 0,
+      "modes_compaction": [],
+      "dedups": 0,
+      "dedup_economises": 0,
+      "tests_auto": 0,
+      "tests_auto_ok": 0,
+      "verdict": "FAIL",
+      "tests_passed": 3,
+      "tests_failed": 2,
+      "tests_attendus": 5,
+      "etages": {
+        "oracle": {
+          "passed": 3,
+          "failed": 2,
+          "attendus": 5,
+          "issue": "collecte_ok",
+          "verdict": "FAIL"
+        }
+      },
+      "issue": "collecte_ok",
+      "lignes_ecrites": 4424,
+      "pytest_tail": "[oracle]\n2 failed, 3 passed in 0.34s",
+      "tests_ajoutes": [
+        "test_oracle_pronote.py"
+      ],
+      "gardes_violees": [],
+      "api_modifiee": [],
+      "fichiers_modifies": [
+        "test_oracle_pronote.py"
+      ]
+    },
+    {
+      "essai": 2,
+      "duree_s": 374.5,
+      "timeout": false,
+      "returncode": 0,
+      "depart": {
+        "passed": 3,
+        "failed": 2
+      },
+      "workdir": "/tmp/harness-bench-pronote-nu-kat-pronote-noms-cc-r2",
+      "tours": 60,
+      "appels_outils": {
+        "bash": 109,
+        "read": 8,
+        "edit": 1
+      },
+      "format_appels": "openai_tool_calls",
+      "pic_input": 46313,
+      "total_input": 1972679,
+      "total_output": 8680,
+      "stop_reason": "max_turns",
+      "erreur": null,
+      "verifications": 0,
+      "verif_ok": null,
+      "tours_tronques": 0,
+      "retries_troncature": 0,
+      "hygiene": [],
+      "caracteres_economises": 0,
+      "writes_rattrapes": 0,
+      "compactions": 0,
+      "modes_compaction": [],
+      "dedups": 0,
+      "dedup_economises": 0,
+      "tests_auto": 0,
+      "tests_auto_ok": 0,
+      "verdict": "FAIL",
+      "tests_passed": 3,
+      "tests_failed": 2,
+      "tests_attendus": 5,
+      "etages": {
+        "oracle": {
+          "passed": 3,
+          "failed": 2,
+          "attendus": 5,
+          "issue": "collecte_ok",
+          "verdict": "FAIL"
+        }
+      },
+      "issue": "collecte_ok",
+      "lignes_ecrites": 4431,
+      "pytest_tail": "[oracle]\n2 failed, 3 passed in 0.34s",
+      "tests_ajoutes": [
+        "test_oracle_pronote.py"
+      ],
+      "gardes_violees": [],
+      "api_modifiee": [],
+      "fichiers_modifies": [
+        "custom_components/ha_pronote/diff/lessons.py",
+        "test_oracle_pronote.py"
+      ]
+    },
+    {
+      "essai": 3,
+      "duree_s": 857.3,
+      "timeout": false,
+      "returncode": 0,
+      "depart": {
+        "passed": 3,
+        "failed": 2
+      },
+      "workdir": "/tmp/harness-bench-pronote-nu-kat-pronote-noms-cc-r3",
+      "tours": 40,
+      "appels_outils": {
+        "bash": 78
+      },
+      "format_appels": "openai_tool_calls",
+      "pic_input": 63920,
+      "total_input": 1323197,
+      "total_output": 6594,
+      "stop_reason": "error",
+      "erreur": "Client error '400 Bad Request' for url 'http://127.0.0.1:8080/v1/chat/completions' | corps: {\"error\":{\"code\":400,\"message\":\"request (65901 tokens) exceeds the available context size (65536 tokens), try increasing it\",\"type\":\"exceed_context_size_error\",\"n_prompt_tokens\":65901,\"n_ctx\":65536}}",
+      "verifications": 0,
+      "verif_ok": null,
+      "tours_tronques": 0,
+      "retries_troncature": 0,
+      "hygiene": [],
+      "caracteres_economises": 0,
+      "writes_rattrapes": 0,
+      "compactions": 0,
+      "modes_compaction": [],
+      "dedups": 0,
+      "dedup_economises": 0,
+      "tests_auto": 0,
+      "tests_auto_ok": 0,
+      "verdict": "FAIL",
+      "tests_passed": 3,
+      "tests_failed": 2,
+      "tests_attendus": 5,
+      "etages": {
+        "oracle": {
+          "passed": 3,
+          "failed": 2,
+          "attendus": 5,
+          "issue": "collecte_ok",
+          "verdict": "FAIL"
+        }
+      },
+      "issue": "collecte_ok",
+      "lignes_ecrites": 4424,
+      "pytest_tail": "[oracle]\n2 failed, 3 passed in 0.34s",
+      "tests_ajoutes": [
+        "test_oracle_pronote.py"
+      ],
+      "gardes_violees": [],
+      "api_modifiee": [],
+      "fichiers_modifies": [
+        "test_oracle_pronote.py"
+      ]
+    },
+    {
+      "essai": 4,
+      "duree_s": 330.0,
+      "timeout": false,
+      "returncode": 0,
+      "depart": {
+        "passed": 3,
+        "failed": 2
+      },
+      "workdir": "/tmp/harness-bench-pronote-nu-kat-pronote-noms-cc-r4",
+      "tours": 31,
+      "appels_outils": {
+        "bash": 53,
+        "read": 7
+      },
+      "format_appels": "openai_tool_calls",
+      "pic_input": 64514,
+      "total_input": 857115,
+      "total_output": 4330,
+      "stop_reason": "error",
+      "erreur": "Client error '400 Bad Request' for url 'http://127.0.0.1:8080/v1/chat/completions' | corps: {\"error\":{\"code\":400,\"message\":\"request (67620 tokens) exceeds the available context size (65536 tokens), try increasing it\",\"type\":\"exceed_context_size_error\",\"n_prompt_tokens\":67620,\"n_ctx\":65536}}",
+      "verifications": 0,
+      "verif_ok": null,
+      "tours_tronques": 0,
+      "retries_troncature": 0,
+      "hygiene": [],
+      "caracteres_economises": 0,
+      "writes_rattrapes": 0,
+      "compactions": 0,
+      "modes_compaction": [],
+      "dedups": 0,
+      "dedup_economises": 0,
+      "tests_auto": 0,
+      "tests_auto_ok": 0,
+      "verdict": "FAIL",
+      "tests_passed": 3,
+      "tests_failed": 2,
+      "tests_attendus": 5,
+      "etages": {
+        "oracle": {
+          "passed": 3,
+          "failed": 2,
+          "attendus": 5,
+          "issue": "collecte_ok",
+          "verdict": "FAIL"
+        }
+      },
+      "issue": "collecte_ok",
+      "lignes_ecrites": 4424,
+      "pytest_tail": "[oracle]\n2 failed, 3 passed in 0.35s",
+      "tests_ajoutes": [
+        "test_oracle_pronote.py"
+      ],
+      "gardes_violees": [],
+      "api_modifiee": [],
+      "fichiers_modifies": [
+        "test_oracle_pronote.py"
+      ]
+    },
+    {
+      "essai": 5,
+      "duree_s": 676.1,
+      "timeout": false,
+      "returncode": 0,
+      "depart": {
+        "passed": 3,
+        "failed": 2
+      },
+      "workdir": "/tmp/harness-bench-pronote-nu-kat-pronote-noms-cc-r5",
+      "tours": 60,
+      "appels_outils": {
+        "bash": 115,
+        "read": 1,
+        "edit": 2
+      },
+      "format_appels": "openai_tool_calls",
+      "pic_input": 51750,
+      "total_input": 1756189,
+      "total_output": 14647,
+      "stop_reason": "max_turns",
+      "erreur": null,
+      "verifications": 0,
+      "verif_ok": null,
+      "tours_tronques": 0,
+      "retries_troncature": 0,
+      "hygiene": [],
+      "caracteres_economises": 0,
+      "writes_rattrapes": 0,
+      "compactions": 0,
+      "modes_compaction": [],
+      "dedups": 0,
+      "dedup_economises": 0,
+      "tests_auto": 0,
+      "tests_auto_ok": 0,
+      "verdict": "PASS",
+      "tests_passed": 5,
+      "tests_failed": 0,
+      "tests_attendus": 5,
+      "etages": {
+        "oracle": {
+          "passed": 5,
+          "failed": 0,
+          "attendus": 5,
+          "issue": "collecte_ok",
+          "verdict": "PASS"
+        }
+      },
+      "issue": "collecte_ok",
+      "lignes_ecrites": 4461,
+      "pytest_tail": "[oracle]\n5 passed in 0.26s",
+      "tests_ajoutes": [
+        "test_oracle_pronote.py"
+      ],
+      "gardes_violees": [],
+      "api_modifiee": [],
+      "fichiers_modifies": [
+        "custom_components/ha_pronote/diff/lessons.py",
+        "test_oracle_pronote.py"
+      ]
+    }
+  ]
+}
