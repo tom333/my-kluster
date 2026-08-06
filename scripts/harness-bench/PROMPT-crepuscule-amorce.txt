@@ -1,0 +1,16 @@
+Ce repertoire ne contient qu'un fichier de specification, SPEC.md.
+
+Amorce le projet qu'il decrit : une application Flutter Android affichant une scene
+3D en projection ISOMETRIQUE (donc orthographique), avec `flutter_scene`.
+
+Ce qui est attendu de cette etape, et rien de plus :
+
+1. le projet se construit (`flutter build apk --debug` aboutit) ;
+2. l'application se lance sur l'appareil et ne se termine pas ;
+3. quelque chose de visible est rendu en 3D -- une forme simple suffit, un cube.
+
+Ne code AUCUNE regle de jeu : ni ressources, ni unites, ni combat. Seulement
+l'amorce technique.
+
+Lis SPEC.md avant de commencer : il contient la contrainte de camera, les
+conventions de nommage, et le resultat d'une etude de faisabilite deja faite.

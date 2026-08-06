@@ -288,6 +288,37 @@ SCENARIOS = {
     # 704 Mo par tirage serait absurde. Consequence assumee — le modele ne peut pas
     # lancer les tests. Sans importance ici : AUCUN test existant ne couvre ce bug, et
     # les 79 verts n'ont rien detecte chez aucun des quatre bras.
+    # AMORCE DE PROJET, et non ecriture de code dans un projet existant. Remarque de
+    # l'utilisateur, 2026-08-06 : « tu crees beaucoup de choses, donc on saura
+    # seulement si le modele peut produire du code, pas s'il peut creer un projet ».
+    # Le verdict de l'etape 0 lui donne raison -- la partie difficile etait de
+    # resoudre un conflit de version entre flutter_scene et le flutter_gpu du SDK,
+    # pas d'ecrire une matrice orthographique.
+    #
+    # La fixture ne contient QUE la spec. Le SDK Flutter (canal master, seul ou
+    # flutter_scene compile) est pose en tete de PATH par l'environnement, comme un
+    # venv Python l'est pour `pronote` : l'agent n'a pas a le chercher.
+    #
+    # Note sur le cout : chaque tirage construit un APK (~70 s au mieux), l'installe
+    # et le lance. C'est le scenario le plus lent du banc, et il exige un emulateur
+    # ou un appareil branche PENDANT la mesure.
+    "crepuscule-amorce": {
+        "fixture": HERE / "fixture-crepuscule-amorce",
+        "prompt": HERE / "PROMPT-crepuscule-amorce.txt",
+        "verifieur": "amorce-flutter",
+        "sdk_bin": "/home/moi/develop/flutter-master/bin",
+        "adb": "/home/moi/Android/Sdk/platform-tools/adb",
+        # Chaine d'outils posee en tete de PATH pour l'agent (cf. outils.env_pour).
+        # Ce n'est pas un venv Python : env_pour ne posera donc pas VIRTUAL_ENV.
+        "venv": "/home/moi/develop/flutter-master",
+        "expected_tests": 3,
+        "protected": (),
+        "check_api": False,
+        # Trois etages independants : un projet qui compile mais plante au lancement
+        # doit se distinguer d'un projet qui ne compile pas. Un score binaire
+        # confondrait les deux et rendrait les tirages incomparables.
+        "etages": (("build", None, 1), ("lancement", None, 1), ("rendu", None, 1)),
+    },
     "pronote": {
         "fixture": HERE / "fixture-pronote",
         "prompt": HERE / "PROMPT-pronote.txt",
@@ -607,6 +638,140 @@ def run_pytest(workdir, cibles=(), binaire=None, lanceur="pytest"):
     return passed, failed, tail[0], issue
 
 
+# --- verificateurs non-pytest ---------------------------------------------
+#
+# Certains scenarios ne se notent pas par une suite de tests. `crepuscule-amorce`
+# demande de CREER UN PROJET a partir d'un repertoire vide et d'une spec : ce qui se
+# verifie alors, c'est que le projet se construit, s'installe et affiche quelque
+# chose. Trois assertions, dont DEUX mecaniques et UNE heuristique -- et il faut
+# dire laquelle est laquelle.
+
+PART_DOMINANTE_MAX = 0.90
+# Seuil MESURE, pas devine : une scene flutter_scene VIDE, capturee sur l'emulateur
+# le 2026-08-06, met 98,0 % de ses pixels dans une seule couleur (254, 247, 255). Le
+# nombre de couleurs DISTINCTES serait un mauvais discriminant -- l'antialiasing du
+# texte et la barre d'etat en donnent deja 1019 sur un ecran vide. La PART de la
+# dominante, elle, chute des qu'un objet ombre est rendu. 0,90 laisse de la marge
+# sous les 0,98 observes. C'est une heuristique : elle dit « quelque chose est
+# dessine », pas « le bon rendu ».
+DELAI_LANCEMENT_S = 15
+
+
+def _identifiant_application(workdir):
+    """`applicationId` du projet, LU et non suppose. None si introuvable.
+
+    On ne peut pas le coder en dur : c'est l'AGENT qui cree le projet, donc lui qui
+    choisit le nom. Le supposer ferait echouer l'oracle sur un projet par ailleurs
+    correct -- un modele accuse pour une convention qu'on ne lui a pas imposee.
+    """
+    for nom in ("android/app/build.gradle.kts", "android/app/build.gradle"):
+        chemin = Path(workdir) / nom
+        if not chemin.exists():
+            continue
+        trouve = re.search(
+            r"""applicationId\s*=?\s*["']([\w.]+)["']""", chemin.read_text(errors="replace")
+        )
+        if trouve:
+            return trouve.group(1)
+    return None
+
+
+def _part_dominante(png):
+    """Part du pixel le plus frequent, ou None si l'image est illisible."""
+    try:
+        from PIL import Image
+    except ImportError:
+        return None
+    import io
+
+    try:
+        image = Image.open(io.BytesIO(png)).convert("RGB")
+        couleurs = image.getcolors(maxcolors=2_000_000)
+    except Exception:  # noqa: BLE001 - lecture d'image, ne doit jamais tuer le banc
+        return None
+    if not couleurs:
+        return None
+    total = image.size[0] * image.size[1]
+    return max(n for n, _ in couleurs) / total
+
+
+def _verifie_amorce_flutter(workdir, scenario):
+    """(passed, failed, tail, issue, etages) pour `crepuscule-amorce`.
+
+    Trois etages independants, pour que le score soit informatif plutot que binaire :
+    un projet qui se construit mais plante au lancement doit se distinguer d'un
+    projet qui ne compile pas.
+    """
+    sdk = scenario.get("sdk_bin") or ""
+    flutter = str(Path(sdk) / "flutter") if sdk else "flutter"
+    adb = scenario.get("adb") or "adb"
+    etages, notes = {}, []
+
+    def etage(nom, ok, detail=""):
+        etages[nom] = {
+            "passed": 1 if ok else 0,
+            "failed": 0 if ok else 1,
+            "attendus": 1,
+            "issue": ISSUE_OK,
+            "verdict": "PASS" if ok else "FAIL",
+        }
+        if detail:
+            notes.append("[%s] %s" % (nom, detail))
+        return ok
+
+    # 1. MECANIQUE : est-ce que ca compile ?
+    fin = subprocess.run(
+        [flutter, "build", "apk", "--debug"],
+        cwd=workdir, capture_output=True, text=True, timeout=1800,
+    )
+    apk = Path(workdir) / "build/app/outputs/flutter-apk/app-debug.apk"
+    if not etage("build", fin.returncode == 0 and apk.exists(),
+                 (fin.stdout or fin.stderr or "")[-300:] if fin.returncode else ""):
+        # Sans APK, les deux etages suivants n'ont rien a mesurer. On les note
+        # echoues explicitement plutot que de les omettre : un etage absent se lirait
+        # comme un etage reussi dans un agregat.
+        etage("lancement", False, "pas d'APK")
+        etage("rendu", False, "pas d'APK")
+        return 0, 3, "\n".join(notes), ISSUE_COLLECTE, etages
+
+    # 2. MECANIQUE : est-ce que ca s'installe et reste vivant ?
+    identifiant = _identifiant_application(workdir)
+    if identifiant is None:
+        etage("lancement", False, "applicationId introuvable dans android/app/build.gradle*")
+        etage("rendu", False, "applicationId inconnu")
+        return 1, 2, "\n".join(notes), ISSUE_OK, etages
+    subprocess.run([adb, "install", "-r", str(apk)], capture_output=True, timeout=600)
+    subprocess.run(
+        [adb, "shell", "monkey", "-p", identifiant,
+         "-c", "android.intent.category.LAUNCHER", "1"],
+        capture_output=True, timeout=120,
+    )
+    time.sleep(DELAI_LANCEMENT_S)
+    vivant = subprocess.run(
+        [adb, "shell", "pidof", identifiant], capture_output=True, text=True, timeout=60
+    )
+    if not etage("lancement", bool((vivant.stdout or "").strip()),
+                 "processus absent apres %ds" % DELAI_LANCEMENT_S):
+        etage("rendu", False, "application non lancee")
+        return 1, 2, "\n".join(notes), ISSUE_OK, etages
+
+    # 3. HEURISTIQUE : est-ce que quelque chose est dessine ?
+    capture = subprocess.run(
+        [adb, "exec-out", "screencap", "-p"], capture_output=True, timeout=120
+    )
+    part = _part_dominante(capture.stdout or b"")
+    if part is None:
+        etage("rendu", False, "capture illisible (Pillow absent ?)")
+    else:
+        etage("rendu", part < PART_DOMINANTE_MAX,
+              "couleur dominante a %.1f %% (plancher mesure : 98,0 %% sur ecran vide)" % (part * 100))
+    passed = sum(e["passed"] for e in etages.values())
+    return passed, 3 - passed, "\n".join(notes), ISSUE_OK, etages
+
+
+VERIFIEURS = {"amorce-flutter": _verifie_amorce_flutter}
+
+
 def verify(workdir, scenario):
     """Verdict objectif : tests verts, gardes respectees, API intacte."""
     fixture = scenario["fixture"]
@@ -623,7 +788,12 @@ def verify(workdir, scenario):
     # infraction — il ne doit simplement pas entrer dans le score.
     contrat = [rel for rel in scenario["protected"] if "test" in Path(rel).name]
     etages = {}
-    if scenario.get("etages"):
+    # Scenario note autrement que par une suite de tests (cf. VERIFIEURS).
+    if scenario.get("verifieur"):
+        passed, failed, tail, issue, etages = VERIFIEURS[scenario["verifieur"]](
+            workdir, scenario
+        )
+    elif scenario.get("etages"):
         # Un appel pytest PAR etage : une erreur d'import dans le fichier
         # d'extension interrompt la collecte de toute la suite, ce qui ferait
         # perdre le score de non-regression (mesure : un modele qui n'ecrit rien
@@ -1132,11 +1302,16 @@ def nu_command(model, workdir, prompt):
     # harnais de 11 paquets non declares, cassant ses 394 tests.
     #
     # Derive plutot que declare en double : un second champ divergerait du premier.
-    pytest_sujet = (SCENARIOS.get(SCENARIO_COURANT) or {}).get("pytest")
-    if pytest_sujet:
-        venv = os.path.dirname(os.path.dirname(pytest_sujet))
-        if os.path.isdir(os.path.join(venv, "bin")):
-            verify += ["--venv", venv]
+    scen = SCENARIOS.get(SCENARIO_COURANT) or {}
+    # Chaine d'outils du sujet : declaree explicitement (`venv`, cas d'un SDK non
+    # Python) ou DERIVEE du `pytest` du scenario. Derivee plutot que dupliquee : un
+    # second champ finirait par diverger du premier.
+    pytest_sujet = scen.get("pytest")
+    venv = scen.get("venv") or (
+        os.path.dirname(os.path.dirname(pytest_sujet)) if pytest_sujet else None
+    )
+    if venv and os.path.isdir(os.path.join(venv, "bin")):
+        verify += ["--venv", venv]
     if os.environ.get("HARNAIS_NU_SANS_PENSEE"):
         verify += ["--sans-pensee"]
     if os.environ.get("HARNAIS_NU_BUDGET_RAISONNEMENT"):
