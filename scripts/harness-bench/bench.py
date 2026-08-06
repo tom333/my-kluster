@@ -1119,6 +1119,12 @@ def nu_metrics(transcript):
             # harnais-nu/MESURES.md — sans lui, la règle n'est pas mesurable.
             "verifications": m.get("verifications"),
             "verif_ok": m.get("verif_ok"),
+            # Les DEUX compteurs de troncature, pas seulement les reprises. Omettre
+            # `tours_tronques` a rendu l'inventaire du 2026-08-06 muet sur 290
+            # tirages : il lisait « 0 tour tronqué » là où le champ était absent.
+            # `tours_tronques` = coupé par `max_tokens` ; `retries_troncature` = les
+            # reprises effectivement lancées. L'écart entre les deux est le levier.
+            "tours_tronques": m.get("tours_tronques"),
             "retries_troncature": m.get("retries_troncature"),
             "hygiene": m.get("hygiene"),
             "caracteres_economises": m.get("caracteres_economises"),
