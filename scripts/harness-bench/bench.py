@@ -1321,6 +1321,88 @@ HARNESSES = {
 # --- orchestration -------------------------------------------------------
 
 
+def preambule(harness, model, scenario_name, client_url=None):
+    """Refuse de lancer une campagne dont les leviers ne mordent pas.
+
+    Motif (2026-08-06). Bilan des pannes de la semaine : une vingtaine de defauts
+    de plomberie, dont UN SEUL relevait de l'isolation. La classe dominante est
+    « l'instrument n'enregistre pas ce qu'il pretend enregistrer », et son cas le
+    plus couteux est le BRAS DOUBLON SILENCIEUX -- une variable posee qui ne change
+    rien, donc un bras qui mesure le temoin en croyant mesurer un levier.
+
+    C'est arrive deux fois :
+      - `HARNAIS_NU_RECHERCHE` n'existait pas dans bench.py ; le bras lance etait
+        un duplicata du temoin, rattrape par hasard en 3 s grace a un `grep -c` ;
+      - `HARNAIS_NU_CONVENTION_OUTILS` n'etait pas passe a boucle.py, et n'a ete vu
+        qu'en inspectant l'argv du processus a la main.
+
+    Depuis, je verifie a la main au `pgrep` avant chaque bras. Ceci est ce
+    verificateur, en code.
+    """
+    problemes = []
+    posees = {c for c in os.environ if c.startswith("HARNAIS_NU_")}
+
+    # 1. Toute variable posee doit etre CONNUE du banc. Le jeu des connues est
+    #    DERIVE de la source (une liste tenue a la main divergerait -- c'est
+    #    exactement la classe de defaut qu'on traque). Faible seule : une variable
+    #    citee en commentaire passerait. D'ou le controle 2.
+    connues = set(re.findall(r"HARNAIS_NU_[A-Z_]+", Path(__file__).read_text()))
+    for var in sorted(posees - connues):
+        problemes.append("%s : inconnue du banc, donc sans effet" % var)
+
+    # 2. Le controle qui tranche vraiment : chaque variable posee doit CHANGER la
+    #    commande construite. On la retire, on rebatit, on compare. Une variable
+    #    qui ne change rien est un bras doublon.
+    if harness.startswith("nu"):
+        builder = HARNESSES[harness][0]
+        global SCENARIO_COURANT
+        precedent, SCENARIO_COURANT = SCENARIO_COURANT, scenario_name
+        try:
+            reference = builder(model, "/tmp/preambule", "tache")[0]
+            for var in sorted(posees & connues):
+                garde = os.environ.pop(var)
+                try:
+                    sans = builder(model, "/tmp/preambule", "tache")[0]
+                finally:
+                    os.environ[var] = garde
+                if sans == reference:
+                    problemes.append(
+                        "%s = %r : ne change PAS la commande -> bras doublon du temoin"
+                        % (var, garde[:40])
+                    )
+        finally:
+            SCENARIO_COURANT = precedent
+
+    # 3. Le modele SERVI, jamais suppose. Le 2026-08-04, gemma a ete mesure a
+    #    74,6 tok/s et le chiffre attribue a l'A3B, dont le vrai debit est 28,8 :
+    #    le port etait occupe par le serveur precedent.
+    if client_url:
+        servi = _modele_servi(client_url)
+        if servi:
+            print("  modele servi : %s" % servi)
+        else:
+            problemes.append("%s : /v1/models illisible, modele servi inconnu" % client_url)
+
+    if problemes:
+        sys.exit(
+            "PREAMBULE REFUSE -- la campagne mesurerait autre chose que prevu :\n  "
+            + "\n  ".join(problemes)
+        )
+
+
+def _modele_servi(url):
+    """Nom du modele que le serveur repond. None si illisible. Ne leve jamais."""
+    try:
+        import urllib.request
+
+        with urllib.request.urlopen(url.rstrip("/") + "/models", timeout=10) as rep:
+            data = json.loads(rep.read().decode("utf-8", "replace"))
+    except Exception:  # noqa: BLE001 - sonde d'environnement, aucune raison de tuer le banc
+        return None
+    entrees = data.get("models") or data.get("data") or []
+    return os.path.basename(str((entrees or [{}])[0].get("model") or "")) or None
+
+
 def slug_de(scenario_name, harness, model):
     return "%s-%s-%s" % (
         scenario_name,
@@ -1463,6 +1545,11 @@ def run(harness, model, scenario_name, timeout, runs=1):
     """
     if harness not in HARNESSES:
         sys.exit("harnais inconnu: %s (connus: %s)" % (harness, ", ".join(HARNESSES)))
+    # UNE fois par campagne, avant le premier tirage : refuse une campagne dont les
+    # leviers ne mordent pas. Un bras doublon coute 40 minutes de GPU et une
+    # conclusion fausse. Place ici et non dans run_once, qui est appele par tirage.
+    preambule(harness, model, scenario_name,
+              os.environ.get("HARNAIS_NU_BASE_URL", "http://127.0.0.1:8080/v1"))
     scenario = SCENARIOS[scenario_name]
     slug = slug_de(scenario_name, harness, model)
 
