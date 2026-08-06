@@ -1065,6 +1065,22 @@ def nu_command(model, workdir, prompt):
     # Supprime le canal de pensee a la source (chat_template_kwargs), la ou
     # --budget-raisonnement se contente de le borner. Mesure du 2026-08-06 sur
     # KAT-Coder : meme appel d'outil atteint en 27 tokens generes contre 65.
+    # Le venv DU SUJET, derive du pytest declare par le scenario. Regle posee le
+    # 2026-08-06 : le harnais s'execute avec son venv, le sujet avec le sien.
+    #
+    # Sans ce passage, `uv run --project harnais-nu` exportait VIRTUAL_ENV et PATH
+    # vers le venv DU HARNAIS : l'agent voyait un python sans `homeassistant`, en
+    # deduisait qu'il devait simuler les imports, et brulait 53 a 121 appels `bash`
+    # a fabriquer des `MockHA`. Les 8 tirages `pronote` de KAT ne mesuraient donc
+    # pas le modele mais cette fuite -- et ses `pip install` ont pollue le venv du
+    # harnais de 11 paquets non declares, cassant ses 394 tests.
+    #
+    # Derive plutot que declare en double : un second champ divergerait du premier.
+    pytest_sujet = (SCENARIOS.get(SCENARIO_COURANT) or {}).get("pytest")
+    if pytest_sujet:
+        venv = os.path.dirname(os.path.dirname(pytest_sujet))
+        if os.path.isdir(os.path.join(venv, "bin")):
+            verify += ["--venv", venv]
     if os.environ.get("HARNAIS_NU_SANS_PENSEE"):
         verify += ["--sans-pensee"]
     if os.environ.get("HARNAIS_NU_BUDGET_RAISONNEMENT"):
@@ -1285,6 +1301,11 @@ def no_metrics(transcript):
     return {"tours": None, "appels_outils": None, "format_appels": "non instrumente"}
 
 
+# Scenario en cours, pose par `run()`. Variable de module plutot qu'un parametre :
+# la signature des builders (model, workdir, prompt) est commune aux huit harnais,
+# et la changer pour un seul serait disproportionne.
+SCENARIO_COURANT = None
+
 HARNESSES = {
     "pi": (pi_command, pi_metrics),
     "pi-abspath": (pi_abspath_command, pi_metrics),
@@ -1310,6 +1331,8 @@ def slug_de(scenario_name, harness, model):
 
 def run_once(harness, model, scenario_name, timeout, essai=1, total=1):
     """Une seule exécution. Retourne (resultat, transcript), n'écrit rien."""
+    global SCENARIO_COURANT
+    SCENARIO_COURANT = scenario_name
     scenario = SCENARIOS[scenario_name]
     prompt = scenario["prompt"].read_text()
     fixture = scenario["fixture"]
