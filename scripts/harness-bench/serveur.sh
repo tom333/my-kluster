@@ -27,6 +27,20 @@ ARGS=(
   --host 0.0.0.0 --port 8080 "$@"
 )
 
+# `--no-mmap` des qu'un expert est deporte en RAM. Deux raisons, les deux mesurees
+# le 2026-08-06 en calibrant KAT-Coder :
+#   1. llama.cpp le reclame lui-meme — « tensor overrides to CPU are used with mmap
+#      enabled - consider using --no-mmap for better performance » ;
+#   2. avec mmap, les poids se chargent PARESSEUSEMENT, donc /health repond avant
+#      qu'ils soient residents. La garde anti-mauvais-modele de regle_ncmoe.sh a
+#      refuse une mesure pourtant valide pour cette seule raison.
+# Conditionnel et non systematique : sur un modele qui tient entierement en VRAM,
+# mmap accelere le demarrage et ne coute rien.
+case " $* " in
+  *" --n-cpu-moe "*|*" -ncmoe "*|*" --cpu-moe "*)
+    ARGS+=(--no-mmap) ;;
+esac
+
 podman rm -f "$NOM" >/dev/null 2>&1 || true
 sleep 2
 podman run -d --rm --name "$NOM" --device nvidia.com/gpu=all \

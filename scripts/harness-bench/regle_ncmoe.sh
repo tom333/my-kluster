@@ -25,7 +25,7 @@ sonde() {  # $1 = N
   podman run -d --rm --name ncmoe --device nvidia.com/gpu=all \
     -p 127.0.0.1:8080:8080 -v "$M":/models:ro "$IMG" \
     --model "/models/$MODELE" --ctx-size "$CTX" --parallel 1 \
-    -fa on -ctk q8_0 -ctv q8_0 --jinja --no-webui \
+    -fa on -ctk q8_0 -ctv q8_0 --jinja --no-webui --no-mmap \
     --n-cpu-moe "$1" --host 0.0.0.0 --port 8080 >/dev/null 2>&1
   for _ in $(seq 60); do
     curl -sf -o /dev/null http://127.0.0.1:8080/health && break
@@ -34,33 +34,54 @@ sonde() {  # $1 = N
   if ! curl -sf -o /dev/null http://127.0.0.1:8080/health; then
     echo "N=$1 : NE DEMARRE PAS"; podman logs ncmoe 2>&1 | tail -3; return 1
   fi
-  # VERIFIER quel modele repond, jamais le supposer.
+  # VERIFIER quel modele repond, jamais le supposer. Comparaison LITTERALE.
   curl -s http://127.0.0.1:8080/v1/models -o /tmp/ncmoe-modele.json
-  SERVI=$(python3 -c "
-import re
-print((re.search(r'/models/[^\"\\\\]+\.gguf', open('/tmp/ncmoe-modele.json',encoding='utf-8',errors='replace').read()) or [None])[0] if re.search(r'/models/[^\"\\\\]+\.gguf', open('/tmp/ncmoe-modele.json',encoding='utf-8',errors='replace').read()) else 'inconnu'" 2>/dev/null || echo inconnu)
-  case "$SERVI" in
-    */"$MODELE") : ;;
-    *) echo "N=$1 : MAUVAIS MODELE SERVI ($SERVI) — mesure refusee"; return 1 ;;
-  esac
+  if ! grep -qF "$MODELE" /tmp/ncmoe-modele.json; then
+    echo "N=$1 : MAUVAIS MODELE SERVI — mesure refusee"
+    head -c 200 /tmp/ncmoe-modele.json
+    return 1
+  fi
   VRAM=$(nvidia-smi --query-gpu=memory.used --format=csv,noheader | tr -dc '0-9')
   curl -s http://127.0.0.1:8080/v1/chat/completions \
     -H 'Content-Type: application/json' \
-    -d '{"model":"x","messages":[{"role":"user","content":"Write a Python linked list class with insert, delete, find and __repr__."}],"max_tokens":256}' \
+    -d '{"model":"x","messages":[{"role":"user","content":"Write a Python linked list class with insert, delete, find and __repr__."}],"max_tokens":512}' \
     -o /tmp/ncmoe-sonde.json
   DEBIT=$(python3 -c "
 import json
-try: print('%.1f' % json.load(open('/tmp/ncmoe-sonde.json'))['timings']['predicted_per_second'])
+try:
+    d = json.load(open('/tmp/ncmoe-sonde.json'))
+    ch = (d.get('choices') or [{}])[0]
+    fin = ch.get('finish_reason')
+    vide = not (ch.get('message') or {}).get('content')
+    print('%.1f%s' % (d['timings']['predicted_per_second'],
+                      '  [PENSEE NON TERMINEE: content vide, finish=%s]' % fin if vide else ''))
 except Exception: print('0')")
   echo "N=$1 : vram=${VRAM} MiB  debit=${DEBIT} tok/s  (plafond ${PLAFOND_MIB})"
   [ "$VRAM" -le "$PLAFOND_MIB" ]
 }
 
 echo "=== reglage -ncmoe pour $MODELE (ctx=$CTX)"
-for N in 48 36 24 18 12 8 4 0; do
+# On veut le PLUS PETIT N qui tienne. Comme N decroissant = plus de poids en VRAM,
+# la contrainte est monotone : on descend, on retient le dernier qui tient, et on
+# s'arrete au premier qui ne tient plus.
+#
+# La version du 2026-08-04 sortait au PREMIER succes en partant de 48, donc elle
+# retenait 48 : le maximum d'experts deportes en RAM, c'est-a-dire la configuration
+# la plus LENTE — l'exact inverse du but annonce en tete de ce fichier. Elle n'a
+# jamais servi qu'a valider un demarrage, pas a regler quoi que ce soit.
+RETENU=""
+for N in ${PALIERS:-40 32 24 16 12 8 4 0}; do
   if sonde "$N"; then
-    echo ">>> RETENU : -ncmoe $N"
-    exit 0
+    RETENU="$N"
+  else
+    echo "    N=$N ne tient pas -> on arrete la descente"
+    break
   fi
 done
+podman rm -f ncmoe >/dev/null 2>&1 || true
+if [ -n "$RETENU" ]; then
+  echo ">>> RETENU : -ncmoe $RETENU (le plus petit qui tienne sous ${PLAFOND_MIB} MiB)"
+  exit 0
+fi
 echo ">>> aucun N ne tient sous ${PLAFOND_MIB} MiB"
+exit 1

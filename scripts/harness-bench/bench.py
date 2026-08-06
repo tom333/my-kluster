@@ -1055,6 +1055,12 @@ def nu_command(model, workdir, prompt):
     ):
         if os.environ.get(var):
             verify += [drapeau, os.environ[var]]
+    # Drapeau BOOLEEN, donc hors de la boucle ci-dessus qui passe des valeurs.
+    # Supprime le canal de pensee a la source (chat_template_kwargs), la ou
+    # --budget-raisonnement se contente de le borner. Mesure du 2026-08-06 sur
+    # KAT-Coder : meme appel d'outil atteint en 27 tokens generes contre 65.
+    if os.environ.get("HARNAIS_NU_SANS_PENSEE"):
+        verify += ["--sans-pensee"]
     if os.environ.get("HARNAIS_NU_BUDGET_RAISONNEMENT"):
         verify += [
             "--budget-raisonnement",
