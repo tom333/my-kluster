@@ -488,7 +488,73 @@ def _serveur_actif():
         return None
 
 
-def run_pytest(workdir, cibles=(), binaire=None):
+def _analyse_pytest(stdout):
+    """(passed, failed, collecte_ratee) depuis une sortie pytest."""
+    passed = failed = 0
+    match = re.search(r"(\d+) passed", stdout)
+    if match:
+        passed = int(match.group(1))
+    match = re.search(r"(\d+) failed", stdout)
+    if match:
+        failed = int(match.group(1))
+    # « error during collection » = le paquet ne s'importe meme pas. pytest le dit
+    # explicitement, on ne devine pas.
+    ratee = "error during collection" in stdout or "errors during collection" in stdout
+    return passed, failed, ratee
+
+
+def _analyse_dart(stdout):
+    """(passed, failed, collecte_ratee) depuis `dart test --reporter json`.
+
+    On lit le JSON et NON la ligne lisible (« 00:00 +2 -1: Some tests failed. »),
+    pour une raison precise : `dart test` n'offre aucun equivalent de `-o addopts=`,
+    donc un `dart_test.yaml` de fixture peut changer le rapporteur ou supprimer le
+    bilan sans que rien ne le signale. C'est exactement le defaut qui a fait lire 0/5
+    sur `pronote` le 2026-08-05. Le drapeau `--reporter json` de la ligne de commande
+    l'emporte sur la config, et les comptes viennent d'EVENEMENTS.
+
+    `hidden: true` ecarte le test SYNTHETIQUE « loading test/x_test.dart » que
+    package:test emet par FICHIER. Sans ce filtre, chaque fichier ajouterait un
+    faux succes au score.
+    """
+    passed = failed = 0
+    vu = False
+    for ligne in stdout.splitlines():
+        ligne = ligne.strip()
+        if not ligne.startswith("{"):
+            continue
+        try:
+            e = json.loads(ligne)
+        except ValueError:
+            continue
+        if e.get("type") != "testDone" or e.get("hidden"):
+            continue
+        vu = True
+        if e.get("result") == "success":
+            passed += 1
+        else:
+            failed += 1
+    # Aucun `testDone` = rien n'a pu etre charge (erreur de compilation Dart, paquet
+    # non resolu). C'est l'equivalent de « error during collection » de pytest, et il
+    # faut le distinguer d'un vrai 0/N sinon un echec de build se lirait comme un
+    # modele qui n'a rien fait passer.
+    return passed, failed, not vu
+
+
+LANCEURS = {
+    "pytest": (
+        # `-o addopts=` : la config pytest de la FIXTURE ne doit pas piloter la mesure.
+        lambda binaire, cibles: [binaire, "-o", "addopts=", "-q", *cibles],
+        _analyse_pytest,
+    ),
+    "dart": (
+        lambda binaire, cibles: [binaire, "test", "--reporter", "json", *cibles],
+        _analyse_dart,
+    ),
+}
+
+
+def run_pytest(workdir, cibles=(), binaire=None, lanceur="pytest"):
     """Retourne (passed, failed, sortie_courte, issue).
 
     Le depassement de delai est un RESULTAT, pas un plantage du banc : du code
@@ -514,8 +580,9 @@ def run_pytest(workdir, cibles=(), binaire=None):
     # echouait proprement a 2 echecs / 3 reussis. Un depot peut aussi y mettre
     # --cov, -x ou un timeout par test, et chacun changerait le score sans que rien
     # ne le signale. Les options de fichier (asyncio_mode, testpaths) restent, elles.
+    argv_de, analyse = LANCEURS[lanceur]
     proc = subprocess.Popen(
-        [binaire or PYTEST, "-o", "addopts=", "-q", *cibles],
+        argv_de(binaire or PYTEST, cibles),
         cwd=workdir,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
@@ -530,23 +597,12 @@ def run_pytest(workdir, cibles=(), binaire=None):
         return (
             0,
             0,
-            "TIMEOUT pytest apres 180s (boucle infinie dans le code genere)",
+            "TIMEOUT %s apres 180s (boucle infinie dans le code genere)" % lanceur,
             ISSUE_PEND,
         )
     stdout = stdout or ""
     tail = stdout.strip().splitlines()[-1:] or [""]
-    passed = failed = 0
-    match = re.search(r"(\d+) passed", stdout)
-    if match:
-        passed = int(match.group(1))
-    match = re.search(r"(\d+) failed", stdout)
-    if match:
-        failed = int(match.group(1))
-    # "error during collection" = le paquet ne s'importe meme pas. pytest le dit
-    # explicitement, on ne devine pas.
-    collecte_ratee = (
-        "error during collection" in stdout or "errors during collection" in stdout
-    )
+    passed, failed, collecte_ratee = analyse(stdout)
     issue = ISSUE_COLLECTE if collecte_ratee else ISSUE_OK
     return passed, failed, tail[0], issue
 
