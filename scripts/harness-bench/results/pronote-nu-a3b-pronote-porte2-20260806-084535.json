@@ -385,5 +385,6 @@
         "test_oracle_pronote.py"
       ]
     }
-  ]
+  ],
+  "invalide": "fuite d'environnement : l'agent heritait du venv du harnais (sans homeassistant) au lieu de celui du sujet. Corrige le 2026-08-06 (harnais-nu 365f9e8, banc 0ec9e4f5). Effet mesure sur a3b/pronote memes graines : PASS 2/5 -> 4/5. Conserve comme mesure de la FUITE, pas du modele."
 }

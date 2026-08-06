@@ -29,19 +29,28 @@ HERE = Path(__file__).resolve().parent
 RESULTS = HERE / "results"
 
 
-def tirages(scenario=None):
+def tirages(scenario=None, invalides=False):
     """Un dict par tirage, depuis les agrégats de campagne (source la plus riche).
 
     Les campagnes tuées n'ont pas d'agrégat : leurs tirages ne sont donc PAS ici, et
     c'est dit dans le récapitulatif plutôt que masqué.
     """
-    out = []
+    out, ecartees = [], []
     for chemin in sorted(RESULTS.glob("*.json")):
         try:
             d = json.loads(chemin.read_text())
         except (ValueError, OSError):
             continue
         if not isinstance(d, dict) or "essais" not in d:
+            continue
+        # Campagnes mesurees SOUS UN DEFAUT DU BANC (cf. marque_invalides.py) :
+        # ecartees par defaut. Les inclure moyennerait une fuite d'environnement
+        # avec des mesures propres -- ce que la premiere passe de cet inventaire a
+        # fait le 2026-08-06 sans le savoir. Elles ne sont pas supprimees pour
+        # autant : la comparaison 2/5 contre 4/5 qui a chiffre la fuite n'existe
+        # QUE parce qu'elles ont ete gardees.
+        if d.get("invalide") and not invalides:
+            ecartees.append((chemin.name, d["invalide"]))
             continue
         if scenario and d.get("scenario") != scenario:
             continue
@@ -77,6 +86,12 @@ def tirages(scenario=None):
                     "verifications": e.get("verifications"),
                 }
             )
+    if ecartees:
+        print("%d campagne(s) ecartee(s) comme invalides (--invalides pour les inclure) :"
+              % len(ecartees))
+        for nom, motif in ecartees:
+            print("  %-58s %s" % (nom, motif[:60]))
+        print()
     return out
 
 
@@ -281,8 +296,13 @@ def rapport(t):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--scenario", default=None)
+    parser.add_argument(
+        "--invalides",
+        action="store_true",
+        help="inclut les campagnes marquees comme mesurees sous un defaut du banc",
+    )
     args = parser.parse_args()
-    rapport(tirages(args.scenario))
+    rapport(tirages(args.scenario, args.invalides))
     return 0
 
 
