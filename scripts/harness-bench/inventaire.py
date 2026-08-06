@@ -95,6 +95,86 @@ def tirages(scenario=None, invalides=False):
     return out
 
 
+def chronologie(scenario=None, invalides=False):
+    """Les campagnes dans l'ORDRE DU TEMPS : ce qui rend un progres lisible.
+
+    Motif (2026-08-06) : l'inventaire agregeait tout sans notion de date, donc il
+    montrait un ETAT et jamais une TENDANCE. Or la question « est-ce que ca
+    s'ameliore ? » ne se lit que chronologiquement.
+
+    La date vient du champ `horodatage_debut` de la campagne quand il existe, et du
+    NOM DE FICHIER sinon -- les campagnes d'avant ce commit n'en portent pas. Un
+    fallback dit, plutot qu'un trou.
+    """
+    lignes = []
+    for chemin in sorted(RESULTS.glob("*.json")):
+        try:
+            d = json.loads(chemin.read_text())
+        except (ValueError, OSError):
+            continue
+        if not isinstance(d, dict) or "essais" not in d:
+            continue
+        if d.get("invalide") and not invalides:
+            continue
+        if scenario and d.get("scenario") != scenario:
+            continue
+        quand = d.get("horodatage_debut")
+        if not quand:
+            # `<...>-20260806-180832.json` : on reconstitue depuis le nom, en
+            # marquant la valeur d'une etoile pour ne pas la faire passer pour une
+            # mesure.
+            morceaux = chemin.stem.rsplit("-", 2)
+            quand = (
+                "%s-%s-%sT%s:%s:%s*"
+                % (
+                    morceaux[-2][:4], morceaux[-2][4:6], morceaux[-2][6:8],
+                    morceaux[-1][:2], morceaux[-1][2:4], morceaux[-1][4:6],
+                )
+                if len(morceaux) == 3 and morceaux[-2].isdigit()
+                else "?"
+            )
+        essais = [e for e in d["essais"] if isinstance(e, dict)]
+        lignes.append(
+            {
+                "quand": quand,
+                "scenario": d.get("scenario"),
+                "modele": d.get("modele"),
+                "pass": sum(1 for e in essais if e.get("verdict") == "PASS"),
+                "n": len(essais),
+                "median": d.get("tests_passed_median"),
+                "attendus": d.get("tests_attendus"),
+                "tours": d.get("tours_median"),
+                "pic": d.get("pic_input_median"),
+            }
+        )
+    lignes.sort(key=lambda x: x["quand"])
+    return lignes
+
+
+def rapport_chronologie(lignes):
+    if not lignes:
+        print("aucune campagne")
+        return
+    print("%-21s %-16s %-30s %7s %9s %7s %8s"
+          % ("quand", "scenario", "modele", "PASS", "median", "tours", "pic"))
+    precedent = {}
+    for x in lignes:
+        # La FLECHE est tout l'interet de cette vue : elle compare a la campagne
+        # precedente DU MEME scenario, seule comparaison qui ait un sens.
+        cle = x["scenario"]
+        avant = precedent.get(cle)
+        fleche = ""
+        if avant is not None and x["n"]:
+            taux, taux_avant = x["pass"] / x["n"], avant
+            fleche = "  ^" if taux > taux_avant else ("  v" if taux < taux_avant else "  =")
+        if x["n"]:
+            precedent[cle] = x["pass"] / x["n"]
+        print("%-21s %-16s %-30s %3d/%-3d %5s/%-3s %7s %8s%s"
+              % (x["quand"], (x["scenario"] or "?")[:16], (x["modele"] or "?")[:30],
+                 x["pass"], x["n"], x["median"], x["attendus"], x["tours"], x["pic"],
+                 fleche))
+
+
 def part(n, total):
     return "%5.1f %%" % (n / total * 100) if total else "    — "
 
@@ -297,11 +377,20 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--scenario", default=None)
     parser.add_argument(
+        "--chronologie",
+        action="store_true",
+        help="les campagnes dans l'ordre du temps, avec la tendance par scenario : "
+        "montre une TENDANCE la ou l'inventaire montre un etat",
+    )
+    parser.add_argument(
         "--invalides",
         action="store_true",
         help="inclut les campagnes marquees comme mesurees sous un defaut du banc",
     )
     args = parser.parse_args()
+    if args.chronologie:
+        rapport_chronologie(chronologie(args.scenario, args.invalides))
+        return 0
     rapport(tirages(args.scenario, args.invalides))
     return 0
 

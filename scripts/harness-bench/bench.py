@@ -1734,6 +1734,12 @@ def run_once(harness, model, scenario_name, timeout, essai=1, total=1):
 
     result = {
         "essai": essai,
+        # Horodatages ABSOLUS, poses a la source. Avant le 2026-08-06, la seule date
+        # d'une campagne etait dans son NOM DE FICHIER : un resultat deplace ou
+        # renomme perdait sa date, et aucun essai n'en portait. Or on veut lire les
+        # progres DANS LE TEMPS, ce qui exige que chaque mesure se date elle-meme.
+        "horodatage_debut": time.strftime("%Y-%m-%dT%H:%M:%S", time.localtime(started)),
+        "horodatage_fin": time.strftime("%Y-%m-%dT%H:%M:%S"),
         "duree_s": elapsed,
         "timeout": timed_out,
         "returncode": returncode,
@@ -1831,6 +1837,17 @@ def run(harness, model, scenario_name, timeout, runs=1):
     n_pend = sum(1 for e in essais if e.get("issue") == ISSUE_PEND)
     result = {
         "scenario": scenario_name,
+        # La campagne se DATE ELLE-MEME : deduits des essais, donc coherents avec eux
+        # et sans dependre du nom de fichier. C'est ce qui permet de lire une serie
+        # chronologique (cf. `inventaire.py --chronologie`).
+        "horodatage_debut": min(
+            (e.get("horodatage_debut") for e in essais if e.get("horodatage_debut")),
+            default=None,
+        ),
+        "horodatage_fin": max(
+            (e.get("horodatage_fin") for e in essais if e.get("horodatage_fin")),
+            default=None,
+        ),
         "harnais": harness,
         "modele": model,
         "runs": runs,
