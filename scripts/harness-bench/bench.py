@@ -656,6 +656,16 @@ PART_DOMINANTE_MAX = 0.90
 # sous les 0,98 observes. C'est une heuristique : elle dit « quelque chose est
 # dessine », pas « le bon rendu ».
 DELAI_LANCEMENT_S = 15
+# On SONDE jusqu'a ce que quelque chose soit rendu, au lieu d'attendre un delai fixe.
+# Mesure du 2026-08-07 : a 15 s, la capture montrait l'ECRAN DE DEMARRAGE de Flutter
+# (98,7 % de couleur dominante) sur un projet qui par ailleurs compilait, s'installait
+# et tournait. La faute etait a l'instrument, pas au sujet -- le code de l'agent attend
+# `Scene.initializeStaticResources()` AVANT `runApp`, donc rien ne s'affiche tant que
+# le bundle de shaders et la LUT BRDF ne sont pas charges. Un delai fixe devine ; une
+# condition mesure. Et le TEMPS d'apparition devient lui-meme une metrique.
+DELAI_RENDU_MAX_S = 90
+DELAI_LANCEMENT_MAX_S = 900  # compilation + installation + demarrage, demon froid
+PAS_SONDE_RENDU_S = 5
 
 
 def _identifiant_application(workdir):
@@ -734,19 +744,37 @@ def _lance(argv, **kw):
         return -1, "%s : %s" % (type(exc).__name__, exc)
 
 
+def _attend_lancement(proc, delai=DELAI_LANCEMENT_MAX_S):
+    """True des que `flutter run` annonce l'application lancee. Ne leve jamais.
+
+    On lit la SORTIE plutot que d'attendre un delai : la compilation, l'installation
+    et le demarrage prennent un temps tres variable (demon gradle froid, emulateur
+    charge). Un delai fixe devine ; une condition mesure.
+    """
+    debut = time.time()
+    while time.time() - debut < delai:
+        if proc.poll() is not None:
+            return False
+        ligne = proc.stdout.readline() if proc.stdout else ""
+        if not ligne:
+            time.sleep(0.5)
+            continue
+        if "Flutter run key commands" in ligne or "Application finished" in ligne:
+            return "key commands" in ligne
+    return False
+
+
 def _verifie_amorce_flutter(workdir, scenario):
     """(passed, failed, tail, issue, etages) pour `crepuscule-amorce`.
 
-    Trois etages independants, pour que le score soit informatif plutot que binaire :
-    un projet qui se construit mais plante au lancement doit se distinguer d'un
-    projet qui ne compile pas.
+    Trois etages INDEPENDANTS, pour que le score soit informatif plutot que binaire :
+    un projet qui compile mais n'affiche rien doit se distinguer d'un projet qui ne
+    compile pas.
     """
     sdk = scenario.get("sdk_bin") or ""
     flutter = str(Path(sdk) / "flutter") if sdk else "flutter"
     adb = scenario.get("adb") or "adb"
     etages, notes = {}, []
-    # OU est le projet : trouve, jamais suppose (cf. _racine_projet).
-    projet = _racine_projet(workdir)
 
     def etage(nom, ok, detail=""):
         etages[nom] = {
@@ -756,61 +784,121 @@ def _verifie_amorce_flutter(workdir, scenario):
             "issue": ISSUE_OK,
             "verdict": "PASS" if ok else "FAIL",
         }
-        if detail:
+        # SEULEMENT en cas d'echec : le detail etait ajoute meme quand l'etage passait,
+        # produisant une note qui contredisait son verdict.
+        if detail and not ok:
             notes.append("[%s] %s" % (nom, detail))
         return ok
 
-    # 1. MECANIQUE : est-ce que ca compile ?
+    def bilan():
+        passed = sum(e["passed"] for e in etages.values())
+        return passed, 3 - passed, "\n".join(notes), ISSUE_OK, etages
+
+    # OU est le projet : trouve, jamais suppose (cf. _racine_projet).
+    projet = _racine_projet(workdir)
     if projet is None:
         for nom in ("build", "lancement", "rendu"):
             etage(nom, False, "aucun pubspec.yaml : pas de projet Flutter")
         return 0, 3, "\n".join(notes), ISSUE_COLLECTE, etages
     if projet != Path(workdir):
         notes.append("[projet] %s" % projet.relative_to(workdir))
+
+    # 1. MECANIQUE : est-ce que ca compile ?
     code, sortie = _lance([flutter, "build", "apk", "--debug"], cwd=str(projet), timeout=1800)
     apk = projet / "build/app/outputs/flutter-apk/app-debug.apk"
     if not etage("build", code == 0 and apk.exists(), sortie[-300:] if code else ""):
-        # Sans APK, les deux etages suivants n'ont rien a mesurer. On les note
-        # echoues explicitement plutot que de les omettre : un etage absent se lirait
-        # comme un etage reussi dans un agregat.
+        # Sans APK, les deux etages suivants n'ont rien a mesurer. On les note echoues
+        # EXPLICITEMENT plutot que de les omettre : un etage absent se lirait comme un
+        # etage reussi dans un agregat.
         etage("lancement", False, "pas d'APK")
         etage("rendu", False, "pas d'APK")
         return 0, 3, "\n".join(notes), ISSUE_COLLECTE, etages
 
-    # 2. MECANIQUE : est-ce que ca s'installe et reste vivant ?
-    identifiant = _identifiant_application(projet)
-    if identifiant is None:
-        etage("lancement", False, "applicationId introuvable dans android/app/build.gradle*")
-        etage("rendu", False, "applicationId inconnu")
-        return 1, 2, "\n".join(notes), ISSUE_OK, etages
-    _lance([adb, "install", "-r", str(apk)], timeout=600)
-    _lance(
-        [adb, "shell", "monkey", "-p", identifiant,
-         "-c", "android.intent.category.LAUNCHER", "1"],
-        timeout=120,
-    )
-    time.sleep(DELAI_LANCEMENT_S)
-    _, pid = _lance([adb, "shell", "pidof", identifiant], timeout=60)
-    if not etage("lancement", bool(pid.strip()),
-                 "processus absent apres %ds" % DELAI_LANCEMENT_S):
-        etage("rendu", False, "application non lancee")
-        return 1, 2, "\n".join(notes), ISSUE_OK, etages
+    # Appareil LU depuis `adb devices`, pas code en dur.
+    _, liste = _lance([adb, "devices"], timeout=60)
+    appareils = [
+        ligne.split()[0]
+        for ligne in liste.splitlines()[1:]
+        if ligne.strip().endswith("device")
+    ]
 
-    # 3. HEURISTIQUE : est-ce que quelque chose est dessine ?
+    # 2. MECANIQUE : est-ce que ca se lance ?
+    #
+    # Par `flutter run` et NON par `adb install` + `monkey`, pour une raison MESUREE le
+    # 2026-08-07 : `--enable-flutter-gpu` et `--enable-impeller` sont des drapeaux de
+    # MOTEUR, passes au lancement. Un APK installe puis demarre par `monkey` ne les a
+    # pas, donc `Scene.initializeStaticResources()` n'aboutit jamais et l'application
+    # reste sur l'ecran de demarrage de Flutter.
+    #
+    # Ce que ca a coute : le tirage r2 a ete note 2/3 alors qu'il valait 3/3. Relance a
+    # la main avec les drapeaux, SON code affiche un cube ombre correctement (dominante
+    # 78,9 % contre 98,7 % sans). L'etage `rendu` etait donc INATTEIGNABLE par
+    # construction, et le scenario plafonnait a 2/3 quoi que produise l'agent.
+    argv = [flutter, "run", "--enable-flutter-gpu", "--enable-impeller"]
+    if appareils:
+        argv += ["-d", appareils[0]]
     try:
-        capture = subprocess.run(
-            [adb, "exec-out", "screencap", "-p"], capture_output=True, timeout=120
-        ).stdout or b""
-    except (OSError, subprocess.SubprocessError):
-        capture = b""
-    part = _part_dominante(capture)
-    if part is None:
-        etage("rendu", False, "capture illisible (Pillow absent ?)")
-    else:
-        etage("rendu", part < PART_DOMINANTE_MAX,
-              "couleur dominante a %.1f %% (plancher mesure : 98,0 %% sur ecran vide)" % (part * 100))
-    passed = sum(e["passed"] for e in etages.values())
-    return passed, 3 - passed, "\n".join(notes), ISSUE_OK, etages
+        lancement = subprocess.Popen(
+            argv, cwd=str(projet), stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT, text=True, start_new_session=True,
+        )
+    except (OSError, subprocess.SubprocessError) as exc:
+        etage("lancement", False, "%s : %s" % (type(exc).__name__, exc))
+        etage("rendu", False, "application non lancee")
+        return bilan()
+
+    try:
+        if not etage("lancement", _attend_lancement(lancement),
+                     "l'application n'a pas demarre en %ds" % DELAI_LANCEMENT_MAX_S):
+            etage("rendu", False, "application non lancee")
+            return bilan()
+
+        # 3. HEURISTIQUE : est-ce que quelque chose est dessine ? On SONDE jusqu'a ce
+        #    que ce soit le cas -- un delai fixe devine, une condition mesure. Et le
+        #    TEMPS d'apparition devient lui-meme une metrique.
+        capture, part, attendu = b"", None, 0
+        while True:
+            try:
+                capture = subprocess.run(
+                    [adb, "exec-out", "screencap", "-p"], capture_output=True, timeout=120
+                ).stdout or b""
+            except (OSError, subprocess.SubprocessError):
+                capture = b""
+            part = _part_dominante(capture)
+            if (part is not None and part < PART_DOMINANTE_MAX) or attendu >= DELAI_RENDU_MAX_S:
+                break
+            time.sleep(PAS_SONDE_RENDU_S)
+            attendu += PAS_SONDE_RENDU_S
+
+        # La capture est ARCHIVEE, pas seulement jugee : `rendu` est le seul etage
+        # heuristique des trois, et livrer l'image permet a l'humain de trancher d'un
+        # coup d'oeil ce qu'un seuil ne peut que suggerer. Motif `apercu_visuel` du
+        # projet `jeux_zoe`. C'est en REGARDANT une capture que le defaut ci-dessus a
+        # ete trouve, apres deux hypotheses fausses.
+        if capture:
+            try:
+                RESULTS.mkdir(exist_ok=True)
+                cible = RESULTS / ("%s.png" % Path(workdir).name)
+                cible.write_bytes(capture)
+                notes.append("[capture] %s" % cible.name)
+            except OSError:
+                pass
+        if part is None:
+            etage("rendu", False, "capture illisible (Pillow absent ?)")
+        else:
+            ok = part < PART_DOMINANTE_MAX
+            if ok:
+                notes.append("[rendu] apparu apres %ds (dominante %.1f %%)"
+                             % (attendu, part * 100))
+            etage("rendu", ok,
+                  "toujours uniforme apres %ds : dominante %.1f %% (plancher mesure : "
+                  "98,0 %% sur ecran vide)" % (DELAI_RENDU_MAX_S, part * 100))
+        return bilan()
+    finally:
+        # `flutter run` tourne en avant-plan : sans ce kill de GROUPE, chaque tirage
+        # laisserait un processus et son daemon gradle derriere lui.
+        _tuer_groupe(lancement)
+        lancement.communicate()
 
 
 VERIFIEURS = {"amorce-flutter": _verifie_amorce_flutter}
