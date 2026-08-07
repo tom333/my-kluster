@@ -472,9 +472,19 @@ spec:
                 # last_status=ok alors que gemini avait produit le digest à la place du
                 # modèle demandé. Aucun signal ne distingue les deux cas. Si tu diagnostiques
                 # un modèle, vide temporairement cette liste — sinon toute mesure est aveugle.
-                fallback_providers:
-                  - provider: openrouter
-                    model: google/gemini-2.5-flash
+                # ⏸️ VIDÉ TEMPORAIREMENT le 2026-08-07 pour mesurer le cron
+                # `harnais-et-agents-veille`, épinglé sur gemma-4-12b-it-qat via le
+                # provider `localai`. Avec le repli actif, gemini répondrait au premier
+                # échec de gemma et le cron rendrait last_status=ok : on ne mesurerait
+                # rien. C'est exactement ce qui a été constaté le 2026-07-28.
+                # ⚠️ EFFET DE BORD : le repli est GLOBAL, pas par job. Les 8 autres crons
+                # perdent donc leur filet le temps du test — la flakiness SSE de
+                # deepseek-v4-flash (~1×/jour) redeviendra un échec visible au lieu
+                # d'être absorbée. À RÉTABLIR dès la mesure terminée :
+                #   fallback_providers:
+                #     - provider: openrouter
+                #       model: google/gemini-2.5-flash
+                fallback_providers: []
                 mcp_servers:
                   # arrconf-mcp: in-cluster ClusterIP MCP (read-only, 10 tools) for the media stack.
                   # Token resolved from ${MCP_AUTH_TOKEN} (hermes-secrets, envFrom) — same value
