@@ -90,8 +90,72 @@ dans le YAML modèle (forme `clé:valeur`).
 | KV draft K/V | `draft_cache_type_k:q8_0` / `draft_cache_type_v:q8_0` | `--cache-type-k/v-draft` |
 
 > ⚠️ Pas de `fit_margin` côté mainline (ça c'est ik_llama). Utiliser `fit_target`.
-> Le offload MoE main-model se fait par **régex `override_tensor`** (pas de
-> `--n-cpu-moe` câblé pour le main model dans LocalAI ; seulement la variante draft).
+
+### ⛔ CORRECTION 2026-08-07 — la contrainte ci-dessus est PÉRIMÉE
+
+Ce document affirmait : *« pas de `--n-cpu-moe` câblé pour le main model dans LocalAI ;
+seulement la variante draft »*, et en déduisait qu'il fallait passer par une régex
+`override_tensor` poussant **tous** les experts en RAM.
+
+**C'est faux aujourd'hui, et ça aurait coûté cher.** Vérifié le 2026-08-07 sur
+l'installation réelle, pas sur la doc :
+
+| vérification | résultat |
+|---|---|
+| doc officielle (`docs/content/advanced/model-configuration.md`) | `cpu_moe` et `n_cpu_moe` listés **pour le modèle principal** |
+| source (`backend/cpp/llama-cpp/grpc-server.cpp`) | `} else if (optname[0] == '-') {` → *« generic passthrough: any entry starting with '-' is a raw upstream llama-server flag, forwarded verbatim »* |
+| binaire réellement déployé (`/backends/cuda12-llama-cpp/llama-cpp-grpc`, installé le 2026-07-16) | `cpu_moe` ×2, `n-cpu-moe` ×3, `override_tensor` ×1, `override-tensor` ×3 |
+
+**Donc n'importe quel drapeau de `llama-server` est atteignable depuis `options:`.**
+
+```yaml
+options:
+  - "--n-cpu-moe:24"       # equivalent exact du reglage du banc
+```
+
+Ce que la régex aurait coûté, mesuré au banc sur KAT-Coder (40 couches) :
+
+    -ncmoe 40 (tous les experts en RAM = ce que fait la regex)   33,7 tok/s
+    -ncmoe 24 (retenu au banc)                                   47,2 tok/s
+
+Soit **29 % de débit perdu** pour rien.
+
+> ⚠️ **Piège de méthode** : ma première sonde du binaire a répondu « 0 partout » à
+> cause d'un `grep -cx` (ancrage sur la ligne entière), alors que les littéraux C sont
+> concaténés dans le binaire. J'ai failli conclure l'inverse de la vérité sur la foi de
+> mon propre outil de mesure. Sans ancrage, tout était là.
+
+> ⚠️ **Attention aux versions** : le backend `llama-cpp` est installé **séparément**
+> dans le PVC `/backends`, donc sa date (2026-07-16) ne suit pas celle de l'image
+> LocalAI (v4.8.0). C'est **lui** qui parse les `options:` — c'est donc lui qu'il faut
+> interroger, pas la version de LocalAI.
+
+### Ce qui n'est PAS reproductible : les paramètres par REQUÊTE
+
+Mesuré le 2026-08-07 sur le LocalAI déployé, trois requêtes identiques à
+`qwen2.5-1.5b-instruct` (temperature 0) sauf un champ :
+
+    base                                completion_tokens = 81
+    + "n_predict": 3                     completion_tokens = 81   (sortie identique)
+    + "reasoning_budget_tokens": 16       completion_tokens = 81   (sortie identique)
+
+`n_predict` est le nom llama.cpp du plafond de tokens ; s'il était transmis, la sortie
+serait coupée à 3 tokens. Elle ne l'est pas. **LocalAI jette silencieusement les champs
+non-OpenAI d'une requête** — HTTP 200, aucun avertissement.
+
+Conséquence pour le banc : le seul levier qui ait survécu à l'appariement
+(`reasoning_budget_tokens` 8192 + message de clôture) est **inerte en production s'il
+est envoyé par requête**. Il reste atteignable **au démarrage**, `llama-server` ayant
+le drapeau correspondant :
+
+```yaml
+options:
+  - "--reasoning-budget:8192"   # -rea/--reasoning pour activer/couper
+```
+
+Suffisant pour un déploiement, qui ne sert qu'un régime — mais ce n'est pas le même
+bouton : un bras de banc qui fait varier ce champ par tirage n'a pas d'équivalent
+par requête en production.
 
 Régex experts (Qwen3 & gemma MoE nomment leurs tenseurs `ffn_(gate|up|down)_exps`) :
 ```
