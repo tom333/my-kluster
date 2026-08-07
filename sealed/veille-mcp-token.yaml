@@ -1,0 +1,15 @@
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  creationTimestamp: null
+  name: veille-mcp-token
+  namespace: hermes
+spec:
+  encryptedData:
+    GITHUB_TOKEN: AgBs0SEtStaUZirL22n103CdvULa8IAEohxWutB7MVrX3wUqAhhNQrXbMtezCUfUEGlGxZbfCANgy7EqoOd3JJtxkTGLOewa2Z+rnIDERaG1Qpdj41CHb10Hhh1zG4kkXt48x82ZGdYo/OqI2H/GVN9kODlrXIrirUAaJ5+6OohhgF4iqFFjU/BYV/CvKm+s84dLfdqEGy+/zfWE6rs2brT/QjAy3snnt5gVAdSDqGhll7mbCzxueJS0qZmS2CadbF1Kr4/m7/+f4/Qatec0pNTxD7a+isrX4pECab4GDcPsOq01BMiKUEY76mU2Lzb5C/9BSuFENyBduzNgirHIgbpvw25LhWkkQvaRtEPP/3qLJ1uKg0VuVlAz5mqnBvYUQ33dTYEvX/Dcp2bujEPElSidta3ForbyJ3tir181Jix6IMahH14CAzgf2+396UCH4K/pxMR/CwH9QSoBwm/igKEL5P7b2o2Cg0ulLhuf8BLoyBcrOteXCv0iN2yRMDs8NIN0zoURrph7o2+UYuKUHSmIo5Y3BqFTFzBB5Z/c3gdadtW/gpzZGXO6yyQ4mPjlDqE9+8/6Qty35rSH/GKJ67bvP1Mmyas0tP2jnYxBDB++gQb64x+ZAfnkuBXOB4nNokLTn5XiAPbcUi/2/x/1hbGKN/QtmpzIiZhqHh5irY0y/VFygi9bMSlEu4HkNcOGrKd5NFqHQisUb+/wsBelZdduwER7yDrIUKx1Y22/ste05mq84vS/hYl027Wqe1eLRQv4MBf4aEnyZSMhwv9t8/pQEq6k3Dq3jHJcDvcuhZah/bFN5Gm0O0eLHtQXZTc=
+  template:
+    metadata:
+      creationTimestamp: null
+      name: veille-mcp-token
+      namespace: hermes

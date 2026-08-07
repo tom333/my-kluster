@@ -58,11 +58,16 @@ spec:
                 env:
                   SOURCES_PATH: /config/sources.json
                   # Jeton optionnel : sans lui, 60 appels/h par IP ; avec, 5 000/h.
-                  # Un cron hebdomadaire tient dans 60, donc ce n'est pas urgent —
-                  # a ajouter quand plusieurs crons partageront ce serveur.
-                  # GITHUB_TOKEN:
-                  #   valueFrom:
-                  #     secretKeyRef: { name: veille-mcp-token, key: GITHUB_TOKEN }
+                  # Active le 2026-08-08 : le plafond de 60/h a ete atteint des le
+                  # premier soir, `ajouts_listes` rendant
+                  # erreurs: {liste: "limite GitHub atteinte"}. Il est partage par IP
+                  # avec tout ce qui sort du cluster, et `releases_recentes` consomme
+                  # un appel par depot suivi, soit 10 par execution.
+                  # Jeton fine-grained SANS aucune permission (lecture publique) :
+                  # il ne fait que relever le plafond, il n'ouvre aucun acces prive.
+                  GITHUB_TOKEN:
+                    valueFrom:
+                      secretKeyRef: { name: veille-mcp-token, key: GITHUB_TOKEN }
                 resources:
                   requests: { cpu: "10m", memory: 64Mi }
                   limits:   { cpu: "500m", memory: 256Mi }
