@@ -29,3 +29,8 @@ scripts/harness-bench/trajectoires/
 *.pdf
 # Contient une URL MCP avec un jeton dans le chemin (Home Assistant)
 .mcp.json
+
+# Archives de projets produits par les tirages du banc (tarballs, ~650 Ko chacun).
+# Le CODE archive est un artefact de mesure, pas une source : il vit avec les
+# resultats, et un tirage promu est copie explicitement dans son propre depot.
+scripts/harness-bench/projets/

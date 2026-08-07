@@ -22,6 +22,7 @@ import signal
 import statistics
 import subprocess
 import sys
+import tarfile
 import time
 from pathlib import Path
 
@@ -34,6 +35,7 @@ RESULTS = HERE / "results"
 # elles-memes — mesurer et produire de la donnee coutent le meme GPU, autant
 # garder les deux.
 TRAJECTOIRES = HERE / "trajectoires"
+PROJETS = HERE / "projets"
 PYTEST = os.environ.get("BENCH_PYTEST", "/usr/bin/pytest")
 
 # APPARIEMENT DES TIRAGES (2026-08-05). Cinq graines figees, arbitraires mais
@@ -312,6 +314,9 @@ SCENARIOS = {
         # Ce n'est pas un venv Python : env_pour ne posera donc pas VIRTUAL_ENV.
         "venv": "/home/moi/develop/flutter-master",
         "expected_tests": 3,
+        # Le code produit EST le livrable ici : un tirage reussi vaut d'etre garde,
+        # voire promu dans le depot du jeu.
+        "archiver_projet": True,
         "protected": (),
         "check_api": False,
         # PAS de cle `etages` ici : elle est reservee aux scenarios notes par un
@@ -1543,6 +1548,44 @@ def nu_metrics(transcript):
     return no_metrics(transcript)
 
 
+# Artefacts de build a NE PAS archiver : 1,2 Go contre 2,6 Mo de source sur le
+# tirage du 2026-08-07. Les exclure change l'archive d'inutilisable a triviale.
+EXCLUS_PROJET = ("build", ".dart_tool", ".pub-cache-agent", ".paquets-agent",
+                 "__pycache__", ".git", "node_modules")
+
+
+def archive_projet(workdir, etiquette):
+    """Met le CODE PRODUIT a l'abri, hors de /tmp. Ne leve jamais.
+
+    Motif (2026-08-07) : sur `crepuscule-amorce` le code EST le livrable -- un tirage
+    a 3/3 produit une amorce de projet qui vaut d'etre gardee, voire promue dans le
+    depot du jeu. Or le workdir est detruit par `shutil.rmtree` au prochain tirage de
+    meme nom, et rien n'archivait le code : ni `results/` (metriques et log), ni
+    `trajectoires/` (messages et raisonnement), ni la capture.
+
+    La trajectoire contient bien les arguments des `write`, donc une PARTIE du code,
+    mais pas ce que `flutter create` a genere -- reconstituer un projet depuis des
+    appels d'outils est illusoire.
+    """
+    if not workdir:
+        return
+    source = Path(workdir)
+    if not source.is_dir():
+        return
+    try:
+        PROJETS.mkdir(exist_ok=True)
+        with tarfile.open(PROJETS / ("%s.tgz" % etiquette), "w:gz") as archive:
+            archive.add(
+                source,
+                arcname=etiquette,
+                filter=lambda info: None
+                if any(part in EXCLUS_PROJET for part in Path(info.name).parts)
+                else info,
+            )
+    except (OSError, tarfile.TarError):
+        return
+
+
 def archive_trajectoire(workdir, etiquette):
     """Met le transcript de l'essai a l'abri, hors de /tmp.
 
@@ -1964,6 +2007,9 @@ def run(harness, model, scenario_name, timeout, runs=1):
         RESULTS.mkdir(exist_ok=True)
         (RESULTS / ("%s-r%d.transcript" % (slug, i))).write_text(transcript)
         archive_trajectoire(res.get("workdir"), "%s-r%d" % (slug, i))
+        # Le CODE, pour les scenarios ou il est le livrable et non un moyen.
+        if scenario.get("archiver_projet"):
+            archive_projet(res.get("workdir"), "%s-r%d" % (slug, i))
 
     scores = [e["tests_passed"] for e in essais]
     attendus = scenario["expected_tests"]
