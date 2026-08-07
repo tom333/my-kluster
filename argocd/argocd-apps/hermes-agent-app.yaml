@@ -352,13 +352,54 @@ spec:
                 model:
                   # 2026-06-10: agent moved to a PAID, reliable OpenRouter model.
                   #
-                  # Why (full history below): local inference is a dead end on the RTX
-                  # 3060 12GB — Qwen3-8B NARRATES instead of tool-calling under Hermes'
-                  # ~19k system prompt + 31 tool schemas; reliable agentic tool-calling
-                  # needs 14-32B+, which won't fit/run fast on 12GB. The OpenRouter
+                  # Why (full history below): Qwen3-8B NARRATES instead of tool-calling
+                  # under Hermes' ~19k system prompt + 31 tool schemas. The OpenRouter
                   # ":free" tier then caused a 503/429/timeout STORM (no SLA,
                   # deprioritized): observed 90×503 + 49×429, agent loops aborting at
                   # max_turns → "doesn't meet expectations / loses results".
+                  #
+                  # ⚠️ 2026-08-07 — « local inference is a dead end on the RTX 3060 12GB »
+                  # ÉTAIT ÉCRIT ICI ET C'EST FAUX DEPUIS. Ce qui a été mesuré depuis :
+                  #
+                  #   a) Session opencode du 2026-08-07, modèles LOCAUX servis par
+                  #      llama-server (`gemma-4-12b-it-qat` et `kat-coder-v2.5-dev`) :
+                  #      244 appels d'outils, 12 outils exposés dont le MCP Context7,
+                  #      228 réussis / 16 en erreur, pic d'entrée 101 507 tokens,
+                  #      5 compactions, 46 patches. Donc gros contexte ET appels
+                  #      d'outils, sur 12 schémas — pas 4.
+                  #   b) Banc harness-bench : `gemma-4-12b-it-qat` fait 34-41/44 sur
+                  #      tetris à ctx 49152, devant qwen3-coder-30b (32/44), en 6,7 Go.
+                  #      Le plafond n'était pas la taille du modèle mais la FENÊTRE :
+                  #      à 32768 la médiane tombait à 0/44 par TRONCATURE.
+                  #   c) Le reproche fait au MoE (744 s/tour) est réglé par calibration :
+                  #      KAT à `-ncmoe 24` + `--no-mmap` + KV q8_0 tient 31 tours avec
+                  #      un pic de 44 476 en 463 s, soit ~15 s/tour, 5/5 sur `pronote`.
+                  #
+                  # Ce qui reste vrai et non testé : 12 outils ≠ les 31 de Hermes, et le
+                  # préambule d'opencode n'a pas été mesuré. Le seuil des ~5 outils au-delà
+                  # duquel certains modèles basculent en XML est franchi (12), pas celui de
+                  # Hermes. Donc « le local peut le faire » est établi ; « le local peut
+                  # faire HERMES » ne l'est pas encore.
+                  #
+                  # ⚠️ TROIS DÉFAUTS DE PLOMBERIE ont pu produire seuls le verdict de juin,
+                  # avant même la question du modèle :
+                  #   1. le provider `localai` ci-dessous utilisait `key_env` sur un type
+                  #      `custom` → clé ignorée → HTTP 401 → repli silencieux. Il n'a
+                  #      JAMAIS servi depuis sa déclaration (corrigé depuis : `api_key`).
+                  #   2. `fallback_providers` (gemini) masque les échecs : mesuré le
+                  #      2026-07-28, un cron rendait `last_status=ok` alors que gemini
+                  #      avait produit le résultat. Toute mesure est aveugle sans le vider.
+                  #   3. `localai.default_model` pointe encore `qwen3-8b`, le modèle même
+                  #      qui narre — pas `gemma-4-12b-it-qat`.
+                  # Conséquence : le verdict « dead end » n'a jamais été mesuré sur un
+                  # modèle local capable, à travers une chaîne qui fonctionnait.
+                  #
+                  # Pour rejouer le test : vider `fallback_providers`, pointer
+                  # `localai.default_model` sur `gemma-4-12b-it-qat` (entièrement en VRAM,
+                  # donc pas de prefill CPU contre le `request_timeout_seconds: 120`),
+                  # PAS sur KAT en premier. ⚠️ `LOCALAI_SINGLE_ACTIVE_BACKEND=true` : toute
+                  # requête Hermes évincerait le backend chargé, y compris en pleine
+                  # génération — ne pas lancer pendant une campagne de banc.
                   #
                   # Gemini 2.5 Flash: ~$0.15/$0.60 per 1M, reliable tool-calling, huge
                   # context, strong multilingual (FR). For a personal assistant (a few
@@ -371,6 +412,11 @@ spec:
                   # - qwen3.6-35b-a3b (MoE): experts offloaded to CPU on 12GB → prefill
                   #   CPU-bound → 744s/turn → APITimeout. Fine for direct chat only.
                   # - Qwen3-8B: full-GPU but narrates under load (8B ceiling).
+                  # - gemma-4-12b-it-qat : JAMAIS essayé sous Hermes. Écarté sur une note
+                  #   « autocomplétion, pas agentique » jamais vérifiée — démentie le
+                  #   2026-07-29 par un test discriminant (le QAT officiel rend un
+                  #   tool_call valide sur le prompt exact qui faisait narrer le finetune).
+                  # - kat-coder-v2.5-dev : jamais essayé sous Hermes non plus.
                   # LocalAI/qwen3-8b stays defined below for direct chat / embeddings.
                   default: deepseek/deepseek-v4-flash
                   provider: openrouter
