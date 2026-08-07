@@ -486,6 +486,20 @@ spec:
                 #       model: google/gemini-2.5-flash
                 fallback_providers: []
                 mcp_servers:
+                  # veille-mcp — appels DETERMINISTES a l'API GitHub pour les crons de
+                  # veille (app ArgoCD `veille-mcp`, meme namespace). Trois outils :
+                  # releases_recentes, ajouts_listes, depot.
+                  # Remplace l'usage de web_extract sur des URL d'API, qui rendait
+                  # 197 897 caracteres tronques a 15 441 pour un seul depot. Ici le
+                  # filtrage par date est fait cote serveur.
+                  # Les sources (depots suivis, listes awesome) sont declarees dans le
+                  # ConfigMap de veille-mcp, pas dans le prompt des crons.
+                  # Pas d'auth : ClusterIP, lecture seule, aucune donnee sensible.
+                  veille:
+                    url: "http://veille-mcp.hermes.svc.cluster.local:8080/mcp"
+                    timeout: 60
+                    connect_timeout: 10
+                    enabled: true
                   # arrconf-mcp: in-cluster ClusterIP MCP (read-only, 10 tools) for the media stack.
                   # Token resolved from ${MCP_AUTH_TOKEN} (hermes-secrets, envFrom) — same value
                   # as the arrconf-env sealed secret on the server side. Rotated 2026-07-27: the
@@ -511,6 +525,22 @@ spec:
                       Authorization: "Bearer ${TXTAI_MCP_TOKEN}"
                     tools:
                       include: ["search_search_get"]
+                    timeout: 60
+                    connect_timeout: 10
+                    enabled: true
+                  # veille — serveur MCP maison (veille-mcp-app.yaml), 3 outils GitHub
+                  # deterministes : releases_recentes, ajouts_listes, depot. Remplace le
+                  # `curl api.github.com` + `search_files` du skill veille-digest : le
+                  # filtrage par date se fait cote serveur, donc quelques lignes au lieu
+                  # des 197 897 caracteres que CRW ramenait (et tronquait) pour un seul
+                  # depot. Les depots suivis vivent dans sources.json du ConfigMap, pas
+                  # dans le prompt du cron.
+                  # Pas de header Authorization : le serveur est en ClusterIP sans jeton
+                  # (comme crw et lightpanda) et ne fait que des lectures publiques sur
+                  # api.github.com. Transport par defaut (streamable-HTTP) comme arrconf —
+                  # fastmcp sert `transport="http"`, pas du SSE, donc pas de `transport:`.
+                  veille:
+                    url: "http://veille-mcp.hermes.svc.cluster.local:8080/mcp"
                     timeout: 60
                     connect_timeout: 10
                     enabled: true
