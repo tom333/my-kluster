@@ -489,7 +489,7 @@ modelsConfigs:
     backend: llama-cpp
     known_usecases:
       - chat
-    context_size: 65536
+    context_size: 128000
     gpu_layers: 99
     f16: true
     flash_attention: true
