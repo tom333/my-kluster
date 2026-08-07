@@ -509,6 +509,16 @@ modelsConfigs:
         uri: https://huggingface.co/bartowski/Kwaipilot_KAT-Coder-V2.5-Dev-GGUF/resolve/main/Kwaipilot_KAT-Coder-V2.5-Dev-IQ4_XS.gguf
     options:
       - use_jinja:true
+      # OBLIGATOIRE, et pas cosmétique : LocalAI alloue 4 slots par défaut
+      # (`effective runtime tuning … parallel="4"` dans ses logs), or llama-server
+      # RÉPARTIT `--ctx-size` entre les slots. À 128000 déclarés cela ne servirait
+      # que 32000 par slot, sous les pics mesurés au banc sur `pronote` (44 476 et
+      # 63 920) : le yaml annoncerait un contexte que le serveur n'accorde pas.
+      # Second effet : 4 slots = 4× le cache KV. Ici ~7 MiB par millier de tokens
+      # (relevé : +233 MiB de 32768 à 65536), soit ~3,6 Go pour 4×128000 —
+      # au-delà des 12 288 de la carte une fois ajoutés les 9 781 de `-ncmoe 24`.
+      # Le serveur du banc tourne en `n_slots = 1, n_ctx_slot = 65536`.
+      - parallel:1
       - "--n-cpu-moe:24"
       - "--presence-penalty:1.5"
       - "chat_template_kwargs:{\"enable_thinking\":false}"
