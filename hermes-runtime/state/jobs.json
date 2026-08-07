@@ -44,6 +44,45 @@
     {
       "base_url": null,
       "context_from": null,
+      "created_at": "2026-08-07T00:00:00.000000+00:00",
+      "deliver": "origin",
+      "enabled": true,
+      "enabled_toolsets": [
+        "web",
+        "mcp-txtai"
+      ],
+      "id": "3f1c9a2b7d84",
+      "model": "gemma-4-12b-it-qat",
+      "name": "harnais-et-agents-veille",
+      "no_agent": false,
+      "origin": {
+        "chat_id": "843341688",
+        "chat_name": "Tom G",
+        "platform": "telegram",
+        "thread_id": null
+      },
+      "profile": null,
+      "prompt": "Veille hebdomadaire sur les HARNAIS et les AGENTS, pas sur les modeles.\n`llm-veille-daily` couvre deja les nouveaux GGUF (voie A) et les options\nllama.cpp/LocalAI (voie B). Ici l'objet est le LOGICIEL QUI PILOTE le modele.\nMotif : le 2026-08-07, les memes modeles locaux ont fait 244 appels d'outils sur\n12 schemas et un pic de 101 507 tokens sous `opencode`, alors qu'ils narraient\nsous Hermes. Le harnais a donc pese plus que le modele.\n\n## Voie A -- harnais de codage\nSurveille : openfox, opencode, pi, aider, little-coder, goose, crush, Cline/Roo,\nnanocoder, OpenHands. Sources : releases GitHub via l'API (pas la page liste),\nCHANGELOG du depot, et les ISSUES qui documentent un seuil chiffre.\n\nCe qui DECIDE, dans cet ordre :\n1. Budget de preambule en tokens. Reperes mesures : 0 (`nu`), 1 603 (`pi`),\n   4 528 (`little-coder`), ~19 000 (Hermes). C'est le facteur qui a fait narrer\n   les 8B sous Hermes.\n2. Nombre d'outils exposes. Au-dela d'environ 5, certains modeles emettent leurs\n   appels en XML dans le texte au lieu du champ tool_calls. `opencode` a tenu a 12.\n3. Timeout PAR COMMANDE shell. Son absence a laisse un modele boucler 1 200 s\n   sous `little-coder` ; openfox le fixe a 120 000 ms par defaut.\n4. Rattrapage de format : detection d'un appel malforme en cours de flux puis\n   relance (les retry patterns d'openfox sont une regex configurable).\n5. Contrat de terminaison : un outil terminal obligatoire, tel que step_done, qui\n   rend invalide le fait de repondre en prose et de s'arreter. C'est l'echec exact\n   de gemma-4-12b-coder, qui affichait le code au lieu de l'ecrire.\n6. Compaction et reutilisation de cache de prompt.\n7. Pilotage NON INTERACTIF : un `-p \"prompt\"` ou une API. Sans cela le harnais\n   n'entre pas au banc -- c'est ce qui laisse openfox en attente.\n\n## Voie B -- agents personnels, categorie Hermes\nSurveille : OpenClaw (assistant auto-heberge, UI par messagerie, memoire SQLite,\nnavigateur CDP, registre de skills ClawHub), Hermes Agent lui-meme, Agent Zero,\nDify, Letta/MemGPT, et les serveurs MCP nouveaux qui seraient branchables.\n\nCe qui DECIDE :\n1. Est-ce que ca marche avec un modele LOCAL derriere un endpoint compatible\n   OpenAI, et a quel budget de preambule et combien d'outils.\n2. Ou vit l'etat : fichier versionnable ou base opaque. Les crons de Hermes vivent\n   dans un jobs.json sur PVC, donc hors Git -- toute solution qui declare ses\n   taches en fichiers est un gain net.\n3. Modele epinglable PAR TACHE, et repli explicite. Un repli silencieux rend les\n   mesures aveugles : mesure le 2026-07-28, un cron rendait last_status=ok alors\n   qu'un autre modele avait produit le resultat.\n4. Canaux et auth. Un tableau de bord qui se lie sur 0.0.0.0 sans authentification\n   est un defaut, pas une fonctionnalite.\n\n## Ce qui ne DECIDE PAS, et qu'il ne faut pas rapporter comme argument\nLes etoiles GitHub, les listes de fonctionnalites, les demonstrations, les\nclassements d'articles de blog. Meme regle que la voie A de `llm-veille-daily`\nsur les benchmarks annonces : ils n'ont rien predit.\n\n## Format du digest\n- 🔧 Harnais : max 3. Pour chacun, le preambule et le nombre d'outils SEULEMENT\n  s'ils sont verifiables dans le depot ; sinon ecris explicitement\n  « non mesure ». Lien vers la release.\n- 🤖 Agents : max 2, juges sur les 4 criteres de la voie B.\n- 🎯 LEVIER : quand un mecanisme est portable sur un harnais deja en place, ecris\n  la modification concrete. Exemple de forme :\n  « openfox detecte les appels XML par regex -> ajouter le meme garde-fou au\n    harnais nu ».\n- Rien de neuf -> « Rien de nouveau cette semaine cote harnais et agents. »\n\nPROCEDURE : applique le skill `veille-digest` (collecte web puis digest Telegram ;\nliens href reels jamais inventes ; web_extract sur URL exacte ; API GitHub Releases\nplutot que la page liste). Emets une ligne CANDIDAT seulement si le controle\nobligatoire du skill passe.\nDEDUP : procedure du skill `veille-digest` via mcp__txtai__search_search_get\n(source='veille').",
+      "provider": "localai",
+      "repeat": {
+        "times": null
+      },
+      "schedule": {
+        "display": "0 22 * * 3",
+        "expr": "0 22 * * 3",
+        "kind": "cron"
+      },
+      "schedule_display": "0 22 * * 3",
+      "script": null,
+      "skill": "veille-digest",
+      "skills": [
+        "veille-digest"
+      ],
+      "workdir": null
+    },
+    {
+      "base_url": null,
+      "context_from": null,
       "created_at": "2026-07-19T00:15:30.367711+00:00",
       "deliver": "origin",
       "enabled": true,
