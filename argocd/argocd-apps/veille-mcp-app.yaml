@@ -82,7 +82,11 @@ spec:
         persistence:
           config:
             type: configMap
-            name: veille-mcp-code
+            # bjw-s 5.0.1 fusionne toutes les entrees configMaps.* en UN SEUL
+            # ConfigMap nomme d'apres la release (ici veille-mcp), pas
+            # <release>-<cle>. Viser veille-mcp-code laisse le pod bloque en
+            # ContainerCreating sur « configmap not found » — constate ici meme.
+            name: veille-mcp
             globalMounts:
               - path: /config
         configMaps:
