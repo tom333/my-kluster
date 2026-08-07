@@ -45,9 +45,29 @@ outils, règles de liens, discipline de sortie).
 - ⚠️ N'écris AUCUN fichier, ne crée AUCUN script. La dédup = requêtes `mcp__txtai__search_search_get`, point.
 - Sujet jamais vu (aucune correspondance txtai) = rapporté normalement.
 
-### 2. Collecte — releases GitHub
+### 2. Collecte — releases GitHub et listes awesome (outils `mcp__veille__*`)
 
-Voir la section ⚠️ ci-dessous pour la méthode exacte (API REST + `search_files`).
+Tu disposes de trois outils qui parlent à l'API GitHub à ta place. **Utilise-les en
+premier** : le filtrage par date se fait côté serveur, tu reçois quelques lignes au lieu
+des ~200 000 caractères tronqués que `web_extract` ramenait pour un seul dépôt.
+
+- `mcp__veille__releases_recentes(jours)` — les releases publiées dans la fenêtre, sur
+  les dépôts suivis. Rend dépôt, version, date, url, début des notes.
+- `mcp__veille__ajouts_listes(jours)` — les projets **ajoutés** aux listes awesome
+  suivies, avec leur section. Source de découverte déjà structurée.
+- `mcp__veille__depot("owner/repo")` — métadonnées d'un dépôt : étoiles, langage,
+  dernière poussée, `archive`. Sert à écarter un projet mort sans le rapporter.
+
+La liste des dépôts et des listes suivis vit dans `sources.json` du serveur
+(`argocd/argocd-apps/veille-mcp-app.yaml`), pas dans le prompt du job : **ne les
+énumère pas ici**, appelle l'outil sans argument de dépôt.
+
+Les deux outils de collecte rendent un champ `erreurs` par source : s'il est non vide,
+mentionne la source en défaut en une ligne dans le digest plutôt que de la passer sous
+silence.
+
+Un dépôt HORS de `sources.json` (ex. un projet découvert en cours de run) n'est pas
+couvert par `releases_recentes` — tombe alors sur la méthode `curl` de la section ⚠️.
 
 **Alternative pour le changelog** : après avoir identifié la version via l'API, tu peux
 extraire le changelog détaillé via `web_extract` sur l'URL individuelle de la release :
@@ -195,7 +215,10 @@ contrôle qui aurait économisé une demi-journée le 2026-07-29.
 
 Les pages GitHub Releases (`https://github.com/org/repo/releases`) sont des applis
 React dynamiques. `web_extract` échoue systématiquement (contenu vide ou « Uh oh!
-Please reload this page »). Utilise l'API REST GitHub à la place :
+Please reload this page »).
+
+Pour les dépôts suivis, la réponse est `mcp__veille__releases_recentes` (section 2).
+Ce qui suit ne sert que pour un dépôt **hors** `sources.json` :
 
 ```
 # 1. Télécharger les 2 dernières releases (pas de pipe vers python3 — bloqué en cron)
