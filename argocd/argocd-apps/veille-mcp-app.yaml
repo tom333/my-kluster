@@ -1,0 +1,270 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  # veille-mcp — serveur MCP maison : appels DETERMINISTES a l'API GitHub pour les
+  # crons Hermes de veille.
+  #
+  # POURQUOI. Le cron `harnais-et-agents-veille` interrogeait l'API GitHub via
+  # `web_extract` (donc CRW). Deux defauts mesures le 2026-08-07 :
+  #   - reponse brute enorme et tronquee : 197 897 caracteres ramenes a 15 441 pour
+  #     les releases d'opencode, dont l'essentiel est du corps de note de version ;
+  #   - CRW ne peut porter aucun en-tete `Authorization`, donc la limite GitHub reste
+  #     a 60 appels/h et par IP, partagee avec tous les autres crons.
+  # Ici le filtrage par date se fait cote serveur : le modele recoit quelques lignes
+  # au lieu de deux cents kilo-octets, et le jeton (quand il existera) ne quitte
+  # jamais ce processus.
+  #
+  # Motif de deploiement copie de `txtai` : IMAGE AMONT STANDARD + code monte depuis
+  # un ConfigMap. Pas de build, pas de registry, pas de CI a maintenir. Le prix est
+  # un `pip install` au demarrage (~20-30 s), d'ou la sonde de demarrage genereuse.
+  #
+  # TROIS OUTILS SEULEMENT. Au-dela d'environ 5 outils exposes, certains modeles
+  # basculent leurs appels en XML dans le texte au lieu du champ tool_calls — mesure
+  # sur ce cluster. Hermes en expose deja 15 via arrconf et txtai.
+  #
+  # Ajouter une source = une ligne dans sources.json ci-dessous, PAS une reecriture
+  # du prompt du cron.
+  name: veille-mcp
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: hermes
+    server: https://kubernetes.default.svc
+  project: infra-project
+  source:
+    repoURL: https://bjw-s-labs.github.io/helm-charts
+    chart: app-template
+    targetRevision: 5.0.1
+    helm:
+      values: |
+        controllers:
+          veille-mcp:
+            type: deployment
+            containers:
+              main:
+                image:
+                  repository: python
+                  tag: "3.13-slim"
+                  pullPolicy: IfNotPresent
+                # fastmcp et httpx ne sont pas dans l'image de base. `exec` pour que
+                # python devienne PID 1 et recoive SIGTERM proprement.
+                command: ["sh", "-c"]
+                args:
+                  - >-
+                    pip install --no-cache-dir --quiet fastmcp httpx &&
+                    exec python /config/serveur.py
+                env:
+                  SOURCES_PATH: /config/sources.json
+                  # Jeton optionnel : sans lui, 60 appels/h par IP ; avec, 5 000/h.
+                  # Un cron hebdomadaire tient dans 60, donc ce n'est pas urgent —
+                  # a ajouter quand plusieurs crons partageront ce serveur.
+                  # GITHUB_TOKEN:
+                  #   valueFrom:
+                  #     secretKeyRef: { name: veille-mcp-token, key: GITHUB_TOKEN }
+                resources:
+                  requests: { cpu: "10m", memory: 64Mi }
+                  limits:   { cpu: "500m", memory: 256Mi }
+                probes:
+                  liveness:  { enabled: true, custom: true, spec: { tcpSocket: { port: 8080 }, periodSeconds: 30, timeoutSeconds: 5, failureThreshold: 3 } }
+                  readiness: { enabled: true, custom: true, spec: { tcpSocket: { port: 8080 }, periodSeconds: 15, timeoutSeconds: 5, failureThreshold: 3 } }
+                  # ~90 s de marge : le pip install precede l'ouverture du port.
+                  startup:   { enabled: true, custom: true, spec: { tcpSocket: { port: 8080 }, periodSeconds: 5, timeoutSeconds: 5, failureThreshold: 18 } }
+        service:
+          main:
+            controller: veille-mcp
+            ports:
+              http:
+                port: 8080
+        # Pas d'ingress : consomme uniquement depuis le cluster par Hermes,
+        # comme CRW et lightpanda.
+        persistence:
+          config:
+            type: configMap
+            name: veille-mcp-code
+            globalMounts:
+              - path: /config
+        configMaps:
+          code:
+            enabled: true
+            data:
+              sources.json: |
+                {
+                  "depots": [
+                    "co-l/openfox",
+                    "anomalyco/opencode",
+                    "Aider-AI/aider",
+                    "aaif-goose/goose",
+                    "charmbracelet/crush",
+                    "cline/cline",
+                    "RooCodeInc/Roo-Code",
+                    "Nano-Collective/nanocoder",
+                    "OpenHands/OpenHands",
+                    "openclaw/openclaw"
+                  ],
+                  "listes": [
+                    "ai-boost/awesome-harness-engineering"
+                  ]
+                }
+              serveur.py: |
+                """Serveur MCP « veille » — appels deterministes a l'API GitHub pour les crons Hermes.
+
+                POURQUOI CE SERVEUR. Le cron `harnais-et-agents-veille` interrogeait l'API GitHub via
+                `web_extract`, qui passe par CRW. Deux defauts mesures le 2026-08-07 :
+                  - la reponse brute est enorme et tronquee : 197 897 caracteres ramenes a 15 441 pour
+                    les releases d'opencode, dont l'essentiel est du corps de note de version ;
+                  - CRW ne peut porter aucun en-tete `Authorization`, donc la limite GitHub reste a
+                    60 appels/heure et par IP, partagee avec tous les autres crons.
+                Ici le filtrage par date se fait cote serveur et le modele recoit quelques lignes.
+                Le jeton, quand il existe, ne quitte jamais ce processus.
+
+                Les sources sont declarees dans sources.json (meme ConfigMap) : ajouter un depot ou une
+                liste ne demande pas de retoucher le prompt du cron.
+                """
+
+                import json
+                import os
+                import re
+                from datetime import datetime, timedelta, timezone
+
+                import httpx
+                from fastmcp import FastMCP
+
+                API = "https://api.github.com"
+                JETON = os.environ.get("GITHUB_TOKEN", "")
+                SOURCES = json.load(open(os.environ.get("SOURCES_PATH", "/config/sources.json")))
+
+                mcp = FastMCP("veille")
+
+
+                def _entetes():
+                    h = {"Accept": "application/vnd.github+json", "User-Agent": "veille-mcp"}
+                    if JETON:
+                        h["Authorization"] = f"Bearer {JETON}"
+                    return h
+
+
+                def _get(chemin, **params):
+                    """Un appel GitHub. Rend (donnees, None) ou (None, message d'erreur).
+
+                    On ne leve pas : un depot renomme ou une limite atteinte ne doit pas faire echouer
+                    tout l'outil, sinon le cron perd aussi les sources qui ont repondu.
+                    """
+                    try:
+                        r = httpx.get(f"{API}{chemin}", headers=_entetes(), params=params, timeout=20.0)
+                    except httpx.HTTPError as e:
+                        return None, f"reseau: {e}"
+                    if r.status_code == 403 and "rate limit" in r.text.lower():
+                        return None, "limite GitHub atteinte"
+                    if r.status_code != 200:
+                        return None, f"HTTP {r.status_code}"
+                    return r.json(), None
+
+
+                def _depuis(jours):
+                    return datetime.now(timezone.utc) - timedelta(days=jours)
+
+
+                def _date(txt):
+                    return datetime.fromisoformat(txt.replace("Z", "+00:00"))
+
+
+                @mcp.tool
+                def releases_recentes(jours: int = 8) -> dict:
+                    """Releases publiees dans les N derniers jours, sur les depots suivis.
+
+                    Rend une ligne par release : depot, version, date, url, et les 400 premiers
+                    caracteres des notes. Les depots sans release recente ne sont pas mentionnes.
+                    """
+                    limite = _depuis(jours)
+                    trouvees, erreurs = [], {}
+                    for depot in SOURCES["depots"]:
+                        donnees, err = _get(f"/repos/{depot}/releases", per_page=5)
+                        if err:
+                            erreurs[depot] = err
+                            continue
+                        for r in donnees:
+                            if r.get("draft") or not r.get("published_at"):
+                                continue
+                            if _date(r["published_at"]) < limite:
+                                continue
+                            trouvees.append(
+                                {
+                                    "depot": depot,
+                                    "version": r.get("tag_name"),
+                                    "date": r["published_at"][:10],
+                                    "url": r.get("html_url"),
+                                    "notes": (r.get("body") or "")[:400],
+                                }
+                            )
+                    trouvees.sort(key=lambda x: x["date"], reverse=True)
+                    return {"fenetre_jours": jours, "releases": trouvees, "erreurs": erreurs}
+
+
+                @mcp.tool
+                def ajouts_listes(jours: int = 8) -> dict:
+                    """Projets AJOUTES recemment aux listes awesome suivies.
+
+                    Ces listes commitent un projet a la fois, avec un message de la forme
+                    « Add <owner/repo> to <Section> section ». On en extrait le nom et la section :
+                    c'est une source de decouverte deja structuree, contrairement a une recherche web.
+                    """
+                    limite = _depuis(jours)
+                    motif = re.compile(
+                        r"^Add\s+(?P<projet>[^\s]+)\s+to\s+(?P<section>.+?)(\s+section)?$", re.I
+                    )
+                    ajouts, erreurs = [], {}
+                    for liste in SOURCES["listes"]:
+                        donnees, err = _get(f"/repos/{liste}/commits", per_page=100)
+                        if err:
+                            erreurs[liste] = err
+                            continue
+                        for c in donnees:
+                            date = c["commit"]["author"]["date"]
+                            if _date(date) < limite:
+                                break  # l'API rend les commits du plus recent au plus ancien
+                            titre = c["commit"]["message"].split("\n")[0].strip()
+                            m = motif.match(titre)
+                            if m:
+                                ajouts.append(
+                                    {
+                                        "liste": liste,
+                                        "projet": m.group("projet"),
+                                        "section": m.group("section").strip(),
+                                        "date": date[:10],
+                                    }
+                                )
+                    ajouts.sort(key=lambda x: x["date"], reverse=True)
+                    return {"fenetre_jours": jours, "ajouts": ajouts, "erreurs": erreurs}
+
+
+                @mcp.tool
+                def depot(nom: str) -> dict:
+                    """Metadonnees d'un depot `owner/repo`, pour juger un projet decouvert.
+
+                    `archive` a vrai ou une poussee ancienne suffisent a l'ecarter sans le rapporter.
+                    """
+                    d, err = _get(f"/repos/{nom}")
+                    if err:
+                        return {"depot": nom, "erreur": err}
+                    return {
+                        "depot": d.get("full_name"),
+                        "description": d.get("description"),
+                        "langage": d.get("language"),
+                        "etoiles": d.get("stargazers_count"),
+                        "derniere_poussee": (d.get("pushed_at") or "")[:10],
+                        "archive": d.get("archived"),
+                        "url": d.get("html_url"),
+                    }
+
+
+                if __name__ == "__main__":
+                    mcp.run(transport="http", host="0.0.0.0", port=8080, path="/mcp")
+
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      selfHeal: true
+      prune: true
