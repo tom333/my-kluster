@@ -59,6 +59,25 @@ spec:
                   # explicit; the config default ws://lightpanda:9222/ also resolves
                   # here since CRW runs in the same namespace as lightpanda.
                   CRW_RENDERER__LIGHTPANDA__WS_URL: "ws://lightpanda.hermes.svc.cluster.local:9222/"
+                  # ÉPINGLÉ à lightpanda (au lieu du "auto" du profil docker), parce
+                  # que `auto` construit l'échelle de rendu à partir des étages
+                  # CONFIGURÉS — et le profil docker déclare
+                  # `[renderer.chrome] ws_url = "ws://chrome:9222/"`, un service que
+                  # nous ne déployons pas. Conséquences mesurées le 2026-08-07 dans le
+                  # log de démarrage :
+                  #   JS renderers in fallback order: ["lightpanda", "chrome"]
+                  #   ladder_min_ms=92500  effective_default_ms=92500
+                  #   outer_timeout_secs_baseline=120 -> effective=413
+                  # Soit un délai provisionné 6× trop grand pour réserver du temps à un
+                  # étage qui échoue toujours, plus un aller-retour perdu à chaque
+                  # escalade : « CDP discovery failed: error sending request for url
+                  # (http://chrome:9222/json/version) renderer="chrome" ».
+                  # Le profil par défaut de CRW laisse d'ailleurs `[renderer.chrome]`
+                  # commenté ; seul le profil docker l'active, pour son sidecar.
+                  # Valeurs admises : auto | lightpanda | playwright | chrome | none.
+                  # Si un jour un headless-shell est déployé, repasser à `auto` et
+                  # renseigner CRW_RENDERER__CHROME__WS_URL.
+                  CRW_RENDERER__MODE: "lightpanda"
                 probes:
                   liveness:
                     enabled: true
