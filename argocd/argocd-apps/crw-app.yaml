@@ -78,6 +78,18 @@ spec:
                   # Si un jour un headless-shell est déployé, repasser à `auto` et
                   # renseigner CRW_RENDERER__CHROME__WS_URL.
                   CRW_RENDERER__MODE: "lightpanda"
+                  # Desserré de 2500 à 6000 ms. Le profil docker justifie ses 2500 par
+                  # « LightPanda bounded tight so chrome always has ≥3s residual under
+                  # the 8s deadline » — un raisonnement sans objet depuis que chrome est
+                  # retiré de l'échelle : le seul moteur JS restant était bridé pour
+                  # réserver du budget à personne.
+                  # Pas plus haut pour autant : le même fichier documente que sur 30
+                  # échecs de banc, 12 étaient « Timeout after Xms » où LightPanda
+                  # brûlait tout le délai. 6000 double son budget sans lui rendre la
+                  # capacité de monopoliser la requête.
+                  # Contrôle : ladder_min_ms = somme des étages + 28 s par étage CDP,
+                  # donc 4000 + 6000 + 28000 = 38000 au prochain démarrage.
+                  CRW_RENDERER__LIGHTPANDA_TIMEOUT_MS: "6000"
                 probes:
                   liveness:
                     enabled: true
