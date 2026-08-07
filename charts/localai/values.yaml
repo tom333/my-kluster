@@ -442,6 +442,85 @@ modelsConfigs:
     stopwords:
       - "<end_of_turn>"
       - "<eos>"
+  # KAT-Coder V2.5-Dev (Kwaipilot) — **DEV / EVALUATION, PAS la production**.
+  # `current` ne pointe PAS ici : ce modèle est ajouté pour être mesuré et comparé,
+  # pas pour servir. Le promouvoir demanderait de repointer `current` explicitement.
+  #
+  # Base Qwen3.6-35B-A3B, MoE 256 experts / 8 actifs, 40 couches (métadonnées GGUF
+  # lues directement, pas supposées). IQ4_XS = 17,9 Go.
+  #
+  # CONFIGURATION REPRISE DU BANC À L'IDENTIQUE (harness-bench, 2026-08-06/07), pour
+  # que ce qui a été mesuré soit ce qui est servi :
+  #
+  #   -ncmoe   VRAM      débit      note
+  #   40       3267 MiB  33,7 tok/s tous les experts en RAM
+  #   32       6533 MiB  40,5
+  #   24       9781 MiB  47,2       ← RETENU
+  #   22      10682 MiB  47,3       plateau : +900 MiB pour rien
+  #   20      11496 MiB  50,1       +6 % (sous le plancher de bruit de 10 %) pour
+  #                                 792 MiB de marge seulement
+  #   16       ne démarre pas
+  #
+  # À ctx 65536 : 10 125 MiB, soit +233 MiB seulement sur 32768 — `head_count_kv=2`
+  # rend le cache KV négligeable.
+  #
+  # `--n-cpu-moe:24` PLUTÔT QUE la régex `override_tensor` : le passthrough verbatim
+  # des drapeaux `-*` est vérifié sur le binaire réellement déployé (cf. la correction
+  # du 2026-08-07 dans MOE-DEPLOY.md). La régex pousserait TOUS les experts en RAM,
+  # soit l'équivalent de `-ncmoe 40` — 29 % de débit perdu.
+  # ⚠️ Premier modèle de ce chart à s'appuyer sur ce passthrough. En cas d'échec au
+  # démarrage, le repli documenté est `override_tensor:\.ffn_.*_exps\.=CPU`, plus lent.
+  #
+  # ÉCHANTILLONNAGE : mode « instruct » de la fiche officielle (temp 0.7 / top_p 0.8 /
+  # top_k 20 / presence_penalty 1.5), et non le mode « pensée » (temp 1.0 / top_p 0.95).
+  # `enable_thinking:false` va avec : mesuré le 2026-08-06, ce modèle à 256 tokens rend
+  # ZÉRO caractère de `content` et remplit tout le budget en `reasoning_content`. Sans
+  # ce réglage, un agent branché dessus ne produirait rien.
+  #
+  # PAS de MTP : aucune clé `nextn` dans ce GGUF. Des variantes MTP existent en amont
+  # (gbuzhf, thread13) et restent à évaluer — c'est ce qui a donné à Ornith-9B son
+  # débit.
+  #
+  # Résultats au banc, environnement assaini, mêmes graines qu'a3b :
+  #   pronote      4/5 PASS, 31 tours méd., pic 44 476 (a3b : 4/5, 21 tours, 22 359)
+  #   columns-web  5/5 PASS, 2 299 tokens de sortie (a3b : 5/5, 10 059) — 4,4× moins
+  kat-coder-v2.5-dev: |
+    name: kat-coder-v2.5-dev
+    backend: llama-cpp
+    known_usecases:
+      - chat
+    context_size: 65536
+    gpu_layers: 99
+    f16: true
+    flash_attention: true
+    # `--no-mmap` : llama.cpp le réclame lui-même dès qu'il y a des reports CPU
+    # (« tensor overrides to CPU are used with mmap enabled »), et sans lui les poids
+    # se chargent paresseusement — /health répond avant qu'ils soient résidents.
+    mmap: false
+    cache_type_k: q8_0
+    cache_type_v: q8_0
+    parameters:
+      model: Kwaipilot_KAT-Coder-V2.5-Dev-IQ4_XS.gguf
+      temperature: 0.7
+      top_p: 0.8
+      top_k: 20
+    download_files:
+      - filename: Kwaipilot_KAT-Coder-V2.5-Dev-IQ4_XS.gguf
+        uri: https://huggingface.co/bartowski/Kwaipilot_KAT-Coder-V2.5-Dev-GGUF/resolve/main/Kwaipilot_KAT-Coder-V2.5-Dev-IQ4_XS.gguf
+    options:
+      - use_jinja:true
+      - "--n-cpu-moe:24"
+      - "--presence-penalty:1.5"
+      - "chat_template_kwargs:{\"enable_thinking\":false}"
+    template:
+      use_tokenizer_template: true
+    function:
+      automatic_tool_parsing_fallback: true
+      grammar:
+        disable: true
+    stopwords:
+      - "<|im_end|>"
+      - "<|endoftext|>"
   # DeepSeek-V4-Flash via OpenRouter — backend cloud-proxy (passthrough).
   # PAS de modèle local : LocalAI forwarde le body client tel quel vers
   # OpenRouter (wire format OpenAI chat-completions). Bypasse templating /
