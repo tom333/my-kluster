@@ -338,9 +338,18 @@ modelsConfigs:
     # Coût VRAM : NUL. gemma-4 alterne attention locale/globale avec une fenêtre glissante
     # de 1024 tokens ; llama.cpp plafonne les couches SWA à 1024 cellules quel que soit
     # context_size (llama_kv_cache_iswa) → 9711 MiB à 32768 contre 9655 MiB à 49152.
-    # Ne PAS monter plus haut : à 131072 il tourne en rond (un essai à 54693 tokens pour
-    # 10/44). L'optimum n'est pas le maximum.
-    context_size: 49152          # gemma-4 = 256k natif ; voir ci-dessus pour ce choix
+    # 2026-08-07 : PORTÉ À 150000 pour Hermes Agent, qui refuse de démarrer sous un
+    # plancher DUR de 64 000 tokens — « Model gemma-4-12b-it-qat has a context window
+    # of 49,152 tokens, which is below the minimum 64,000 required by Hermes Agent ».
+    # L'optimum du banc (49152) était donc structurellement inéligible à Hermes, ce qui
+    # explique une part du « le local ne marche pas avec Hermes » : ce n'était pas le
+    # modèle, c'était un seuil d'admission.
+    # ⚠️ Ce réglage optimise pour le plancher de Hermes, PAS pour la qualité mesurée :
+    # au banc, 49152 donnait 34-41/44 et 131072 seulement 19/44 (un essai à 54693 tokens
+    # pour 10/44 — plus de place lui permet de tourner en rond plus longtemps). À rejouer
+    # au banc à cette valeur si on veut de nouveau savoir où on est.
+    # Coût VRAM contenu par la SWA : 9711 MiB à 32768, 9655 à 49152, 10831 à 131072.
+    context_size: 150000         # gemma-4 = 256k natif, donc pas de YaRN à cette valeur
     gpu_layers: 99
     f16: true
     flash_attention: true
