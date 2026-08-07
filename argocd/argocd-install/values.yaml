@@ -35,6 +35,30 @@ argo-cd:
   configs:
     cm:
       kustomize.buildOptions: "--enable-helm --load-restrictor=LoadRestrictionsNone"
+      # 2026-08-07 : posé à 300s pour réduire les écritures dans le datastore.
+      # Le cluster écrit ~273 entrées raft/minute (4 095 en 15 min, index dqlite à
+      # 4,7 M) soit ~4 Mo/min de segments, ~5,8 Go/jour sur le SSD SATA qui porte
+      # aussi les 167 Go de GGUF. La compaction kine, toutes les 5 minutes, tient
+      # alors le verrou SQLite assez longtemps pour faire expirer des baux :
+      # « update transaction failed for key /registry/leases/… : exec (try: 500):
+      # database is locked » → « leaderelection lost » → le process se tue.
+      # 927 occurrences en 3 jours ; hostpath-provisioner en est à 338 redémarrages,
+      # coredns 153, et kube-controller-manager / kube-scheduler sont touchés aussi.
+      # Périodicité prouvée : sur 6 h, 27 minutes distinctes touchées, 27 sur 27
+      # multiples de 5, 37/39 événements à la seconde 48 — donc la compaction, pas
+      # la contention disque des chargements de modèles (qui serait irrégulière).
+      #
+      # 37 Applications × réconciliation = la source d'écritures dominante suspectée
+      # (les 14 baux du cluster ne font que ~1,4 écriture/s sur les 4,5 mesurées ;
+      # l'attribution n'est PAS prouvée, seul le débit l'est).
+      #
+      # La valeur live était 120s — soit PLUS agressif que le défaut amont de 180s —
+      # et n'était déclarée nulle part dans ce dépôt : dérive sur un ConfigMap
+      # pourtant géré par Helm. La déclarer ici corrige la dérive en même temps.
+      # Contrepartie : un push met jusqu'à 5 min à s'appliquer au lieu de 2.
+      # Contrôle : recompter `journalctl -u snap.microk8s.daemon-kubelite | grep -c
+      # "database is locked"` — base de ~6,5/heure avant ce changement.
+      timeout.reconciliation: 300s
     params:
       # argocd-server sert en HTTP cleartext (TLS terminé par Traefik/cert-manager).
       # Pilote AUSSI le port backend de l'ingress vers "http" (80) au lieu de "https"
