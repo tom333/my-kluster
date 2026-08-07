@@ -156,16 +156,115 @@ class TestVerifieurAmorce:
         image.save(tampon, format="PNG")
         assert bench._part_dominante(tampon.getvalue()) < bench.PART_DOMINANTE_MAX
 
-    def test_le_scenario_declare_trois_etages_independants(self):
+    def test_trois_etages_construits_par_le_verificateur(self, monkeypatch):
         """Un score binaire confondrait « ne compile pas » et « compile mais plante ».
-        Trois étages rendent les tirages comparables."""
-        sc = bench.SCENARIOS["crepuscule-amorce"]
-        assert sc["expected_tests"] == 3
-        assert [nom for nom, _, _ in sc["etages"]] == ["build", "lancement", "rendu"]
-        assert sc["verifieur"] in bench.VERIFIEURS
+
+        Les trois étages viennent du VÉRIFICATEUR, pas d'une clé de scénario : les
+        déclarer en double a fait planter la première campagne. On vérifie donc qu'un
+        build raté produit bien les trois, tous à FAIL — parce qu'un étage OMIS se
+        lirait comme un étage réussi dans un agrégat.
+        """
+        sc = dict(bench.SCENARIOS["crepuscule-amorce"], sdk_bin="/inexistant")
+        passed, failed, _, issue, etages = bench._verifie_amorce_flutter("/tmp", sc)
+        assert sorted(etages) == ["build", "lancement", "rendu"]
+        assert (passed, failed) == (0, 3)
+        assert all(e["verdict"] == "FAIL" for e in etages.values())
+        assert issue == bench.ISSUE_COLLECTE
 
     def test_la_fixture_ne_contient_que_la_spec(self):
         """C'est TOUT l'intérêt du scénario : l'agent part d'un répertoire nu. Y
         glisser un squelette retirerait de la mesure la capacité « créer un projet »."""
         contenu = sorted(p.name for p in bench.SCENARIOS["crepuscule-amorce"]["fixture"].iterdir())
         assert contenu == ["SPEC.md"]
+
+
+class TestScenarioSansPytest:
+    """Un scénario noté autrement que par pytest ne doit pas passer par pytest.
+
+    La première campagne `crepuscule-amorce` est morte là-dessus : le banc mesure un
+    score de DÉPART avant de lancer l'agent, et il l'a fait en appelant pytest avec
+    `cibles=[None]` (TypeError). Même sans planter, la ligne « départ » n'aurait rien
+    voulu dire : le répertoire ne contient qu'une spec, aucun test ne peut exister.
+    """
+
+    def test_pas_de_faux_etages_pytest(self):
+        """La clé `etages` est réservée aux scénarios notés par un appel pytest PAR
+        FICHIER. `amorce-flutter` construit lui-même ses trois étages. Les déclarer en
+        double a fait lire la clé avec le mauvais sens."""
+        sc = bench.SCENARIOS["crepuscule-amorce"]
+        assert "etages" not in sc
+        assert sc["expected_tests"] == 3
+        assert sc["verifieur"] == "amorce-flutter"
+
+    def test_aucun_scenario_ne_cumule_verifieur_et_etages(self):
+        """Invariant : les deux voies de notation sont exclusives. Les cumuler rend
+        indéterminé qui produit le score."""
+        for nom, sc in bench.SCENARIOS.items():
+            assert not (sc.get("verifieur") and sc.get("etages")), nom
+
+    def test_tout_verifieur_declare_existe(self):
+        for nom, sc in bench.SCENARIOS.items():
+            if sc.get("verifieur"):
+                assert sc["verifieur"] in bench.VERIFIEURS, nom
+
+    def test_un_scenario_sans_pytest_en_declare_un_autre_moyen(self):
+        """Sans `pytest` ni `verifieur`, le banc retomberait sur le PYTEST global et
+        noterait un projet Dart avec un outil Python."""
+        for nom, sc in bench.SCENARIOS.items():
+            if sc.get("verifieur"):
+                continue
+            # Les scénarios Python utilisent le pytest global ou le leur : dans les
+            # deux cas la notation est définie. On vérifie surtout qu'aucun scénario
+            # n'est muet sur la façon dont il se note.
+            assert "expected_tests" in sc, nom
+
+
+class TestRacineProjet:
+    """Où est le projet : DÉCOUVERT, jamais supposé.
+
+    La première campagne `crepuscule-amorce` (2026-08-07) a noté 0/3 en partie parce
+    que le vérificateur cherchait l'APK à la RACINE du workdir, alors que l'agent avait
+    légitimement fait `flutter create amorce_crepuscule` — donc un sous-répertoire.
+    L'oracle aurait noté 0/3 sur un projet PARFAIT.
+    """
+
+    def test_projet_a_la_racine(self, tmp_path):
+        (tmp_path / "pubspec.yaml").write_text("name: x\n")
+        assert bench._racine_projet(str(tmp_path)) == tmp_path
+
+    def test_projet_dans_un_sous_repertoire(self, tmp_path):
+        """Le cas réel : `flutter create <nom>` crée un sous-répertoire."""
+        (tmp_path / "amorce").mkdir()
+        (tmp_path / "amorce" / "pubspec.yaml").write_text("name: x\n")
+        assert bench._racine_projet(str(tmp_path)) == tmp_path / "amorce"
+
+    def test_la_racine_gagne_sur_un_sous_repertoire(self, tmp_path):
+        """Un projet Flutter contient des `pubspec.yaml` imbriqués (exemples,
+        paquets) : le bon est le moins profond."""
+        (tmp_path / "pubspec.yaml").write_text("name: racine\n")
+        (tmp_path / "exemple").mkdir()
+        (tmp_path / "exemple" / "pubspec.yaml").write_text("name: exemple\n")
+        assert bench._racine_projet(str(tmp_path)) == tmp_path
+
+    def test_aucun_projet_rend_none(self, tmp_path):
+        """Et le vérificateur doit alors noter les trois étages ÉCHOUÉS avec un motif
+        lisible, pas planter."""
+        assert bench._racine_projet(str(tmp_path)) is None
+        sc = dict(bench.SCENARIOS["crepuscule-amorce"], sdk_bin="/inexistant")
+        passed, failed, notes, issue, etages = bench._verifie_amorce_flutter(
+            str(tmp_path), sc
+        )
+        assert (passed, failed) == (0, 3)
+        assert "pubspec" in notes
+        assert sorted(etages) == ["build", "lancement", "rendu"]
+
+    def test_identifiant_lu_depuis_la_racine_trouvee(self, tmp_path):
+        """L'`applicationId` doit être cherché DANS le projet, pas dans le workdir."""
+        projet = tmp_path / "amorce"
+        (projet / "android" / "app").mkdir(parents=True)
+        (projet / "pubspec.yaml").write_text("name: x\n")
+        (projet / "android" / "app" / "build.gradle.kts").write_text(
+            'applicationId = "com.crepuscule.amorce"\n'
+        )
+        racine = bench._racine_projet(str(tmp_path))
+        assert bench._identifiant_application(racine) == "com.crepuscule.amorce"

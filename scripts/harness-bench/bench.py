@@ -314,10 +314,11 @@ SCENARIOS = {
         "expected_tests": 3,
         "protected": (),
         "check_api": False,
-        # Trois etages independants : un projet qui compile mais plante au lancement
-        # doit se distinguer d'un projet qui ne compile pas. Un score binaire
-        # confondrait les deux et rendrait les tirages incomparables.
-        "etages": (("build", None, 1), ("lancement", None, 1), ("rendu", None, 1)),
+        # PAS de cle `etages` ici : elle est reservee aux scenarios notes par un
+        # appel pytest PAR FICHIER, et le verificateur `amorce-flutter` construit
+        # lui-meme ses trois etages (build / lancement / rendu). Les declarer en
+        # double a fait planter la premiere campagne -- une cle qui porte deux sens
+        # finit par etre lue avec le mauvais.
     },
     "pronote": {
         "fixture": HERE / "fixture-pronote",
@@ -695,6 +696,44 @@ def _part_dominante(png):
     return max(n for n, _ in couleurs) / total
 
 
+def _racine_projet(workdir):
+    """Repertoire du projet Flutter : celui qui contient `pubspec.yaml`. None sinon.
+
+    DECOUVERTE STRUCTURELLE et non supposition. La premiere campagne du 2026-08-07 a
+    note 0/3 en partie parce que ce verificateur cherchait l'APK a la RACINE du
+    workdir, alors que l'agent avait legitimement fait
+    `flutter create amorce_crepuscule` -- donc un sous-repertoire. L'oracle aurait
+    note 0/3 sur un projet PARFAIT.
+
+    On prend le plus PROCHE de la racine : un projet Flutter contient des
+    `pubspec.yaml` imbriques (exemples, paquets), et le bon est le moins profond.
+    """
+    racine = Path(workdir)
+    if (racine / "pubspec.yaml").is_file():
+        return racine
+    trouves = sorted(
+        (c.parent for c in racine.glob("*/pubspec.yaml") if c.is_file()),
+        key=lambda c: len(str(c)),
+    )
+    return trouves[0] if trouves else None
+
+
+def _lance(argv, **kw):
+    """subprocess.run qui ne LEVE JAMAIS. Rend (code, sortie).
+
+    Un binaire absent (SDK mal declare, `adb` introuvable) faisait remonter un
+    FileNotFoundError et tuait la CAMPAGNE ENTIERE au lieu de noter un etage echoue.
+    Trouve par un test, pas en production -- mais c'est exactement la classe de defaut
+    qui a fait perdre des heures aujourd'hui : l'outil de mesure qui tombe au lieu de
+    rapporter.
+    """
+    try:
+        fin = subprocess.run(argv, capture_output=True, text=True, **kw)
+        return fin.returncode, (fin.stdout or "") + (fin.stderr or "")
+    except (OSError, subprocess.SubprocessError) as exc:
+        return -1, "%s : %s" % (type(exc).__name__, exc)
+
+
 def _verifie_amorce_flutter(workdir, scenario):
     """(passed, failed, tail, issue, etages) pour `crepuscule-amorce`.
 
@@ -706,6 +745,8 @@ def _verifie_amorce_flutter(workdir, scenario):
     flutter = str(Path(sdk) / "flutter") if sdk else "flutter"
     adb = scenario.get("adb") or "adb"
     etages, notes = {}, []
+    # OU est le projet : trouve, jamais suppose (cf. _racine_projet).
+    projet = _racine_projet(workdir)
 
     def etage(nom, ok, detail=""):
         etages[nom] = {
@@ -720,13 +761,15 @@ def _verifie_amorce_flutter(workdir, scenario):
         return ok
 
     # 1. MECANIQUE : est-ce que ca compile ?
-    fin = subprocess.run(
-        [flutter, "build", "apk", "--debug"],
-        cwd=workdir, capture_output=True, text=True, timeout=1800,
-    )
-    apk = Path(workdir) / "build/app/outputs/flutter-apk/app-debug.apk"
-    if not etage("build", fin.returncode == 0 and apk.exists(),
-                 (fin.stdout or fin.stderr or "")[-300:] if fin.returncode else ""):
+    if projet is None:
+        for nom in ("build", "lancement", "rendu"):
+            etage(nom, False, "aucun pubspec.yaml : pas de projet Flutter")
+        return 0, 3, "\n".join(notes), ISSUE_COLLECTE, etages
+    if projet != Path(workdir):
+        notes.append("[projet] %s" % projet.relative_to(workdir))
+    code, sortie = _lance([flutter, "build", "apk", "--debug"], cwd=str(projet), timeout=1800)
+    apk = projet / "build/app/outputs/flutter-apk/app-debug.apk"
+    if not etage("build", code == 0 and apk.exists(), sortie[-300:] if code else ""):
         # Sans APK, les deux etages suivants n'ont rien a mesurer. On les note
         # echoues explicitement plutot que de les omettre : un etage absent se lirait
         # comme un etage reussi dans un agregat.
@@ -735,31 +778,32 @@ def _verifie_amorce_flutter(workdir, scenario):
         return 0, 3, "\n".join(notes), ISSUE_COLLECTE, etages
 
     # 2. MECANIQUE : est-ce que ca s'installe et reste vivant ?
-    identifiant = _identifiant_application(workdir)
+    identifiant = _identifiant_application(projet)
     if identifiant is None:
         etage("lancement", False, "applicationId introuvable dans android/app/build.gradle*")
         etage("rendu", False, "applicationId inconnu")
         return 1, 2, "\n".join(notes), ISSUE_OK, etages
-    subprocess.run([adb, "install", "-r", str(apk)], capture_output=True, timeout=600)
-    subprocess.run(
+    _lance([adb, "install", "-r", str(apk)], timeout=600)
+    _lance(
         [adb, "shell", "monkey", "-p", identifiant,
          "-c", "android.intent.category.LAUNCHER", "1"],
-        capture_output=True, timeout=120,
+        timeout=120,
     )
     time.sleep(DELAI_LANCEMENT_S)
-    vivant = subprocess.run(
-        [adb, "shell", "pidof", identifiant], capture_output=True, text=True, timeout=60
-    )
-    if not etage("lancement", bool((vivant.stdout or "").strip()),
+    _, pid = _lance([adb, "shell", "pidof", identifiant], timeout=60)
+    if not etage("lancement", bool(pid.strip()),
                  "processus absent apres %ds" % DELAI_LANCEMENT_S):
         etage("rendu", False, "application non lancee")
         return 1, 2, "\n".join(notes), ISSUE_OK, etages
 
     # 3. HEURISTIQUE : est-ce que quelque chose est dessine ?
-    capture = subprocess.run(
-        [adb, "exec-out", "screencap", "-p"], capture_output=True, timeout=120
-    )
-    part = _part_dominante(capture.stdout or b"")
+    try:
+        capture = subprocess.run(
+            [adb, "exec-out", "screencap", "-p"], capture_output=True, timeout=120
+        ).stdout or b""
+    except (OSError, subprocess.SubprocessError):
+        capture = b""
+    part = _part_dominante(capture)
     if part is None:
         etage("rendu", False, "capture illisible (Pillow absent ?)")
     else:
@@ -1284,6 +1328,10 @@ def nu_command(model, workdir, prompt):
         # qu'il en emet sur `columns-web` ou la tache est de CREER des fichiers.
         # a3b, meme scenario, appelle `edit` 3 fois par tirage.
         ("HARNAIS_NU_CONVENTION_OUTILS", "--convention-outils"),
+        # A remonter pour tout scenario qui COMPILE : `flutter build apk` prend 73 s
+        # au mieux, or le defaut de `bash` est 60 s. Sans ca, le harnais tuerait
+        # chaque tentative et le banc mesurerait sa propre limite.
+        ("HARNAIS_NU_DELAI_BASH", "--delai-bash"),
     ):
         if os.environ.get(var):
             verify += [drapeau, os.environ[var]]
@@ -1668,7 +1716,13 @@ def run_once(harness, model, scenario_name, timeout, essai=1, total=1):
     # suite. Le verdict n'en dependait pas, mais la ligne se lisait « part de zero ».
     if scenario.get("oracle"):
         shutil.copy(scenario["oracle"], workdir / Path(scenario["oracle"]).name)
-    if scenario.get("etages"):
+    if scenario.get("verifieur"):
+        # Rien a mesurer AVANT : `crepuscule-amorce` part d'un repertoire qui ne
+        # contient qu'une spec, donc aucun test ne peut exister. Lancer pytest la
+        # dessus a plante la premiere campagne (TypeError sur un `cibles=[None]`),
+        # et meme sans planter la ligne « depart » n'aurait rien voulu dire.
+        before = (0, 0, "", None)
+    elif scenario.get("etages"):
         p = f = 0
         for _, fichier, _ in scenario["etages"]:
             pe, fe, _, _ = run_pytest(
