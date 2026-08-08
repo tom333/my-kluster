@@ -22,6 +22,23 @@ notify() {
   [ "$code" = "200" ] || echo "WARN notify: Telegram http=$code — non délivré" >&2
 }
 
+# Clé DÉDIÉE, sans passphrase, pour les opérations git de ce cron.
+#
+# Pourquoi : ~/.ssh/config route github.com vers ~/.ssh/id_github, qui EST protégée
+# par passphrase — donc utilisable seulement via un agent, que cron n'a pas. D'où
+# « git@github.com: Permission denied (publickey) ». Diagnostic du 2026-08-09 : le
+# défaut était LATENT depuis l'installation. Les jours « aucun changement à
+# capturer » sortaient avant d'atteindre le réseau, donc rien n'échouait ; seuls le
+# 30/07 puis les 07 et 08/08, quand il y avait vraiment de l'état à pousser, ont
+# revélé le problème. Un cron qui ne touche son point de défaillance qu'un jour sur
+# dix met dix jours à se signaler.
+#
+# `IdentitiesOnly=yes` est indispensable : sans lui ssh proposerait d'abord les clés
+# de l'agent ou de ~/.ssh/config et GitHub refuserait avant d'arriver à celle-ci.
+# La clé est une *deploy key* limitée à ce seul dépôt, pas une clé de compte : elle
+# n'ouvre rien d'autre, et la clé interactive garde sa passphrase.
+export GIT_SSH_COMMAND="ssh -i ${HOME:-/home/moi}/.ssh/id_hermes_state -o IdentitiesOnly=yes -o BatchMode=yes"
+
 cd "$HERE" || exit 2
 echo "=== $(date -u +%FT%TZ) hermes-state export ==="
 sortie=$("$UV" run --quiet --with pyyaml python hermes_state.py export --commit 2>&1)
