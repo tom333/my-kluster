@@ -65,7 +65,24 @@ resources:
     # request CPU = plancher de scheduling ; avec la PriorityClass, LocalAI
     # préempte pour tenir donc pas besoin de la rogner. 500m raisonnable.
     cpu: "500m"
-    memory: 32Gi
+    # 2026-08-09 : 32Gi -> 4Gi. Les 32Gi dimensionnaient le PIRE cas, KAT avec ses
+    # experts MoE en RAM (`-ncmoe 24`, ~17-21 Go). Mais le modèle courant est
+    # gemma-4-12b-it-qat, qui tourne en `gpu_layers: 99` sans aucun offload CPU.
+    # MESURE, gemma entièrement chargé (11 098 MiB de VRAM) : le pod occupe
+    # 1790 Mi de RAM, stable sur trois relevés — dont 1,64 Go pour le backend
+    # llama-cpp et 0,09 Go pour local-ai. 4Gi laisse donc 2,2x de marge.
+    #
+    # Ce que ça libère : la request est ce qui GOUVERNE l'ordonnancement, et
+    # LocalAI en immobilisait 32 Gi sur les 49,4 Gi réservés du nœud, soit 65 %,
+    # pour une consommation réelle quasi nulle la plupart du temps (le pod
+    # n'apparaissait même pas au classement mémoire quand aucun modèle n'est
+    # chargé : 71 Mi). Le nœud passe d'environ 80 % à 35 % de réservation.
+    #
+    # ⚠️ La LIMITE reste à 56Gi volontairement : elle ne réserve rien, elle borne.
+    # Un retour à KAT reste donc possible sans OOM — il ne sera simplement plus
+    # *garanti* schedulable si le nœud se remplit entre-temps. Si KAT redevient le
+    # modèle courant, remonter cette request à ~24Gi.
+    memory: 4Gi
     nvidia.com/gpu: 1
 
 env:
