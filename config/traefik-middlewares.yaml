@@ -42,6 +42,18 @@ spec:
   ipAllowList:
     sourceRange: ["192.168.88.0/24", "10.1.0.0/16"]
 ---
+# hindsight — mémoire d'agent (UI 9999 + API/MCP 8888). Aucune authentification
+# native n'est activée côté serveur (l'extension tenant est optionnelle), donc
+# cette liste d'adresses EST la porte. Ne pas exposer au WAN sans auth devant.
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: lan-only
+  namespace: hindsight
+spec:
+  ipAllowList:
+    sourceRange: ["192.168.88.0/24", "10.1.0.0/16"]
+---
 apiVersion: traefik.io/v1alpha1
 kind: Middleware
 metadata:

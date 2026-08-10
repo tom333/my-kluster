@@ -144,10 +144,50 @@ spec:
                 port: 8888
               ui:
                 port: 9999
-        # Pas d'ingress pour l'instant : on valide d'abord que ça démarre et que la
-        # consolidation via gemma tient. L'UI s'atteint au port-forward. Une fois
-        # adopté, exposer 9999 en LAN-only (Middleware ipAllowList du namespace,
-        # le cross-namespace étant interdit par défaut sous Traefik).
+        # DEUX hôtes plutôt qu'un seul avec des chemins : l'UI (9999) et l'API
+        # (8888) sont deux serveurs distincts, et l'UI appelle l'API depuis le
+        # navigateur — router `/mcp` d'un côté et `/` de l'autre casserait ses
+        # requêtes. Le MCP se trouve sous /mcp/{banque}/ de l'API.
+        #
+        # ⚠️ AUCUNE authentification native n'est active (l'extension tenant est
+        # optionnelle et non configurée). L'ipAllowList EST donc la seule porte —
+        # d'où LAN uniquement, jamais de WAN sans une auth devant. Même posture que
+        # searxng et beszel ; à l'opposé de `shell` qui exige oauth2-proxy.
+        ingress:
+          ui:
+            enabled: true
+            className: traefik
+            annotations:
+              cert-manager.io/cluster-issuer: "letsencrypt-prod"
+              traefik.ingress.kubernetes.io/router.middlewares: hindsight-lan-only@kubernetescrd
+            hosts:
+              - host: hindsight.tgu.ovh
+                paths:
+                  - path: /
+                    pathType: Prefix
+                    service:
+                      identifier: main
+                      port: ui
+            tls:
+              - hosts: [hindsight.tgu.ovh]
+                secretName: hindsight-tls
+          api:
+            enabled: true
+            className: traefik
+            annotations:
+              cert-manager.io/cluster-issuer: "letsencrypt-prod"
+              traefik.ingress.kubernetes.io/router.middlewares: hindsight-lan-only@kubernetescrd
+            hosts:
+              - host: hindsight-api.tgu.ovh
+                paths:
+                  - path: /
+                    pathType: Prefix
+                    service:
+                      identifier: main
+                      port: api
+            tls:
+              - hosts: [hindsight-api.tgu.ovh]
+                secretName: hindsight-api-tls
         persistence:
           data:
             enabled: true
