@@ -1,0 +1,154 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  # Hindsight (vectorize-io) — mémoire d'agent auto-hébergée, licence MIT.
+  #
+  # POURQUOI. Les deux mémoires du parc sont disjointes et l'une est vide :
+  #   - Claude Code : 36 fichiers curés à la main, 196 Ko, index de 32 entrées ;
+  #   - Hermes : `hermes memory status` dit « enabled ✓ » mais MEMORY.md et USER.md
+  #     N'EXISTENT PAS sur le PVC. Il n'a donc pas de mémoire, il a un historique —
+  #     330 sessions, 15 998 messages, 502 Mo de state.db — qu'il ne sait que
+  #     grepper (FTS5 + trigram, mot-clé uniquement).
+  # Ce que Hindsight apporte et que personne ne fait ici : récupération par graphe
+  # et temporelle (TEMPR), et surtout la CONSOLIDATION (dédoublonnage, traçabilité
+  # des sources). Exposé en MCP, il peut servir Hermes ET Claude Code — donc le
+  # substrat partagé qui manque, au lieu d'une quatrième mémoire disjointe.
+  #
+  # ⚠️ Le pari n'est pas gagné d'avance : le problème de Hermes n'est pas
+  # l'algorithme de récupération, c'est que rien n'écrit. Brancher de la machinerie
+  # sophistiquée sur une mémoire vide donne une mémoire vide bien indexée. À
+  # évaluer sur pièce, pas à adopter d'office.
+  #
+  # PLACEMENT. Sur `pc` faute de mieux : le nœud `jeux`, qui avait 8 Gi de marge,
+  # est injoignable depuis le 2026-08-09 01:57Z. À reconsidérer à son retour.
+  name: hindsight
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: hindsight
+    server: https://kubernetes.default.svc
+  project: infra-project
+  source:
+    repoURL: https://bjw-s-labs.github.io/helm-charts
+    chart: app-template
+    targetRevision: 5.0.1
+    helm:
+      values: |
+        controllers:
+          hindsight:
+            type: deployment
+            strategy: Recreate          # PostgreSQL embarqué sur PVC RWO : un seul writer
+            pod:
+              # `jeux` est mort ; et même à son retour ce pod n'a rien à y faire
+              # tant qu'on n'a pas mesuré son empreinte réelle.
+              nodeSelector:
+                kubernetes.io/hostname: pc
+            initContainers:
+              # microk8s-hostpath IGNORE fsGroup (quirk connu, déjà contourné pour
+              # hermes). L'image tourne sous l'utilisateur `hindsight` — un NOM, pas
+              # un uid numérique, donc impossible à deviner depuis le manifeste.
+              # D'où cet initContainer bâti sur LA MÊME IMAGE, lancé en root : il
+              # résout le nom via son propre /etc/passwd. Aucun uid codé en dur.
+              fix-ownership:
+                image:
+                  repository: ghcr.io/vectorize-io/hindsight
+                  tag: "0.9.0"
+                command: ["sh", "-c"]
+                args:
+                  - |
+                    set -e
+                    mkdir -p /home/hindsight/.pg0
+                    chown -R hindsight:hindsight /home/hindsight/.pg0
+                    ls -ldn /home/hindsight/.pg0
+                securityContext:
+                  runAsUser: 0
+            containers:
+              main:
+                image:
+                  repository: ghcr.io/vectorize-io/hindsight
+                  # Les tags ghcr perdent le "v" initial : release v0.9.0 -> image
+                  # 0.9.0. Même convention que crw. `latest` volontairement écarté.
+                  tag: "0.9.0"
+                  pullPolicy: IfNotPresent
+                env:
+                  # ── LLM : le modèle DÉJÀ courant, et c'est délibéré ────────────
+                  # LOCALAI_SINGLE_ACTIVE_BACKEND=true n'évince que si on demande un
+                  # modèle DIFFÉRENT. Hermes utilise déjà gemma-4-12b-it-qat : viser
+                  # le même évite toute éviction en régime normal. Le conflit ne
+                  # surgira que pendant une campagne de banc sur un autre modèle.
+                  # `lmstudio` = simple façade OpenAI-compatible ; c'est BASE_URL qui
+                  # décide réellement de la destination.
+                  HINDSIGHT_API_LLM_PROVIDER: lmstudio
+                  HINDSIGHT_API_LLM_BASE_URL: http://localai.localai.svc.cluster.local:8080/v1
+                  HINDSIGHT_API_LLM_MODEL: gemma-4-12b-it-qat
+                  HINDSIGHT_API_LLM_API_KEY:
+                    valueFrom:
+                      secretKeyRef: { name: hindsight-llm-key, key: api-key }
+                  # La doc exige 65 000 tokens de SORTIE par défaut ; elle documente
+                  # aussi ce garde-fou pour les modèles plus modestes. Doit rester
+                  # supérieur à RETAIN_CHUNK_SIZE (défaut 3000), validé au démarrage.
+                  HINDSIGHT_API_RETAIN_MAX_COMPLETION_TOKENS: "16000"
+                  # ── Embeddings : multilingue, mais LÉGER ───────────────────────
+                  # bge-m3 est le meilleur multilingue mais pèse ~2,2 Go de RAM.
+                  # paraphrase-multilingual-MiniLM (50+ langues) est annoncé
+                  # « Lighter weight » (~0,5 Go) — le bon compromis ici, où tout le
+                  # contenu est en français et où le nœud est le seul disponible.
+                  HINDSIGHT_API_EMBEDDINGS_LOCAL_MODEL: sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
+                  # ── Reranker : AUCUN, et c'est un choix ────────────────────────
+                  # Le défaut `cross-encoder/ms-marco-MiniLM-L-6-v2` est ANGLAIS
+                  # UNIQUEMENT (dit par la doc) ; sur du contenu français il
+                  # classerait moins bien que pas de reranker du tout. L'alternative
+                  # multilingue bge-reranker-v2-m3 coûte encore ~2,2 Go.
+                  # `rrf` = fusion de rangs pure : « results come back in the order
+                  # the retrieval stages produced, exactly as if no reranker were
+                  # configured ». Zéro mémoire, zéro faux classement.
+                  HINDSIGHT_API_RERANKER_PROVIDER: rrf
+                  # BM25 côté PostgreSQL : le backend `native` gère le français sans
+                  # extension supplémentaire.
+                  HINDSIGHT_API_TEXT_SEARCH_EXTENSION_NATIVE_LANGUAGE: french
+                  # Consolidation et entretien du graphe EN SÉRIE plutôt qu'en
+                  # éventail sur les cœurs — le nœud porte aussi LocalAI, Whisper et
+                  # une session de bureau.
+                  HINDSIGHT_API_DB_MAX_PARALLEL_WORKERS_PER_GATHER: "0"
+                resources:
+                  # Doc : 1,5-2 Go pour l'image complète, +~0,5 Go pour l'embedder
+                  # multilingue. La request reste basse : c'est elle qui gouverne
+                  # l'ordonnancement, et le nœud vient tout juste de repasser de 80 %
+                  # à 34 % de réservation.
+                  requests: { cpu: "100m", memory: 1Gi }
+                  limits:   { cpu: "2",    memory: 4Gi }
+                probes:
+                  # Premier démarrage : téléchargement du modèle d'embeddings +
+                  # initialisation du PostgreSQL embarqué. 10s x 90 = 15 min.
+                  startup:   { enabled: true, custom: true, spec: { tcpSocket: { port: 8888 }, periodSeconds: 10, failureThreshold: 90 } }
+                  liveness:  { enabled: true, custom: true, spec: { tcpSocket: { port: 8888 }, periodSeconds: 30, timeoutSeconds: 5, failureThreshold: 3 } }
+                  readiness: { enabled: true, custom: true, spec: { tcpSocket: { port: 8888 }, periodSeconds: 15, timeoutSeconds: 5, failureThreshold: 3 } }
+        service:
+          main:
+            controller: hindsight
+            ports:
+              api:
+                port: 8888
+              ui:
+                port: 9999
+        # Pas d'ingress pour l'instant : on valide d'abord que ça démarre et que la
+        # consolidation via gemma tient. L'UI s'atteint au port-forward. Une fois
+        # adopté, exposer 9999 en LAN-only (Middleware ipAllowList du namespace,
+        # le cross-namespace étant interdit par défaut sous Traefik).
+        persistence:
+          data:
+            enabled: true
+            type: persistentVolumeClaim
+            storageClass: microk8s-hostpath
+            accessMode: ReadWriteOnce
+            size: 10Gi
+            globalMounts:
+              - path: /home/hindsight/.pg0
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      selfHeal: true
+      prune: true

@@ -1,0 +1,15 @@
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  creationTimestamp: null
+  name: hindsight-llm-key
+  namespace: hindsight
+spec:
+  encryptedData:
+    api-key: AgAmX/jxmx40fJxy6T1FiCTKnCfJs8LGr9ppVx2DCZW2BllY2hFH91jWdvFYRVrxzY52HASgIYbNQ2BIjhTJUi1N9mZGvg8HoYVcehJb15ZPEp4Ypkt/yeazEKwhnhjTXYlRXw9TqSw+byR1FT7OkZTtvyoDUA2kZCDIcCyYRQ3TzsFMrZV8yGjGFCm+CTSBIhLDCoxsthYepo3mP2yVbufIJ9NJgKcN6artSUpfNYFVCBiZ03R8piG+dBARh3veKLi38BO4WIgpvChYAHhU2qcwkn2xExGE27hV4kg+nG8SOYOi2EUJqPWHfnLLkLphs9pF8Vtic+DcrxMFHfXqjZVyb3HCTgxXLAVsHqCSRkgMqkXnly09zOA9gC0XTUoUdMhHZJyA85Ddd+me+CCO6FXFH+BBIoVgdMtyEFM5BIKsPQOU7N44IyOSD51/3r8JciRCwlWD8szdWTd6Cwcx2XtCXGST5TgyEZ8fUDa8TwMLiMvJjdh2RMEvtO0PqiouM/BoVihP5HrBwb44y00vRsAO6YuT2BJffbuV2TpJMv/zSQn1aCkI5bpSGkTmrfjPF1Rqmg5oQCAzBJ7uLEgslRCiQdwOoRiHmdNB5D5WtaiJR8vmwDhHjjFnHPTk1iY07NbqQH30+TAiu2/USnM2nk1PP+o4T7nRJ5gj/yPoWKNBCxvbnRTJNN9AYQZdwWNdyKPj5PmdTh6NsH/woWj++nggEDBUmY9akDMOEx7PNeUkohthYUV1tD0h8hW4bQ==
+  template:
+    metadata:
+      creationTimestamp: null
+      name: hindsight-llm-key
+      namespace: hindsight
