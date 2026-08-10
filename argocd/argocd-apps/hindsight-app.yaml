@@ -100,7 +100,20 @@ spec:
                   # La doc exige 65 000 tokens de SORTIE par défaut ; elle documente
                   # aussi ce garde-fou pour les modèles plus modestes. Doit rester
                   # supérieur à RETAIN_CHUNK_SIZE (défaut 3000), validé au démarrage.
-                  HINDSIGHT_API_RETAIN_MAX_COMPLETION_TOKENS: "16000"
+                  # 16000 -> 8000 le 2026-08-10 : une extraction réelle mesurée sur ce
+                  # cluster a consommé 3 967 tokens de sortie, donc 8000 laisse le
+                  # double de marge tout en divisant par deux le pire cas.
+                  HINDSIGHT_API_RETAIN_MAX_COMPLETION_TOKENS: "8000"
+                  # Le défaut de 120 s est dimensionné pour une API distante rapide.
+                  # Ici gemma tourne en local sur une RTX 3060 : une extraction
+                  # mesurée a pris 57 s pour un texte de trois phrases, et le premier
+                  # `retain` réel a échoué sur
+                  #   « APIConnectionError (HTTP None), attempt 1: Request timed out »
+                  # C'est le client de Hindsight qui abandonnait, pas gemma qui
+                  # refusait. 900 s couvre largement le pire cas à 8000 tokens de
+                  # sortie et ~40-60 tok/s, chargement du modèle compris (68 s
+                  # mesurés à froid).
+                  HINDSIGHT_API_LLM_TIMEOUT: "900"
                   # ── Embeddings : multilingue, mais LÉGER ───────────────────────
                   # bge-m3 est le meilleur multilingue mais pèse ~2,2 Go de RAM.
                   # paraphrase-multilingual-MiniLM (50+ langues) est annoncé
