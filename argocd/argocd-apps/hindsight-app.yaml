@@ -73,6 +73,17 @@ spec:
                   tag: "0.9.0"
                   pullPolicy: IfNotPresent
                 env:
+                  # OBLIGATOIRE ici, et le logiciel le dit lui-même au démarrage :
+                  #   « The worker id is defaulting to the container hostname, which
+                  #     CHANGES every time the container is recreated. When that
+                  #     happens, tasks left in 'processing' under the old hostname are
+                  #     never recovered — consolidation and other async operations can
+                  #     get stuck indefinitely. »
+                  # Sur un Deployment le nom du pod porte un suffixe aléatoire, donc
+                  # chaque redémarrage orphelinerait les tâches en cours — et la
+                  # consolidation est précisément ce pourquoi ce service existe. Une
+                  # valeur stable, indépendante du nom du pod.
+                  HINDSIGHT_API_WORKER_ID: hindsight
                   # ── LLM : le modèle DÉJÀ courant, et c'est délibéré ────────────
                   # LOCALAI_SINGLE_ACTIVE_BACKEND=true n'évince que si on demande un
                   # modèle DIFFÉRENT. Hermes utilise déjà gemma-4-12b-it-qat : viser
