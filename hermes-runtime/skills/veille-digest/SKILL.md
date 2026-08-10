@@ -128,43 +128,55 @@ curl -sL 'https://hn.algolia.com/api/v1/search_by_date?query=<terme>&numericFilt
 - Ne RECONSTRUIS JAMAIS une URL depuis le texte du lien.
 - Pas de href fiable → mets l'URL de la page source. N'invente jamais d'URL.
 
-### 4. Sortie Telegram
+### 4. Consigner dans la mémoire (tool `mcp__hindsight__retain`)
+
+⚠️ CET ORDRE EST VOLONTAIRE : consigner vient AVANT la sortie Telegram.
+
+Livrer le digest est ta réponse finale, et une réponse finale TERMINE LE TOUR — tout ce
+qui est demandé « après » n'arrive jamais. Constaté le 2026-08-10 : deux exécutions de
+suite ont ignoré cette étape quand elle était placée après la livraison, alors que le
+modèle allait bien chercher l'outil. Inversée, elle est appelée du premier coup. C'est
+le même mécanisme que le contrat de terminaison d'un harnais : ce qui suit la réponse
+finale n'existe pas.
+
+Donc : quand le digest est RÉDIGÉ et avant de l'envoyer, appelle
+
+```
+mcp__hindsight__retain(
+  content = <le digest que tu vas livrer, en texte>,
+  context = "veille",
+  tags    = [<le nom du job>]
+)
+```
+
+L'outil n'est PAS visible par défaut — il est différé. Va le chercher avec
+`tool_search`, comme tu le fais pour les outils `mcp__veille__*`.
+
+Puis livre le digest, sans mentionner cet appel.
+
+POURQUOI. Le digest part sur Telegram et s'y perd : rien ne le rend interrogeable trois
+mois plus tard. Hindsight en extrait des faits atomiques, datés et reliés — « quand
+ai-je vu passer X pour la première fois ? » devient une question à laquelle on peut
+répondre. La déduplication txtai de l'étape 1 évite de REDIRE deux fois la même chose ;
+celle-ci évite de PERDRE ce qui a été dit.
+
+⚠️ NE RETIENS RIEN si le digest est un « rien de neuf ». Un `retain` coûte environ
+70 secondes de GPU sur le modèle local (mesuré le 2026-08-10), et consigner une absence
+n'apprend rien tout en évinçant le modèle pour les autres usages.
+
+⚠️ Une source en ERREUR n'est pas une source vide : si tu as signalé une source non
+consultée, dis-le aussi dans ce que tu retiens. Un trou connu vaut mieux qu'un silence
+pris pour une absence de nouveauté.
+
+`retain` est ASYNCHRONE : il rend la main immédiatement (mesuré à 0,02 s), l'extraction
+se fait en tâche de fond. N'attends pas sa réponse et ne la commente pas.
+
+### 5. Sortie Telegram
 - Livre UNIQUEMENT le résultat final. PAS de plan, PAS de next_steps, PAS de JSON
   brut, PAS de description de ta démarche.
 - Suis exactement le format demandé par le job.
 - Si AUCUN item nouveau vs le digest précédent : envoie uniquement le message
   « rien de neuf » fourni par le job. Rien d'autre.
-
-### 5. Consigner dans la mémoire (tool `mcp__hindsight__retain`)
-
-APRÈS avoir livré le digest sur Telegram, et SEULEMENT si tu as trouvé quelque chose,
-appelle `mcp__hindsight__retain` avec le contenu du digest.
-
-```
-mcp__hindsight__retain(
-  content = <le digest que tu viens de livrer, en texte>,
-  context = "veille",
-  tags    = [<le nom du job, ex: "harnais-et-agents-veille">]
-)
-```
-
-POURQUOI. Le digest part sur Telegram et s'y perd : rien ne le rend interrogeable
-trois mois plus tard. Hindsight en extrait des faits datés et reliés, donc « quand
-ai-je vu passer X pour la première fois ? » devient une question à laquelle on peut
-répondre. La déduplication via txtai (étape 1) évite de redire deux fois la même
-chose dans un digest ; celle-ci évite de PERDRE ce qui a été dit.
-
-⚠️ NE RETIENS RIEN si le digest est un « rien de neuf ». Un `retain` coûte environ
-70 secondes de GPU sur le modèle local (mesuré le 2026-08-10), et consigner
-« rien de nouveau cette semaine » n'apprend rien à personne tout en évinçant le
-modèle pour les autres usages.
-
-⚠️ Une source en ERREUR n'est pas une source vide : si tu as signalé une source non
-consultée, dis-le aussi dans ce qui est retenu. Un trou connu vaut mieux qu'un
-silence pris pour une absence de nouveauté.
-
-`retain` est ASYNCHRONE : il rend la main tout de suite, l'extraction se fait en
-tâche de fond. N'attends pas sa réponse et ne la commente pas dans le digest.
 
 ### 3ter. Candidat modèle local (veille modèles/LLM uniquement, sinon SAUTE)
 
