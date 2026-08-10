@@ -135,6 +135,37 @@ curl -sL 'https://hn.algolia.com/api/v1/search_by_date?query=<terme>&numericFilt
 - Si AUCUN item nouveau vs le digest précédent : envoie uniquement le message
   « rien de neuf » fourni par le job. Rien d'autre.
 
+### 5. Consigner dans la mémoire (tool `mcp__hindsight__retain`)
+
+APRÈS avoir livré le digest sur Telegram, et SEULEMENT si tu as trouvé quelque chose,
+appelle `mcp__hindsight__retain` avec le contenu du digest.
+
+```
+mcp__hindsight__retain(
+  content = <le digest que tu viens de livrer, en texte>,
+  context = "veille",
+  tags    = [<le nom du job, ex: "harnais-et-agents-veille">]
+)
+```
+
+POURQUOI. Le digest part sur Telegram et s'y perd : rien ne le rend interrogeable
+trois mois plus tard. Hindsight en extrait des faits datés et reliés, donc « quand
+ai-je vu passer X pour la première fois ? » devient une question à laquelle on peut
+répondre. La déduplication via txtai (étape 1) évite de redire deux fois la même
+chose dans un digest ; celle-ci évite de PERDRE ce qui a été dit.
+
+⚠️ NE RETIENS RIEN si le digest est un « rien de neuf ». Un `retain` coûte environ
+70 secondes de GPU sur le modèle local (mesuré le 2026-08-10), et consigner
+« rien de nouveau cette semaine » n'apprend rien à personne tout en évinçant le
+modèle pour les autres usages.
+
+⚠️ Une source en ERREUR n'est pas une source vide : si tu as signalé une source non
+consultée, dis-le aussi dans ce qui est retenu. Un trou connu vaut mieux qu'un
+silence pris pour une absence de nouveauté.
+
+`retain` est ASYNCHRONE : il rend la main tout de suite, l'extraction se fait en
+tâche de fond. N'attends pas sa réponse et ne la commente pas dans le digest.
+
 ### 3ter. Candidat modèle local (veille modèles/LLM uniquement, sinon SAUTE)
 
 Le modèle courant est celui vers lequel pointe l'alias `current` de LocalAI
