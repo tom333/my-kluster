@@ -4,6 +4,6 @@
   "description": "Development tools for HA-Pronote",
   "private": true,
   "devDependencies": {
-    "pyright": "1.1.411"
+    "pyright": "1.1.412"
   }
 }
