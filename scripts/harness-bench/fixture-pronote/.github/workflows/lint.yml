@@ -39,7 +39,7 @@ jobs:
           cache-dependency-glob: "requirements*.txt"
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38  # v6.5.0
         with:
-          node-version: "22"
+          node-version: "24"
       - run: uv pip install --system -r requirements_test.txt
       - run: npm install
       - run: npx pyright
