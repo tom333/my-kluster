@@ -6,7 +6,7 @@ homeassistant==2026.8.2
 # Custom-component test harness (provides hass fixture, MockConfigEntry, etc.)
 # Pulls pytest 9.x, pytest-asyncio 1.3.x, freezegun 1.5.x, requests-mock 1.12.x,
 # syrupy 5.1.x, respx 0.23.x — all transitively.
-pytest-homeassistant-custom-component==0.13.355
+pytest-homeassistant-custom-component==0.13.356
 
 # Lint + format (matches [tool.ruff] required-version)
 ruff==0.16.3
