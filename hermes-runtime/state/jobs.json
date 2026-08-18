@@ -12,6 +12,7 @@
         "file",
         "mcp-txtai"
       ],
+      "failure_streak": 0,
       "id": "2ee2afd955cb",
       "model": null,
       "name": "decouvertes-quotidienne",
@@ -87,6 +88,7 @@
       "deliver": "origin",
       "enabled": true,
       "enabled_toolsets": null,
+      "failure_streak": 0,
       "id": "7ebbddc10caa",
       "model": null,
       "name": "bonsai-backend-watch",
@@ -160,6 +162,7 @@
         "file",
         "mcp-txtai"
       ],
+      "failure_streak": 0,
       "id": "a03a6a8792b2",
       "model": null,
       "name": "veille-data-ia-quotidienne",
@@ -277,6 +280,7 @@
       "deliver": "local",
       "enabled": true,
       "enabled_toolsets": null,
+      "failure_streak": 0,
       "id": "d1965700c0de",
       "model": null,
       "name": "digest-indexer",
@@ -310,6 +314,7 @@
         "file",
         "mcp-txtai"
       ],
+      "failure_streak": 0,
       "id": "e8c4b8c91103",
       "model": null,
       "name": "Résumé Korben soir",
