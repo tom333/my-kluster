@@ -52,6 +52,7 @@
         "web",
         "mcp-txtai"
       ],
+      "failure_streak": 0,
       "id": "3f1c9a2b7d84",
       "model": "gemma-4-12b-it-qat",
       "name": "harnais-et-agents-veille",
@@ -203,6 +204,7 @@
         "file",
         "mcp-txtai"
       ],
+      "failure_streak": 0,
       "id": "a38355a79f36",
       "model": null,
       "name": "job-scraper-data-ia",
@@ -244,6 +246,7 @@
         "file",
         "mcp-txtai"
       ],
+      "failure_streak": 0,
       "id": "a6bd90e76dfa",
       "model": null,
       "name": "llm-veille-daily",
