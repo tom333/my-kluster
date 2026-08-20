@@ -9,7 +9,7 @@ homeassistant==2026.8.2
 pytest-homeassistant-custom-component==0.13.356
 
 # Lint + format (matches [tool.ruff] required-version)
-ruff==0.16.3
+ruff==0.16.4
 
 # Spell check (matches HA Core master .pre-commit-config.yaml)
 codespell==2.4.3
