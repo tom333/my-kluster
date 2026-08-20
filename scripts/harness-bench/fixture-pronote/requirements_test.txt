@@ -21,6 +21,6 @@ requests-mock==1.12.1
 # HA core does not pull these transitively; conftest.py imports pronotepy at
 # collection time, so the test job must install them explicitly. Keep in lockstep
 # with manifest.json requirements.
-pronotepy==2.14.6
+pronotepy==2.15.6
 python-slugify==8.0.4
 holidays==0.103
