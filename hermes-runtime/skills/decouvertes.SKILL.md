@@ -45,11 +45,26 @@ Quand les pépites sont choisies et avant d'envoyer :
 
 ```
 mcp__hindsight__retain(
-  content = <les 2-3 pépites, titre + url + le « quoi » + le « pourquoi toi »>,
+  content = "<les 2-3 pepites en UNE SEULE LIGNE : titre, url, le quoi, le pourquoi
+             toi — separes par des points, sans retour a la ligne>",
   context = "decouvertes",
   tags    = ["decouvertes-quotidienne"]
 )
 ```
+
+⚠️ NE PASSE PAS LE CONTENU MIS EN FORME. `retain` est atteint à travers l'enveloppe
+`tool_call`, donc son contenu doit être encodé en JSON. Les blocs de code, encadrés,
+emoji et retours à la ligne CASSENT cet encodage — constaté le 2026-08-21 sur
+`veille-3d-assets` : quatre tentatives rejetées d'affilée (« 'arguments' is not valid
+JSON: Unterminated string », puis « Invalid control character »), chacune rejouant tout
+le contenu dans le contexte, qui a gonflé à 92 148 tokens. Le run a duré 40 minutes et
+n'a livré qu'un seul caractère.
+
+Passe donc les FAITS en TEXTE PLAT : une ou deux phrases par trouvaille, sans saut de
+ligne, sans bloc de code, sans encadré. Hindsight les éclate de toute façon en faits
+atomiques — lui donner du markdown mis en forme n'apporte rien et casse l'appel. La mise
+en forme est pour Telegram, pas pour la mémoire.
+
 
 L'outil n'est PAS visible par défaut, il est différé : va le chercher avec `tool_search`.
 `retain` est asynchrone (mesuré à 0,02 s) — n'attends pas sa réponse, ne la commente pas.
