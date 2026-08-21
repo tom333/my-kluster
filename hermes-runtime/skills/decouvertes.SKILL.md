@@ -32,6 +32,37 @@ Chaque candidat passe les 3 tests, sinon **jette** :
 ## Étape 3 — Sélection : 2-3 pépites relevantes
 Garde les **2-3 meilleurs** en pertinence+nouveauté, **diversité de facettes** (pas 3 fois le même thème). 1 si vraiment qu'un excellent. **Silence (réponse vide) seulement si rien ne passe le filtre strict** — mais avec la surface large, ça doit être rare.
 
+## Étape 4 — Consigner AVANT de livrer (tool `mcp__hindsight__retain`)
+
+⚠️ CET ORDRE EST VOLONTAIRE : consigner vient AVANT la sortie Telegram.
+
+Livrer la réponse TERMINE le tour — tout ce qui est demandé « après » n'arrive jamais.
+Constaté le 2026-08-10 sur `veille-digest` : deux exécutions de suite ont ignoré l'étape
+placée après la livraison, alors que le modèle allait bien chercher l'outil. Inversée,
+elle est appelée du premier coup.
+
+Quand les pépites sont choisies et avant d'envoyer :
+
+```
+mcp__hindsight__retain(
+  content = <les 2-3 pépites, titre + url + le « quoi » + le « pourquoi toi »>,
+  context = "decouvertes",
+  tags    = ["decouvertes-quotidienne"]
+)
+```
+
+L'outil n'est PAS visible par défaut, il est différé : va le chercher avec `tool_search`.
+`retain` est asynchrone (mesuré à 0,02 s) — n'attends pas sa réponse, ne la commente pas.
+
+POURQUOI ICI EN PARTICULIER. Ce cron est le seul des six à ne pas appliquer
+`veille-digest`, donc le seul qui ne consignait rien — vérifié le 2026-08-21, aucun appel
+à `retain` dans ses journaux alors que les cinq autres en font. Or c'est celui dont les
+trouvailles sont les plus volatiles : une pépite adjacente vue une fois et jamais
+retrouvée est une pépite perdue.
+
+⚠️ NE RETIENS RIEN si la sortie est vide (rien n'a passé le filtre strict). Un `retain`
+coûte ~70 s de GPU sur le modèle local, et consigner une absence n'apprend rien.
+
 ## Sortie (Telegram)
 ```
 🔭 Découvertes — <date>
