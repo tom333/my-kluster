@@ -59,7 +59,11 @@ desktop_frontend: "tint2"
 # Autologin (kid) vs login mot de passe (défaut = mdp, requis pour un nœud partagé).
 desktop_autologin: false
 # Verrou écran à l'idle (light-locker) — protège au-delà du login initial.
+# Sur gaming-pc c'est un contrôle parental : reprendre la main sur le démarrage
+# des parties, l'autologin étant déjà désactivé pour le démarrage à froid.
 desktop_screenlock: false
+# Délai d'inactivité avant verrouillage, en secondes. Ignoré si screenlock=false.
+desktop_screenlock_timeout: 900
 
 # tint2 launchers (.desktop basenames in /usr/share/applications or ~/.local/share/applications).
 desktop_launchers:

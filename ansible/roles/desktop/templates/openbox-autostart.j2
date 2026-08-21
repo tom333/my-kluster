@@ -1,11 +1,21 @@
 # Managed by Ansible (desktop role). Openbox session autostart.
 # Solid background (pas de wallpaper lourd).
 xsetroot -solid "#15151f" &
+{% if desktop_screenlock | bool %}
+# Verrou parental. light-locker se déclenche sur l'ACTIVATION de l'économiseur X :
+# il faut donc l'armer, alors qu'un media PC le désactive d'ordinaire. DPMS reste
+# coupé — l'écran ne s'éteint pas (ce téléviseur supporte mal les cycles DPMS),
+# il affiche le verrou.
+# Ce qui ne verrouille PAS pendant l'usage : SDL (jeux, RetroArch) et mpv
+# (Jellyfin) suspendent l'économiseur tant qu'ils tournent.
+# Réserve connue : les manettes ne sont pas des périphériques X « core », donc
+# naviguer longtemps dans Pegasus à la manette seule ne réarme pas le compteur.
+# D'où un délai généreux plutôt que serré.
+xset s {{ desktop_screenlock_timeout }} s blank -dpms &
+light-locker --no-late-locking &
+{% else %}
 # Media PC : pas de mise en veille écran pendant les vidéos.
 xset s off -dpms &
-{% if desktop_screenlock | bool %}
-# Verrou écran à l'idle.
-light-locker &
 {% endif %}
 {% if desktop_frontend == 'pegasus' %}
 # Frontend canapé (shell). Relance si l'utilisateur le quitte (sauf sortie propre).

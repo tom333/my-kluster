@@ -67,3 +67,43 @@
     - not (desktop_force_cpu_governor | bool)
     - desktop_cpu_epp | length == 0
     - not ansible_check_mode
+
+
+# Verrouillage à distance. light-locker refuse de démarrer ou de répondre sans
+# l'environnement posé par LightDM — `XDG_SESSION_PATH` en particulier, sinon il
+# meurt sur "Is LightDM running?". Une session SSH ne l'a pas. Le script le
+# reprend sur `openbox`, seul processus certainement issu de la vraie session
+# (ne pas viser pegasus-fe : il peut avoir été relancé hors session, son
+# environnement est alors celui du shell qui l'a lancé).
+# Posé dans /usr/local/bin et pas ~/bin : ce dernier n'est PAS dans le PATH
+# d'une commande SSH non interactive (~/.profile n'est pas lu dans ce mode).
+# Usage : ssh moi@<hote> verrouiller
+- name: Verrou — script de verrouillage distant
+  ansible.builtin.copy:
+    dest: /usr/local/bin/verrouiller
+    owner: root
+    group: root
+    mode: '0755'
+    content: |
+      #!/usr/bin/env bash
+      set -eu
+      P=$(pgrep -x openbox | head -1) || { echo "session graphique introuvable" >&2; exit 1; }
+      while IFS= read -r -d "" v; do
+        case "$v" in XDG_*|DBUS_*|DISPLAY=*|XAUTHORITY=*) export "$v";; esac
+      done < "/proc/$P/environ"
+      exec light-locker-command "${1:--l}"
+  when: desktop_screenlock | bool
+
+# Message plein écran temporaire, déclenchable à distance ("A TABLE !").
+# Fenêtre GTK de type POPUP = override-redirect : dessinée au-dessus de tout,
+# jeu plein écran compris, sans passer par le gestionnaire de fenêtres. Bandeau
+# opaque et non plein écran car Openbox n'a pas de compositeur (pas de RGBA).
+# Le script récupère seul l'environnement graphique — voir la note du verrou.
+# Usage : ssh moi@<hote> "annoncer 'A TABLE !' 10"
+- name: Annonce — script de message à l'écran
+  ansible.builtin.copy:
+    src: annoncer
+    dest: /usr/local/bin/annoncer
+    owner: root
+    group: root
+    mode: '0755'

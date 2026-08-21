@@ -69,6 +69,39 @@
     mode: '0644'
     content: |
       /home/{{ ansible_user }}/Games/apps
+      /home/{{ ansible_user }}/retro/dreamcast
+      /home/{{ ansible_user }}/retro/n64
+      /home/{{ ansible_user }}/retro/gba
+      /home/{{ ansible_user }}/retro/wii
+
+# Toutes les ROMs vivent sous ~/retro/<systeme>/ : c'est le ROMDirectory d'ES-DE,
+# donc un ROM posé ailleurs est invisible à son scraper. Un seul exemplaire sert
+# les deux frontends.
+# Collections par système : un seul fichier suffit, Pegasus liste tout seul les
+# fichiers correspondant aux extensions — pas une entrée par jeu. Les titres
+# affichés sont les noms de fichiers, d'où le nettoyage préalable des ROMs.
+- name: Pegasus — collections par console
+  ansible.builtin.copy:
+    dest: "{{ item.dir }}/metadata.pegasus.txt"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: '0644'
+    content: |
+      collection: {{ item.nom }}
+      shortname: {{ item.court }}
+      extensions: {{ item.ext }}
+      launch: retroarch -L /home/{{ ansible_user }}/.config/retroarch/cores/{{ item.core }}_libretro.so "{file.path}"
+  loop:
+    - { nom: "Dreamcast", court: "dreamcast", ext: "cdi, gdi, chd", core: "flycast",
+        dir: "/home/{{ ansible_user }}/retro/dreamcast" }
+    - { nom: "Nintendo 64", court: "n64", ext: "z64, n64, v64", core: "mupen64plus_next",
+        dir: "/home/{{ ansible_user }}/retro/n64" }
+    - { nom: "Game Boy Advance", court: "gba", ext: "gba", core: "mgba",
+        dir: "/home/{{ ansible_user }}/retro/gba" }
+    - { nom: "Wii", court: "wii", ext: "wbfs, iso, rvz", core: "dolphin",
+        dir: "/home/{{ ansible_user }}/retro/wii" }
+  loop_control:
+    label: "{{ item.nom }}"
 
 - name: Apps launch scripts (Brave, Jellyfin)
   ansible.builtin.copy:
@@ -78,8 +111,13 @@
     mode: '0755'
     content: "#!/bin/sh\nexec {{ item.cmd }} \"$@\"\n"
   loop:
-    - { file: "brave.sh", cmd: "brave-browser" }
-    - { file: "jellyfin.sh", cmd: "jellyfinmediaplayer" }
+    # Plein écran d'emblée : Pegasus n'a aucune prise sur le rendu des programmes
+    # qu'il lance, il se contente de les exécuter. C'est donc à chaque appli de
+    # démarrer en plein écran. Les jeux, ES-DE et RetroArch le font seuls ;
+    # Brave et Jellyfin, non — d'où ces drapeaux.
+    # jellyfin `--tv` = interface « 10 pieds », navigable à la manette/télécommande.
+    - { file: "brave.sh", cmd: "brave-browser --start-fullscreen" }
+    - { file: "jellyfin.sh", cmd: "jellyfinmediaplayer --tv --fullscreen" }
   loop_control:
     label: "{{ item.file }}"
 

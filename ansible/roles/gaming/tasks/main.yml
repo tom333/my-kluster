@@ -70,5 +70,23 @@
     update_cache: false
   when: gaming_install_steam | bool
 
+# Le paquet gamemode livre /etc/security/limits.d/10-gamemode.conf avec la règle
+# `@gamemode - nice -10`, mais ne crée PAS le groupe : la règle pointe dans le vide
+# et RLIMIT_NICE reste à 0. Wine s'en plaint alors à chaque lancement
+# ("RLIMIT_NICE is <= 20, unable to use setpriority safely") et ne peut pas relever
+# la priorité de ses threads. nice -10 donne RLIMIT_NICE=30, au-dessus du seuil.
+# Prend effet à la réouverture de session (limites PAM).
+- name: Gamemode — groupe (le paquet ne le crée pas)
+  ansible.builtin.group:
+    name: gamemode
+    system: true
+    state: present
+
+- name: Gamemode — y ajouter l'utilisateur de la session
+  ansible.builtin.user:
+    name: "{{ ansible_user }}"
+    groups: gamemode
+    append: true
+
 - ansible.builtin.import_tasks: 50_bluetooth_fix.yml
   tags: [games, bluetooth]

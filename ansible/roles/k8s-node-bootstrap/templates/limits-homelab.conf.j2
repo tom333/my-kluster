@@ -1,3 +1,11 @@
 # Managed by Ansible role k8s-node-bootstrap. Do not edit by hand.
+#
+# hard = 1048576 et pas 65536 : Lutris refuse de lancer tout jeu Wine si la
+# limite HARD nofile est sous 524288 ("Vos limites ESYNC ne sont pas définies
+# correctement", wine.py:play()). ESYNC alloue un descripteur par objet de
+# synchronisation Win32, d'où l'exigence. Constaté sur gaming-pc : Tomb Raider
+# échouait en 0 s, avant même le démarrage de Wine.
+# Le soft reste à 65536 : les processus ordinaires ne sont pas concernés, et
+# Lutris relève lui-même le soft jusqu'au hard au lancement.
 *       soft    nofile  65536
-*       hard    nofile  65536
+*       hard    nofile  1048576

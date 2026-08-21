@@ -1,0 +1,70 @@
+#!/usr/bin/env python3
+"""Affiche un message en grand a l ecran pendant quelques secondes, puis disparait.
+
+Usage : annoncer "A TABLE !" [duree_en_secondes]
+Concu pour etre appele a distance (SSH, Home Assistant) : recupere de lui-meme
+l environnement de la session graphique, qu une session SSH ne possede pas.
+"""
+import os, sys, glob
+
+def env_session():
+    """Reprend DISPLAY/XAUTHORITY sur openbox : seul processus surement issu de la
+    vraie session. Ne PAS viser pegasus-fe, il peut avoir ete relance hors session."""
+    for p in glob.glob("/proc/[0-9]*"):
+        try:
+            if open(p + "/comm").read().strip() != "openbox":
+                continue
+            for e in open(p + "/environ", "rb").read().split(b"\0"):
+                if not e or b"=" not in e:
+                    continue
+                k, v = e.decode("utf-8", "replace").split("=", 1)
+                if k in ("DISPLAY", "XAUTHORITY") or k.startswith(("XDG_", "DBUS_")):
+                    os.environ[k] = v
+            return True
+        except (OSError, ValueError):
+            continue
+    return False
+
+if not env_session():
+    sys.exit("session graphique introuvable (openbox absent)")
+
+import gi
+gi.require_version("Gtk", "3.0")
+from gi.repository import Gtk, Gdk, GLib
+
+texte = sys.argv[1] if len(sys.argv) > 1 else "A TABLE !"
+duree = int(sys.argv[2]) if len(sys.argv) > 2 else 10
+
+ecran = Gdk.Screen.get_default()
+# API moniteur plutot que Gdk.Screen.get_width/height, deprecies (et bruyants
+# dans les journaux quand l appel vient de Home Assistant).
+_aff = Gdk.Display.get_default()
+_mon = _aff.get_primary_monitor() or _aff.get_monitor(0)
+_g = _mon.get_geometry()
+L, H = _g.width, _g.height
+haut = max(160, H // 4)
+police = max(28, H // 11)
+
+# POPUP = override-redirect : dessinee au-dessus de tout, jeu plein ecran compris,
+# sans passer par le gestionnaire de fenetres. Bandeau opaque et non plein ecran :
+# Openbox n a pas de compositeur (pas de transparence) et ca laisse voir le jeu.
+fen = Gtk.Window(type=Gtk.WindowType.POPUP)
+fen.set_default_size(L, haut)
+fen.move(0, (H - haut) // 2)
+cadre = Gtk.EventBox()
+fen.add(cadre)
+lbl = Gtk.Label()
+lbl.set_markup("<span font_desc=\"Sans Bold %d\" foreground=\"#ffffff\">%s</span>"
+               % (police, GLib.markup_escape_text(texte)))
+lbl.set_justify(Gtk.Justification.CENTER)
+lbl.set_line_wrap(True)
+cadre.add(lbl)
+
+css = Gtk.CssProvider()
+css.load_from_data(b"eventbox { background-color: #101018; "
+                   b"border-top: 6px solid #e8b020; border-bottom: 6px solid #e8b020; }")
+Gtk.StyleContext.add_provider_for_screen(ecran, css, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+
+fen.show_all()
+GLib.timeout_add_seconds(duree, Gtk.main_quit)
+Gtk.main()

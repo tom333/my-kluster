@@ -49,6 +49,12 @@ gaming_retroarch_cores:
   - flycast           # Dreamcast
   - mupen64plus_next  # N64
   - mgba              # GBA
+  # Wii/GameCube. Dolphin autonome ne publie plus QUE du Flatpak (vérifié
+  # 2026-08-21 : artefacts Linux = .flatpak uniquement, plus d'AppImage), et
+  # Flathub n'est pas configuré sur l'hôte. Le core libretro évite d'ajouter un
+  # dépôt + ~1,5 Go de runtime + les droits sandbox, et réutilise le RetroArch
+  # déjà intégré à ES-DE et Pegasus. À réévaluer si un jeu Wii rame.
+  - dolphin           # Wii / GameCube
 
 # --- Bluetooth stability (carte combo RTL8723BE de l'ANCIEN portable) ---
 # BT firmware hangs (hci tx timeout) -> USB reset loop -> controller vanishes.

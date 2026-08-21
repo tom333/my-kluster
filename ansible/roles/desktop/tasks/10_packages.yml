@@ -12,6 +12,8 @@
       - pcmanfm         # file manager (occasionnel)
       - x11-xserver-utils  # xset/xrandr
       - flatpak         # apps flatpak (OpenSurge, Scratch) restaurées via migration
+      - python3-gi      # requis par /usr/local/bin/annoncer (message a l'ecran)
+      - gir1.2-gtk-3.0  # idem : liaisons GTK3 pour PyGObject
     state: present
     update_cache: true
   # NOTE: aucun compositeur installé volontairement (picom/compton) -> pas de
