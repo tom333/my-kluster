@@ -583,9 +583,37 @@ spec:
                 # markdown for web_extract. FIRECRAWL_API_URL (container env) points
                 # the firecrawl backend at CRW.
                 web:
-                  search_backend: firecrawl
-                  backend: firecrawl
+                  # RECHERCHE chez Tavily, EXTRACTION chez CRW. Hermes gère ce
+                  # découpage par capacité (web_search_registry : `web.search_backend`
+                  # / `web.extract_backend` primet sur `web.backend`).
+                  #
+                  # POURQUOI, mesuré : la recherche via CRW→SearXNG tombe par
+                  # intermittence parce que ses quatre moteurs généralistes se font
+                  # bannir (429 → suspension 1 h, CAPTCHA → 24 h). Les crons ont
+                  # signalé « web_search (SearXNG) indisponible » plusieurs fois. La
+                  # cause est arithmétique, pas accidentelle : CRW applique
+                  # `query_expand_variants = 3`, donc chaque recherche devient 3
+                  # requêtes sortantes depuis une IP résidentielle unique.
+                  #
+                  # Basculer la RECHERCHE sur une API à clé supprime les DEUX causes
+                  # d'un coup : plus de CAPTCHA possible, et plus d'amplification ×3
+                  # (c'est une fonction de CRW, pas de Tavily).
+                  #
+                  # Dimensionnement mesuré sur la semaine du 14 au 20/08 : 8 à 16
+                  # appels web_search par jour, ~11,6 de moyenne, soit ~350/mois —
+                  # contre ~1 000/mois offerts. 2,5× de marge, la veille
+                  # hebdomadaire supplémentaire comprise (~40/mois).
+                  #
+                  # L'EXTRACTION reste sur CRW : son chemin de scraping fonctionne
+                  # (vérifié sur les API GitHub et sur des pages lourdes avec
+                  # escalade JS via lightpanda), et Tavily est search-only côté
+                  # capacités qui nous intéressent ici.
+                  #
+                  # SearXNG n'est pas retiré : il sert l'usage interactif depuis le
+                  # LAN, où le volume est faible et un bannissement tolérable.
+                  search_backend: tavily
                   extract_backend: firecrawl
+                  backend: firecrawl
                 compression:
                   enabled: true
                   # Large-context model → compress LATE so tool results aren't
