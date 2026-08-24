@@ -136,13 +136,42 @@ spec:
                   # éventail sur les cœurs — le nœud porte aussi LocalAI, Whisper et
                   # une session de bureau.
                   HINDSIGHT_API_DB_MAX_PARALLEL_WORKERS_PER_GATHER: "0"
+                  # ── Bornes ajoutées le 2026-08-24 après 376 OOMKilled en 30 h ──
+                  # exitCode=137 / OOMKilled, soit un redémarrage toutes les 4,8 min —
+                  # et MENTAL_MODEL_REFRESH_TICK_SECONDS vaut 300 s par défaut. Le
+                  # balayage périodique tuait le conteneur à chaque passage. Le log qui
+                  # précède l'OOM le nomme :
+                  #   « Maintenance: scheduled mental model refresh took 9.865s »
+                  #   « slow DB pool acquire: waited 7.476s (in_use=2 max=100 idle=0) »
+                  #   « EVENT LOOP BLOCKED for >= 1.00s (11.90s) — /health cannot be served »
+                  # Noter l'enchaînement : la boucle d'événements bloquée empêche /health
+                  # de répondre, donc la sonde de vivacité échoue aussi — mais l'OOM
+                  # arrive avant. Deux symptômes, une seule cause.
+                  #
+                  # Les défauts visent une instance multi-tenant ; ici il y a UN
+                  # utilisateur et 279 faits. On borne la concurrence plutôt que de se
+                  # contenter de relever le plafond.
+                  HINDSIGHT_API_MENTAL_MODEL_REFRESH_CONCURRENCY: "1"   # défaut 8
+                  HINDSIGHT_API_WORKER_MAX_SLOTS: "4"                   # défaut 10
+                  # `in_use=2` pour `max=100` : le pool n'était jamais saturé en
+                  # nombre — il n'arrivait pas à OUVRIR une connexion, PostgreSQL étant
+                  # lui-même étouffé. Le plafond à 100 n'était donc pas la cause, mais
+                  # il autorise une croissance inutile : chaque backend Postgres coûte
+                  # de la mémoire.
+                  HINDSIGHT_API_DB_POOL_MAX_SIZE: "10"                  # défaut 100
                 resources:
                   # Doc : 1,5-2 Go pour l'image complète, +~0,5 Go pour l'embedder
                   # multilingue. La request reste basse : c'est elle qui gouverne
                   # l'ordonnancement, et le nœud vient tout juste de repasser de 80 %
                   # à 34 % de réservation.
+                  # 4Gi -> 6Gi le 2026-08-24. Les 4Gi venaient de la doc (« 1,5-2 Go
+                  # pour l'image complète ») sans réviser le budget après l'ajout de
+                  # l'embedder multilingue paraphrase-multilingual-MiniLM (~0,5 Go).
+                  # Avec la consolidation et le rafraîchissement de modèles mentaux en
+                  # tâche de fond, ça dépassait. Le nœud a 27 Gi disponibles et n'est
+                  # qu'à 27 % de réservation : la marge ne coûte rien ici.
                   requests: { cpu: "100m", memory: 1Gi }
-                  limits:   { cpu: "2",    memory: 4Gi }
+                  limits:   { cpu: "2",    memory: 6Gi }
                 probes:
                   # Premier démarrage : téléchargement du modèle d'embeddings +
                   # initialisation du PostgreSQL embarqué. 10s x 90 = 15 min.
