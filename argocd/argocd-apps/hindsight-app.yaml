@@ -39,6 +39,26 @@ spec:
         controllers:
           hindsight:
             type: deployment
+            # ⏸️ ARRÊTÉ le 2026-08-26. Bilan : 279 faits stockés, puis 376 OOMKilled,
+            # et indisponible depuis le 2026-08-24 — deux pods Pending qui ne
+            # démarrent plus. Pendant sa panne il a cassé silencieusement `retain`
+            # pour les SIX crons de veille (le digest du 23/08 l'écrit lui-même :
+            # « the retain tool simply isn't reachable »).
+            #
+            # NON SUPPRIMÉ : le PVC et ses 279 faits restent intacts, remettre
+            # `replicas: 1` suffit à revenir. Ce qui est écarté, c'est de continuer
+            # à le réparer sans avoir comparé l'alternative.
+            #
+            # POURQUOI ARRÊTER PLUTÔT QUE RÉPARER. Son apport distinctif — chemin
+            # d'écriture depuis un agent, consolidation, temporel — est réel face à
+            # txtai (lecture seule) et à SilverBullet (wiki humain). Il ne l'est PAS
+            # face à OpenViking, qui fait le même métier avec une intégration Hermes
+            # native (`hermes memory setup`), un chargement par niveaux L0/L1/L2 au
+            # lieu de tout tenir en mémoire, et des chiffres publiés SUR HERMES :
+            # LoCoMo 33,38 % en natif contre 82,86 %, -34 à -91 % de tokens d'entrée.
+            # ⚠️ Chiffres obtenus avec les modèles cloud Doubao, pas avec gemma local
+            # — à vérifier sur pièce avant d'y croire.
+            replicas: 0
             strategy: Recreate          # PostgreSQL embarqué sur PVC RWO : un seul writer
             pod:
               # `jeux` est mort ; et même à son retour ce pod n'a rien à y faire
