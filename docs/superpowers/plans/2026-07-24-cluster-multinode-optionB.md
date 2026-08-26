@@ -44,6 +44,28 @@ Hypothèses `/etc/hosts` et token **écartées**. Cause réelle, confirmée sur 
   - `microk8s status` : `high-availability: no`, `datastore endpoints: 127.0.0.1:12379`. CNI = `flannel.conflist`.
   - Un MicroK8s etcd+flannel **refuse tout join** → 501. C'est **structurel**, pas réseau.
 
+> ## ⛔ CORRECTION 2026-08-27 — cette conclusion est FAUSSE
+>
+> Vérifié dans le code livré en 1.35.6 :
+> - `microk8s-cluster-agent/pkg/api/v1/join.go` sert le chemin **etcd** et refuse si dqlite
+>   est actif — l'inverse exact de la v2 (`if a.Snap.HasDqliteLock() { ... }`).
+> - `scripts/wrappers/join.py` embarque `join_etcd()` ET `join_dqlite()`, et arbitre sur
+>   `is_node_running_dqlite()` — c'est-à-dire l'état du **nœud qui rejoint**, pas du master.
+> - Le message d'erreur de la v1 réclame la symétrie : « retry after enabling HA on
+>   **this joining node** ».
+>
+> Le 501 ne disait donc pas « etcd interdit le multinœud » mais « les deux nœuds ne sont
+> pas dans le même mode ». `jeux`, fraîchement installé, était sur dqlite (défaut ≥1.19).
+> **`microk8s disable ha-cluster` sur `jeux` aurait suffi.**
+>
+> Réserves réelles du chemin etcd : `join_etcd()` câble **flannel** en dur
+> (`update_flannel(...)`), il n'accepte pas `--worker`, et la doc officielle de clustering
+> ne le documente plus (héritage d'avant 1.19).
+>
+> Conséquence : la migration vers dqlite n'était PAS nécessaire, et elle a introduit une
+> panne permanente du plan de contrôle (canonical/microk8s#5153 et #5568, tous deux
+> ouverts). Voir la note mémoire `reference_cluster_dqlite_outage`.
+
 > **Conclusion** : le multinode exige dqlite. Seule voie = `microk8s enable ha-cluster`
 > (migre **etcd→dqlite + flannel→calico**). A0 (worker-join simple) est **impossible en l'état**.
 > ⚠️ `enable ha-cluster` est **potentiellement destructif** (cf. §Étapes à risque + §Correction).
