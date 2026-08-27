@@ -528,8 +528,11 @@ spec:
                   # Clé via ${OPENVIKING_API_KEY} (hermes-secrets, envFrom) → pas de clair
                   # en Git, même motif que txtai et arrconf.
                   #
-                  # timeout 120 et non 60 : `remember` déclenche l'extraction sémantique
-                  # côté serveur, mesurée à ~46 s sur un document de 1 Ko.
+                  # timeout 120 par prudence, mais `remember` est ASYNCHRONE : mesuré le
+                  # 2026-08-27, il rend la main en 0,06 s et répond « committed for memory
+                  # extraction », le travail se faisant en tâche de fond. Les ~46 s mesurées
+                  # le même jour concernaient `add_resource` avec wait:true — une tout autre
+                  # opération, à ne pas confondre.
                   openviking:
                     url: "http://openviking.hermes.svc.cluster.local:1933/mcp"
                     headers:

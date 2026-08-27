@@ -170,10 +170,10 @@ l'appel. La mise en forme est pour Telegram, pas pour la mémoire.
 L'outil n'est PAS visible par défaut — il est différé. Va le chercher avec
 `tool_search`, comme tu le fais pour les outils `mcp__veille__*`.
 
-⚠️ Contrairement au `retain` de Hindsight, qui rendait la main en 0,02 s, `remember`
-déclenche une extraction sémantique côté serveur — l'ingestion d'un document d'un
-kilo-octet a été mesurée à 46 s le 2026-08-27. Le timeout est réglé à 120 s.
-Appelle-le UNE FOIS, n'attends pas plus, et passe à la livraison.
+`remember` est ASYNCHRONE : il rend la main en 0,06 s (mesuré le 2026-08-27) et répond
+« Stored N message(s) and committed for memory extraction » — l'extraction sémantique se
+fait en tâche de fond. Appelle-le UNE FOIS, n'attends pas sa réponse, et passe à la
+livraison.
 
 Puis livre le digest, sans mentionner cet appel.
 

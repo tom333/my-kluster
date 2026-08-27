@@ -68,6 +68,7 @@ def parse_session(path: Path) -> dict | None:
     title = None
     url = None
     turns: list[str] = []
+    msgs: list[dict] = []
 
     for line in path.open(encoding="utf-8", errors="replace"):
         line = line.strip()
@@ -100,6 +101,10 @@ def parse_session(path: Path) -> dict | None:
                 if txt:
                     role = "User" if t == "user" else "Claude"
                     turns.append(f"{role}: {txt}")
+                    # Tours structurés pour OpenViking : `remember` attend des messages
+                    # {role, content} avec role ∈ {user, assistant}, pas du texte préfixé.
+                    msgs.append({"role": "user" if t == "user" else "assistant",
+                                 "content": txt})
 
     if not turns:
         return None
@@ -114,6 +119,7 @@ def parse_session(path: Path) -> dict | None:
         "title": title or "(sans titre)",
         "url": url or "",
         "text": "\n\n".join(turns),
+        "msgs": msgs,
     }
 
 
@@ -149,6 +155,88 @@ def session_to_docs(s: dict) -> list[dict]:
     return docs
 
 
+# ─────────────────────────── puits OpenViking ───────────────────────────
+# OPTIONNEL : sans OPENVIKING_URL ni OPENVIKING_TOKEN, rien ne change.
+# txtai reste le moteur de recherche ; OpenViking recoit en plus la conversation
+# pour en extraire entites et evenements.
+#
+# On passe par l'outil MCP `remember` plutot que par /api/v1/resources :
+#   - une session EST une conversation user/assistant, la forme exacte qu'il attend ;
+#   - c'est du JSON simple, pas de televersement multipart ;
+#   - il est ASYNCHRONE — 0,06 s mesure le 2026-08-27, il repond « committed for
+#     memory extraction » et le travail se fait en tache de fond. Le cout GPU est
+#     donc porte par la file du serveur, pas par ce script.
+# D'ou le plafond par execution : ne pas inonder cette file.
+OV_MAX_CHARS = int(os.environ.get("OPENVIKING_MAX_CHARS", "24000"))
+OV_LIMIT = int(os.environ.get("OPENVIKING_LIMIT", "20"))
+
+
+def _ov_trim(msgs: list[dict]) -> list[dict]:
+    """Borne la taille en gardant le DEBUT et la FIN de la session.
+
+    Le debut porte la tache demandee, la fin porte le resultat ; c'est le milieu
+    (exploration, essais) qui est le moins informatif. Tronquer par la fin seule
+    perdrait l'intention, tronquer par le debut perdrait la conclusion.
+    """
+    total = sum(len(m["content"]) for m in msgs)
+    if total <= OV_MAX_CHARS or len(msgs) < 4:
+        return msgs
+    moitie, tete, queue, pris = OV_MAX_CHARS // 2, [], [], 0
+    for m in msgs:
+        if pris + len(m["content"]) > moitie:
+            break
+        tete.append(m); pris += len(m["content"])
+    pris = 0
+    for m in reversed(msgs[len(tete):]):
+        if pris + len(m["content"]) > moitie:
+            break
+        queue.insert(0, m); pris += len(m["content"])
+    coupe = len(msgs) - len(tete) - len(queue)
+    if coupe > 0:
+        tete.append({"role": "user", "content": f"[... {coupe} tours omis ...]"})
+    return tete + queue
+
+
+def push_openviking(sessions: list[dict], dry_run: bool = False) -> None:
+    url = os.environ.get("OPENVIKING_URL")
+    token = os.environ.get("OPENVIKING_TOKEN")
+    if not url or not token:
+        return
+    envoyes = 0
+    for s in sessions[:OV_LIMIT]:
+        msgs = _ov_trim(s.get("msgs") or [])
+        if not msgs:
+            continue
+        # En-tete en premier message : sans lui, une session deracinee n'est pas
+        # rattachable a un projet ni a une date une fois en memoire.
+        entete = {"role": "user", "content":
+                  f"Session Claude Code du {s['date']} sur le projet {s['project']} "
+                  f"(titre: {s['title']}, session_id: {s['session_id']})."}
+        corps = {"jsonrpc": "2.0", "id": 1, "method": "tools/call",
+                 "params": {"name": "remember", "arguments": {"messages": [entete] + msgs}}}
+        if dry_run:
+            print(f"  [dry-run] remember {s['session_id']} ({len(msgs)} messages)")
+            envoyes += 1
+            continue
+        try:
+            data = json.dumps(corps).encode()
+            req = urllib.request.Request(url.rstrip("/") + "/mcp", data=data, method="POST")
+            req.add_header("Authorization", f"Bearer {token}")
+            req.add_header("Content-Type", "application/json")
+            req.add_header("Accept", "application/json, text/event-stream")
+            with urllib.request.urlopen(req, timeout=120) as r:
+                r.read()
+            envoyes += 1
+        except Exception as e:
+            # Un echec ne doit PAS faire echouer l'indexation txtai : les deux puits
+            # sont independants. La session repartira au prochain run (le manifest
+            # OpenViking n'est avance que sur succes).
+            print(f"  WARN openviking {s['session_id']}: {e}", file=sys.stderr)
+    reste = max(0, len(sessions) - OV_LIMIT)
+    print(f"OpenViking : {envoyes} session(s) envoyee(s)"
+          + (f", {reste} reportee(s) au prochain run (plafond {OV_LIMIT})" if reste else ""))
+
+
 def post(url: str, token: str, path: str, payload=None, method="POST"):
     data = json.dumps(payload).encode() if payload is not None else None
     req = urllib.request.Request(url.rstrip("/") + path, data=data, method=method)
@@ -181,7 +269,7 @@ def main():
         except Exception:
             manifest = {}
 
-    all_docs, n_sessions, n_empty, n_skip = [], 0, 0, 0
+    all_docs, sessions, n_sessions, n_empty, n_skip = [], [], 0, 0, 0
     fresh_manifest = dict(manifest)
     for f in files:
         mtime = f.stat().st_mtime
@@ -193,6 +281,7 @@ def main():
             n_empty += 1
             continue
         n_sessions += 1
+        sessions.append(s)
         all_docs.extend(session_to_docs(s))
         fresh_manifest[str(f)] = mtime
 
@@ -207,6 +296,7 @@ def main():
             print(f"title={d['title']}")
             print(f"url={d['url']}")
             print(f"text[:300]={d['text'][:300]!r}")
+        push_openviking(sessions, dry_run=True)
         return
 
     url = os.environ.get("TXTAI_URL")
@@ -230,6 +320,10 @@ def main():
     MANIFEST.parent.mkdir(parents=True, exist_ok=True)
     MANIFEST.write_text(json.dumps(fresh_manifest))
     print(f"index persisté (incrémental). manifest: {MANIFEST}")
+
+    # APRES txtai, volontairement : txtai porte la recherche, c'est lui qui ne doit
+    # pas etre prive d'une indexation si OpenViking est indisponible.
+    push_openviking(sessions)
 
 
 if __name__ == "__main__":

@@ -70,10 +70,10 @@ l'appel. La mise en forme est pour Telegram, pas pour la mémoire.
 
 
 L'outil n'est PAS visible par défaut, il est différé : va le chercher avec `tool_search`.
-Ne commente pas sa réponse. ⚠️ Contrairement au `retain` de Hindsight, qui rendait la
-main en 0,02 s, `remember` déclenche une extraction sémantique côté serveur — l'ingestion
-d'un document d'un kilo-octet a été mesurée à 46 s le 2026-08-27. Le timeout est réglé à
-120 s. Appelle-le UNE FOIS et passe à la suite.
+`remember` est ASYNCHRONE : il rend la main en 0,06 s (mesuré le 2026-08-27, deux
+appels) et répond « Stored N message(s) and committed for memory extraction » —
+l'extraction sémantique se fait en tâche de fond. N'attends pas, ne commente pas sa
+réponse, appelle-le UNE FOIS et passe à la suite.
 
 POURQUOI ICI EN PARTICULIER. Ce cron est le seul des six à ne pas appliquer
 `veille-digest`, donc le seul qui ne consignait rien — vérifié le 2026-08-21, aucun appel
