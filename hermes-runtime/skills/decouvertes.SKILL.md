@@ -32,7 +32,7 @@ Chaque candidat passe les 3 tests, sinon **jette** :
 ## Étape 3 — Sélection : 2-3 pépites relevantes
 Garde les **2-3 meilleurs** en pertinence+nouveauté, **diversité de facettes** (pas 3 fois le même thème). 1 si vraiment qu'un excellent. **Silence (réponse vide) seulement si rien ne passe le filtre strict** — mais avec la surface large, ça doit être rare.
 
-## Étape 4 — Consigner AVANT de livrer (tool `mcp__hindsight__retain`)
+## Étape 4 — Consigner AVANT de livrer (tool `mcp__openviking__remember`)
 
 ⚠️ CET ORDRE EST VOLONTAIRE : consigner vient AVANT la sortie Telegram.
 
@@ -44,15 +44,18 @@ elle est appelée du premier coup.
 Quand les pépites sont choisies et avant d'envoyer :
 
 ```
-mcp__hindsight__retain(
-  content = "<les 2-3 pepites en UNE SEULE LIGNE : titre, url, le quoi, le pourquoi
-             toi — separes par des points, sans retour a la ligne>",
-  context = "decouvertes",
-  tags    = ["decouvertes-quotidienne"]
+mcp__openviking__remember(
+  messages = [{"role": "assistant",
+               "content": "Decouvertes du <date>. <les 2-3 pepites en UNE SEULE LIGNE :
+                           titre, url, le quoi, le pourquoi toi — separes par des points,
+                           sans retour a la ligne>"}]
 )
 ```
 
-⚠️ NE PASSE PAS LE CONTENU MIS EN FORME. `retain` est atteint à travers l'enveloppe
+Date en clair dans le contenu : OpenViking n'a pas de champ `tags` ni `context`, c'est
+le texte lui-meme qui doit porter de quoi s'y retrouver plus tard.
+
+⚠️ NE PASSE PAS LE CONTENU MIS EN FORME. `remember` est atteint à travers l'enveloppe
 `tool_call`, donc son contenu doit être encodé en JSON. Les blocs de code, encadrés,
 emoji et retours à la ligne CASSENT cet encodage — constaté le 2026-08-21 sur
 `veille-3d-assets` : quatre tentatives rejetées d'affilée (« 'arguments' is not valid
@@ -61,22 +64,26 @@ le contenu dans le contexte, qui a gonflé à 92 148 tokens. Le run a duré 40 m
 n'a livré qu'un seul caractère.
 
 Passe donc les FAITS en TEXTE PLAT : une ou deux phrases par trouvaille, sans saut de
-ligne, sans bloc de code, sans encadré. Hindsight les éclate de toute façon en faits
-atomiques — lui donner du markdown mis en forme n'apporte rien et casse l'appel. La mise
-en forme est pour Telegram, pas pour la mémoire.
+ligne, sans bloc de code, sans encadré. OpenViking en extrait de toute façon des
+entités et des événements — lui donner du markdown mis en forme n'apporte rien et casse
+l'appel. La mise en forme est pour Telegram, pas pour la mémoire.
 
 
 L'outil n'est PAS visible par défaut, il est différé : va le chercher avec `tool_search`.
-`retain` est asynchrone (mesuré à 0,02 s) — n'attends pas sa réponse, ne la commente pas.
+Ne commente pas sa réponse. ⚠️ Contrairement au `retain` de Hindsight, qui rendait la
+main en 0,02 s, `remember` déclenche une extraction sémantique côté serveur — l'ingestion
+d'un document d'un kilo-octet a été mesurée à 46 s le 2026-08-27. Le timeout est réglé à
+120 s. Appelle-le UNE FOIS et passe à la suite.
 
 POURQUOI ICI EN PARTICULIER. Ce cron est le seul des six à ne pas appliquer
 `veille-digest`, donc le seul qui ne consignait rien — vérifié le 2026-08-21, aucun appel
-à `retain` dans ses journaux alors que les cinq autres en font. Or c'est celui dont les
+à l'outil de mémoire dans ses journaux alors que les cinq autres en font. Or c'est celui dont les
 trouvailles sont les plus volatiles : une pépite adjacente vue une fois et jamais
 retrouvée est une pépite perdue.
 
-⚠️ NE RETIENS RIEN si la sortie est vide (rien n'a passé le filtre strict). Un `retain`
-coûte ~70 s de GPU sur le modèle local, et consigner une absence n'apprend rien.
+⚠️ NE RETIENS RIEN si la sortie est vide (rien n'a passé le filtre strict). Un
+`remember` mobilise le GPU local pour l'extraction sémantique, et consigner une absence
+n'apprend rien.
 
 ## Sortie (Telegram)
 ```

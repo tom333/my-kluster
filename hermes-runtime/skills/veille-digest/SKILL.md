@@ -128,7 +128,7 @@ curl -sL 'https://hn.algolia.com/api/v1/search_by_date?query=<terme>&numericFilt
 - Ne RECONSTRUIS JAMAIS une URL depuis le texte du lien.
 - Pas de href fiable → mets l'URL de la page source. N'invente jamais d'URL.
 
-### 4. Consigner dans la mémoire (tool `mcp__hindsight__retain`)
+### 4. Consigner dans la mémoire (tool `mcp__openviking__remember`)
 
 ⚠️ CET ORDRE EST VOLONTAIRE : consigner vient AVANT la sortie Telegram.
 
@@ -142,15 +142,18 @@ finale n'existe pas.
 Donc : quand le digest est RÉDIGÉ et avant de l'envoyer, appelle
 
 ```
-mcp__hindsight__retain(
-  content = "<les faits en une seule ligne : chaque trouvaille en 1-2 phrases,
-             separees par des points, sans retour a la ligne>",
-  context = "veille",
-  tags    = [<le nom du job>]
+mcp__openviking__remember(
+  messages = [{"role": "assistant",
+               "content": "Veille <nom du job>, <date>. <les faits en une seule ligne :
+                           chaque trouvaille en 1-2 phrases, separees par des points,
+                           sans retour a la ligne>"}]
 )
 ```
 
-⚠️ NE PASSE PAS LE CONTENU MIS EN FORME. `retain` est atteint à travers l'enveloppe
+Nom du job et date EN CLAIR dans le contenu : OpenViking n'a ni champ `context` ni
+champ `tags`, c'est le texte lui-meme qui doit porter de quoi s'y retrouver.
+
+⚠️ NE PASSE PAS LE CONTENU MIS EN FORME. `remember` est atteint à travers l'enveloppe
 `tool_call`, donc son contenu doit être encodé en JSON. Les blocs de code, encadrés,
 emoji et retours à la ligne CASSENT cet encodage — constaté le 2026-08-21 sur
 `veille-3d-assets` : quatre tentatives rejetées d'affilée (« 'arguments' is not valid
@@ -159,18 +162,23 @@ le contenu dans le contexte, qui a gonflé à 92 148 tokens. Le run a duré 40 m
 n'a livré qu'un seul caractère.
 
 Passe donc les FAITS en TEXTE PLAT : une ou deux phrases par trouvaille, sans saut de
-ligne, sans bloc de code, sans encadré. Hindsight les éclate de toute façon en faits
-atomiques — lui donner du markdown mis en forme n'apporte rien et casse l'appel. La mise
-en forme est pour Telegram, pas pour la mémoire.
+ligne, sans bloc de code, sans encadré. OpenViking en extrait de toute façon des
+entités et des événements — lui donner du markdown mis en forme n'apporte rien et casse
+l'appel. La mise en forme est pour Telegram, pas pour la mémoire.
 
 
 L'outil n'est PAS visible par défaut — il est différé. Va le chercher avec
 `tool_search`, comme tu le fais pour les outils `mcp__veille__*`.
 
+⚠️ Contrairement au `retain` de Hindsight, qui rendait la main en 0,02 s, `remember`
+déclenche une extraction sémantique côté serveur — l'ingestion d'un document d'un
+kilo-octet a été mesurée à 46 s le 2026-08-27. Le timeout est réglé à 120 s.
+Appelle-le UNE FOIS, n'attends pas plus, et passe à la livraison.
+
 Puis livre le digest, sans mentionner cet appel.
 
 POURQUOI. Le digest part sur Telegram et s'y perd : rien ne le rend interrogeable trois
-mois plus tard. Hindsight en extrait des faits atomiques, datés et reliés — « quand
+mois plus tard. OpenViking en extrait des entités et des événements reliés — « quand
 ai-je vu passer X pour la première fois ? » devient une question à laquelle on peut
 répondre. La déduplication txtai de l'étape 1 évite de REDIRE deux fois la même chose ;
 celle-ci évite de PERDRE ce qui a été dit.
