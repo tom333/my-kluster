@@ -376,10 +376,12 @@ spec:
                   #      un pic de 44 476 en 463 s, soit ~15 s/tour, 5/5 sur `pronote`.
                   #
                   # Ce qui reste vrai et non testé : 12 outils ≠ les 31 de Hermes, et le
-                  # préambule d'opencode n'a pas été mesuré. Le seuil des ~5 outils au-delà
-                  # duquel certains modèles basculent en XML est franchi (12), pas celui de
-                  # Hermes. Donc « le local peut le faire » est établi ; « le local peut
-                  # faire HERMES » ne l'est pas encore.
+                  # préambule d'opencode n'a pas été mesuré. Donc « le local peut le faire »
+                  # est établi ; « le local peut faire HERMES » ne l'est pas encore.
+                  # (Ce paragraphe invoquait un « seuil des ~5 outils au-delà duquel
+                  # certains modèles basculent en XML ». CORRIGÉ le 2026-08-27 : ce seuil
+                  # n'existe pas, il n'a jamais été mesuré — cf. la note en tête du bloc
+                  # mcp_servers plus bas.)
                   #
                   # ⚠️ TROIS DÉFAUTS DE PLOMBERIE ont pu produire seuls le verdict de juin,
                   # avant même la question du modèle :
@@ -484,30 +486,57 @@ spec:
                   - provider: openrouter
                     model: google/gemini-2.5-flash
                 mcp_servers:
-                  # hindsight — mémoire d'agent (app ArgoCD `hindsight`, ns hindsight).
-                  # Le point /mcp/{banque}/ est en mode BANQUE UNIQUE : la banque est
-                  # dans l'URL, donc les outils n'ont pas de paramètre `bank_id`.
+                  # openviking — base de contexte pour agents (app `openviking`, ns hermes).
+                  # Remplace hindsight, arrêté le 2026-08-26 après 376 OOMKilled : il
+                  # embarquait PostgreSQL + embedder + reranker dans un seul conteneur.
+                  # OpenViking délègue au contraire à des endpoints compatibles OpenAI :
+                  #   VLM        -> localai      (pc,   RTX 3060)   gemma-4-12b-it-qat
+                  #   embeddings -> localai-jeux (jeux, 1050 Ti)    qwen3-embedding-0.6b
+                  # Vérifié de bout en bout le 2026-08-27 : résumé exact produit par gemma,
+                  # entité extraite, document retrouvé premier sur une question n'employant
+                  # AUCUN de ses mots. Chaîne 100 % locale, rien ne sort du LAN.
                   #
-                  # ⚠️ ON N'EN EXPOSE QUE DEUX SUR LES 27. Le serveur en publie 27 en
-                  # mode banque unique (30 en multi) ; Hermes en a déjà 15 via arrconf
-                  # et txtai, plus les outils web et natifs. Au-delà d'environ 5 outils
-                  # visibles, certains modèles émettent leurs appels en XML dans le
-                  # texte au lieu du champ tool_calls — mesuré sur ce cluster. Même
-                  # filtrage que txtai ci-dessus, pour la même raison.
+                  # ON N'EN EXPOSE QUE TROIS SUR LES QUINZE. Le serveur publie find,
+                  # search, read, list, tree, remember, write, edit, add_resource,
+                  # list_watches, cancel_watch, grep, glob, forget, health. Le trio retenu
+                  # couvre le cycle entier : mémoriser, retrouver, lire. Trois raisons,
+                  # toutes vérifiables :
+                  #   1. le schéma de CHAQUE outil est renvoyé dans CHAQUE requête —
+                  #      Hermes en a déjà 15 via arrconf, txtai et veille, et son modèle
+                  #      est facturé au jeton (deepseek-v4-flash via OpenRouter) ;
+                  #   2. write/edit/forget donneraient à l'agent le pouvoir d'effacer son
+                  #      propre substrat de mémoire ;
+                  #   3. moins d'outils = moins d'occasions de se tromper de cible.
+                  # NOTE : ce dépôt a longtemps justifié ce filtrage par « au-delà de ~5
+                  # outils, certains modèles émettent leurs appels en XML au lieu du champ
+                  # tool_calls ». C'EST FAUX et ce n'a jamais été mesuré : l'observation
+                  # d'origine (8a65544b) portait sur un finetune au chat_template cassé,
+                  # pas sur un nombre d'outils. gemma-4-12b-it-qat tourne sous opencode
+                  # avec la totalité de ses outils sans jamais produire ce comportement,
+                  # et a fait 244 appels valides sur 12 outils au banc de ce cluster.
                   #
-                  # `reflect` est volontairement ABSENT : il déclenche un appel LLM
-                  # côté Hindsight, donc vers gemma sur la même carte — un tour
-                  # d'agent attendrait une génération complète. `retain` est
-                  # asynchrone (le worker consolide en tâche de fond), donc il ne
-                  # bloque pas.
-                  # Banque `default` partagée avec Claude Code : c'est le but, un
-                  # substrat commun plutôt qu'une énième mémoire isolée.
-                  # Pas d'auth : ClusterIP, et l'ingress LAN-only couvre l'extérieur.
-                  hindsight:
-                    url: "http://hindsight.hindsight.svc.cluster.local:8888/mcp/default/"
+                  # `search` est écarté au profit de `find` : il fait de l'« intent
+                  # analysis », donc un appel au VLM — gemma, sur la carte déjà chargée.
+                  # `find` est de la récupération purement vectorielle, servie par qwen3
+                  # sur le GPU de `jeux`. Même raisonnement que l'exclusion de `reflect`
+                  # chez hindsight.
+                  # Les outils d'écriture (write, edit, forget) sont exclus : l'agent ne
+                  # doit pas pouvoir effacer son propre substrat de mémoire.
+                  #
+                  # L'identité est PORTÉE PAR LA CLÉ (base64 de `tgu.tom333.<hash>`), donc
+                  # aucun en-tête X-OpenViking-Account/User n'est nécessaire.
+                  # Clé via ${OPENVIKING_API_KEY} (hermes-secrets, envFrom) → pas de clair
+                  # en Git, même motif que txtai et arrconf.
+                  #
+                  # timeout 120 et non 60 : `remember` déclenche l'extraction sémantique
+                  # côté serveur, mesurée à ~46 s sur un document de 1 Ko.
+                  openviking:
+                    url: "http://openviking.hermes.svc.cluster.local:1933/mcp"
+                    headers:
+                      Authorization: "Bearer ${OPENVIKING_API_KEY}"
                     tools:
-                      include: ["retain", "recall"]
-                    timeout: 60
+                      include: ["remember", "find", "read"]
+                    timeout: 120
                     connect_timeout: 10
                     enabled: true
                   # arrconf-mcp: in-cluster ClusterIP MCP (read-only, 10 tools) for the media stack.
