@@ -60,7 +60,11 @@ ROLLBACK
 
 echo "=== [0] Pré-flight ==="
 [ -e "$LOCKS/no-k8s-dqlite" ] && { echo "ERREUR: no-k8s-dqlite présent — déjà en mode etcd ?"; exit 1; }
-[ -S "${SNAP_DATA}/var/kubernetes/backend/kine.sock" ] || { echo "ERREUR: kine.sock absent — dqlite ne tourne pas."; exit 1; }
+# Le port fait partie du NOM DE FICHIER de la socket : `kine.sock:12379`, pas
+# `kine.sock`. Tester le mauvais nom fait échouer la précondition sur un dqlite
+# parfaitement vivant — constaté au premier essai.
+KINE_SOCK="${SNAP_DATA}/var/kubernetes/backend/kine.sock:12379"
+[ -S "$KINE_SOCK" ] || { echo "ERREUR: $KINE_SOCK absent — dqlite ne tourne pas."; exit 1; }
 [ -x "$SNAP/etcd" ] || { echo "ERREUR: binaire etcd absent du snap."; exit 1; }
 echo "  mode dqlite confirmé, etcd disponible ($("$SNAP/etcd" --version | head -1))"
 echo "  nœuds actuellement dans le cluster :"
