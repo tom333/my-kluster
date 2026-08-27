@@ -1,0 +1,18 @@
+[Unit]
+Description=Détection du gel des caches de veille apiserver (k8s-dqlite)
+Documentation=file://{{ k8s_cache_watchdog_script_path }}
+After=network-online.target snap.microk8s.daemon-kubelite.service
+Wants=network-online.target
+OnFailure={{ k8s_cache_watchdog_service_name }}-notify.service
+
+[Service]
+Type=oneshot
+User=root
+ExecStart={{ k8s_cache_watchdog_script_path }}
+
+# Durcissement léger. NoNewPrivileges est volontairement absent : le kubectl du
+# snap microk8s passe par un setuid pour basculer dans son profil AppArmor, que
+# NoNewPrivileges=true bloque (« cannot change profile for the next exec call »).
+ProtectKernelTunables=true
+ProtectControlGroups=true
+ProtectKernelModules=true

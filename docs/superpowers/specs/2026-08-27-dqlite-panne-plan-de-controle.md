@@ -129,15 +129,31 @@ rv "/api/v1/pods?limit=1&resourceVersion=0"  # servie par le cache
 Écart de quelques dizaines = sain. Écart de plusieurs centaines de milliers = **caches
 gelés**. Comparer avec `events`, qui doit rester frais.
 
-**Déblocage** (palliatif, à rechute) :
+**Déblocage** (palliatif, à rechute) — **sur les DEUX nœuds, dans cet ordre** :
 
 ```bash
 sudo systemctl restart snap.microk8s.daemon-kubelite
+until microk8s kubectl get --raw /readyz >/dev/null 2>&1; do sleep 3; done
+ssh moi@192.168.88.150 -t 'sudo systemctl restart snap.microk8s.daemon-kubelite'
 ```
 
 Redémarre l'apiserver + contrôleurs + scheduler + kubelet, **sans toucher containerd** :
 les conteneurs en cours ne bougent pas, coupure d'API ~30-60 s. Préférer à
 `microk8s stop && microk8s start`.
+
+⚠️ **Le control-plane ne suffit pas.** Le kubelet d'un worker décroche
+indépendamment : le 2026-08-27, 110 pods attribués à `jeux` sont restés `Pending`
+alors que l'apiserver était sain et que le journal de `jeux` ne montrait **aucune**
+erreur de veille — son kubelet n'avait simplement jamais entendu parler d'eux.
+L'attente sur `/readyz` compte : relancer les deux simultanément fait reconnecter le
+worker sur un apiserver pas encore prêt, et sa veille repart périmée.
+
+**Garde-fou automatique** : rôle Ansible `k8s-cache-watchdog` (déployé sur le
+control-plane ET les workers, tag `cache-watchdog`). Il relève toutes les 5 min
+l'écart de révision **et** le nombre de pods attribués au nœud local jamais démarrés,
+puis redémarre kubelite après 2 relevés concordants, avec fenêtre de garde de 30 min
+et notification Telegram. Il ne corrige rien — il ramène une panne de plusieurs jours
+à une minute.
 
 ## 6. Ce n'est ni une erreur de conf, ni un cas isolé
 
@@ -239,6 +255,30 @@ Après un gel, les CronJobs ont empilé des pods (mesuré : **483 pods** et 67 j
 `crowdsec-machines-prune`, cadence `*/30`, sur 2 j 16 h ; **500 pods `Pending` au
 total**, saturant le scheduler au point d'empêcher le placement du contrôleur ArgoCD).
 
+**L'accumulation n'est PAS un défaut de configuration.** Les cinq CronJobs concernés
+sont sainement réglés (`backoffLimit` 1 et 6, `failedJobsHistoryLimit: 2`,
+`concurrencyPolicy: Forbid`) : aucun ne peut déborder seul. Ils ont débordé parce que
+le contrôleur de jobs, aveugle, ne pouvait ni observer les terminaisons, ni compter les
+échecs, ni appliquer ces limites. C'est un symptôme de la même panne — cinq CronJobs
+l'ont subi simultanément.
+
+**Conséquence à connaître : un cluster gelé te coupe l'accès à distance.** Le
+2026-08-27, la LAPI CrowdSec n'a pas pu redémarrer ; le plugin bouncer de Traefik étant
+attaché **globalement** à l'entrypoint `websecure` et fermant en cas d'échec, **tous**
+les hôtes publics ont renvoyé 403 — `shell`, `ha`, `argocd`, `beszel`, `sonarr`,
+`jellyfin` —, y compris depuis le LAN. Plus de terminal web, plus d'ingress, et
+`sudo` demandant un mot de passe, la réparation a exigé un accès physique.
+Le 403 traversant tous les routeurs à la fois est la signature de la middleware
+globale, à ne pas confondre avec un `ipAllowList` (403 lui aussi, mais sur un seul
+hôte) ni avec oauth2-proxy (401/302).
+
+**ORDRE CORRECT : suspendre, nettoyer, PUIS redémarrer une seule fois.**
+« Redémarrer puis nettoyer » ne marche pas : le volume d'écritures du nettoyage
+regèle les caches en une trentaine de minutes — mesuré trois fois le 2026-08-27.
+1. `kubectl patch cronjob <nom> -n <ns> -p '{"spec":{"suspend":true}}'` — couper la source.
+2. Nettoyer pendant que c'est déjà cassé (voir ci-dessous).
+3. Un seul redémarrage, sur les deux nœuds (§5).
+
 **Ordre de suppression important.** Supprimer les `Job` **d'abord** laisse leurs pods
 orphelins avec le finaliseur `batch.kubernetes.io/job-tracking`, que plus personne ne
 retire — ils restent `Terminating` indéfiniment. Il faut alors le retirer à la main :
@@ -251,10 +291,41 @@ kubectl get pods -n <ns> -o name | grep <prefixe> \
 
 Supprimer les **pods** avant les jobs évite le piège.
 
-## 10. Reste à faire
+## 10. Levier sans root : le placement manuel
 
-- [ ] Trancher entre les trois options du §8.
-- [ ] Écrire le garde-fou de détection (§8).
+Quand le scheduler ne place plus rien, on peut le faire à sa place via la
+sous-ressource `binding`, **sans privilèges sur l'hôte** :
+
+```bash
+kubectl create --raw "/api/v1/namespaces/<ns>/pods/<pod>/binding" -f - <<'JSON'
+{ "apiVersion": "v1", "kind": "Binding",
+  "metadata": { "name": "<pod>", "namespace": "<ns>" },
+  "target": { "apiVersion": "v1", "kind": "Node", "name": "<noeud>" } }
+JSON
+```
+
+⚠️ Vérifier d'abord les contraintes de placement — avec `microk8s-hostpath`, le PV
+porte une `nodeAffinity` qui épingle le pod à un nœud précis.
+
+**Portée réelle, mesurée** : l'API accepte (`201`, le pod reçoit son `nodeName`), mais
+si le kubelet a lui aussi décroché, le pod reste `Pending`. Ce levier contourne le
+scheduler, **pas** le kubelet. Utile pour un pod isolé quand seul le scheduler est
+atteint ; inutile en gel complet.
+
+## 11. Reste à faire
+
+- [ ] **Trancher entre les trois options du §8.** Tout le reste est du palliatif.
+- [x] ~~Écrire le garde-fou de détection~~ → rôle `k8s-cache-watchdog`, câblé sur
+      `k8s_nodes` et `k8s_workers`. **Jamais exécuté à ce jour** : à déployer via
+      `ansible-playbook -i inventory.yml playbook.yml --tags cache-watchdog`, puis à
+      vérifier (`systemctl list-timers k8s-cache-watchdog.timer`).
+- [ ] **Lever les suspensions de CronJobs** une fois le datastore tranché :
+      `config/crowdsec-machines-prune.yaml` (`suspend: true`),
+      `argocd/argocd-apps/pred-app.yaml` (`suspend: true`), et le bloc
+      `ignoreDifferences` sur `batch/CronJob /spec/suspend` dans
+      `argocd/argocd-apps/arr-stack-app.yaml` — ce dernier n'existe que parce que le
+      chart amont `tom333/arr-stack` n'expose pas `suspend` ; y ajouter la valeur
+      rendrait le contournement inutile.
 - [ ] Réduire le churn d'écriture : le GPU operator génère 444 verrous pour un unique
       consommateur GPU ; `crd.projectcalico.org/tiers` en génère 404.
 - [ ] Vérifier le déploiement de `localai-jeux` (réactivée en `e8fdf9bb`, jamais

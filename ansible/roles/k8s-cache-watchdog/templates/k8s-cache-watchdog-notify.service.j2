@@ -1,0 +1,9 @@
+[Unit]
+Description=Notification Telegram si le garde-fou de cache échoue
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/curl -fsS -o /dev/null -X POST \
+  https://api.telegram.org/bot{{ vault_telegram_bot_token }}/sendMessage \
+  --data-urlencode "chat_id={{ vault_telegram_chat_id }}" \
+  --data-urlencode "text=⚠ k8s-cache-watchdog a échoué sur {{ ansible_hostname }} — journalctl -u {{ k8s_cache_watchdog_service_name }}.service"

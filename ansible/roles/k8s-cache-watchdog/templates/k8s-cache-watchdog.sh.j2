@@ -1,0 +1,113 @@
+#!/usr/bin/env bash
+#
+# Détecte le gel des caches de veille de l'apiserver et redémarre kubelite.
+#
+# POURQUOI. Sous k8s-dqlite, le flux qui alimente les caches de veille décroche
+# périodiquement ; à la reprise l'apiserver redemande une révision que la
+# compaction a effacée, et il reboucle dessus au lieu de relire à neuf. Les
+# caches gèlent alors TOUS sur la même révision et ne repartent JAMAIS seuls.
+# Bugs amont ouverts : canonical/microk8s#5153 et #5568.
+# Analyse complète : docs/superpowers/specs/2026-08-27-dqlite-panne-plan-de-controle.md
+#
+# Les écritures continuant de passer, le cluster paraît sain : kubectl répond,
+# les nœuds sont Ready. Mais tout lecteur passant par un cache est aveugle —
+# ArgoCD sur toutes ses apps, le kubelet qui n'achève plus aucune suppression,
+# les contrôleurs de jobs qui empilent des centaines de pods.
+#
+# CE SCRIPT NE CORRIGE RIEN. Il ramène une panne de plusieurs jours à une minute.
+# Le seul geste qui supprime la classe d'incident est de quitter dqlite.
+set -euo pipefail
+
+export KUBECONFIG="{{ k8s_cache_watchdog_kubeconfig }}"
+SEUIL={{ k8s_cache_watchdog_threshold }}
+STRIKES_REQUIS={{ k8s_cache_watchdog_strikes }}
+COOLDOWN={{ k8s_cache_watchdog_cooldown }}
+RESSOURCE="{{ k8s_cache_watchdog_resource }}"
+SEUIL_BLOQUES={{ k8s_cache_watchdog_stuck_pods }}
+ETAT="{{ k8s_cache_watchdog_state_dir }}"
+FICHIER_STRIKES="$ETAT/strikes"
+FICHIER_DERNIER="$ETAT/dernier-redemarrage"
+
+mkdir -p "$ETAT"
+
+# Révision d'une lecture. Sans resourceVersion → lecture à quorum (état réel).
+# Avec resourceVersion=0 → servie par le cache. L'écart entre les deux EST la mesure.
+revision() {
+  kubectl get --raw "$1" 2>/dev/null \
+    | python3 -c 'import json,sys; print(json.load(sys.stdin)["metadata"]["resourceVersion"])' 2>/dev/null
+}
+
+separateur="?"; [[ "$RESSOURCE" == *"?"* ]] && separateur="&"
+quorum=$(revision "$RESSOURCE") || true
+cache=$(revision "${RESSOURCE}${separateur}resourceVersion=0") || true
+
+# API injoignable : ce n'est PAS un gel de cache, et redémarrer à l'aveugle
+# pendant une coupure aggraverait. On sort sans compter de strike.
+if [[ -z "${quorum:-}" || -z "${cache:-}" ]]; then
+  echo "apiserver injoignable ou réponse illisible — aucun relevé, aucune action"
+  exit 0
+fi
+
+ecart=$(( quorum - cache ))
+echo "quorum=$quorum cache=$cache ecart=$ecart seuil=$SEUIL"
+
+# SECONDE CONDITION — la veille du kubelet LOCAL.
+# Redémarrer kubelite sur le control-plane ne répare PAS le kubelet d'un worker :
+# constaté le 2026-08-27, où 110 pods assignés à `jeux` sont restés Pending malgré
+# un apiserver sain, son kubelet ne les ayant jamais vus. Le symptôme propre au
+# nœud est donc : des pods qui lui sont ATTRIBUÉS et qu'il ne démarre pas.
+# Le seuil d'âge écarte les démarrages normaux (téléchargement d'image compris,
+# qui laisse le pod en phase Pending).
+bloques=$(kubectl get pods -A -o json 2>/dev/null | python3 -c '
+import json, sys, datetime
+try: d = json.load(sys.stdin)
+except Exception: print(-1); sys.exit()
+maintenant = datetime.datetime.now(datetime.timezone.utc)
+n = 0
+for p in d.get("items", []):
+    if p["spec"].get("nodeName") != "{{ ansible_hostname }}": continue
+    if p["status"].get("phase") != "Pending": continue
+    ts = p["metadata"].get("creationTimestamp")
+    if not ts: continue
+    age = (maintenant - datetime.datetime.fromisoformat(ts.replace("Z", "+00:00"))).total_seconds()
+    if age > {{ k8s_cache_watchdog_pending_age }}: n += 1
+print(n)
+' 2>/dev/null)
+bloques=${bloques:--1}
+echo "pods attribués à {{ ansible_hostname }} et non démarrés: $bloques (seuil ${SEUIL_BLOQUES})"
+
+gel_cache=0; (( ecart >= SEUIL )) && gel_cache=1
+kubelet_muet=0; (( bloques >= SEUIL_BLOQUES )) && kubelet_muet=1
+
+if (( gel_cache == 0 && kubelet_muet == 0 )); then
+  # Sain : on remet le compteur à zéro, un pic isolé ne s'accumule pas.
+  echo 0 > "$FICHIER_STRIKES"
+  exit 0
+fi
+
+strikes=$(( $(cat "$FICHIER_STRIKES" 2>/dev/null || echo 0) + 1 ))
+echo "$strikes" > "$FICHIER_STRIKES"
+echo "ANOMALIE (cache=$gel_cache kubelet=$kubelet_muet) — relevé $strikes/$STRIKES_REQUIS"
+
+(( strikes < STRIKES_REQUIS )) && exit 0
+
+# Fenêtre de garde : sous forte charge d'écriture le gel revient en ~30 min.
+# Sans ce verrou, le service redémarrerait en boucle sans jamais laisser le
+# cluster se stabiliser.
+maintenant=$(date +%s)
+dernier=$(cat "$FICHIER_DERNIER" 2>/dev/null || echo 0)
+if (( maintenant - dernier < COOLDOWN )); then
+  echo "gel confirmé mais dernier redémarrage il y a $(( maintenant - dernier ))s (< ${COOLDOWN}s) — on attend"
+  exit 0
+fi
+
+echo "ANOMALIE CONFIRMÉE (écart=$ecart, pods bloqués=$bloques) — redémarrage de kubelite"
+systemctl restart snap.microk8s.daemon-kubelite
+echo "$maintenant" > "$FICHIER_DERNIER"
+echo 0 > "$FICHIER_STRIKES"
+
+curl -fsS -o /dev/null -m 15 -X POST \
+  "https://api.telegram.org/bot{{ vault_telegram_bot_token }}/sendMessage" \
+  --data-urlencode "chat_id={{ vault_telegram_chat_id }}" \
+  --data-urlencode "text=⚠ {{ ansible_hostname }} : écart de cache $ecart révisions, $bloques pods attribués non démarrés — kubelite redémarré. Palliatif : la cause est k8s-dqlite (microk8s#5153/#5568), pas ce cluster." \
+  || echo "notification Telegram échouée (sans conséquence sur le redémarrage)"

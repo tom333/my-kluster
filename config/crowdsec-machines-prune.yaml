@@ -51,6 +51,18 @@ metadata:
   namespace: crowdsec
 spec:
   schedule: "*/30 * * * *"        # toutes les 30 min
+  # SUSPENDU TEMPORAIREMENT le 2026-08-27 — À LEVER une fois le datastore tranché.
+  # Ce CronJob est sainement réglé (backoffLimit 1, failedJobsHistoryLimit 2,
+  # concurrencyPolicy Forbid) : il ne peut pas déborder par lui-même. Il a pourtant
+  # accumulé 483 pods en 2 j 16 h, parce que le contrôleur de jobs était AVEUGLE —
+  # caches de veille de l'apiserver gelés, cf.
+  # docs/superpowers/specs/2026-08-27-dqlite-panne-plan-de-controle.md.
+  # Sans pouvoir observer les terminaisons, il ne pouvait ni compter les échecs ni
+  # appliquer ces limites. Les 500 pods en attente ont fini par saturer le scheduler
+  # au point d'empêcher le placement du contrôleur ArgoCD et de la LAPI CrowdSec —
+  # donc, le bouncer fermant en cas d'échec, de rendre 403 sur TOUS les hôtes publics.
+  # La suspension coupe l'alimentation le temps de traiter la cause racine.
+  suspend: true
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 1
   failedJobsHistoryLimit: 2

@@ -1,0 +1,13 @@
+[Unit]
+Description=Relevé périodique de l'écart de révision des caches apiserver
+Documentation=file://{{ k8s_cache_watchdog_script_path }}
+
+[Timer]
+OnBootSec=10min
+OnUnitActiveSec={{ k8s_cache_watchdog_interval }}
+# Pas de Persistent=true : un relevé manqué n'a aucune valeur rétroactive,
+# seul l'état courant compte.
+Unit={{ k8s_cache_watchdog_service_name }}.service
+
+[Install]
+WantedBy=timers.target

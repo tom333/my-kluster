@@ -1,0 +1,43 @@
+---
+# k8s-cache-watchdog — détecte le gel des caches de veille de l'apiserver et
+# redémarre kubelite. Palliatif assumé : cf.
+# docs/superpowers/specs/2026-08-27-dqlite-panne-plan-de-controle.md
+
+# Écart (en révisions) entre lecture à quorum et lecture servie par le cache
+# au-delà duquel on considère le cache décroché.
+# Repère mesuré le 2026-08-27 : cluster sain ≈ 40-3500 selon la charge d'écriture,
+# cluster gelé = 24 765 puis 70 239 puis 722 392, en croissance continue.
+# 50 000 laisse une marge confortable au-dessus du bruit normal.
+k8s_cache_watchdog_threshold: 50000
+
+# Nombre de relevés consécutifs au-dessus du seuil avant d'agir. À 2 relevés
+# espacés de l'intervalle du timer, un pic transitoire ne déclenche rien.
+k8s_cache_watchdog_strikes: 2
+
+# Intervalle entre deux relevés.
+k8s_cache_watchdog_interval: "5min"
+
+# Délai minimal entre deux redémarrages, en secondes. Empêche une boucle de
+# redémarrage si le gel revient immédiatement (il revient en ~30 min sous forte
+# charge d'écriture — mesuré).
+k8s_cache_watchdog_cooldown: 1800
+
+# Ressource sondée. `pods` est le bon témoin : c'est la première victime
+# fonctionnelle (kubelet aveugle → pods bloqués en Terminating, rien ne démarre).
+k8s_cache_watchdog_resource: "/api/v1/pods?limit=1"
+
+k8s_cache_watchdog_script_path: /usr/local/bin/k8s-cache-watchdog.sh
+k8s_cache_watchdog_service_name: k8s-cache-watchdog
+k8s_cache_watchdog_state_dir: /var/lib/k8s-cache-watchdog
+
+# Kubeconfig lu par le script (exécuté en root via systemd).
+k8s_cache_watchdog_kubeconfig: "/home/{{ ansible_user }}/.kube/config"
+
+# Âge (secondes) au-delà duquel un pod ATTRIBUÉ à ce nœud et toujours en phase
+# Pending signale que le kubelet local ne le voit pas. 600 s laisse passer les
+# démarrages normaux, téléchargement d'image compris.
+k8s_cache_watchdog_pending_age: 600
+
+# Nombre de tels pods à partir duquel on agit. 1 suffit : un pod attribué et
+# jamais démarré au bout de 10 min n'a pas d'explication bénigne.
+k8s_cache_watchdog_stuck_pods: 1

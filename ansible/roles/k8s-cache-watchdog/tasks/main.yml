@@ -1,0 +1,71 @@
+---
+# k8s-cache-watchdog — relève périodiquement l'écart de révision entre lecture à
+# quorum et lecture servie par le cache, et redémarre kubelite si les caches ont
+# décroché. Palliatif : cf.
+# docs/superpowers/specs/2026-08-27-dqlite-panne-plan-de-controle.md
+
+- name: Préflight — vault_telegram_bot_token doit être défini
+  ansible.builtin.assert:
+    that:
+      - vault_telegram_bot_token is defined
+      - vault_telegram_bot_token | length > 0
+    fail_msg: "vault_telegram_bot_token doit être défini dans vault.yml"
+
+- name: Préflight — python3 requis pour lire la révision des réponses API
+  ansible.builtin.command: python3 -c "import json"
+  changed_when: false
+  check_mode: false
+
+- name: Préflight — le kubeconfig doit exister
+  ansible.builtin.stat:
+    path: "{{ k8s_cache_watchdog_kubeconfig }}"
+  register: kubeconfig_stat
+  check_mode: false
+
+- name: Préflight — kubeconfig introuvable
+  ansible.builtin.assert:
+    that:
+      - kubeconfig_stat.stat.exists
+    fail_msg: |
+      {{ k8s_cache_watchdog_kubeconfig }} est introuvable.
+      Lancer d'abord k8s-node-bootstrap, ou surcharger k8s_cache_watchdog_kubeconfig.
+
+- name: Répertoire d'état
+  ansible.builtin.file:
+    path: "{{ k8s_cache_watchdog_state_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0750"
+  become: true
+
+- name: Installer le script de relevé
+  ansible.builtin.template:
+    src: k8s-cache-watchdog.sh.j2
+    dest: "{{ k8s_cache_watchdog_script_path }}"
+    owner: root
+    group: root
+    mode: "0750"
+  become: true
+
+- name: Installer les unités systemd
+  ansible.builtin.template:
+    src: "{{ item }}.j2"
+    dest: "/etc/systemd/system/{{ item }}"
+    owner: root
+    group: root
+    mode: "0644"
+  become: true
+  loop:
+    - "{{ k8s_cache_watchdog_service_name }}.service"
+    - "{{ k8s_cache_watchdog_service_name }}.timer"
+    - "{{ k8s_cache_watchdog_service_name }}-notify.service"
+  notify: reload systemd
+
+- name: Activer le timer
+  ansible.builtin.systemd:
+    name: "{{ k8s_cache_watchdog_service_name }}.timer"
+    enabled: true
+    state: started
+    daemon_reload: true
+  become: true

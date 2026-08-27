@@ -23,6 +23,7 @@
   roles:
     - { role: common-cli-tools, tags: [bootstrap, cli-tools] }
     - { role: k8s-node-bootstrap, tags: [bootstrap] }
+    - { role: k8s-cache-watchdog, tags: [cache-watchdog] }
     - sealed-secrets-backup
     - beszel-agent
 
@@ -98,6 +99,11 @@
         msg: "k8s worker play on {{ inventory_hostname }} ({{ ansible_host }}) — role={{ k8s_node_role | default('?') }}"
   roles:
     - { role: k8s-node-bootstrap, tags: [worker, bootstrap] }
+    # Le kubelet d'un worker decroche INDEPENDAMMENT du control-plane : redemarrer
+    # kubelite sur le master ne le repare pas (constate le 2026-08-27, 110 pods
+    # attribues a `jeux` restes Pending avec un apiserver sain). Il lui faut donc
+    # son propre garde-fou.
+    - { role: k8s-cache-watchdog, tags: [worker, cache-watchdog] }
 
 - name: PiHole boxes — monitoring + weekly core update + custom DNS
   hosts: pihole_hosts
