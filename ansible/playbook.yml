@@ -24,6 +24,9 @@
     - { role: common-cli-tools, tags: [bootstrap, cli-tools] }
     - { role: k8s-node-bootstrap, tags: [bootstrap] }
     - { role: k8s-cache-watchdog, tags: [cache-watchdog] }
+    # Acces distant HORS CLUSTER : ne depend ni de dqlite, ni du scheduler, ni de
+    # Traefik, ni de CrowdSec — les 4 maillons tombes ensemble le 2026-08-27.
+    - { role: tailscale, tags: [tailscale] }
     - sealed-secrets-backup
     - beszel-agent
 
@@ -104,6 +107,7 @@
     # attribues a `jeux` restes Pending avec un apiserver sain). Il lui faut donc
     # son propre garde-fou.
     - { role: k8s-cache-watchdog, tags: [worker, cache-watchdog] }
+    - { role: tailscale, tags: [worker, tailscale] }
 
 - name: PiHole boxes — monitoring + weekly core update + custom DNS
   hosts: pihole_hosts

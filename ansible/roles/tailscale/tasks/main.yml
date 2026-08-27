@@ -1,0 +1,67 @@
+---
+# Installe Tailscale et l'enrôle si une clé est fournie.
+# Idempotent : l'enrôlement n'est retenté que si le nœud n'est pas déjà connecté.
+
+- name: Tailscale déjà installé ?
+  ansible.builtin.stat:
+    path: /usr/bin/tailscale
+  register: ts_bin
+  check_mode: false
+
+# Installateur officiel (https://tailscale.com/download). Il détecte la distribution
+# et configure le dépôt APT signé — préféré à un dépôt écrit à la main, qui dériverait
+# à la prochaine version de la distribution.
+- name: Installer Tailscale via l'installateur officiel
+  ansible.builtin.shell:
+    cmd: curl -fsSL https://tailscale.com/install.sh | sh
+  args:
+    creates: /usr/bin/tailscale
+  become: true
+  when: not ts_bin.stat.exists
+
+- name: Démon activé et démarré
+  ansible.builtin.systemd:
+    name: tailscaled
+    enabled: true
+    state: started
+  become: true
+
+- name: État de connexion
+  ansible.builtin.command: tailscale status --json
+  register: ts_status
+  changed_when: false
+  failed_when: false
+  check_mode: false
+  become: true
+
+- name: Déterminer si le nœud est déjà enrôlé
+  ansible.builtin.set_fact:
+    ts_connecte: "{{ (ts_status.stdout | from_json).BackendState | default('') == 'Running' }}"
+  when: ts_status.rc == 0
+  failed_when: false
+
+- name: Enrôlement non interactif (si une clé est fournie)
+  ansible.builtin.command: >-
+    tailscale up
+    --authkey={{ tailscale_authkey }}
+    --hostname={{ tailscale_hostname }}
+    {{ '--ssh' if tailscale_ssh else '' }}
+  become: true
+  no_log: true          # la clé ne doit pas atterrir dans la sortie ni les logs
+  when:
+    - tailscale_authkey | length > 0
+    - not (ts_connecte | default(false))
+
+# Sans clé, on N'ENRÔLE PAS automatiquement : `tailscale up` interactif rend une URL
+# d'authentification à ouvrir dans un navigateur. C'est volontaire — cela évite de
+# stocker une clé longue durée dans le vault pour un geste fait une fois par machine.
+- name: Rappel — enrôlement manuel requis
+  ansible.builtin.debug:
+    msg: >-
+      Tailscale est installé mais ce nœud n'est PAS enrôlé.
+      Lancer une fois, sur la machine :
+      sudo tailscale up {{ '--ssh' if tailscale_ssh else '' }}
+      puis ouvrir l'URL affichée.
+  when:
+    - tailscale_authkey | length == 0
+    - not (ts_connecte | default(false))

@@ -1,0 +1,26 @@
+---
+# tailscale — accès distant HORS CLUSTER.
+#
+# POURQUOI. L'accès distant reposait sur une chaîne à quatre maillons :
+# dqlite → scheduler → CrowdSec → Traefik. Le 2026-08-27 le premier a lâché et
+# tous les autres sont tombés avec : la LAPI CrowdSec n'a pas pu redémarrer, le
+# bouncer Traefik étant global sur `websecure` et fermant en cas d'échec, TOUS les
+# hôtes publics ont renvoyé 403 — terminal web compris. Réparation impossible à
+# distance, `sudo` demandant un mot de passe : il a fallu se déplacer.
+# Tailscale ne dépend d'aucun de ces maillons.
+#
+# Cf. docs/superpowers/specs/2026-08-27-dqlite-panne-plan-de-controle.md
+
+# Serveur SSH intégré de Tailscale. Évite d'exposer le port 22 sur le WAN —
+# la règle de ce parc étant que SSH n'y est JAMAIS exposé.
+tailscale_ssh: true
+
+# Clé d'enrôlement (tskey-auth-…). Laissée VIDE par défaut : le rôle installe
+# alors le démon et s'arrête avant l'enrôlement, en affichant la commande à
+# lancer une fois à la main (`tailscale up`, qui rend une URL d'authentification).
+# C'est le mode recommandé ici : aucune clé longue durée à stocker dans le vault.
+# Pour un enrôlement non interactif, définir tailscale_authkey dans vault.yml.
+tailscale_authkey: ""
+
+# Nom de la machine dans le réseau Tailscale. Par défaut le hostname.
+tailscale_hostname: "{{ ansible_hostname }}"
