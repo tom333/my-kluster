@@ -1,0 +1,105 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  # openviking — base de contexte pour agents : mémoire, ressources et compétences
+  # unifiées derrière un paradigme de système de fichiers, avec chargement par
+  # paliers et recherche sémantique.
+  #
+  # POURQUOI CELUI-CI PLUTÔT QUE HINDSIGHT. Hindsight embarquait PostgreSQL, un
+  # embedder et un reranker dans un seul conteneur : 376 OOMKilled, arrêté le
+  # 2026-08-26 (replicas 0, ses 279 faits conservés). OpenViking est ~0,38 Go
+  # compressé, n'exige NI base externe NI Redis, et délègue embeddings et VLM à des
+  # endpoints compatibles OpenAI — donc à LocalAI, déjà déployé ici.
+  #
+  # LES DEUX MODÈLES SONT LOCAUX, ET SUR DES GPU DISTINCTS :
+  #   - VLM         → `localai` (nœud pc, RTX 3060)   : gemma-4-12b-it-qat
+  #   - embeddings  → `localai-jeux` (nœud jeux, 1050 Ti) : qwen3-embedding-0.6b
+  # Cette séparation n'est pas cosmétique : `LOCALAI_SINGLE_ACTIVE_BACKEND` évincerait
+  # gemma à CHAQUE appel d'embedding s'ils partageaient une instance, soit ~68 s de
+  # rechargement à chaque fois. C'est pour cela que `localai-jeux`, désactivée en
+  # juillet avec l'abandon du projet vocal, a été réactivée (commit e8fdf9bb).
+  #
+  # ⚠️ DIMENSIONNEMENT PROVISOIRE. L'empreinte mémoire d'OpenViking n'est documentée
+  # nulle part. Les valeurs ci-dessous sont un plafond large À MESURER PUIS RESSERRER,
+  # pas une estimation : s'être fié à la doc de Hindsight (« 1,5-2 Go ») avant d'y
+  # ajouter un embedder est précisément ce qui l'a fait mourir 376 fois.
+  #
+  # ⚠️ LES CHIFFRES ANNONCÉS (82 % sur LoCoMo) viennent des modèles cloud Doubao, PAS
+  # d'un gemma local. À vérifier sur pièce avant d'y croire.
+  #
+  # Pas d'ingress : consommé depuis le cluster par Hermes, comme crw et lightpanda.
+  name: openviking
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    # Même namespace que son consommateur (Hermes) et que crw/lightpanda : déjà
+    # couvert par infra-project, donc aucun AppProject à modifier.
+    namespace: hermes
+    server: https://kubernetes.default.svc
+  project: infra-project
+  source:
+    repoURL: https://bjw-s-labs.github.io/helm-charts
+    chart: app-template
+    targetRevision: 5.1.0
+    helm:
+      values: |
+        controllers:
+          openviking:
+            type: deployment
+            containers:
+              main:
+                image:
+                  repository: ghcr.io/volcengine/openviking
+                  tag: "v0.4.16"
+                  pullPolicy: IfNotPresent
+                env:
+                  # L'image pointe par défaut sur /app/.openviking/ov.conf, qui est
+                  # aussi son répertoire de travail. On sort la configuration de là
+                  # pour ne pas mélanger un montage en lecture seule avec les données.
+                  OPENVIKING_CONFIG_FILE: /config/ov.conf
+                resources:
+                  # Requête volontairement basse : ce nœud tourne à 80-90 % de CPU
+                  # demandé, un requests élevé condamnerait le pod à rester Pending.
+                  requests: { cpu: "100m", memory: 512Mi }
+                  # Plafond large ASSUMÉ, à resserrer sur mesure réelle (cf. en-tête).
+                  limits:   { cpu: "2",    memory: 4Gi }
+                probes:
+                  liveness:  { enabled: true, custom: true, spec: { tcpSocket: { port: 1933 }, periodSeconds: 30, timeoutSeconds: 5, failureThreshold: 3 } }
+                  readiness: { enabled: true, custom: true, spec: { tcpSocket: { port: 1933 }, periodSeconds: 15, timeoutSeconds: 5, failureThreshold: 3 } }
+                  # Marge généreuse au premier démarrage : la base vectorielle locale
+                  # et l'espace de travail sont initialisés avant l'ouverture du port.
+                  startup:   { enabled: true, custom: true, spec: { tcpSocket: { port: 1933 }, periodSeconds: 10, timeoutSeconds: 5, failureThreshold: 30 } }
+        service:
+          main:
+            controller: openviking
+            ports:
+              http:
+                port: 1933
+                targetPort: 1933
+        persistence:
+          # `storage.workspace` vaut /data dans ov.conf. AGFS et la base vectorielle
+          # y écrivent toutes deux (backend `local`), donc tout l'état tient ici.
+          # 20Gi : la doc de production recommande un disque de 256 Gio, hors de
+          # proportion pour cet usage — à surveiller, pas à provisionner d'avance.
+          data:
+            type: persistentVolumeClaim
+            accessMode: ReadWriteOnce
+            size: 20Gi
+            globalMounts:
+              - path: /data
+          # ov.conf contient les clés d'API de LocalAI : SealedSecret, pas ConfigMap
+          # (cf. sealed/openviking-config.yaml). Monté en lecture seule.
+          config:
+            type: secret
+            name: openviking-config
+            globalMounts:
+              - path: /config
+                readOnly: true
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      selfHeal: true
+      prune: true
