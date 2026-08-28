@@ -25,7 +25,7 @@ spec:
     # NE PAS remonter sans avoir vérifié le rendu :
     #   helm dependency build && helm template . -f ../../examples/values-prod.yaml \
     #     | grep -c '^kind:'
-    targetRevision: v0.53.0
+    targetRevision: v0.53.10
     path: charts/arr-stack
     helm:
       valueFiles:
