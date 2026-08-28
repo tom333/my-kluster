@@ -27,6 +27,7 @@ set -euo pipefail
 BASE=/var/snap/microk8s/common/default-storage
 NS=selfhost
 APP=arr-stack
+PARENT=applications        # app-of-apps qui réécrit $APP depuis Git
 HORODATAGE=$(date +%Y%m%d-%H%M%S)
 SAUVEGARDE="/data/kube/restore-backup-$HORODATAGE"
 
@@ -72,8 +73,9 @@ if [ "$EXEC" -eq 0 ]; then
   cat <<PLAN
 
   Rien n'a été modifié. Avec --go, le script :
-    1. coupe la synchro auto d'ArgoCD sur $APP (sinon selfHeal relance les pods
-       EN PLEINE COPIE, et ils écriraient dans un répertoire en cours de rsync) ;
+    1. coupe la synchro auto d'ArgoCD sur $PARENT ET $APP — les deux niveaux, car
+       l'app-of-apps réécrit sinon $APP depuis Git et rétablit selfHeal, qui relance
+       les pods EN PLEINE COPIE ;
     2. met les 7 déploiements à 0 et attend l'arrêt réel des pods, pour que SQLite
        ferme proprement ses journaux -wal ;
     3. sauvegarde les volumes actifs dans $SAUVEGARDE ;
@@ -85,15 +87,26 @@ PLAN
 fi
 
 echo "=== [1] Suspension de la synchro automatique d'ArgoCD ==="
-# Retire le bloc `automated` : sans cela selfHeal remonte les pods pendant la copie.
-kubectl patch application "$APP" -n argocd --type json \
-  -p '[{"op":"remove","path":"/spec/syncPolicy/automated"}]' >/dev/null 2>&1 \
-  && echo "  synchro auto suspendue" || echo "  (déjà suspendue)"
+# DEUX NIVEAUX, et c'est indispensable. Suspendre seulement `arr-stack` ne tient pas :
+# son objet Application est lui-même géré par l'app-of-apps `applications`, qui le
+# réécrit depuis Git en quelques minutes et rétablit selfHeal. Constaté le 2026-08-28 :
+# les pods étaient relancés en boucle et le script attendait un arrêt qui n'arrivait
+# jamais. L'app-of-apps, elle, porte `managed-by=Helm` sans tracking-id ArgoCD —
+# personne ne la réconcilie, donc la patcher tient.
+for cible in "$PARENT" "$APP"; do
+  kubectl patch application "$cible" -n argocd --type json \
+    -p '[{"op":"remove","path":"/spec/syncPolicy/automated"}]' >/dev/null 2>&1 \
+    && echo "  $cible : synchro auto suspendue" || echo "  $cible : (déjà suspendue)"
+done
 
 remettre_argocd() {
-  kubectl patch application "$APP" -n argocd --type merge \
-    -p '{"spec":{"syncPolicy":{"automated":{"selfHeal":true,"prune":true}}}}' >/dev/null 2>&1 \
-    && echo "  synchro auto rétablie" || echo "  ATTENTION: rétablir la synchro auto à la main"
+  for cible in "$APP" "$PARENT"; do
+    # patch merge : `automated` est rétabli sans toucher aux syncOptions existantes.
+    kubectl patch application "$cible" -n argocd --type merge \
+      -p '{"spec":{"syncPolicy":{"automated":{"selfHeal":true,"prune":true}}}}' >/dev/null 2>&1 \
+      && echo "  $cible : synchro auto rétablie" \
+      || echo "  ATTENTION: rétablir à la main la synchro auto de $cible"
+  done
 }
 trap 'echo "INTERROMPU — rétablissement"; remettre_argocd' INT TERM
 
@@ -109,6 +122,16 @@ for i in $(seq 1 60); do
   sleep 5
 done
 echo "  pods restants : ${restants:-0}"
+# GARDE-FOU CRITIQUE. Sans lui, le script copiait alors que les applications
+# écrivaient encore dans les répertoires cibles — bases SQLite incohérentes
+# garanties. Mieux vaut abandonner et rendre la main que produire ça.
+if [ "${restants:-0}" -ne 0 ]; then
+  echo "ERREUR: $restants pod(s) toujours actifs après 5 min — on NE COPIE PAS."
+  echo "        Cause probable : une synchro ArgoCD les relance. Vérifier que"
+  echo "        $PARENT et $APP ont bien perdu leur bloc automated."
+  remettre_argocd
+  exit 5
+fi
 
 echo "=== [3] Sauvegarde des volumes actifs ==="
 mkdir -p "$SAUVEGARDE"

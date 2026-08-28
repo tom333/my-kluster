@@ -41,11 +41,13 @@ separateur="?"; [[ "$RESSOURCE" == *"?"* ]] && separateur="&"
 quorum=$(revision "$RESSOURCE") || true
 cache=$(revision "${RESSOURCE}${separateur}resourceVersion=0") || true
 
-# API injoignable : ce n'est PAS un gel de cache, et redémarrer à l'aveugle
-# pendant une coupure aggraverait. On sort sans compter de strike.
+# Révisions illisibles : soit l'API est injoignable, soit — cas NORMAL sur un
+# worker — les identifiants du kubelet n'autorisent pas de lecture cluster-wide.
+# On NE SORT PAS : le contrôle local ci-dessous reste valable, et c'est le seul
+# qui compte sur un worker. On neutralise seulement ce relevé-ci.
 if [[ -z "${quorum:-}" || -z "${cache:-}" ]]; then
-  echo "apiserver injoignable ou réponse illisible — aucun relevé, aucune action"
-  exit 0
+  echo "révisions illisibles (API injoignable, ou worker sans droits cluster) — contrôle de cache neutralisé"
+  quorum=0; cache=0
 fi
 
 ecart=$(( quorum - cache ))
@@ -58,15 +60,15 @@ echo "quorum=$quorum cache=$cache ecart=$ecart seuil=$SEUIL"
 # nœud est donc : des pods qui lui sont ATTRIBUÉS et qu'il ne démarre pas.
 # Le seuil d'âge écarte les démarrages normaux (téléchargement d'image compris,
 # qui laisse le pod en phase Pending).
-bloques=$(kubectl get pods -A -o json 2>/dev/null | python3 -c '
+bloques=$(kubectl get pods -A -o json \
+  --field-selector=spec.nodeName={{ ansible_hostname }},status.phase=Pending 2>/dev/null \
+  | python3 -c '
 import json, sys, datetime
 try: d = json.load(sys.stdin)
 except Exception: print(-1); sys.exit()
 maintenant = datetime.datetime.now(datetime.timezone.utc)
 n = 0
 for p in d.get("items", []):
-    if p["spec"].get("nodeName") != "{{ ansible_hostname }}": continue
-    if p["status"].get("phase") != "Pending": continue
     ts = p["metadata"].get("creationTimestamp")
     if not ts: continue
     age = (maintenant - datetime.datetime.fromisoformat(ts.replace("Z", "+00:00"))).total_seconds()

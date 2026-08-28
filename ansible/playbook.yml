@@ -106,7 +106,14 @@
     # kubelite sur le master ne le repare pas (constate le 2026-08-27, 110 pods
     # attribues a `jeux` restes Pending avec un apiserver sain). Il lui faut donc
     # son propre garde-fou.
-    - { role: k8s-cache-watchdog, tags: [worker, cache-watchdog] }
+    # Un worker n'a NI kubeconfig utilisateur NI `microk8s kubectl` utilisable :
+    # on lui passe celui du kubelet. Ses droits ne permettent pas la lecture
+    # cluster-wide, donc le controle d'ecart de cache se neutralise de lui-meme et
+    # seul le controle local des pods s'applique — le seul pertinent ici.
+    - role: k8s-cache-watchdog
+      tags: [worker, cache-watchdog]
+      vars:
+        k8s_cache_watchdog_kubeconfig: /var/snap/microk8s/current/credentials/kubelet.config
     - { role: tailscale, tags: [worker, tailscale] }
 
 - name: PiHole boxes — monitoring + weekly core update + custom DNS

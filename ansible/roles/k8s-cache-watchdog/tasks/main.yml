@@ -21,6 +21,10 @@
     path: "{{ k8s_cache_watchdog_kubeconfig }}"
   register: kubeconfig_stat
   check_mode: false
+  # become OBLIGATOIRE : sur un worker le seul kubeconfig utilisable est celui du
+  # kubelet, sous /var/snap/.../credentials/, lisible par root uniquement. Sans
+  # become, le stat le declare absent et le role echoue sur un nœud parfaitement sain.
+  become: true
 
 - name: Préflight — kubeconfig introuvable
   ansible.builtin.assert:
@@ -28,7 +32,13 @@
       - kubeconfig_stat.stat.exists
     fail_msg: |
       {{ k8s_cache_watchdog_kubeconfig }} est introuvable.
-      Lancer d'abord k8s-node-bootstrap, ou surcharger k8s_cache_watchdog_kubeconfig.
+      Sur un CONTROL-PLANE : lancer d'abord k8s-node-bootstrap.
+      Sur un WORKER : il n'y a pas de kubeconfig utilisateur, et `microk8s kubectl`
+      y refuse de tourner. Utiliser celui du kubelet, deja present :
+        k8s_cache_watchdog_kubeconfig: /var/snap/microk8s/current/credentials/kubelet.config
+      Ses droits ne couvrent PAS une lecture cluster-wide : le controle d'ecart de
+      cache s'y neutralise tout seul, seul le controle local des pods s'applique —
+      ce qui est precisement ce qui compte sur un worker.
 
 - name: Répertoire d'état
   ansible.builtin.file:
