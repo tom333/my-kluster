@@ -70,12 +70,6 @@ spec:
             type: cronjob
             cronjob:
               schedule: "0 5 * * *"
-              # SUSPENDU TEMPORAIREMENT le 2026-08-27 — À LEVER avec les autres.
-              # Même motif que crowdsec-machines-prune : le contrôleur de jobs, aveugle
-              # (caches apiserver gelés, cf.
-              # docs/superpowers/specs/2026-08-27-dqlite-panne-plan-de-controle.md),
-              # n'appliquait plus backoffLimit ni failedJobsHistory. 22 pods empilés ici.
-              suspend: true
               timeZone: Pacific/Noumea
               concurrencyPolicy: Forbid
               backoffLimit: 1

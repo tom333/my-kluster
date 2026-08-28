@@ -45,19 +45,3 @@ spec:
       jsonPointers:
         - /spec/volumeName
         - /spec/storageClassName
-    # TEMPORAIRE le 2026-08-27 — À RETIRER une fois le datastore tranché.
-    # arrconf, configarr et qbit-manage ont été suspendus À CHAUD (kubectl patch) après
-    # avoir accumulé ~370 pods : le contrôleur de jobs, aveugle parce que les caches de
-    # veille de l'apiserver étaient gelés, n'appliquait plus leurs limites pourtant
-    # saines (backoffLimit 6, failedJobsHistoryLimit 2, concurrencyPolicy Forbid).
-    # Cf. docs/superpowers/specs/2026-08-27-dqlite-panne-plan-de-controle.md.
-    # Le chart amont (tom333/arr-stack v0.53.0) n'expose PAS de valeur `suspend`, donc
-    # la suspension ne peut pas être déclarée dans les valeurs Helm : sans cet ignore,
-    # selfHeal la révoquerait et l'accumulation reprendrait.
-    # Pour lever : retirer ce bloc, puis `kubectl patch cronjob <nom> -n selfhost
-    # -p '{"spec":{"suspend":false}}'` — ou ajouter `suspend` au chart amont, ce qui
-    # rendrait ce contournement inutile.
-    - group: batch
-      kind: CronJob
-      jsonPointers:
-        - /spec/suspend
