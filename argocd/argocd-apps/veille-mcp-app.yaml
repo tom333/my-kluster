@@ -18,9 +18,12 @@ metadata:
   # un ConfigMap. Pas de build, pas de registry, pas de CI a maintenir. Le prix est
   # un `pip install` au demarrage (~20-30 s), d'ou la sonde de demarrage genereuse.
   #
-  # TROIS OUTILS SEULEMENT, parce que le schema de CHAQUE outil est renvoye dans
-  # CHAQUE requete et que le modele de Hermes est facture au jeton. Hermes en expose
-  # deja 15 via arrconf et txtai.
+  # QUATRE OUTILS, et pas un de plus sans raison : le schema de CHAQUE outil est
+  # renvoye dans CHAQUE requete et le modele de Hermes est facture au jeton. Hermes en
+  # expose deja 15 via arrconf et txtai. Le 4e (`recherche_depots`) a ete ajoute le
+  # 2026-08-28 parce que sans lui l'axe « interfaces qui pilotent Claude Code » ne
+  # pouvait RIEN decouvrir : aucune liste awesome ne le couvre, donc `ajouts_listes`
+  # y est aveugle.
   # CORRECTION 2026-08-27 : ce commentaire justifiait la limite par « au-dela d'environ
   # 5 outils, certains modeles basculent leurs appels en XML au lieu du champ
   # tool_calls — mesure sur ce cluster ». C'est FAUX et ce n'a jamais ete mesure :
@@ -116,7 +119,10 @@ spec:
                     "RooCodeInc/Roo-Code",
                     "Nano-Collective/nanocoder",
                     "OpenHands/OpenHands",
-                    "openclaw/openclaw"
+                    "openclaw/openclaw",
+                    "iOfficeAI/AionUi",
+                    "siteboon/claudecodeui",
+                    "zhukunpenglinyutong/desktop-cc-gui"
                   ],
                   "listes": [
                     "ai-boost/awesome-harness-engineering"
@@ -252,6 +258,43 @@ spec:
                                 )
                     ajouts.sort(key=lambda x: x["date"], reverse=True)
                     return {"fenetre_jours": jours, "ajouts": ajouts, "erreurs": erreurs}
+
+
+                @mcp.tool
+                def recherche_depots(requete: str, jours: int = 30, limite: int = 8) -> dict:
+                    """Cherche des depots GitHub actifs correspondant a une requete.
+
+                    Complete `ajouts_listes` : celle-ci ne decouvre que ce qu'une liste
+                    awesome a daigne referencer. Pour un sujet sans liste de reference —
+                    les interfaces qui PILOTENT Claude Code, par exemple — il faut
+                    interroger l'index directement.
+
+                    Le filtre porte sur la DERNIERE POUSSEE, pas sur la date de creation :
+                    un depot ancien mais vivant compte, un depot recent et abandonne non.
+                    `archive` est rendu pour que l'appelant puisse ecarter sans deviner.
+                    """
+                    donnees, err = _get(
+                        "/search/repositories",
+                        q=f"{requete} pushed:>={_depuis(jours).date().isoformat()}",
+                        sort="stars", order="desc", per_page=min(limite, 20),
+                    )
+                    if err:
+                        return {"requete": requete, "erreur": err}
+                    return {
+                        "requete": requete,
+                        "fenetre_jours": jours,
+                        "resultats": [
+                            {
+                                "depot": d.get("full_name"),
+                                "description": (d.get("description") or "")[:200],
+                                "etoiles": d.get("stargazers_count"),
+                                "derniere_poussee": (d.get("pushed_at") or "")[:10],
+                                "archive": d.get("archived"),
+                                "url": d.get("html_url"),
+                            }
+                            for d in (donnees.get("items") or [])
+                        ],
+                    }
 
 
                 @mcp.tool
