@@ -12,7 +12,20 @@ spec:
     namespace: selfhost
   source:
     repoURL: https://github.com/tom333/arr-stack.git
-    targetRevision: v0.53.9
+    # ÉPINGLÉ à v0.53.0 le 2026-08-28 après une SUPPRESSION TOTALE de la pile.
+    # v0.53.9 fait passer app-template de 5.0.1 à 5.1.0, et cette version est une
+    # RUPTURE pour ce chart parapluie : les 14 sous-charts ne rendent plus rien.
+    # Mesuré par `helm template` sur les deux tags, dépendances construites :
+    #   v0.53.0 (5.0.1) -> 59 ressources : 11 Deployment, 8 Ingress, 7 PVC, 3 CronJob
+    #   v0.53.9 (5.1.0) ->  6 ressources : 4 ConfigMap, 1 Job, 1 ServiceAccount
+    # Renovate a auto-mergé ce bump ; ArgoCD a synchronisé avec prune:true et a donc
+    # supprimé Deployments, Ingress, CronJobs ET PVC. Les PV ont été basculés en
+    # Retain à temps (données intactes sur disque), mais rien ne garantissait ce
+    # délai — c'est le motif `prune:true` + auto-merge qui est en cause.
+    # NE PAS remonter sans avoir vérifié le rendu :
+    #   helm dependency build && helm template . -f ../../examples/values-prod.yaml \
+    #     | grep -c '^kind:'
+    targetRevision: v0.53.0
     path: charts/arr-stack
     helm:
       valueFiles:

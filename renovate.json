@@ -151,6 +151,13 @@
         "digest"
       ],
       "automerge": true
+    },
+    {
+      "description": "arr-stack : PAS d'auto-merge. Le 2026-08-28, l'auto-merge de v0.53.9 (app-template 5.0.1 -> 5.1.0, rupture pour ce chart parapluie) a fait tomber le rendu de 59 a 6 ressources ; ArgoCD, en prune:true, a supprime 11 Deployment, 8 Ingress, 3 CronJob et 7 PVC. Toute montee doit etre verifiee a la main : helm dependency build puis helm template, et comparer le nombre de ressources rendues.",
+      "matchPackageNames": [
+        "https://github.com/tom333/arr-stack.git"
+      ],
+      "automerge": false
     }
   ],
   "ignorePaths": [
