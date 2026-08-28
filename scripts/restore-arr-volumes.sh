@@ -29,7 +29,10 @@ NS=selfhost
 APP=arr-stack
 PARENT=applications        # app-of-apps qui réécrit $APP depuis Git
 HORODATAGE=$(date +%Y%m%d-%H%M%S)
-SAUVEGARDE="/data/kube/restore-backup-$HORODATAGE"
+# PAS sous /data/kube : ce répertoire appartient à root en drwxr-xr-x. Seuls les
+# répertoires de volumes qu'il contient sont ouverts (drwxrwxrwx moi:moi) — d'où un
+# `mkdir: Permission denied` constaté le 2026-08-28, qui a laissé la pile arrêtée.
+SAUVEGARDE="${HOME}/restore-backup-$HORODATAGE"
 
 # app  ancien_uid  nouveau_uid — relevés le 2026-08-28. Le script VÉRIFIE chaque
 # paire avant de copier : si un UID ne correspond plus (PVC recréé entre-temps),
@@ -108,7 +111,17 @@ remettre_argocd() {
       || echo "  ATTENTION: rétablir à la main la synchro auto de $cible"
   done
 }
-trap 'echo "INTERROMPU — rétablissement"; remettre_argocd' INT TERM
+relever_apps() {
+  for p in "${PAIRES[@]}"; do
+    read -r app _ _ <<<"$p"
+    kubectl scale deployment "$app" -n "$NS" --replicas=1 >/dev/null 2>&1 || true
+  done
+}
+# EXIT et pas seulement INT/TERM : sous `set -e`, n'importe quelle commande qui
+# échoue sort du script. Sans ce filet, la synchro reste suspendue et les 7
+# déploiements à zéro — c'est-à-dire la pile arrêtée. Constaté le 2026-08-28.
+trap 'code=$?; if [ $code -ne 0 ]; then echo "ÉCHEC (code $code) — rétablissement"; relever_apps; remettre_argocd; fi' EXIT
+trap 'echo "INTERROMPU — rétablissement"; relever_apps; remettre_argocd; exit 130' INT TERM
 
 echo "=== [2] Arrêt des applications ==="
 for p in "${PAIRES[@]}"; do
@@ -137,7 +150,7 @@ echo "=== [3] Sauvegarde des volumes actifs ==="
 mkdir -p "$SAUVEGARDE"
 for p in "${PAIRES[@]}"; do
   read -r app _ new <<<"$p"
-  rsync -a "$BASE/selfhost-$app-pvc-$new/" "$SAUVEGARDE/$app/"
+  rsync -a --omit-dir-times "$BASE/selfhost-$app-pvc-$new/" "$SAUVEGARDE/$app/"
   echo "  $app sauvegardé"
 done
 
@@ -146,7 +159,11 @@ echo "=== [4] Restauration ==="
 # de la base vierge survivraient et pourraient contredire la base restaurée.
 for p in "${PAIRES[@]}"; do
   read -r app old new <<<"$p"
-  rsync -a --delete "$BASE/selfhost-$app-pvc-$old/" "$BASE/selfhost-$app-pvc-$new/"
+  # --omit-dir-times : les répertoires de `seerr` appartiennent à root:root (en 777,
+  # donc inscriptibles), et poser une date sur un répertoire exige d'en être
+  # propriétaire — rsync échouait là-dessus seul, après avoir tout copié. Les
+  # applications ne dépendent pas de l'horodatage des dossiers.
+  rsync -a --omit-dir-times --delete "$BASE/selfhost-$app-pvc-$old/" "$BASE/selfhost-$app-pvc-$new/"
   echo "  $app restauré ($(du -sh "$BASE/selfhost-$app-pvc-$new" | cut -f1))"
 done
 
@@ -155,7 +172,7 @@ for p in "${PAIRES[@]}"; do
   read -r app _ _ <<<"$p"
   kubectl scale deployment "$app" -n "$NS" --replicas=1 >/dev/null 2>&1 || true
 done
-trap - INT TERM
+trap - EXIT INT TERM
 remettre_argocd
 
 cat <<FIN
