@@ -27,7 +27,8 @@ metadata:
   # ⚠️ LES CHIFFRES ANNONCÉS (82 % sur LoCoMo) viennent des modèles cloud Doubao, PAS
   # d'un gemma local. À vérifier sur pièce avant d'y croire.
   #
-  # Pas d'ingress : consommé depuis le cluster par Hermes, comme crw et lightpanda.
+  # Consommé DEPUIS LE CLUSTER par Hermes (MCP, ClusterIP), et DEPUIS LE LAN par
+  # Claude Code via l'ingress LAN-only `openviking.tgu.ovh` déclaré plus bas.
   name: openviking
   namespace: argocd
   finalizers:
@@ -78,6 +79,30 @@ spec:
               http:
                 port: 1933
                 targetPort: 1933
+        # Ingress LAN-only. Ajoute pour que Claude Code s'y branche par un NOM STABLE
+        # plutot que par une ClusterIP, qui change a chaque recreation du Service —
+        # c'est le motif qu'utilisait deja l'entree hindsight de ~/.claude.json.
+        # Le middleware hermes-lan-only existe deja dans ce namespace (192.168.88.0/24
+        # + 10.1.0.0/16). Pas d'oauth2-proxy : l'API est protegee par sa propre cle,
+        # et un ForwardAuth casserait les clients non-navigateur comme MCP.
+        ingress:
+          app:
+            className: nginx
+            annotations:
+              cert-manager.io/cluster-issuer: letsencrypt-prod
+              traefik.ingress.kubernetes.io/router.middlewares: hermes-lan-only@kubernetescrd
+            hosts:
+              - host: openviking.tgu.ovh
+                paths:
+                  - path: /
+                    pathType: Prefix
+                    service:
+                      identifier: main
+                      port: http
+            tls:
+              - secretName: openviking-tls
+                hosts:
+                  - openviking.tgu.ovh
         persistence:
           # `storage.workspace` vaut /data dans ov.conf. AGFS et la base vectorielle
           # y écrivent toutes deux (backend `local`), donc tout l'état tient ici.
