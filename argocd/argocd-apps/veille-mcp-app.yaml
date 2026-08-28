@@ -119,10 +119,7 @@ spec:
                     "RooCodeInc/Roo-Code",
                     "Nano-Collective/nanocoder",
                     "OpenHands/OpenHands",
-                    "openclaw/openclaw",
-                    "iOfficeAI/AionUi",
-                    "siteboon/claudecodeui",
-                    "zhukunpenglinyutong/desktop-cc-gui"
+                    "openclaw/openclaw"
                   ],
                   "listes": [
                     "ai-boost/awesome-harness-engineering"
@@ -301,11 +298,16 @@ spec:
                 def depot(nom: str) -> dict:
                     """Metadonnees d'un depot `owner/repo`, pour juger un projet decouvert.
 
-                    `archive` a vrai ou une poussee ancienne suffisent a l'ecarter sans le rapporter.
+                    Ecartent d'emblee, sans avoir a rapporter : `archive` a vrai, `fork` a
+                    vrai, une derniere poussee ancienne, une licence absente.
+                    Le couple `cree_le` / `etoiles` detecte les flambees : beaucoup
+                    d'etoiles sur un depot de quelques semaines n'est pas un signe de
+                    solidite, c'est generalement un miroir ou une fuite repostee.
                     """
                     d, err = _get(f"/repos/{nom}")
                     if err:
                         return {"depot": nom, "erreur": err}
+                    lic = d.get("license") or {}
                     return {
                         "depot": d.get("full_name"),
                         "description": d.get("description"),
@@ -313,6 +315,18 @@ spec:
                         "etoiles": d.get("stargazers_count"),
                         "derniere_poussee": (d.get("pushed_at") or "")[:10],
                         "archive": d.get("archived"),
+                        # Les quatre champs suivants servent a juger la DURABILITE, pas
+                        # la popularite. Un depot cree il y a trois semaines avec 30 000
+                        # etoiles n'est pas un projet etabli : c'est une flambee, souvent
+                        # un miroir reposte. Un `fork` a vrai ecarte d'emblee les copies
+                        # du depot d'Anthropic, qui polluent toute recherche sur le sujet.
+                        # Une absence de licence rend le projet inadoptable quoi qu'il
+                        # vaille. Et un compteur d'issues ouvertes tres eleve face a peu
+                        # de contributeurs signale un projet qui se noie.
+                        "cree_le": (d.get("created_at") or "")[:10],
+                        "fork": d.get("fork"),
+                        "licence": lic.get("spdx_id"),
+                        "issues_ouvertes": d.get("open_issues_count"),
                         "url": d.get("html_url"),
                     }
 
