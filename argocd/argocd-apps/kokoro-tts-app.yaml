@@ -33,7 +33,7 @@ spec:
               main:
                 image:
                   repository: ghcr.io/remsky/kokoro-fastapi-cpu
-                  tag: "v0.8.0"
+                  tag: "v0.8.1"
                   pullPolicy: IfNotPresent
                 resources:
                   # Kokoro-82M CPU : léger. Burst CPU pendant la synthèse.
