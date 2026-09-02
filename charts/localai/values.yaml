@@ -438,25 +438,6 @@ modelsConfigs:
     cache_type_k: q8_0
     cache_type_v: q8_0
     mmproj: gemma-4-26b-a4b-heretic-mmproj.gguf
-    # RÉGLAGE 2026-09-03, sur mesure. Ce bloc n'avait NI `parallel:1` NI offload
-    # d'experts, deux manques que le bloc KAT documentait pourtant déjà.
-    #
-    # RÉFÉRENCE AVANT (llama.cpp, 3 relevés) : 23,9 · 27,1 · 27,1 tok/s,
-    # chargement 29 s, 5 581 MiB de VRAM sur 12 288 — soit 6,7 Go INUTILISÉS.
-    #
-    # `parallel:1` — LocalAI ouvrait 4 slots (`parallel="4"` dans ses logs) et
-    # llama-server RÉPARTIT `--ctx-size` entre eux : le contexte réellement servi
-    # était donc de 8 192, pas 32 768. Même défaut que celui corrigé sur KAT.
-    #
-    # `--n-cpu-moe:17` — l'en-tête GGUF donne block_count=30, expert_count=128,
-    # expert_used=8. Les experts pèsent ~11,5 Go des 13,3 Go du fichier, soit
-    # ~0,38 Go par couche. Laisser 17 couches d'experts en RAM et remonter les 13
-    # autres sur la carte vise ~10,5 GiB de VRAM, en gardant ~1,7 Go de marge pour
-    # le cache KV et les tampons de calcul. Valeur à réviser SUR MESURE, comme le
-    # balayage documenté pour KAT plus haut — pas à recopier ailleurs.
-    options:
-      - parallel:1
-      - "--n-cpu-moe:17"
     parameters:
       model: gemma-4-26b-a4b-heretic-UD-Q4_K_XL.gguf
       temperature: 1.0
@@ -469,13 +450,31 @@ modelsConfigs:
         uri: https://huggingface.co/SC117/gemma-4-26B-A4B-it-qat-heretic-GGUF/resolve/main/mmproj-gemma-4-26B-A4B-it-qat-heretic-F16.gguf
     options:
       - use_jinja:true
-      # MoE : experts offloadés RAM via override_tensor — REQUIS sur notre LocalAI.
-      # Testé 2026-07-04 : fit:on SEUL (sans -ot) tente un full-GPU load ~13.5GB →
-      # cudaMalloc OOM (GPU ~10.6GB libre, desktop KDE prend 1.4GB). Le "fit-only
-      # ~44 tok/s" du bench carteakey.dev suppose mainline llama-server headless +
-      # full-12GB, NON reproductible sur ce wrapper LocalAI + GPU partagé desktop.
-      # Baseline mesurée avec -ot : ~16.2 tok/s (S0). fit_target:2048 = headroom mmproj.
-      - "override_tensor:\\.ffn_.*_exps\\.=CPU"
+      # `parallel:1` — AJOUTÉ le 2026-09-03. LocalAI ouvrait 4 slots
+      # (`parallel="4"` dans ses logs) et llama-server RÉPARTIT `--ctx-size` entre
+      # eux : le contexte réellement servi était de 8 192, pas 32 768. Même défaut
+      # que celui déjà corrigé sur KAT plus haut.
+      - parallel:1
+      # `--n-cpu-moe:17` REMPLACE, le 2026-09-03, la régex
+      #   override_tensor:\.ffn_.*_exps\.=CPU
+      # qui poussait TOUS les experts en RAM — exactement ce que le bloc KAT
+      # désigne comme le pire cas (« l'équivalent de -ncmoe 40, 29 % de débit
+      # perdu »). Ce n'était pas un choix : la régex date du 2026-07-04, quand
+      # `fit:on` seul tentait un chargement full-GPU de ~13,5 Go et partait en
+      # cudaMalloc OOM. `--n-cpu-moe` n'était pas encore employé ici ; KAT a
+      # depuis prouvé qu'il fonctionne sur ce déploiement.
+      #
+      # RÉFÉRENCE AVANT (3 relevés du 2026-09-03) : 23,9 · 27,1 · 27,1 tok/s,
+      # chargement 29 s, 5 581 MiB de VRAM sur 12 288 — 6,7 Go INUTILISÉS.
+      # (La ligne « ~16,2 tok/s » de juillet mesurait le même réglage sur un
+      # backend plus ancien ; le backend a progressé, pas la configuration.)
+      #
+      # En-tête GGUF lu directement : block_count=30, expert_count=128,
+      # expert_used=8, contexte natif 262 144. Les experts pèsent ~11,5 des
+      # 13,3 Go, soit ~0,38 Go par couche : en laisser 17 en RAM et remonter 13
+      # sur la carte vise ~10,5 GiB, avec ~1,7 Go de marge pour le KV et les
+      # tampons. À RÉVISER SUR MESURE comme le balayage KAT.
+      - "--n-cpu-moe:17"
       - fit:on
       - fit_target:2048
     template:
