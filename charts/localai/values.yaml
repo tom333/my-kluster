@@ -438,6 +438,25 @@ modelsConfigs:
     cache_type_k: q8_0
     cache_type_v: q8_0
     mmproj: gemma-4-26b-a4b-heretic-mmproj.gguf
+    # RÉGLAGE 2026-09-03, sur mesure. Ce bloc n'avait NI `parallel:1` NI offload
+    # d'experts, deux manques que le bloc KAT documentait pourtant déjà.
+    #
+    # RÉFÉRENCE AVANT (llama.cpp, 3 relevés) : 23,9 · 27,1 · 27,1 tok/s,
+    # chargement 29 s, 5 581 MiB de VRAM sur 12 288 — soit 6,7 Go INUTILISÉS.
+    #
+    # `parallel:1` — LocalAI ouvrait 4 slots (`parallel="4"` dans ses logs) et
+    # llama-server RÉPARTIT `--ctx-size` entre eux : le contexte réellement servi
+    # était donc de 8 192, pas 32 768. Même défaut que celui corrigé sur KAT.
+    #
+    # `--n-cpu-moe:17` — l'en-tête GGUF donne block_count=30, expert_count=128,
+    # expert_used=8. Les experts pèsent ~11,5 Go des 13,3 Go du fichier, soit
+    # ~0,38 Go par couche. Laisser 17 couches d'experts en RAM et remonter les 13
+    # autres sur la carte vise ~10,5 GiB de VRAM, en gardant ~1,7 Go de marge pour
+    # le cache KV et les tampons de calcul. Valeur à réviser SUR MESURE, comme le
+    # balayage documenté pour KAT plus haut — pas à recopier ailleurs.
+    options:
+      - parallel:1
+      - "--n-cpu-moe:17"
     parameters:
       model: gemma-4-26b-a4b-heretic-UD-Q4_K_XL.gguf
       temperature: 1.0
