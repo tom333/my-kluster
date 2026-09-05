@@ -1,7 +1,7 @@
 # Pinned for CI reproducibility. Bump in lockstep with HA releases.
 
 # Real Home Assistant — pulls Py 3.14.2+ requirement transitively
-homeassistant==2026.8.3
+homeassistant==2026.9.0
 
 # Custom-component test harness (provides hass fixture, MockConfigEntry, etc.)
 # Pulls pytest 9.x, pytest-asyncio 1.3.x, freezegun 1.5.x, requests-mock 1.12.x,
