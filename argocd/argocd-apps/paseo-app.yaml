@@ -99,6 +99,11 @@ spec:
             hostPathType: Directory
             globalMounts:
               - path: /workspace
+              # Monté AUSSI sur son chemin d'origine : les sessions Claude Code
+              # du host sont indexées par cwd absolu (~/.claude/projects/
+              # -data-projets-perso-…), donc sans /data/projets dans le conteneur
+              # l'import de session ne résout aucun répertoire de travail.
+              - path: /data/projets
           # Config Claude Code du host, montée par-dessus le PVC : Paseo réutilise
           # la session déjà authentifiée de moi@pc (CLAUDE_CONFIG_DIR vaut déjà
           # /home/paseo/.claude dans l'image). Écriture partagée avec le host —
