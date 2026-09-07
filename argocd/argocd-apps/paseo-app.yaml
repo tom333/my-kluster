@@ -11,9 +11,9 @@ spec:
   # (Middleware paseo-oauth2-forwardauth) : aucun accès sans login GitHub.
   #
   # Volumes :
-  #   /home/paseo  → PVC (état daemon, config agents, credentials .claude/.codex)
-  #   /workspace   → hostPath /data/projets du node "pc" (code partagé avec les
-  #                  agents). hostPath ⇒ nodeSelector obligatoire : le répertoire
+  #   /home/paseo   → PVC (état daemon, config agents, credentials .claude/.codex)
+  #   /data/projets → hostPath du node "pc", monté sur le MÊME chemin que sur le
+  #                  host. hostPath ⇒ nodeSelector obligatoire : le répertoire
   #                  n'existe QUE sur pc (192.168.88.250), pas sur le node jeux.
   #                  /data/projets est owned 1000:1000 (moi) et le conteneur
   #                  tourne en paseo 1000:1000 → pas de chown init nécessaire.
@@ -93,16 +93,16 @@ spec:
             size: 5Gi
             globalMounts:
               - path: /home/paseo
-          workspace:
+          projets:
             type: hostPath
             hostPath: /data/projets
             hostPathType: Directory
             globalMounts:
-              - path: /workspace
-              # Monté AUSSI sur son chemin d'origine : les sessions Claude Code
-              # du host sont indexées par cwd absolu (~/.claude/projects/
-              # -data-projets-perso-…), donc sans /data/projets dans le conteneur
-              # l'import de session ne résout aucun répertoire de travail.
+              # Monté sur son chemin d'origine, et PAS sur /workspace : les
+              # sessions Claude Code du host sont indexées par cwd absolu
+              # (~/.claude/projects/-data-projets-perso-…), donc un projet
+              # enregistré sous /workspace ne correspondrait à aucune session.
+              # Un seul chemin évite aussi d'enregistrer deux fois le même repo.
               - path: /data/projets
           # Config Claude Code du host, montée par-dessus le PVC : Paseo réutilise
           # la session déjà authentifiée de moi@pc (CLAUDE_CONFIG_DIR vaut déjà
@@ -111,7 +111,7 @@ spec:
           # Nom volontairement préfixé "home-" : le chart itère sur les clés de
           # persistence dans l'ordre alphabétique, et un montage imbriqué doit
           # être appliqué APRÈS son parent (/home/paseo) sous peine d'être masqué
-          # par lui. home < home-claude < workspace.
+          # par lui. home < home-claude.
           home-claude:
             type: hostPath
             hostPath: /home/moi/.claude
