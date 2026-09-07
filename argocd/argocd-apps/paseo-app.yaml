@@ -1,0 +1,101 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: paseo
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  # Paseo (https://paseo.sh) — orchestrateur d'agents de code, UI web servie par
+  # le daemon sur le port 6767. Exposé en paseo.tgu.ovh derrière oauth2-proxy
+  # (Middleware paseo-oauth2-forwardauth) : aucun accès sans login GitHub.
+  #
+  # Volumes :
+  #   /home/paseo  → PVC (état daemon, config agents, credentials .claude/.codex)
+  #   /workspace   → hostPath /data/projets du node "pc" (code partagé avec les
+  #                  agents). hostPath ⇒ nodeSelector obligatoire : le répertoire
+  #                  n'existe QUE sur pc (192.168.88.250), pas sur le node jeux.
+  #                  /data/projets est owned 1000:1000 (moi) et le conteneur
+  #                  tourne en paseo 1000:1000 → pas de chown init nécessaire.
+  #
+  # L'image n'embarque AUCUN CLI d'agent (Claude Code, Codex...) : les ajouter
+  # via une image fille si besoin (cf. docs Paseo "Docker").
+  destination:
+    namespace: paseo
+    server: https://kubernetes.default.svc
+  project: infra-project
+  source:
+    repoURL: https://bjw-s-labs.github.io/helm-charts
+    chart: app-template
+    targetRevision: 5.1.0
+    helm:
+      values: |
+        defaultPodOptions:
+          nodeSelector:
+            kubernetes.io/hostname: pc
+        controllers:
+          paseo:
+            type: deployment
+            strategy: Recreate
+            containers:
+              main:
+                image:
+                  repository: ghcr.io/getpaseo/paseo
+                  tag: 0.7.2
+                  pullPolicy: IfNotPresent
+                env:
+                  PASEO_WEB_UI_ENABLED: "true"
+                  # Reverse-proxy : le daemon rejette les Host non déclarés.
+                  PASEO_HOSTNAMES: "paseo.tgu.ovh"
+                  # Auth API/WebSocket du daemon (2e barrière derrière oauth2-proxy).
+                  PASEO_PASSWORD:
+                    valueFrom:
+                      secretKeyRef:
+                        name: paseo-auth
+                        key: PASEO_PASSWORD
+                resources:
+                  limits:   { cpu: "2", memory: 4Gi }
+                  requests: { cpu: "100m", memory: 512Mi }
+        service:
+          app:
+            controller: paseo
+            ports:
+              http:
+                port: 6767
+        ingress:
+          app:
+            className: public
+            annotations:
+              cert-manager.io/cluster-issuer: "letsencrypt-prod"
+              traefik.ingress.kubernetes.io/router.middlewares: paseo-oauth2-forwardauth@kubernetescrd
+            hosts:
+              - host: paseo.tgu.ovh
+                paths:
+                  - path: /
+                    pathType: Prefix
+                    service:
+                      identifier: app
+                      port: http
+            tls:
+              - secretName: paseo-tls
+                hosts:
+                  - paseo.tgu.ovh
+        persistence:
+          home:
+            type: persistentVolumeClaim
+            accessMode: ReadWriteOnce
+            size: 5Gi
+            globalMounts:
+              - path: /home/paseo
+          workspace:
+            type: hostPath
+            hostPath: /data/projets
+            hostPathType: Directory
+            globalMounts:
+              - path: /workspace
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      selfHeal: true
+      prune: true

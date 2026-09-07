@@ -1,0 +1,15 @@
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  creationTimestamp: null
+  name: paseo-auth
+  namespace: paseo
+spec:
+  encryptedData:
+    PASEO_PASSWORD: AgCTrUvSZyRgIUOAHpJutcMltRjNsKUIcqBUFXe9caI243gmFf2y+vsyzib+8aCJMad1Iw5KlprfXloXyHSaBM9pFQd+J5KHW8rGZ/5uhqu5DiighmLQ+ko86S9ydhudKKtk2YSMpmSecaSknL0O6BJNCb1OlYWbuVZGUMLtVU4Nb5yar4VR+/44KO+zUzeceXwwvCNyfVpYLiyzaoRFFmqQrsh8NdF+7isGESGdiEseCnXitkBAgfwTTxD7cMrHilTS4hNpXo5th174KE9Lz0Uyh96lRNLXBAugviduMvYJG+KS/3L0msxv7UpukaV9vOhRexPK2voOfNZoDJbIZH1rgvTtTkCeU+9SKzoJcMyOfpCcBuS/iSW67tWrUjulhpd7W00dC//o7XkwIoIhw9lCOiiasiTYJBUay1xo5z1ldn5LhORjCFcD961mFRqGJGyHv/49LgFa/gONZQchy6aIQRf3/5lDXCrSirpDDrXDYZ8EfDjDk8jNflwi1xtDnzAlAGkJCoO4g/474hq/RmYslbSY6kvBTBFl+JzhE3VeibrNEJEXit3dGyUtnMKPfeD8lIgamM5BzDmg7wP70Gt/AmHpI/PNEI+G3wyrj4xnXOdWs8BdG9YJIxHcsn/WO5rwev8HkYZHQ7QznqMAM2J9r8BpB4P/WLfy25+kxcqq5crSW4QDN0d4C9DJabSjp1qFlTa6jik7jA==
+  template:
+    metadata:
+      creationTimestamp: null
+      name: paseo-auth
+      namespace: paseo

@@ -153,6 +153,20 @@ spec:
     trustForwardHeader: true
     authResponseHeaders: ["X-Auth-Request-User", "X-Auth-Request-Email", "Authorization"]
 
+---
+# ns paseo : Paseo (paseo.tgu.ovh) — orchestrateur d'agents avec accès au code
+# de /data/projets. Public hors-LAN, donc gate GitHub obligatoire avant tout accès.
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: oauth2-forwardauth
+  namespace: paseo
+spec:
+  forwardAuth:
+    address: http://oauth2-proxy.kube-system.svc.cluster.local/
+    trustForwardHeader: true
+    authResponseHeaders: ["X-Auth-Request-User", "X-Auth-Request-Email", "Authorization"]
+
 # ─── Sablier scale-to-zero (Phase 6) ─────────────────────────────────────────
 # Attaché à l'ingress du service candidat. names=deployment_<ns>_<nom>_<replicas>.
 # dynamic = page d'attente navigateur pendant le réveil (0→N). Scale-to-zero
