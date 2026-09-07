@@ -18,8 +18,12 @@ spec:
   #                  /data/projets est owned 1000:1000 (moi) et le conteneur
   #                  tourne en paseo 1000:1000 → pas de chown init nécessaire.
   #
-  # L'image n'embarque AUCUN CLI d'agent (Claude Code, Codex...) : les ajouter
-  # via une image fille si besoin (cf. docs Paseo "Docker").
+  #   /home/paseo/.claude → hostPath /home/moi/.claude (config Claude Code du
+  #                  host : Paseo hérite de la session déjà authentifiée).
+  #
+  # L'image amont n'embarque aucun CLI d'agent : on déploie l'image fille
+  # localhost:32000/paseo-agents (cf. images/paseo-agents/Dockerfile) qui ajoute
+  # Claude Code.
   destination:
     namespace: paseo
     server: https://kubernetes.default.svc
@@ -40,8 +44,10 @@ spec:
             containers:
               main:
                 image:
-                  repository: ghcr.io/getpaseo/paseo
-                  tag: 0.7.2
+                  # Image fille : Paseo 0.7.2 + Claude Code 2.1.263.
+                  # Source du Dockerfile : images/paseo-agents/.
+                  repository: localhost:32000/paseo-agents
+                  tag: 0.7.2-cc2.1.263
                   pullPolicy: IfNotPresent
                 env:
                   PASEO_WEB_UI_ENABLED: "true"
@@ -93,6 +99,20 @@ spec:
             hostPathType: Directory
             globalMounts:
               - path: /workspace
+          # Config Claude Code du host, montée par-dessus le PVC : Paseo réutilise
+          # la session déjà authentifiée de moi@pc (CLAUDE_CONFIG_DIR vaut déjà
+          # /home/paseo/.claude dans l'image). Écriture partagée avec le host —
+          # sessions, historique et credentials sont les mêmes fichiers.
+          # Nom volontairement préfixé "home-" : le chart itère sur les clés de
+          # persistence dans l'ordre alphabétique, et un montage imbriqué doit
+          # être appliqué APRÈS son parent (/home/paseo) sous peine d'être masqué
+          # par lui. home < home-claude < workspace.
+          home-claude:
+            type: hostPath
+            hostPath: /home/moi/.claude
+            hostPathType: Directory
+            globalMounts:
+              - path: /home/paseo/.claude
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
