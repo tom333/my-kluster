@@ -260,6 +260,31 @@ if ! "$(dirname "$0")/tool_call_gate.sh" "$NAME"; then
   exit 1
 fi
 
+# BALAYAGE DE RÉGLAGE, entre le garde-fou et l'éval. Ordre voulu : on ne règle
+# qu'un modèle qui charge et sait appeler un outil, et l'éval doit ensuite tourner
+# sur la MEILLEURE config, pas sur une config arbitraire — sinon on compare des
+# candidats sur des réglages quelconques, ce qui est aussi invalide que le plafond
+# de codage corrigé le 2026-09-08.
+#
+# `auto` = actif seulement sur les MoE, où le gain est PROUVÉ (gemma-4-26b : 23,9 ->
+# 36,4 tok/s, +52 %) et où l'échange ctx contre experts résidents existe. Ailleurs
+# le seul levier est le contexte, déjà calculé par derive_config, et le balayage ne
+# vaudrait pas ses 3 redémarrages de LocalAI.
+#   TUNE_SWEEP=1     force le balayage
+#   TUNE_SWEEP=0     le désactive
+TUNE_SWEEP="${TUNE_SWEEP:-auto}"
+FAIRE_SWEEP=0
+case "$TUNE_SWEEP" in
+  1) FAIRE_SWEEP=1;;
+  auto) grep -q "n-cpu-moe" "$(dirname "$0")/results/${NAME}.model.yaml" 2>/dev/null && FAIRE_SWEEP=1;;
+esac
+if [ "$FAIRE_SWEEP" = "1" ]; then
+  echo "=== balayage de réglage (MoE : l'échange ctx/experts se tranche par la mesure) ==="
+  python3 "$(dirname "$0")/tune_sweep.py" --name "$NAME" --ctx-max "$CTX" --go 2>&1 | sed 's/^/    /' ||     echo "    balayage en échec — on garde la config en place"
+else
+  echo "=== balayage de réglage non applicable (TUNE_SWEEP=$TUNE_SWEEP) ==="
+fi
+
 echo "=== ÉVAL candidat vs baseline $BASELINE ==="
 cd "$(dirname "$0")"
 uv run run_eval.py --model "$NAME" --tag candidate --compare-to "$BASELINE" 2>&1 | grep -vE "Downloading|Downloaded|Installed|INFO mlflow"
