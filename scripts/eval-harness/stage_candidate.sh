@@ -173,6 +173,26 @@ fi
 
 # --- GÉNÉRATION DU YAML (SANS download_files) ---
 TMP=$(mktemp)
+# CONFIG DÉDUITE de l'en-tête GGUF (derive_config.py). Motif : le `tok/s` mesuré
+# n'est pas une propriété du modèle mais du couple modèle × config, et la config
+# était identique pour tout candidat. Mesuré le 2026-09-08 : gemma-4-26b passe de
+# 23,9 à 36,4 tok/s (+52 %) au réglage, et qwen3.8-27b-gsq-rco passe d'un backend
+# mort à un modèle qui génère.
+#
+# S'ABSTIENT quand l'en-tête ne suffit pas (couches à fenêtre glissante) : dans ce
+# cas le script sort en 4, DERIVED reste vide, et on garde le comportement d'avant.
+# Un générateur qui dégrade la config existante serait pire que pas de générateur.
+DERIVED="$(python3 "$(dirname "$0")/derive_config.py" "$PVC/$GGUF_FILE" --ctx-max "$CTX" --yaml 2>/dev/null || true)"
+if [ -n "$DERIVED" ]; then
+  CTX_DERIVE="$(echo "$DERIVED" | sed -n 's/^context_size: //p')"
+  OPTS_DERIVE="$(echo "$DERIVED" | sed -n '/^options:/,$p' | tail -n +2)"
+  echo "=== config DÉDUITE de l'en-tête GGUF ==="
+  python3 "$(dirname "$0")/derive_config.py" "$PVC/$GGUF_FILE" --ctx-max "$CTX" 2>&1 | sed 's/^/    /'
+  [ -n "$CTX_DERIVE" ] && CTX="$CTX_DERIVE"
+else
+  echo "=== config NON déduite (abstention ou en-tête illisible) : réglages par défaut ==="
+fi
+
 {
   echo "name: $NAME"
   echo "backend: $BACKEND"
@@ -206,6 +226,10 @@ TMP=$(mktemp)
   #     comme il le serait s'il etait promu.
   # L'eval est mono-requete : aucun besoin de slots concurrents.
   echo "  - parallel:1"
+  # Options déduites de l'en-tête (n-cpu-moe calculé sur les tailles EXACTES des
+  # tenseurs d'experts, MTP si une tête est détectée). `use_jinja` et `parallel`
+  # sont déjà écrits ci-dessus, on ne les redouble pas.
+  [ -n "${OPTS_DERIVE:-}" ] && echo "$OPTS_DERIVE" | grep -vE "use_jinja|parallel:1" || true
   [ -n "$DRAFT" ] && { echo "  - spec_type:draft-mtp"; echo "  - draft_max:2"; }
   echo "function:"
   echo "  automatic_tool_parsing_fallback: true"
