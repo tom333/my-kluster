@@ -77,8 +77,52 @@ def valeur2(s: Source, t: int):
 # calculé 1661 en oubliant de retirer le bureau, soit une réserve 5 fois trop
 # grande, qui déduisait ctx=8192 là où 32768 est MESURÉ comme fonctionnant.
 RESERVE_MIO = int(os.environ.get("DERIVE_RESERVE_MIO", "500"))
-# VRAM de la carte moins ce que prend le bureau (mesuré ~1350-1430 Mio sur pc).
-VRAM_DEFAUT_MIO = int(os.environ.get("DERIVE_VRAM_LIBRE_MIO", "10800"))
+
+
+def reserve_mio(ctx: int) -> int:
+    """Tampon de calcul, qui CROÎT avec le contexte.
+
+    Une constante ne suffit pas. Deux mesures du 2026-09-08/09, en retirant le
+    bureau du total affiché par nvidia-smi :
+        gsq-rco   ctx= 32768  poids 8831 + KV 1024  -> tampon ~311 Mio
+        deepseek  ctx=131072  poids 7209 + KV 2304  -> tampon ~854 Mio
+    Soit ~0,0055 Mio par token de contexte, plus ~150 de socle.
+
+    ⚠ AJUSTEMENT SUR DEUX POINTS SEULEMENT : c'est mieux qu'une constante, ce n'est
+    pas un modèle. La vérification par chargement (`tune_sweep.py`) reste l'arbitre,
+    et elle refuse désormais une config qui ne laisse pas de marge reproductible.
+    """
+    if os.environ.get("DERIVE_RESERVE_MIO"):
+        return RESERVE_MIO
+    return int(150 + 0.0055 * ctx)
+# BUDGET VRAM = total de la carte MOINS l'empreinte du bureau.
+#
+# Ne PAS mesurer « la VRAM libre à l'instant » : sur `pc` un modèle est presque
+# toujours déjà chargé, et `total - used` renvoie alors le reliquat au lieu du
+# budget. Piège dans lequel je suis tombé en écrivant ce script : la mesure donnait
+# 1162 Mio libres pendant qu'un modèle de test occupait 10256 Mio, d'où un ctx
+# déduit de 4096.
+#
+# La carte est PARTAGÉE avec le bureau KDE (/dev/nvidia0 est tenu par plasmashell,
+# kwin_x11, kitty, dolphin...). Empreinte mesurée les 2026-09-08/09 : 1322 à 1483
+# Mio selon le moment. On retient 1500, plus 500 de fluctuation.
+BUREAU_MIO = int(os.environ.get("DERIVE_BUREAU_MIO", "1500"))
+FLUCTUATION_MIO = int(os.environ.get("DERIVE_FLUCTUATION_MIO", "500"))
+
+
+def vram_budget_mio() -> int:
+    import subprocess
+    try:
+        out = subprocess.run(["nvidia-smi", "--query-gpu=memory.total",
+                              "--format=csv,noheader,nounits"],
+                             capture_output=True, text=True, timeout=30).stdout
+        total = int(out.splitlines()[0].strip())
+    except Exception:
+        total = 12288
+    return max(0, total - BUREAU_MIO - FLUCTUATION_MIO)
+
+
+VRAM_DEFAUT_MIO = int(os.environ.get("DERIVE_VRAM_LIBRE_MIO", "0")) or vram_budget_mio()
 CTX_PLANCHER = 4096
 
 
@@ -235,39 +279,43 @@ def derive(a: dict, vram_mio: int, ctx_max: int | None) -> dict:
     else:
         poids_resident = poids_mio
 
-    budget_kv_mio = max(0, dispo - poids_resident)
-    if a["kv_par_token"] > 0:
-        ctx = int(budget_kv_mio * 1048576 / a["kv_par_token"])
-        ctx = 1 << (max(ctx, CTX_PLANCHER)).bit_length() - 1  # puissance de 2 inférieure
-    else:
+    # CHOIX DU CONTEXTE par croissance monotone. On part du plancher et on double
+    # tant que la prévision COMPLÈTE tient dans le budget — prévision qui inclut la
+    # réserve, laquelle dépend elle-même du ctx.
+    #
+    # Deux erreurs successives ici, consignées pour qu'on ne les refasse pas :
+    #   1. calculer le ctx sur la place restante avec une réserve CONSTANTE, puis
+    #      arrondir à la puissance de 2 inférieure — ça perdait la moitié du
+    #      contexte (gsq-rco tombait à 16384 alors que 32768 est mesuré) ;
+    #   2. ne faire que RÉDUIRE depuis une valeur trop grande — ça ne remontait
+    #      jamais quand la réduction avait été excessive.
+    # La croissance monotone n'a aucun de ces deux défauts.
+    def prevision(c: int) -> float:
+        return poids_resident + c * a["kv_par_token"] / 1048576 + reserve_mio(c)
+
+    plafonds = [x for x in (a["ctx_entraine"], ctx_max) if x]
+    plafond = min(plafonds) if plafonds else 1 << 22
+    if a["kv_par_token"] <= 0:
         ctx = CTX_PLANCHER
         raisons.append("dimensions KV illisibles : ctx laissé au plancher")
-    plafonds = [x for x in (a["ctx_entraine"], ctx_max) if x]
-    if plafonds:
-        p = min(plafonds)
-        if ctx > p:
-            ctx = p
-            raisons.append("ctx ramené à %d (plafond du modèle ou demandé)" % p)
-    ctx = max(ctx, CTX_PLANCHER)
+    else:
+        ctx = CTX_PLANCHER
+        while ctx * 2 <= plafond and prevision(ctx * 2) <= vram_mio:
+            ctx *= 2
+        if prevision(ctx) > vram_mio:
+            raisons.append("même le plancher (%d) dépasse le budget : ce modèle ne "
+                           "tient pas sur cette carte dans cette quantification"
+                           % CTX_PLANCHER)
+    if plafonds and ctx >= plafond:
+        raisons.append("ctx au plafond du modèle ou demandé (%d)" % plafond)
 
-    if a["ssm"]:
-        raisons.append("hybride attention/SSM (%d blocs d'attention sur %d) : le KV ne "
-                       "compte que les couches d'attention, et `parallel` DOIT rester "
-                       "à 1 — l'état récurrent est alloué par slot" % (a["attn"], a["blocs"]))
-    if a["mtp"]:
-        raisons.append("tête MTP détectée : décodage spéculatif activable "
-                       "(mesuré ~1,5x sur gemma-4-12B, 61 tok/s sur ornith)")
-    raisons.append("KV q8_0 = %d octets/token (%d couches × %d têtes × %d) -> %.0f Mio "
-                   "à ctx %d" % (a["kv_par_token"], a["n_couches_kv"], a["n_kv_heads"],
-                                 a["k_len"] + a["v_len"],
-                                 ctx * a["kv_par_token"] / 1048576, ctx))
-
+    res = reserve_mio(ctx)
     return {"ctx": ctx, "parallel": 1, "n_cpu_moe": n_cpu_moe, "mtp": a["mtp"],
-            "confiance": confiance,
+            "confiance": confiance, "reserve": res,
             "poids_mio": round(poids_mio), "poids_resident_mio": round(poids_resident),
             "kv_mio": round(ctx * a["kv_par_token"] / 1048576),
             "vram_prevue_mio": round(poids_resident + ctx * a["kv_par_token"] / 1048576
-                                     + RESERVE_MIO),
+                                     + res),
             "raisons": raisons}
 
 
@@ -312,6 +360,38 @@ def main() -> int:
     a = analyse(e, taille)
     c = derive(a, vram, ctx_max)
 
+    # CRITÈRE ÉLIMINATOIRE DE CONTEXTE. Un modèle qui ne peut pas atteindre le
+    # contexte minimum exigé est écarté AVANT tout téléchargement : tout se calcule
+    # sur ~10 Mio d'en-tête lus par requête HTTP Range.
+    #
+    # IL S'ABSTIENT sur les modèles à fenêtre glissante. Sur gemma-4-12b, le KV
+    # calculé pire-cas donne 41984 Mio à 128 K, ce qui est absurde — les couches SWA
+    # bornent leur cache par la fenêtre. Éliminer sur ce chiffre écarterait à tort
+    # toute la famille gemma. Pas de mesure fiable, pas d'élimination.
+    exige = opt("--exige-ctx", 0)
+    if exige:
+        if c["confiance"] == "basse":
+            print("  contexte minimum %d : NON ÉVALUABLE (fenêtre glissante) — on ne "
+                  "l'écarte pas" % exige)
+            return 0
+        if a["ctx_entraine"] and a["ctx_entraine"] < exige:
+            print("  ÉCARTÉ : contexte d'entraînement %d < %d exigé"
+                  % (a["ctx_entraine"], exige))
+            return 5
+        kv = exige * a["kv_par_token"] / 1048576
+        res = reserve_mio(exige)
+        maxi = vram - kv - res
+        poids = a["poids_octets"] / 1048576
+        if poids > maxi:
+            print("  ÉCARTÉ : à ctx %d il faudrait des poids ≤ %.0f Mio (budget %d "
+                  "− KV %.0f − réserve %d), or ce modèle pèse %.0f Mio — il dépasse "
+                  "de %.0f Mio. Une quantification plus basse pourrait passer."
+                  % (exige, maxi, vram, kv, res, poids, poids - maxi))
+            return 5
+        print("  contexte minimum %d : OK (poids %.0f Mio ≤ %.0f Mio disponibles)"
+              % (exige, poids, maxi))
+        return 0
+
     if "--yaml" in sys.argv:
         if c["confiance"] == "basse":
             # Rien sur stdout : l'appelant garde sa config. La raison part sur stderr.
@@ -336,8 +416,8 @@ def main() -> int:
         return 0
     print("  CONFIG DÉDUITE : ctx=%d  parallel=1  n_cpu_moe=%d  mtp=%s"
           % (c["ctx"], c["n_cpu_moe"], "oui" if c["mtp"] else "non"))
-    print("  VRAM prévue : %d Mio (poids résidents %d + KV %d + réserve %d) sur %d libres"
-          % (c["vram_prevue_mio"], c["poids_resident_mio"], c["kv_mio"], RESERVE_MIO, vram))
+    print("  VRAM prévue : %d Mio (poids résidents %d + KV %d + réserve %d) sur %d de budget"
+          % (c["vram_prevue_mio"], c["poids_resident_mio"], c["kv_mio"], c["reserve"], vram))
     print()
     for r in c["raisons"]:
         print("  · " + r)

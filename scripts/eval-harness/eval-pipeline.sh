@@ -52,6 +52,28 @@ Aucun octet téléchargé, aucun redémarrage LocalAI, créneau de file préserv
   exit 0
 fi
 
+# CRITÈRE ÉLIMINATOIRE DE CONTEXTE, demandé le 2026-09-09 : un candidat qui ne peut
+# pas tenir le contexte minimum sur cette carte est écarté AVANT téléchargement.
+# Tout se calcule sur ~10 Mio d'en-tête lus par requête HTTP Range.
+#
+# S'ABSTIENT sur les modèles à fenêtre glissante : le KV pire-cas y est absurde
+# (41984 Mio à 128 K sur gemma-4-12b), et éliminer sur ce chiffre écarterait à tort
+# toute la famille gemma.
+EXIGE_CTX="${EXIGE_CTX:-131072}"
+if [ "$EXIGE_CTX" != "0" ]; then
+  CTXOUT="$(python3 "$HERE/derive_config.py" "$GGUF" --exige-ctx "$EXIGE_CTX" 2>&1)"; CTXRC=$?
+  echo "$CTXOUT"
+  if [ "$CTXRC" = "5" ]; then
+    notify "⛔ $NAME écarté AVANT téléchargement — contexte minimum $EXIGE_CTX non atteignable
+
+$CTXOUT
+
+Aucun octet téléchargé. Une quantification plus basse du même modèle pourrait passer."
+    echo "pipeline terminé pour $NAME (ctx minimum non atteignable)"
+    exit 0
+  fi
+fi
+
 notify "🔬 Pipeline modèle : éval candidat $NAME démarrée (vs $INCUMBENT)…"
 DRAFTARG=""; [ -n "$DRAFT" ] && DRAFTARG="--draft $DRAFT"
 # Le code de sortie de stage_candidate.sh doit être CONSERVÉ. Avant, il partait dans
