@@ -720,6 +720,62 @@ modelsConfigs:
       - "<|im_end|>"
       - "<|endoftext|>"
 
+  # LFM2.5-2.6B (LiquidAI) — CERVEAU HERMES À L'ESSAI, ajouté le 2026-09-09.
+  #
+  # POURQUOI. Hermes tourne aujourd'hui sur `deepseek/deepseek-v4-flash` via
+  # OpenRouter, donc payant. Ce modèle est le premier candidat local crédible pour
+  # ce rôle précis — pas pour remplacer le modèle de code.
+  #
+  # Mesuré sur le harnais CORRIGÉ (18 items de codage, budget 8192) :
+  #   overall 0.958 · toolcall 1.000 · agentic 0.833 · 94,9 tok/s
+  # Il franchit le seuil Hermes-readiness (agentic ≥0,8 ET toolcall ≥0,9).
+  #
+  # Ce que l'éditeur revendique, et que je ne dépasse pas : « competitive with
+  # models 4x larger on tool use, instruction following, and multi-step agentic
+  # tasks » — donc ~11 Md, PAS 30. Et surtout : « NOT recommended for agentic
+  # coding and knowledge-heavy tasks ». Son bon score de codage chez nous vient de
+  # ce que nos items sont des fonctions courtes vérifiées par assert, pas du
+  # codage agentique (cf. le tetris de harness-bench, seul discriminant).
+  #
+  # Architecture hybride : 30 blocs dont 22 convolutions courtes et seulement 8 en
+  # attention GQA. D'où un KV de 8192 o/token, et 128 K de contexte pour 1024 Mio
+  # de cache. Config DÉDUITE par scripts/eval-harness/derive_config.py :
+  #   poids 2742 Mio + KV 1024 + réserve 870 = 4636 Mio sur 10288 de budget,
+  #   soit 5652 Mio de marge — le candidat le plus confortable mesuré à ce jour.
+  # parallel:1 explicite : l'auto-réglage de LocalAI met 4, ce qui découpe le
+  # contexte entre slots et gaspille de la VRAM (cf. incident du 2026-09-08).
+  lfm2.5-2.6b: |
+    name: lfm2.5-2.6b
+    backend: llama-cpp
+    known_usecases: [chat]
+    context_size: 131072
+    gpu_layers: 99
+    f16: true
+    flash_attention: true
+    mmap: true
+    cache_type_k: q8_0
+    cache_type_v: q8_0
+    parameters:
+      model: LFM2.5-2.6B-Q8_0.gguf
+      temperature: 0.6
+      top_p: 0.95
+      top_k: 20
+    download_files:
+      - filename: LFM2.5-2.6B-Q8_0.gguf
+        uri: https://huggingface.co/LiquidAI/LFM2.5-2.6B-GGUF/resolve/main/LFM2.5-2.6B-Q8_0.gguf
+    options:
+      - use_jinja:true
+      - parallel:1
+    function:
+      automatic_tool_parsing_fallback: true
+      grammar:
+        disable: true
+    template:
+      use_tokenizer_template: true
+    stopwords:
+      - "<|im_end|>"
+      - "<|endoftext|>"
+
   # Black Forest Labs Flux.2 Klein, smaller 4B variant.
   # Chosen over the 9B variants because:
   #  - 4B has a complete Diffusers-format repo (model_index.json + text_encoder/
