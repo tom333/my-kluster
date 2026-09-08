@@ -148,7 +148,10 @@ if base.get("mean_tokps", 0) and cand.get("mean_tokps", 0) < 0.5 * base["mean_to
 # Les deux restent AFFICHÉS dans le tableau, pour information seulement.
 promote = not reasons
 rows="\n".join(f"| {k} | {cand.get(k,0):.3f} | {base.get(k,0):.3f} | {cand.get(k,0)-base.get(k,0):+.3f} |"
-  for k in ["overall","coding_pass_rate","toolcall_acc","format_acc","reasoning_acc","agentic_success_rate","mean_tokps"])
+  # coding_truncated ajoute le 2026-09-08 : sans lui, un coding_pass_rate bas est
+  # ambigu. Un candidat a 0.400 avec 6 items TRONQUES n'a pas mal code, il n'a pas
+  # fini d'ecrire — c'est ce que le harnais confondait jusqu'ici.
+  for k in ["overall","coding_pass_rate","coding_truncated","toolcall_acc","format_acc","reasoning_acc","agentic_success_rate","mean_tokps"])
 # Le critère principal en tête de tableau, pour qu'un relecteur le voie d'abord.
 rows = ("| **tetris (harness-bench)** | **%s/44** | **%s/44** | **%s** |\n" % (
     "?" if t_cand is None else t_cand,

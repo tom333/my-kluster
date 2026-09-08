@@ -88,7 +88,7 @@ VERDICT="$(echo "$PROMO" | grep -oE 'gate: (PROMOTE|REJECT)' | head -1)"
 PRLINE="$(echo "$PROMO" | grep -oE 'https://github.com/[^ ]+/pull/[0-9]+' | head -1)"
 
 # résumé chiffré du changement (lignes du tableau comparatif de promote.sh)
-SUMMARY="$(echo "$PROMO" | grep -E '^\| (overall|coding_pass_rate|toolcall_acc|format_acc|reasoning_acc|agentic_success_rate|mean_tokps) ' \
+SUMMARY="$(echo "$PROMO" | grep -E '^\| (overall|coding_pass_rate|coding_truncated|toolcall_acc|format_acc|reasoning_acc|agentic_success_rate|mean_tokps) ' \
   | sed 's/^| //; s/ |$//; s/ | / /g')"
 HERMES="$(echo "$PROMO" | grep -oE 'Hermes-readiness.*: .*' | head -1)"
 if echo "$VERDICT" | grep -q PROMOTE; then
