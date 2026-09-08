@@ -8,6 +8,6 @@
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/tom333/ha_pronote/issues",
   "quality_scale": "bronze",
-  "requirements": ["pronotepy==2.15.7", "python-slugify==8.0.4", "holidays==0.104"],
+  "requirements": ["pronotepy==2.15.7", "python-slugify==9.0.0", "holidays==0.104"],
   "version": "0.0.1"
 }
