@@ -193,6 +193,19 @@ TMP=$(mktemp)
   # Pas de download_files : le fichier est déjà présent sur le PVC
   echo "options:"
   echo "  - use_jinja:true"
+  # parallel:1 EXPLICITE. Sans lui, l'auto-reglage materiel de LocalAI met
+  # parallel=4, et c'est nuisible a deux titres, mesure le 2026-09-08 :
+  #   - l'etat recurrent d'un modele HYBRIDE attention/SSM est alloue PAR SLOT et
+  #     ne depend pas du contexte. Sur qwen3.8-27b-gsq-rco (48 blocs SSM,
+  #     ssm_inner_size 6144 x ssm_state_size 128), les 4 copies coutaient ~600 Mio
+  #     de VRAM pour rien et faisaient PLANTER le backend a ctx 32768
+  #     ("rpc error: Unavailable desc = error reading from server: EOF").
+  #     Avec parallel:1 le meme modele charge et genere : 11 516 Mio sur 12 288.
+  #   - les modeles de PRODUCTION (charts/localai/values.yaml) sont deja en
+  #     parallel:1 ; un candidat evalue en parallel=4 n'est donc pas configure
+  #     comme il le serait s'il etait promu.
+  # L'eval est mono-requete : aucun besoin de slots concurrents.
+  echo "  - parallel:1"
   [ -n "$DRAFT" ] && { echo "  - spec_type:draft-mtp"; echo "  - draft_max:2"; }
   echo "function:"
   echo "  automatic_tool_parsing_fallback: true"
