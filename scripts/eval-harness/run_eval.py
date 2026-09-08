@@ -174,7 +174,13 @@ def score_coding(model, tasks):
             ok, detail = run_in_sandbox(code, t["test"])
         if r["latency"] > 0 and ct:
             tokps.append(ct / r["latency"])
-        res.append({"id": t["id"], "pass": ok, "detail": detail, "tronque": tronque})
+        # PREUVE consignée pour le triage. Sans elle, diagnostiquer un échec
+        # imposait de RELANCER le modèle à la main — c'est ce qu'il a fallu faire le
+        # 2026-09-08 pour découvrir que `content` était vide et que le budget était
+        # parti en raisonnement. Ces quatre champs suffisent à classer la cause.
+        res.append({"id": t["id"], "pass": ok, "detail": detail, "tronque": tronque,
+                    "tokens": ct, "raisonnement": len(r.get("reasoning") or ""),
+                    "bloc": bool(code.strip()), "finish": r.get("finish")})
     return res, tokps
 
 
@@ -251,7 +257,12 @@ def score_reasoning(model, tasks):
             m = re.findall(r"(-?\d+(?:\.\d+)?)", c)  # fallback: dernier nombre
         got = m[-1] if m else None
         ok = got is not None and abs(float(got) - float(t["answer"])) < 1e-6
-        res.append({"id": t["id"], "pass": ok, "detail": f"got={got} exp={t['answer']}"})
+        # Même preuve que pour le codage : `got=None` avec finish=length signifie
+        # que le modèle n'a pas fini de réfléchir, pas qu'il a mal calculé.
+        res.append({"id": t["id"], "pass": ok, "detail": f"got={got} exp={t['answer']}",
+                    "tokens": r["usage"].get("completion_tokens", 0),
+                    "raisonnement": len(r.get("reasoning") or ""),
+                    "finish": r.get("finish"), "tronque": r.get("finish") == "length"})
     return res
 
 

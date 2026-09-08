@@ -91,6 +91,16 @@ PRLINE="$(echo "$PROMO" | grep -oE 'https://github.com/[^ ]+/pull/[0-9]+' | head
 SUMMARY="$(echo "$PROMO" | grep -E '^\| (overall|coding_pass_rate|coding_truncated|toolcall_acc|format_acc|reasoning_acc|agentic_success_rate|mean_tokps) ' \
   | sed 's/^| //; s/ |$//; s/ | / /g')"
 HERMES="$(echo "$PROMO" | grep -oE 'Hermes-readiness.*: .*' | head -1)"
+
+# TRIAGE — dit POURQUOI les items ont échoué, sans toucher au verdict. Motif : le
+# harnais rapportait un symptôme (`NameError`) sans sa cause (budget parti en
+# raisonnement, code jamais écrit), et ce trou a masqué un plafond de mesure
+# pendant des semaines. Déterministe, aucun token de LLM.
+TRIAGE="$(python3 "$HERE/triage.py" "$HERE/results/${NAME}-candidate.json" --court 2>/dev/null | head -5)"
+# L'alarme qui compte : un item soluble raté par les N derniers candidats d'affilée
+# accuse la MESURE, pas les modèles. Vérifié : `calc_ii` l'était par 13 candidats
+# consécutifs, pour un taux global de 16 % qu'aucun seuil de rareté ne voyait.
+SERIES="$(python3 "$HERE/triage.py" --items 2>/dev/null | grep '^  SÉRIE' | head -3)"
 if echo "$VERDICT" | grep -q PROMOTE; then
   notify "🟢 Swap proposé : $NAME → remplace $INCUMBENT
 (métrique · candidat · courant · Δ)
@@ -98,14 +108,24 @@ $SUMMARY
 🧠 $HERMES
 
 PR ouverte, review + merge MANUEL :
-${PRLINE:-voir github.com/tom333/my-kluster/pulls}"
+${PRLINE:-voir github.com/tom333/my-kluster/pulls}
+
+${TRIAGE}
+${SERIES:+
+⚠️ ALERTE MESURE :
+$SERIES}"
 else
   notify "⚪ $NAME NON promu vs $INCUMBENT
 (métrique · candidat · courant · Δ)
 $SUMMARY
 🧠 $HERMES
 
-(gate non franchi ; détails MLflow localai-model-eval)"
+(gate non franchi ; détails MLflow localai-model-eval)
+
+${TRIAGE}
+${SERIES:+
+⚠️ ALERTE MESURE :
+$SERIES}"
 fi
 
 echo "=== cleanup candidat $NAME ==="
