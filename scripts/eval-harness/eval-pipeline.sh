@@ -32,10 +32,54 @@ notify() {
   [ "$code" = "200" ] || echo "WARN notify: Telegram a répondu http=$code — message NON délivré" >&2
 }
 
+# PREFLIGHT — lit l'EN-TÊTE du GGUF par requête HTTP Range et écarte le candidat
+# AVANT de télécharger les gigaoctets. Motif : le 2026-09-08, neutrino-8b-fv5 a
+# coûté 4,09 Go téléchargés, un restart LocalAI et un créneau de file pour être
+# rejeté ensuite — alors que son en-tête (5,9 Mo) suffisait à voir qu'il déclare
+# des types de tenseurs 43/44 que llama.cpp ne connaît pas (max = Q2_0 = 42).
+# Le preflight est fail-OPEN : réseau indisponible ou en-tête illisible => on
+# laisse passer et le pipeline reste juge. Seule une incompatibilité CERTAINE
+# écarte le candidat.
+PF_OUT="$(python3 "$HERE/gguf_preflight.py" "$GGUF" 2>&1)"; PF_RC=$?
+echo "$PF_OUT"
+if [ "$PF_RC" = "3" ]; then
+  notify "⛔ $NAME écarté AVANT téléchargement
+
+$PF_OUT
+
+Aucun octet téléchargé, aucun redémarrage LocalAI, créneau de file préservé."
+  echo "pipeline terminé pour $NAME (preflight REJECT)"
+  exit 0
+fi
+
 notify "🔬 Pipeline modèle : éval candidat $NAME démarrée (vs $INCUMBENT)…"
 DRAFTARG=""; [ -n "$DRAFT" ] && DRAFTARG="--draft $DRAFT"
-"$HERE/stage_candidate.sh" --name "$NAME" --gguf "$GGUF" $DRAFTARG --ctx "$CTX" --baseline "$INCUMBENT" \
-  2>&1 | grep -vE "Downloading|Downloaded|Installed|INFO mlflow" | tail -40
+# Le code de sortie de stage_candidate.sh doit être CONSERVÉ. Avant, il partait dans
+# un tube (`| grep | tail`) : le statut du pipeline était celui de `tail`, donc
+# toujours 0. Résultat, un échec du garde-fou d'appel d'outil continuait jusqu'à
+# promote.sh, qui ne trouvait aucun résultat et envoyait un « NON promu » au tableau
+# VIDE, indiscernable d'un modèle mesuré et moins bon. C'est ce qui a fait attendre
+# 98 minutes sur neutrino-8b le 2026-09-08.
+STAGE_OUT="$("$HERE/stage_candidate.sh" --name "$NAME" --gguf "$GGUF" $DRAFTARG --ctx "$CTX" --baseline "$INCUMBENT" 2>&1)"
+STAGE_RC=$?
+echo "$STAGE_OUT" | grep -vE "Downloading|Downloaded|Installed|INFO mlflow" | tail -40
+
+if [ "$STAGE_RC" != "0" ]; then
+  # On NOMME la cause. L'erreur utile est soit le message llama.cpp (`Error: ...`),
+  # soit la ligne ECHEC/ERREUR du garde-fou.
+  CAUSE="$(echo "$STAGE_OUT" | grep -oE "Error: [^\"}]+" | head -1)"
+  [ -z "$CAUSE" ] && CAUSE="$(echo "$STAGE_OUT" | grep -E "ECHEC|ERREUR|TIMEOUT" | head -2 | tr '\n' ' ')"
+  notify "⛔ $NAME : éval NON lancée — le modèle ne charge pas, ou n'appelle pas d'outil.
+
+${CAUSE:-cause non identifiée, voir ~/.cache/trigger-watch.log}
+
+(garde-fou d'appel d'outil : un modèle qui échoue ici est inutilisable en agentique.
+Il peut rester bon en autocomplétion.)"
+  echo "=== cleanup candidat $NAME ==="
+  "$HERE/stage_candidate.sh" --cleanup --name "$NAME" >/dev/null 2>&1 || true
+  echo "pipeline terminé pour $NAME (STAGE FAIL rc=$STAGE_RC)"
+  exit 0
+fi
 
 # gate + PR (promote.sh gère la décision ; crée la PR si PROMOTE)
 PROMO="$("$HERE/promote.sh" --candidate "$NAME" --incumbent "$INCUMBENT" 2>&1)"
