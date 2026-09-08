@@ -1,0 +1,18 @@
+name: deepseek-v4-pro-qwen3.5-9b-mtp
+backend: llama-cpp
+known_usecases: [chat]
+context_size: 131072
+gpu_layers: 99
+f16: true
+flash_attention: true
+mmap: true
+cache_type_k: q8_0
+cache_type_v: q8_0
+parameters:
+  model: DeepSeek-V4-Pro-Qwen3.5-9B-MTP-Q6_K.gguf
+  temperature: 0.6
+options:
+  - use_jinja:true
+  - parallel:1
+template:
+  use_tokenizer_template: true

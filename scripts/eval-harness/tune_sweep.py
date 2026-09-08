@@ -115,8 +115,29 @@ def genere(nom: str, cle: str, tokens: int | None = None) -> dict:
             "tokens": ct, "erreur": "" if ct else "aucun token généré"}
 
 
-def variantes(base: dict, moe: bool) -> list[dict]:
-    """Le plan de balayage. Trois configs au plus : chacune coûte un redémarrage."""
+def vram_prevue(c: dict, a: dict) -> int:
+    """VRAM prévue en Mio pour une config, à partir des mesures d'en-tête."""
+    poids = a["poids_octets"] / 1048576
+    if c.get("n_cpu_moe") and a.get("exps_par_couche"):
+        ordre = sorted(a["exps_par_couche"].items(), key=lambda kv: -kv[1])
+        for _, oct_ in ordre[:c["n_cpu_moe"]]:
+            poids -= oct_ / 1048576
+    import derive_config as dc
+    return int(poids + c["ctx"] * a["kv_par_token"] / 1048576 + dc.RESERVE_MIO)
+
+
+def variantes(base: dict, moe: bool, a: dict | None = None,
+              budget_mio: int | None = None) -> list[dict]:
+    """Le plan de balayage. Trois configs au plus : chacune coûte un redémarrage.
+
+    ON NE TESTE PAS CE QUE L'ARITHMÉTIQUE RÉFUTE DÉJÀ. Le 2026-09-08, la variante
+    ctx=262144 sur deepseek-v4-pro-qwen3.5-9b-mtp demandait 12317 Mio prévus pour
+    10800 disponibles — un calcul d'une ligne le disait. La tester n'a rien appris
+    et a poussé la machine en swap saturé (15/15 Go, charge 10,2), ce qui a affamé
+    kubelite : le serveur d'API a REFUSÉ LES CONNEXIONS pendant plusieurs minutes,
+    et des dizaines de pods sont passés en Terminating. Un balayage doit rester
+    inoffensif pour le plan de contrôle.
+    """
     v = [dict(base, etiquette="A/déduite")]
     if moe and base.get("n_cpu_moe", 0) > 2:
         # Déporter MOINS = plus rapide si ça tient encore. C'est l'échange central :
@@ -130,6 +151,17 @@ def variantes(base: dict, moe: bool) -> list[dict]:
         # Sans MoE, le seul levier restant est le contexte : on teste si la réserve
         # VRAM était trop prudente. Si ça ne charge pas, la réponse est non.
         v.append(dict(base, ctx=base["ctx"] * 2, etiquette="B/ctx doublé"))
+    if a and budget_mio:
+        gardees = []
+        for x in v:
+            prevu = vram_prevue(x, a)
+            if prevu > budget_mio:
+                print("  · variante ÉCARTÉE sans essai : %s -> %d Mio prévus pour %d "
+                      "disponibles (l'arithmétique suffit)"
+                      % (x["etiquette"], prevu, budget_mio))
+                continue
+            gardees.append(x)
+        return gardees
     return v
 
 
@@ -192,7 +224,7 @@ def main() -> int:
     else:
         base = {"ctx": c["ctx"], "n_cpu_moe": c["n_cpu_moe"]}
 
-    plan = variantes(base, a["moe"])
+    plan = variantes(base, a["moe"], a, dc.VRAM_DEFAUT_MIO)
     print("=== plan de balayage pour %s (%s, MoE=%s, SSM=%s, MTP=%s) ==="
           % (nom, a["arch"], a["moe"], a["ssm"], a["mtp"]))
     for v in plan:
@@ -220,8 +252,21 @@ def main() -> int:
             # sous-estimé de moitié : 9,1 tok/s mesuré contre 19,9 réels, constaté au
             # premier essai de ce script le 2026-09-08. `run_eval.py` fait le même
             # préchauffage, pour la même raison.
+            # LocalAI met un modèle en RETENUE (503 "load is in cooldown") après un
+            # échec de chargement, et refuse de réessayer pendant un temps. Un 503 de
+            # retenue n'est donc PAS un verdict sur la config : au premier essai de ce
+            # script, la variante ctx=262144 a été rapportée en échec avec ce message
+            # alors que la vraie cause était ailleurs. On patiente et on réessaie, et
+            # si ça persiste on le dit INDÉTERMINÉ plutôt que de conclure.
             genere(nom, cle, tokens=8)
             r = genere(nom, cle)
+            # « load is in cooldown AFTER A RECENT FAILURE » : le message dit lui-même
+            # qu'un chargement a échoué. C'est donc un verdict, pas un contretemps —
+            # et réessayer relance le chargement fautif, ce qui creuse la pression
+            # mémoire et allonge le recul (10s -> 20s -> 40s, constaté le 2026-09-08).
+            if not r["ok"] and "cooldown after a recent failure" in r["erreur"].lower():
+                r["erreur"] = "chargement ÉCHOUÉ (LocalAI en retenue après échec) — " \
+                              "config trop grosse pour la carte"
             vr = vram_mio()
             resultats.append(dict(v, ok=r["ok"], tokps=r["tokps"], vram=vr,
                                   erreur=r["erreur"]))
