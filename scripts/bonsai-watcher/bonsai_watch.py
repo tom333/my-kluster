@@ -129,7 +129,15 @@ def release_llamacpp_apres(quand):
         return None, None
     candidates = []
     for r in d:
-        if r.get("draft") or r.get("prerelease"):
+        # On ne filtre QUE les brouillons. llama.cpp publie ses builds avec
+        # `prerelease: true` sur 100 % de ses releases (vérifié le 2026-09-08 :
+        # b10850, b10844, b10842... toutes prerelease). Écarter les prereleases
+        # revient à n'avoir AUCUNE release : cette fonction renvoyait donc
+        # toujours (None, None) et la voie « runtime officiel » du watcher ne
+        # pouvait PAS se déclencher — elle affichait en boucle « mergé, pas
+        # encore dans une release ». Défaut trouvé le 2026-09-08 en écrivant
+        # `k2horizon-watcher`, qui portait le même filtre.
+        if r.get("draft"):
             continue
         try:
             pub = datetime.fromisoformat(r["published_at"].replace("Z", "+00:00"))
