@@ -83,7 +83,8 @@ def chat(model, messages, tools=None, max_tokens=2048, temp=0.0, timeout=300):
     dt = time.time() - t0
     msg = d["choices"][0]["message"]
     return {"content": msg.get("content") or "", "tool_calls": msg.get("tool_calls") or [],
-            "usage": d.get("usage", {}), "latency": dt, "finish": d["choices"][0].get("finish_reason")}
+            "usage": d.get("usage", {}), "latency": dt, "finish": d["choices"][0].get("finish_reason"),
+            "reasoning": d["choices"][0].get("message", {}).get("reasoning") or ""}
 
 
 def warmup(model, budget=180):
@@ -109,9 +110,21 @@ def warmup(model, budget=180):
     return False
 
 
-def extract_code(text: str) -> str:
+def extract_code(text: str, tronque: bool = False) -> str:
+    """Dernier bloc ```python FERMÉ, sinon la prose brute — SAUF si tronqué.
+
+    POURQUOI le garde-fou `tronque`. Une réponse coupée en plein code n'a pas de
+    clôture ```, donc `findall` ne rend RIEN et l'ancien `else text` renvoyait
+    toute la prose au bac à sable. Résultat mesuré le 2026-09-08 : un
+    `NameError: name 'calc' is not defined` qui ressemble à du code faux alors que
+    le modèle n'avait rien écrit du tout — il avait dépensé ses 2048 tokens en
+    raisonnement. Trois items (calc_ii, median_sorted, regex_match) échouaient
+    ainsi pour SIX candidats d'affilée, plafonnant le score de codage à 11/14.
+    """
     blocks = re.findall(r"```(?:python)?\s*\n(.*?)```", text, re.DOTALL)
-    return blocks[-1] if blocks else text
+    if blocks:
+        return blocks[-1]
+    return "" if tronque else text
 
 
 def run_in_sandbox(code: str, test: str) -> tuple[bool, str]:
@@ -131,17 +144,37 @@ def run_in_sandbox(code: str, test: str) -> tuple[bool, str]:
             return False, str(e)[:200]
 
 
+# Budget de codage. 2048 était trop court : les tokens de RAISONNEMENT s'y
+# imputent, si bien qu'un modèle qui réfléchit n'écrivait jamais sa réponse.
+# Mesuré le 2026-09-08 sur qwopus3.5-9b-coder à 2048 : 4000 à 6200 caractères de
+# raisonnement puis `content` VIDE sur les trois items les plus longs. À 8192, le
+# même modèle résout regex_match en 1690 tokens. Surchargeable pour rejouer un
+# ancien relevé à l'identique.
+CODING_MAX_TOKENS = int(os.environ.get("EVAL_CODING_MAX_TOKENS", "8192"))
+
+
 def score_coding(model, tasks):
     res, tokps = [], []
     for t in tasks:
-        r = chat(model, [{"role": "user", "content": t["prompt"]}])
+        r = chat(model, [{"role": "user", "content": t["prompt"]}],
+                 max_tokens=CODING_MAX_TOKENS)
         if r.get("error"):
-            res.append({"id": t["id"], "pass": False, "detail": r["error"]}); continue
-        ok, detail = run_in_sandbox(extract_code(r["content"]), t["test"])
+            res.append({"id": t["id"], "pass": False, "detail": r["error"],
+                        "tronque": False}); continue
         ct = r["usage"].get("completion_tokens", 0)
+        tronque = r.get("finish") == "length"
+        code = extract_code(r["content"] or "", tronque=tronque)
+        if tronque and not code:
+            # On NOMME le phénomène au lieu de laisser un NameError trompeur.
+            n_rais = len(r.get("reasoning") or "")
+            ok = False
+            detail = (f"TRONQUÉ: budget {CODING_MAX_TOKENS} épuisé, aucun bloc de code "
+                      f"fermé (raisonnement {n_rais} car., {ct} tokens)")
+        else:
+            ok, detail = run_in_sandbox(code, t["test"])
         if r["latency"] > 0 and ct:
             tokps.append(ct / r["latency"])
-        res.append({"id": t["id"], "pass": ok, "detail": detail})
+        res.append({"id": t["id"], "pass": ok, "detail": detail, "tronque": tronque})
     return res, tokps
 
 
@@ -153,6 +186,17 @@ def score_toolcall(model, tasks):
             res.append({"id": t["id"], "pass": False, "detail": r["error"]}); continue
         tc = r["tool_calls"]
         ok, detail = False, "no tool_call"
+        # CAS NÉGATIF : `expect_name: null` signifie « aucun outil ne convient, il
+        # faut s'abstenir ». Sur-appeler un outil hors sujet est un vrai mode de
+        # défaillance qu'aucun item ne testait — un modèle qui appelle
+        # get_stock_price pour « quelle est la capitale de la France » est cassé
+        # pour un usage agentique, même s'il réussit tous les appels légitimes.
+        if t.get("expect_name") is None:
+            ok = not tc
+            detail = ("abstention correcte" if ok else
+                      "a appelé " + ", ".join(a.get("function", {}).get("name", "?") for a in tc))
+            res.append({"id": t["id"], "pass": ok, "detail": detail})
+            continue
         if tc:
             fn = tc[0].get("function", {})
             name = fn.get("name")
@@ -332,6 +376,10 @@ def main():
         "format_acc": rate(fmt),
         "reasoning_acc": rate(reasoning),
         "mean_tokps": (sum(tokps) / len(tokps)) if tokps else 0.0,
+        # Rend la TRONCATURE visible au lieu de la confondre avec une erreur de
+        # code. Un score de codage bas accompagné d'un coding_truncated élevé ne
+        # dit PAS que le modèle code mal : il dit qu'il n'a pas fini d'écrire.
+        "coding_truncated": sum(1 for r in coding if r.get("tronque")),
         # P6 — capacité agentique multi-tours (boucle d'outils). Signal Hermes/opencode.
         "agentic_success_rate": rate(agentic),
         "agentic_avg_turns": round(sum(a["turns"] for a in agentic) / len(agentic), 2) if agentic else 0.0,

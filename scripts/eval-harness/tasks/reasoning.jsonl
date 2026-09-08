@@ -6,3 +6,4 @@
 {"id":"tank","prompt":"An empty tank is filled at 15 liters per minute for 8 minutes, then drained at 10 liters per minute for 6 minutes. How many liters are in the tank at the end?","answer":60}
 {"id":"book_pages","prompt":"A book has 240 pages. Mia reads one third of the book on Monday, then one fourth of the remaining pages on Tuesday. How many pages are left unread?","answer":120}
 {"id":"chickens","prompt":"A farmer has chickens and cows. Together they have 20 heads and 56 legs. How many cows are there?","answer":8}
+{"id": "jour_semaine", "prompt": "1 January 2024 was a Monday, and 2024 is a leap year. Numbering weekdays 1 for Monday through 7 for Sunday, what is the number of the weekday of 1 March 2024?", "answer": 5}
