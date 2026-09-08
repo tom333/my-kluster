@@ -362,6 +362,26 @@ def main() -> int:
     vram = opt("--vram-libre-mio", VRAM_DEFAUT_MIO)
     ctx_max = opt("--ctx-max", 0) or None
 
+    # POIDS DU DRAFTER MTP SÉPARÉ. Certaines familles publient la tête de prédiction
+    # multi-tokens dans un FICHIER À PART (motif `draft_model:` de LocalAI, déjà
+    # utilisé pour gemma-4-12b). Elle est chargée en VRAM EN PLUS du modèle
+    # principal, et elle est loin d'être négligeable : 2318 Mio pour
+    # mtp-Ornith-1.5-9B-head-Q8_0, 2430 Mio pour celle d'Ornith 1.0. Ignorer ce
+    # poids fait mentir tout le calcul de budget — c'était le cas avant le
+    # 2026-09-09. Passer --draft pour l'inclure.
+    draft = None
+    for i, x in enumerate(sys.argv):
+        if x == "--draft" and i + 1 < len(sys.argv):
+            draft = sys.argv[i + 1]
+    poids_draft = 0
+    if draft:
+        poids_draft = (os.path.getsize(draft) if os.path.exists(draft)
+                       else (taille_distante(draft) or 0))
+        vram -= poids_draft / 1048576
+
+    if poids_draft:
+        print("  drafter MTP séparé : %.0f Mio retirés du budget (chargé en VRAM en "
+              "plus du modèle)" % (poids_draft / 1048576))
     e = lire_entete(cible)
     taille = os.path.getsize(cible) if e["local"] else taille_distante(cible)
     tailles_exactes(e, taille)
