@@ -1,0 +1,228 @@
+{
+  "model": "pocket-en",
+  "tag": "candidate",
+  "metrics": {
+    "coding_pass_rate": 0.0,
+    "toolcall_acc": 0.16666666666666666,
+    "format_acc": 1.0,
+    "reasoning_acc": 0.875,
+    "mean_tokps": 70.86350255426287,
+    "agentic_success_rate": 0.6666666666666666,
+    "agentic_avg_turns": 3.67,
+    "overall": 0.5104,
+    "hermes_ready": 0
+  },
+  "coding": [
+    {
+      "id": "reverse_string",
+      "pass": false,
+      "detail": "IndentationError: expected an indented block after function definition on line 2"
+    },
+    {
+      "id": "fib",
+      "pass": false,
+      "detail": "NameError: name 'fib' is not defined"
+    },
+    {
+      "id": "is_palindrome",
+      "pass": false,
+      "detail": "NameError: name 'is_palindrome' is not defined"
+    },
+    {
+      "id": "two_sum",
+      "pass": false,
+      "detail": "SyntaxError: invalid syntax"
+    },
+    {
+      "id": "count_vowels",
+      "pass": false,
+      "detail": "NameError: name 'count' is not defined. Did you mean: 'round'?"
+    },
+    {
+      "id": "flatten",
+      "pass": false,
+      "detail": "NameError: name 'flatten' is not defined"
+    },
+    {
+      "id": "valid_parentheses",
+      "pass": false,
+      "detail": "NameError: name 'valid_parentheses' is not defined"
+    },
+    {
+      "id": "merge_intervals",
+      "pass": false,
+      "detail": "NameError: name 'merge_intervals' is not defined"
+    },
+    {
+      "id": "lcs",
+      "pass": false,
+      "detail": "SyntaxError: invalid syntax"
+    },
+    {
+      "id": "roman_to_int",
+      "pass": false,
+      "detail": "NameError: name 'roman_to_int' is not defined"
+    },
+    {
+      "id": "regex_match",
+      "pass": false,
+      "detail": "NameError: name 'regex_match' is not defined"
+    },
+    {
+      "id": "calc_ii",
+      "pass": false,
+      "detail": "NameError: name 'calc' is not defined"
+    },
+    {
+      "id": "edit_distance",
+      "pass": false,
+      "detail": "NameError: name 'edit_distance' is not defined"
+    },
+    {
+      "id": "median_sorted",
+      "pass": false,
+      "detail": "SyntaxError: unterminated string literal (detected at line 7)"
+    }
+  ],
+  "toolcall": [
+    {
+      "id": "weather",
+      "pass": false,
+      "detail": "name=get_weather args={'city': 'value_1'}"
+    },
+    {
+      "id": "add",
+      "pass": true,
+      "detail": "name=add_numbers args={'a': 3, 'b': 5}"
+    },
+    {
+      "id": "todo",
+      "pass": false,
+      "detail": "name=create_todo args={'task': '\"buy milk\"'}"
+    },
+    {
+      "id": "search",
+      "pass": false,
+      "detail": "name=search_web args={'query': '\"RTX 3060 price\"'}"
+    },
+    {
+      "id": "tool_select_stock",
+      "pass": false,
+      "detail": "name=get_stock_price args={'ticker': 'value_1'}"
+    },
+    {
+      "id": "book_flight_multiarg",
+      "pass": false,
+      "detail": "name=book_flight args={'origin': 'value=Paris', 'destination': 'value=Tokyo', 'date': 'value=2026-09-15'}"
+    }
+  ],
+  "format": [
+    {
+      "id": "json_person",
+      "pass": true,
+      "detail": "```json\n{\n\"name\": \"Bob\",\n\"age\": \"30\"\n}\n```"
+    },
+    {
+      "id": "exact_word",
+      "pass": true,
+      "detail": "BANANA"
+    },
+    {
+      "id": "csv_fruits",
+      "pass": true,
+      "detail": "Apple, Banana, Orange"
+    }
+  ],
+  "reasoning": [
+    {
+      "id": "apples",
+      "pass": true,
+      "detail": "got=15 exp=15"
+    },
+    {
+      "id": "pencils",
+      "pass": true,
+      "detail": "got=28 exp=28"
+    },
+    {
+      "id": "train",
+      "pass": true,
+      "detail": "got=240 exp=240"
+    },
+    {
+      "id": "ages",
+      "pass": false,
+      "detail": "got=10 exp=20"
+    },
+    {
+      "id": "perimeter",
+      "pass": true,
+      "detail": "got=26 exp=26"
+    },
+    {
+      "id": "tank",
+      "pass": true,
+      "detail": "got=60 exp=60"
+    },
+    {
+      "id": "book_pages",
+      "pass": true,
+      "detail": "got=120 exp=120"
+    },
+    {
+      "id": "chickens",
+      "pass": true,
+      "detail": "got=8 exp=8"
+    }
+  ],
+  "agentic": [
+    {
+      "id": "multi_lookup_calc",
+      "pass": false,
+      "turns": 2,
+      "calls": 1,
+      "bad_calls": 0,
+      "detail": "got=60 exp=80"
+    },
+    {
+      "id": "sequential_dependency",
+      "pass": true,
+      "turns": 3,
+      "calls": 2,
+      "bad_calls": 0,
+      "detail": "got=3 exp=3"
+    },
+    {
+      "id": "search_then_read",
+      "pass": true,
+      "turns": 3,
+      "calls": 2,
+      "bad_calls": 0,
+      "detail": "final=The app config uses port 8080."
+    },
+    {
+      "id": "check_then_act",
+      "pass": false,
+      "turns": 6,
+      "calls": 6,
+      "bad_calls": 0,
+      "detail": "pas de r\u00e9ponse finale (boucle \u00e9puis\u00e9e/erreur)"
+    },
+    {
+      "id": "compare_two",
+      "pass": true,
+      "turns": 3,
+      "calls": 2,
+      "bad_calls": 0,
+      "detail": "final=Lyon is warmer (20\u00b0C vs 15\u00b0C in Paris)."
+    },
+    {
+      "id": "three_step_chain",
+      "pass": true,
+      "turns": 5,
+      "calls": 4,
+      "bad_calls": 0,
+      "detail": "final=bob@example.com"
+    }
+  ]
+}
