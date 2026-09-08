@@ -362,13 +362,22 @@ def main() -> int:
     vram = opt("--vram-libre-mio", VRAM_DEFAUT_MIO)
     ctx_max = opt("--ctx-max", 0) or None
 
-    # POIDS DU DRAFTER MTP SÉPARÉ. Certaines familles publient la tête de prédiction
-    # multi-tokens dans un FICHIER À PART (motif `draft_model:` de LocalAI, déjà
-    # utilisé pour gemma-4-12b). Elle est chargée en VRAM EN PLUS du modèle
-    # principal, et elle est loin d'être négligeable : 2318 Mio pour
-    # mtp-Ornith-1.5-9B-head-Q8_0, 2430 Mio pour celle d'Ornith 1.0. Ignorer ce
-    # poids fait mentir tout le calcul de budget — c'était le cas avant le
-    # 2026-09-09. Passer --draft pour l'inclure.
+    # POIDS D'UN DRAFTER SÉPARÉ, quand il y en a un. Motif `draft_model:` de
+    # LocalAI, utilisé par gemma-4-12b : le drafter est un fichier à part, chargé en
+    # VRAM EN PLUS du modèle principal, et il faut le retirer du budget.
+    #
+    # ⚠ NE PAS L'APPLIQUER À UNE TÊTE EMBARQUÉE. Erreur que j'ai commise le
+    # 2026-09-09 sur Ornith-1.5-9B-MTP : j'ai vu un fichier `mtp-head/...head-Q8_0`
+    # dans le dépôt et j'en ai déduit une tête séparée, alors que la carte du modèle
+    # dit « distilled MTP draft head BAKED INTO THE TRUNK / every file here carries
+    # the nextn head ». Le poids était donc DÉJÀ dans la taille du fichier, et mon
+    # budget retirait 2318 Mio en trop — ce qui écartait à tort tous les quants
+    # au-dessus de IQ3_M.
+    #
+    # Le test qui tranche est dans l'en-tête, et il est net : une tête embarquée
+    # ajoute UN BLOC. Ornith-1.5-MTP a 33 blocs (9 en attention), la variante sans
+    # MTP du même modèle en a 32 (8 en attention). `MTP=oui` dans la sortie signifie
+    # tête embarquée, donc PAS de --draft.
     draft = None
     for i, x in enumerate(sys.argv):
         if x == "--draft" and i + 1 < len(sys.argv):
