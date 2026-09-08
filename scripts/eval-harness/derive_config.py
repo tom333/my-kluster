@@ -107,6 +107,14 @@ def reserve_mio(ctx: int) -> int:
 # kwin_x11, kitty, dolphin...). Empreinte mesurée les 2026-09-08/09 : 1322 à 1483
 # Mio selon le moment. On retient 1500, plus 500 de fluctuation.
 BUREAU_MIO = int(os.environ.get("DERIVE_BUREAU_MIO", "1500"))
+# SEUIL D'ALERTE sur la marge restante. La marge de sécurité est DÉJÀ portée par
+# FLUCTUATION_MIO, qui est retiré du budget : la retirer une seconde fois dans la
+# boucle de croissance faisait régresser gsq-rco de 32768 (mesuré à 20 tok/s) à
+# 16384. On ne la compte donc qu'une fois, et ce seuil ne sert qu'à AVERTIR quand
+# la config retenue reste tangente — cas qui a cassé le 2026-09-08 (deepseek à
+# ctx=131072, 491 Mio de marge sur la carte, chargé une fois puis `cudaMalloc
+# failed` le lendemain parce que le bureau avait grossi).
+SEUIL_ALERTE_MARGE_MIO = int(os.environ.get("DERIVE_SEUIL_ALERTE_MARGE_MIO", "400"))
 FLUCTUATION_MIO = int(os.environ.get("DERIVE_FLUCTUATION_MIO", "500"))
 
 
@@ -416,8 +424,13 @@ def main() -> int:
         return 0
     print("  CONFIG DÉDUITE : ctx=%d  parallel=1  n_cpu_moe=%d  mtp=%s"
           % (c["ctx"], c["n_cpu_moe"], "oui" if c["mtp"] else "non"))
-    print("  VRAM prévue : %d Mio (poids résidents %d + KV %d + réserve %d) sur %d de budget"
-          % (c["vram_prevue_mio"], c["poids_resident_mio"], c["kv_mio"], c["reserve"], vram))
+    print("  VRAM prévue : %d Mio (poids résidents %d + KV %d + réserve %d) sur %d de "
+          "budget — marge %d Mio (minimum exigé %d)"
+          % (c["vram_prevue_mio"], c["poids_resident_mio"], c["kv_mio"], c["reserve"],
+             vram, vram - c["vram_prevue_mio"], SEUIL_ALERTE_MARGE_MIO))
+    if vram - c["vram_prevue_mio"] < SEUIL_ALERTE_MARGE_MIO:
+        print("  ⚠ marge TANGENTE : cette config peut charger une fois et échouer "
+              "ensuite, le bureau partageant la carte. À vérifier au balayage.")
     print()
     for r in c["raisons"]:
         print("  · " + r)
