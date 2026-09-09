@@ -167,6 +167,24 @@ spec:
     trustForwardHeader: true
     authResponseHeaders: ["X-Auth-Request-User", "X-Auth-Request-Email", "Authorization"]
 
+---
+# ns web-claude : surcouche web au CLI Claude Code (claude.tgu.ovh), backend hors
+# cluster sur l'hôte pc. Public hors-LAN (usage mobile voulu), donc gate GitHub
+# obligatoire : derrière, les agents ont accès au code de /data/projets. Le second
+# Middleware, celui qui injecte le secret partagé attendu par la garde du backend,
+# est monté en fichier dans Traefik (provider file) parce qu'il porte une valeur
+# secrète — cf. config/web-claude.yaml.
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: oauth2-forwardauth
+  namespace: web-claude
+spec:
+  forwardAuth:
+    address: http://oauth2-proxy.kube-system.svc.cluster.local/
+    trustForwardHeader: true
+    authResponseHeaders: ["X-Auth-Request-User", "X-Auth-Request-Email", "Authorization"]
+
 # ─── Sablier scale-to-zero (Phase 6) ─────────────────────────────────────────
 # Attaché à l'ingress du service candidat. names=deployment_<ns>_<nom>_<replicas>.
 # dynamic = page d'attente navigateur pendant le réveil (0→N). Scale-to-zero

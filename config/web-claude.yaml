@@ -1,0 +1,95 @@
+# Exposition de web-claude (surcouche web au CLI Claude Code) sous claude.tgu.ovh.
+# Cible : service systemd --user sur l'hôte pc @ 192.168.88.250:8787 → HORS cluster.
+#
+# Pourquoi hors cluster : le daemon de Claude Code expose ses Jobs par des sockets Unix
+#   dans $XDG_RUNTIME_DIR et vérifie le pid du processus qui s'y connecte. Un pod ne peut
+#   pas s'y attacher. Le cluster ne fait donc que router et authentifier.
+#   Décision : tom333/web-claude, docs/adr/0002-backend-on-host.md.
+#
+# Pattern k8s-natif : Service SANS selector + EndpointSlice manuel (même schéma que
+#   config/home-assistant-external.yaml).
+#
+# Accès : PUBLIC hors-LAN (usage mobile voulu), donc deux barrières chaînées sur l'Ingress :
+#   1. web-claude-oauth2-forwardauth@kubernetescrd → login GitHub obligatoire
+#      (github_users = tom333,tguyader côté oauth2-proxy) ; pose X-Auth-Request-User.
+#   2. web-claude-secret-header@file → injecte le secret partagé x-web-claude-secret.
+#      La garde du backend exige LES DEUX en-têtes : sans le secret, un appel direct à
+#      192.168.88.250:8787 depuis le LAN reçoit 403, sans quoi n'importe quelle machine
+#      du réseau piloterait des agents ayant accès à /data/projets.
+#
+# ⚠️ Le second Middleware n'est PAS ici mais dans un Secret monté dans Traefik
+#   (SealedSecret sealed/web-claude-traefik-header.yaml, provider file). Traefik OSS ne
+#   sait pas lire une valeur de customRequestHeaders depuis un Secret — `urn:k8s:secret:`
+#   n'existe que dans Traefik Hub — donc committer ce Middleware en CRD mettrait le
+#   secret en clair dans Git. Même parade que la clé du bouncer CrowdSec, montée en
+#   fichier plutôt qu'écrite dans un Middleware.
+#
+# Le bouncer CrowdSec global (entrypoint websecure) s'applique avant tout ça.
+# Sablier N/A : backend externe, non scalable par le cluster.
+# ============================================================================
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: web-claude
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-claude
+  namespace: web-claude
+spec:
+  # Pas de selector : endpoints fournis manuellement via l'EndpointSlice ci-dessous.
+  ports:
+    - name: http
+      port: 8787
+      targetPort: 8787
+      protocol: TCP
+---
+apiVersion: discovery.k8s.io/v1
+kind: EndpointSlice
+metadata:
+  name: web-claude-1
+  namespace: web-claude
+  labels:
+    # Lien EndpointSlice → Service (obligatoire pour que le Service les adopte).
+    kubernetes.io/service-name: web-claude
+addressType: IPv4
+ports:
+  - name: http          # doit matcher le nom du port du Service
+    port: 8787
+    protocol: TCP
+endpoints:
+  - addresses:
+      - 192.168.88.250
+    conditions:
+      ready: true
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: web-claude
+  namespace: web-claude
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    # Ordre voulu : la porte GitHub d'abord (un non-authentifié est redirigé sans que le
+    # secret ne soit injecté), le secret ensuite. `@file` = provider file, cf. en-tête.
+    traefik.ingress.kubernetes.io/router.middlewares: >-
+      web-claude-oauth2-forwardauth@kubernetescrd,web-claude-secret-header@file
+spec:
+  ingressClassName: public
+  rules:
+    - host: claude.tgu.ovh
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: web-claude
+                port:
+                  number: 8787
+  tls:
+    - hosts:
+        - claude.tgu.ovh
+      secretName: claude.tgu.ovh-tls

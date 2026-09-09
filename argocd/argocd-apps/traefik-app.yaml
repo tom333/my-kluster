@@ -54,6 +54,17 @@ spec:
           - name: crowdsec-bouncer-key
             mountPath: /etc/traefik/crowdsec
             type: secret
+          # Middleware d'injection du secret de web-claude (SealedSecret
+          # web-claude-traefik-header, ns ingress) → /etc/traefik/web-claude/web-claude.yml,
+          # lu par le provider file (cf. additionalArguments). Traefik OSS ne sait pas lire
+          # une valeur de customRequestHeaders depuis un Secret (`urn:k8s:secret:` n'existe
+          # que dans Traefik Hub), donc c'est la définition ENTIÈRE du Middleware qui est
+          # scellée — même parade que la clé du bouncer ci-dessus.
+          # ⚠️ Secret absent du ns ingress = volume non montable = TOUT l'ingress tombe.
+          # Sceller et vérifier la présence du Secret AVANT de déployer cette valeur.
+          - name: web-claude-traefik-header
+            mountPath: /etc/traefik/web-claude
+            type: secret
         deployment:
           kind: DaemonSet
           # Cache plugins sur PVC : /plugins-storage en emptyDir = re-download des
@@ -187,6 +198,11 @@ spec:
         # Exclusif avec providers.kubernetesIngress.publishedService (désactivé).
         additionalArguments:
           - "--providers.kubernetesingress.ingressendpoint.ip=192.168.88.250"
+          # Provider file : sert UNIQUEMENT à charger le Middleware secret de web-claude
+          # depuis le Secret monté plus haut. `watch` → une rotation du secret est prise en
+          # compte sans redémarrer Traefik, le kubelet rafraîchissant le fichier monté.
+          - "--providers.file.directory=/etc/traefik/web-claude"
+          - "--providers.file.watch=true"
         providers:
           kubernetesGateway:
             enabled: true
