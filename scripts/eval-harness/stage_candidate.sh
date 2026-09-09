@@ -24,7 +24,16 @@ while [ $# -gt 0 ]; do case "$1" in
   *) echo "arg inconnu: $1"; exit 2;;
 esac; done
 [ -z "$NAME" ] && { echo "--name requis"; exit 2; }
-POD() { kubectl get pods -n $NS --no-headers 2>/dev/null | awk '/localai/{print $1}' | head -1; }
+# Motif ANCRÉ sur la forme du pod du déploiement `localai`, et refus des pods qui
+# se terminent. Le motif large `/localai/` attrapait aussi
+# `localai-jeux-598fff45df-crnq8` — le zombie du nœud `jeux` mort, en Terminating
+# depuis 12 jours mais qui se déclare 1/1. Pendant un redémarrage le vrai pod
+# disparaît une seconde, `head -1` tombait sur le zombie, `restart_wait` le
+# déclarait « ready », et le `kubectl exec` suivant échouait sur
+# « container not found ». Constaté le 2026-09-09 : le relevé d'ornith-1.0-9b est
+# invalide pour cette raison.
+POD() { kubectl get pods -n $NS --no-headers 2>/dev/null \
+        | awk '/^localai-[0-9a-f]/ && $3!="Terminating"{print $1}' | head -1; }
 
 restart_wait() {
   echo "restart LocalAI + attente ready (modèle déjà présent sur PVC, prêt en ~40s)..."
@@ -188,7 +197,21 @@ if [ -n "$DERIVED" ]; then
   OPTS_DERIVE="$(echo "$DERIVED" | sed -n '/^options:/,$p' | tail -n +2)"
   echo "=== config DÉDUITE de l'en-tête GGUF ==="
   python3 "$(dirname "$0")/derive_config.py" "$PVC/$GGUF_FILE" --ctx-max "$CTX" 2>&1 | sed 's/^/    /'
-  [ -n "$CTX_DERIVE" ] && CTX="$CTX_DERIVE"
+  # Le contexte DEDUIT prime sur la valeur par defaut du pipeline (8192). Sans ca,
+  # tout candidat entre dans la file SANS champ `ctx` etait mesure a 8192 -- soit un
+  # SEIZIEME de ses capacites pour un modele a 128K. Constate le 2026-09-09 :
+  # ling-3.0-tiny, lfm2.5-8b-a1b, ornith-1.0-9b et pocket-en ont tous ete mesures
+  # ainsi (x16 perdu), neutrino-8b a x5, deepseek-v4-pro-Q6_K a x8.
+  # Un `ctx` EXPLICITE dans la file reste prioritaire : il sert a imposer un plafond.
+  if [ -n "$CTX_DERIVE" ]; then
+    if [ "$CTX" = "8192" ]; then
+      echo "    ctx: defaut du pipeline (8192) remplace par la valeur DEDUITE ($CTX_DERIVE)"
+      CTX="$CTX_DERIVE"
+    elif [ "$CTX_DERIVE" -lt "$CTX" ] 2>/dev/null; then
+      echo "    ctx: demande $CTX mais la carte ne tient que $CTX_DERIVE -> $CTX_DERIVE"
+      CTX="$CTX_DERIVE"
+    fi
+  fi
 else
   echo "=== config NON déduite (abstention ou en-tête illisible) : réglages par défaut ==="
 fi

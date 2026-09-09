@@ -1,0 +1,400 @@
+{
+  "model": "ornith-1.5-9b-mtp-iq4xs",
+  "tag": "candidate",
+  "metrics": {
+    "coding_pass_rate": 0.7777777777777778,
+    "toolcall_acc": 1.0,
+    "format_acc": 0.75,
+    "reasoning_acc": 1.0,
+    "mean_tokps": 64.04837322501105,
+    "coding_truncated": 2,
+    "agentic_success_rate": 0.8333333333333334,
+    "agentic_avg_turns": 3.5,
+    "overall": 0.8819,
+    "hermes_ready": 1
+  },
+  "coding": [
+    {
+      "id": "reverse_string",
+      "pass": true,
+      "detail": "",
+      "tronque": false,
+      "tokens": 51,
+      "raisonnement": 138,
+      "bloc": true,
+      "finish": "stop"
+    },
+    {
+      "id": "fib",
+      "pass": true,
+      "detail": "",
+      "tronque": false,
+      "tokens": 311,
+      "raisonnement": 696,
+      "bloc": true,
+      "finish": "stop"
+    },
+    {
+      "id": "is_palindrome",
+      "pass": true,
+      "detail": "",
+      "tronque": false,
+      "tokens": 228,
+      "raisonnement": 784,
+      "bloc": true,
+      "finish": "stop"
+    },
+    {
+      "id": "two_sum",
+      "pass": true,
+      "detail": "",
+      "tronque": false,
+      "tokens": 342,
+      "raisonnement": 1137,
+      "bloc": true,
+      "finish": "stop"
+    },
+    {
+      "id": "count_vowels",
+      "pass": true,
+      "detail": "",
+      "tronque": false,
+      "tokens": 112,
+      "raisonnement": 192,
+      "bloc": true,
+      "finish": "stop"
+    },
+    {
+      "id": "flatten",
+      "pass": true,
+      "detail": "",
+      "tronque": false,
+      "tokens": 392,
+      "raisonnement": 990,
+      "bloc": true,
+      "finish": "stop"
+    },
+    {
+      "id": "valid_parentheses",
+      "pass": true,
+      "detail": "",
+      "tronque": false,
+      "tokens": 196,
+      "raisonnement": 411,
+      "bloc": true,
+      "finish": "stop"
+    },
+    {
+      "id": "merge_intervals",
+      "pass": true,
+      "detail": "",
+      "tronque": false,
+      "tokens": 198,
+      "raisonnement": 258,
+      "bloc": true,
+      "finish": "stop"
+    },
+    {
+      "id": "lcs",
+      "pass": true,
+      "detail": "",
+      "tronque": false,
+      "tokens": 528,
+      "raisonnement": 1038,
+      "bloc": true,
+      "finish": "stop"
+    },
+    {
+      "id": "roman_to_int",
+      "pass": true,
+      "detail": "",
+      "tronque": false,
+      "tokens": 302,
+      "raisonnement": 361,
+      "bloc": true,
+      "finish": "stop"
+    },
+    {
+      "id": "regex_match",
+      "pass": true,
+      "detail": "",
+      "tronque": false,
+      "tokens": 1792,
+      "raisonnement": 3618,
+      "bloc": true,
+      "finish": "stop"
+    },
+    {
+      "id": "calc_ii",
+      "pass": false,
+      "detail": "AssertionError",
+      "tronque": false,
+      "tokens": 2359,
+      "raisonnement": 6680,
+      "bloc": true,
+      "finish": "stop"
+    },
+    {
+      "id": "edit_distance",
+      "pass": true,
+      "detail": "",
+      "tronque": false,
+      "tokens": 748,
+      "raisonnement": 1662,
+      "bloc": true,
+      "finish": "stop"
+    },
+    {
+      "id": "median_sorted",
+      "pass": false,
+      "detail": "TRONQU\u00c9: budget 8192 \u00e9puis\u00e9, aucun bloc de code ferm\u00e9 (raisonnement 21420 car., 8192 tokens)",
+      "tronque": true,
+      "tokens": 8192,
+      "raisonnement": 21420,
+      "bloc": false,
+      "finish": "length"
+    },
+    {
+      "id": "lis_smallest",
+      "pass": false,
+      "detail": "TRONQU\u00c9: budget 8192 \u00e9puis\u00e9, aucun bloc de code ferm\u00e9 (raisonnement 23834 car., 8192 tokens)",
+      "tronque": true,
+      "tokens": 8192,
+      "raisonnement": 23834,
+      "bloc": false,
+      "finish": "length"
+    },
+    {
+      "id": "tree_roundtrip",
+      "pass": false,
+      "detail": "ValueError: too many values to unpack (expected 3)",
+      "tronque": false,
+      "tokens": 1978,
+      "raisonnement": 5677,
+      "bloc": true,
+      "finish": "stop"
+    },
+    {
+      "id": "csv_quotes",
+      "pass": true,
+      "detail": "",
+      "tronque": false,
+      "tokens": 2107,
+      "raisonnement": 6044,
+      "bloc": true,
+      "finish": "stop"
+    },
+    {
+      "id": "base_convert",
+      "pass": true,
+      "detail": "",
+      "tronque": false,
+      "tokens": 1841,
+      "raisonnement": 5467,
+      "bloc": true,
+      "finish": "stop"
+    }
+  ],
+  "toolcall": [
+    {
+      "id": "weather",
+      "pass": true,
+      "detail": "name=get_weather args={'city': 'Paris'}"
+    },
+    {
+      "id": "add",
+      "pass": true,
+      "detail": "name=add_numbers args={'a': 3, 'b': 5}"
+    },
+    {
+      "id": "todo",
+      "pass": true,
+      "detail": "name=create_todo args={'task': 'buy milk'}"
+    },
+    {
+      "id": "search",
+      "pass": true,
+      "detail": "name=search_web args={'query': 'RTX 3060 price'}"
+    },
+    {
+      "id": "tool_select_stock",
+      "pass": true,
+      "detail": "name=get_stock_price args={'ticker': 'AAPL'}"
+    },
+    {
+      "id": "book_flight_multiarg",
+      "pass": true,
+      "detail": "name=book_flight args={'origin': 'Paris', 'destination': 'Tokyo', 'date': '2026-09-15'}"
+    },
+    {
+      "id": "desambiguation_meteo",
+      "pass": true,
+      "detail": "name=get_weather_forecast args={'city': 'Lyon', 'day': 'tomorrow'}"
+    },
+    {
+      "id": "argument_calcule",
+      "pass": true,
+      "detail": "name=set_timer args={'minutes': 150}"
+    },
+    {
+      "id": "abstention",
+      "pass": true,
+      "detail": "abstention correcte"
+    }
+  ],
+  "format": [
+    {
+      "id": "json_person",
+      "pass": true,
+      "detail": "{\"name\": \"Bob\", \"age\": 30}"
+    },
+    {
+      "id": "exact_word",
+      "pass": true,
+      "detail": "BANANA"
+    },
+    {
+      "id": "csv_fruits",
+      "pass": true,
+      "detail": "apple, banana, orange"
+    },
+    {
+      "id": "csv_minimal",
+      "pass": false,
+      "detail": "a,\"b,c\""
+    }
+  ],
+  "reasoning": [
+    {
+      "id": "apples",
+      "pass": true,
+      "detail": "got=15 exp=15",
+      "tokens": 165,
+      "raisonnement": 195,
+      "finish": "stop",
+      "tronque": false
+    },
+    {
+      "id": "pencils",
+      "pass": true,
+      "detail": "got=28 exp=28",
+      "tokens": 95,
+      "raisonnement": 113,
+      "finish": "stop",
+      "tronque": false
+    },
+    {
+      "id": "train",
+      "pass": true,
+      "detail": "got=240 exp=240",
+      "tokens": 267,
+      "raisonnement": 273,
+      "finish": "stop",
+      "tronque": false
+    },
+    {
+      "id": "ages",
+      "pass": true,
+      "detail": "got=20 exp=20",
+      "tokens": 385,
+      "raisonnement": 368,
+      "finish": "stop",
+      "tronque": false
+    },
+    {
+      "id": "perimeter",
+      "pass": true,
+      "detail": "got=26 exp=26",
+      "tokens": 116,
+      "raisonnement": 127,
+      "finish": "stop",
+      "tronque": false
+    },
+    {
+      "id": "tank",
+      "pass": true,
+      "detail": "got=60 exp=60",
+      "tokens": 187,
+      "raisonnement": 263,
+      "finish": "stop",
+      "tronque": false
+    },
+    {
+      "id": "book_pages",
+      "pass": true,
+      "detail": "got=120 exp=120",
+      "tokens": 217,
+      "raisonnement": 241,
+      "finish": "stop",
+      "tronque": false
+    },
+    {
+      "id": "chickens",
+      "pass": true,
+      "detail": "got=8 exp=8",
+      "tokens": 412,
+      "raisonnement": 423,
+      "finish": "stop",
+      "tronque": false
+    },
+    {
+      "id": "jour_semaine",
+      "pass": true,
+      "detail": "got=5 exp=5",
+      "tokens": 1266,
+      "raisonnement": 2354,
+      "finish": "stop",
+      "tronque": false
+    }
+  ],
+  "agentic": [
+    {
+      "id": "multi_lookup_calc",
+      "pass": true,
+      "turns": 3,
+      "calls": 3,
+      "bad_calls": 0,
+      "detail": "got=80 exp=80"
+    },
+    {
+      "id": "sequential_dependency",
+      "pass": true,
+      "turns": 3,
+      "calls": 2,
+      "bad_calls": 0,
+      "detail": "got=3 exp=3"
+    },
+    {
+      "id": "search_then_read",
+      "pass": true,
+      "turns": 3,
+      "calls": 2,
+      "bad_calls": 0,
+      "detail": "final=The app config file (`app.conf`) uses **port 8080**.\n\nThe full contents of the c"
+    },
+    {
+      "id": "check_then_act",
+      "pass": false,
+      "turns": 6,
+      "calls": 6,
+      "bad_calls": 0,
+      "detail": "pas de r\u00e9ponse finale (boucle \u00e9puis\u00e9e/erreur)"
+    },
+    {
+      "id": "compare_two",
+      "pass": true,
+      "turns": 2,
+      "calls": 2,
+      "bad_calls": 0,
+      "detail": "final=**Lyon** is warmer right now \u2014 20\u00b0C compared to Paris's 15\u00b0C."
+    },
+    {
+      "id": "three_step_chain",
+      "pass": true,
+      "turns": 4,
+      "calls": 4,
+      "bad_calls": 0,
+      "detail": "final=The user with the most points is **bob** (90 points), and his email address is *"
+    }
+  ]
+}

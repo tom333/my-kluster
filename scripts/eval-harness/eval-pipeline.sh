@@ -59,7 +59,11 @@ fi
 # S'ABSTIENT sur les modèles à fenêtre glissante : le KV pire-cas y est absurde
 # (41984 Mio à 128 K sur gemma-4-12b), et éliminer sur ce chiffre écarterait à tort
 # toute la famille gemma.
-EXIGE_CTX="${EXIGE_CTX:-131072}"
+# 128000 et NON 131072. Les éditeurs annoncent « 128K » et entraînent tantôt à
+# 2^17 = 131072, tantôt à la valeur ronde décimale 128000. Exiger 131072 écartait
+# lfm2.5-8b-a1b pour 3072 tokens d'écart — soit refuser un modèle qui satisfait
+# pourtant l'exigence. Le seuil suit l'intention, pas la puissance de 2.
+EXIGE_CTX="${EXIGE_CTX:-128000}"
 if [ "$EXIGE_CTX" != "0" ]; then
   CTXOUT="$(python3 "$HERE/derive_config.py" "$GGUF" --exige-ctx "$EXIGE_CTX" 2>&1)"; CTXRC=$?
   echo "$CTXOUT"

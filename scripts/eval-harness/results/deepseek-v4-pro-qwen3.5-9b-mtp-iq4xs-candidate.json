@@ -1,0 +1,400 @@
+{
+  "model": "deepseek-v4-pro-qwen3.5-9b-mtp-iq4xs",
+  "tag": "candidate",
+  "metrics": {
+    "coding_pass_rate": 0.16666666666666666,
+    "toolcall_acc": 1.0,
+    "format_acc": 1.0,
+    "reasoning_acc": 1.0,
+    "mean_tokps": 75.15346788863978,
+    "coding_truncated": 4,
+    "agentic_success_rate": 0.8333333333333334,
+    "agentic_avg_turns": 2.5,
+    "overall": 0.7917,
+    "hermes_ready": 1
+  },
+  "coding": [
+    {
+      "id": "reverse_string",
+      "pass": true,
+      "detail": "",
+      "tronque": false,
+      "tokens": 107,
+      "raisonnement": 376,
+      "bloc": true,
+      "finish": "stop"
+    },
+    {
+      "id": "fib",
+      "pass": false,
+      "detail": "IndentationError: expected an indented block after 'if' statement on line 2",
+      "tronque": false,
+      "tokens": 278,
+      "raisonnement": 788,
+      "bloc": true,
+      "finish": "stop"
+    },
+    {
+      "id": "is_palindrome",
+      "pass": true,
+      "detail": "",
+      "tronque": false,
+      "tokens": 259,
+      "raisonnement": 925,
+      "bloc": true,
+      "finish": "stop"
+    },
+    {
+      "id": "two_sum",
+      "pass": false,
+      "detail": "IndentationError: expected an indented block after 'for' statement on line 7",
+      "tronque": false,
+      "tokens": 265,
+      "raisonnement": 764,
+      "bloc": true,
+      "finish": "stop"
+    },
+    {
+      "id": "count_vowels",
+      "pass": true,
+      "detail": "",
+      "tronque": false,
+      "tokens": 114,
+      "raisonnement": 314,
+      "bloc": true,
+      "finish": "stop"
+    },
+    {
+      "id": "flatten",
+      "pass": false,
+      "detail": "IndentationError: expected an indented block after 'for' statement on line 3",
+      "tronque": false,
+      "tokens": 386,
+      "raisonnement": 1497,
+      "bloc": true,
+      "finish": "stop"
+    },
+    {
+      "id": "valid_parentheses",
+      "pass": false,
+      "detail": "IndentationError: expected an indented block after 'for' statement on line 8",
+      "tronque": false,
+      "tokens": 333,
+      "raisonnement": 889,
+      "bloc": true,
+      "finish": "stop"
+    },
+    {
+      "id": "merge_intervals",
+      "pass": false,
+      "detail": "IndentationError: expected an indented block after 'if' statement on line 11",
+      "tronque": false,
+      "tokens": 410,
+      "raisonnement": 1104,
+      "bloc": true,
+      "finish": "stop"
+    },
+    {
+      "id": "lcs",
+      "pass": false,
+      "detail": "IndentationError: expected an indented block after 'for' statement on line 8",
+      "tronque": false,
+      "tokens": 329,
+      "raisonnement": 547,
+      "bloc": true,
+      "finish": "stop"
+    },
+    {
+      "id": "roman_to_int",
+      "pass": false,
+      "detail": "IndentationError: expected an indented block after 'for' statement on line 24",
+      "tronque": false,
+      "tokens": 363,
+      "raisonnement": 759,
+      "bloc": true,
+      "finish": "stop"
+    },
+    {
+      "id": "regex_match",
+      "pass": false,
+      "detail": "IndentationError: expected an indented block after function definition on line 9",
+      "tronque": false,
+      "tokens": 663,
+      "raisonnement": 1232,
+      "bloc": true,
+      "finish": "stop"
+    },
+    {
+      "id": "calc_ii",
+      "pass": false,
+      "detail": "IndentationError: expected an indented block after 'if' statement on line 4",
+      "tronque": false,
+      "tokens": 766,
+      "raisonnement": 1670,
+      "bloc": true,
+      "finish": "stop"
+    },
+    {
+      "id": "edit_distance",
+      "pass": false,
+      "detail": "IndentationError: expected an indented block after 'for' statement on line 10",
+      "tronque": false,
+      "tokens": 477,
+      "raisonnement": 708,
+      "bloc": true,
+      "finish": "stop"
+    },
+    {
+      "id": "median_sorted",
+      "pass": false,
+      "detail": "TRONQU\u00c9: budget 8192 \u00e9puis\u00e9, aucun bloc de code ferm\u00e9 (raisonnement 29960 car., 8192 tokens)",
+      "tronque": true,
+      "tokens": 8192,
+      "raisonnement": 29960,
+      "bloc": false,
+      "finish": "length"
+    },
+    {
+      "id": "lis_smallest",
+      "pass": false,
+      "detail": "TRONQU\u00c9: budget 8192 \u00e9puis\u00e9, aucun bloc de code ferm\u00e9 (raisonnement 35177 car., 8192 tokens)",
+      "tronque": true,
+      "tokens": 8192,
+      "raisonnement": 35177,
+      "bloc": false,
+      "finish": "length"
+    },
+    {
+      "id": "tree_roundtrip",
+      "pass": false,
+      "detail": "TRONQU\u00c9: budget 8192 \u00e9puis\u00e9, aucun bloc de code ferm\u00e9 (raisonnement 34651 car., 8192 tokens)",
+      "tronque": true,
+      "tokens": 8192,
+      "raisonnement": 34651,
+      "bloc": false,
+      "finish": "length"
+    },
+    {
+      "id": "csv_quotes",
+      "pass": false,
+      "detail": "IndentationError: expected an indented block after 'if' statement on line 3",
+      "tronque": false,
+      "tokens": 1057,
+      "raisonnement": 3589,
+      "bloc": true,
+      "finish": "stop"
+    },
+    {
+      "id": "base_convert",
+      "pass": false,
+      "detail": "TRONQU\u00c9: budget 8192 \u00e9puis\u00e9, aucun bloc de code ferm\u00e9 (raisonnement 15679 car., 8192 tokens)",
+      "tronque": true,
+      "tokens": 8192,
+      "raisonnement": 15679,
+      "bloc": false,
+      "finish": "length"
+    }
+  ],
+  "toolcall": [
+    {
+      "id": "weather",
+      "pass": true,
+      "detail": "name=get_weather args={'city': 'Paris'}"
+    },
+    {
+      "id": "add",
+      "pass": true,
+      "detail": "name=add_numbers args={'a': 3, 'b': 5}"
+    },
+    {
+      "id": "todo",
+      "pass": true,
+      "detail": "name=create_todo args={'task': 'buy milk'}"
+    },
+    {
+      "id": "search",
+      "pass": true,
+      "detail": "name=search_web args={'query': 'RTX 3060 price'}"
+    },
+    {
+      "id": "tool_select_stock",
+      "pass": true,
+      "detail": "name=get_stock_price args={'ticker': 'AAPL'}"
+    },
+    {
+      "id": "book_flight_multiarg",
+      "pass": true,
+      "detail": "name=book_flight args={'origin': 'Paris', 'destination': 'Tokyo', 'date': '2026-09-15'}"
+    },
+    {
+      "id": "desambiguation_meteo",
+      "pass": true,
+      "detail": "name=get_weather_forecast args={'city': 'Lyon', 'day': 'tomorrow'}"
+    },
+    {
+      "id": "argument_calcule",
+      "pass": true,
+      "detail": "name=set_timer args={'minutes': 150}"
+    },
+    {
+      "id": "abstention",
+      "pass": true,
+      "detail": "abstention correcte"
+    }
+  ],
+  "format": [
+    {
+      "id": "json_person",
+      "pass": true,
+      "detail": "{\"name\": \"Bob\", \"age\": 30}"
+    },
+    {
+      "id": "exact_word",
+      "pass": true,
+      "detail": "BANANA"
+    },
+    {
+      "id": "csv_fruits",
+      "pass": true,
+      "detail": "Apple, Banana, Orange"
+    },
+    {
+      "id": "csv_minimal",
+      "pass": true,
+      "detail": "a,\"b,c\",d"
+    }
+  ],
+  "reasoning": [
+    {
+      "id": "apples",
+      "pass": true,
+      "detail": "got=15 exp=15",
+      "tokens": 197,
+      "raisonnement": 363,
+      "finish": "stop",
+      "tronque": false
+    },
+    {
+      "id": "pencils",
+      "pass": true,
+      "detail": "got=28 exp=28",
+      "tokens": 134,
+      "raisonnement": 237,
+      "finish": "stop",
+      "tronque": false
+    },
+    {
+      "id": "train",
+      "pass": true,
+      "detail": "got=240 exp=240",
+      "tokens": 302,
+      "raisonnement": 569,
+      "finish": "stop",
+      "tronque": false
+    },
+    {
+      "id": "ages",
+      "pass": true,
+      "detail": "got=20 exp=20",
+      "tokens": 189,
+      "raisonnement": 369,
+      "finish": "stop",
+      "tronque": false
+    },
+    {
+      "id": "perimeter",
+      "pass": true,
+      "detail": "got=26 exp=26",
+      "tokens": 135,
+      "raisonnement": 187,
+      "finish": "stop",
+      "tronque": false
+    },
+    {
+      "id": "tank",
+      "pass": true,
+      "detail": "got=60 exp=60",
+      "tokens": 137,
+      "raisonnement": 351,
+      "finish": "stop",
+      "tronque": false
+    },
+    {
+      "id": "book_pages",
+      "pass": true,
+      "detail": "got=120 exp=120",
+      "tokens": 198,
+      "raisonnement": 565,
+      "finish": "stop",
+      "tronque": false
+    },
+    {
+      "id": "chickens",
+      "pass": true,
+      "detail": "got=8 exp=8",
+      "tokens": 205,
+      "raisonnement": 462,
+      "finish": "stop",
+      "tronque": false
+    },
+    {
+      "id": "jour_semaine",
+      "pass": true,
+      "detail": "got=5 exp=5",
+      "tokens": 1478,
+      "raisonnement": 4024,
+      "finish": "stop",
+      "tronque": false
+    }
+  ],
+  "agentic": [
+    {
+      "id": "multi_lookup_calc",
+      "pass": true,
+      "turns": 2,
+      "calls": 2,
+      "bad_calls": 0,
+      "detail": "got=80 exp=80"
+    },
+    {
+      "id": "sequential_dependency",
+      "pass": false,
+      "turns": 1,
+      "calls": 0,
+      "bad_calls": 0,
+      "detail": "got=1 exp=3"
+    },
+    {
+      "id": "search_then_read",
+      "pass": true,
+      "turns": 3,
+      "calls": 2,
+      "bad_calls": 0,
+      "detail": "final=The app config uses port **8080**."
+    },
+    {
+      "id": "check_then_act",
+      "pass": true,
+      "turns": 3,
+      "calls": 2,
+      "bad_calls": 0,
+      "detail": "final=The nginx service was initially down. I restarted it, and it is now running."
+    },
+    {
+      "id": "compare_two",
+      "pass": true,
+      "turns": 2,
+      "calls": 2,
+      "bad_calls": 0,
+      "detail": "final=Based on the current weather data:\n\n- **Paris**: 15\u00b0C\n- **Lyon**: 20\u00b0C\n\n**Lyon**"
+    },
+    {
+      "id": "three_step_chain",
+      "pass": true,
+      "turns": 4,
+      "calls": 4,
+      "bad_calls": 0,
+      "detail": "final=bob@example.com"
+    }
+  ]
+}

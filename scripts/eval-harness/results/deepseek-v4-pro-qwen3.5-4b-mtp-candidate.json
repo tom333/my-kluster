@@ -1,0 +1,336 @@
+{
+  "model": "deepseek-v4-pro-qwen3.5-4b-mtp",
+  "tag": "candidate",
+  "metrics": {
+    "coding_pass_rate": 0.16666666666666666,
+    "toolcall_acc": 0.0,
+    "format_acc": 0.0,
+    "reasoning_acc": 0.0,
+    "mean_tokps": 73.1671831895733,
+    "coding_truncated": 0,
+    "agentic_success_rate": 0.0,
+    "agentic_avg_turns": 1.0,
+    "overall": 0.0417,
+    "hermes_ready": 0
+  },
+  "coding": [
+    {
+      "id": "reverse_string",
+      "pass": true,
+      "detail": "",
+      "tronque": false,
+      "tokens": 101,
+      "raisonnement": 318,
+      "bloc": true,
+      "finish": "stop"
+    },
+    {
+      "id": "fib",
+      "pass": false,
+      "detail": "IndentationError: expected an indented block after 'if' statement on line 2",
+      "tronque": false,
+      "tokens": 201,
+      "raisonnement": 484,
+      "bloc": true,
+      "finish": "stop"
+    },
+    {
+      "id": "is_palindrome",
+      "pass": true,
+      "detail": "",
+      "tronque": false,
+      "tokens": 210,
+      "raisonnement": 670,
+      "bloc": true,
+      "finish": "stop"
+    },
+    {
+      "id": "two_sum",
+      "pass": false,
+      "detail": "IndentationError: expected an indented block after 'for' statement on line 3",
+      "tronque": false,
+      "tokens": 285,
+      "raisonnement": 899,
+      "bloc": true,
+      "finish": "stop"
+    },
+    {
+      "id": "count_vowels",
+      "pass": true,
+      "detail": "",
+      "tronque": false,
+      "tokens": 195,
+      "raisonnement": 586,
+      "bloc": true,
+      "finish": "stop"
+    },
+    {
+      "id": "flatten",
+      "pass": false,
+      "detail": "IndentationError: expected an indented block after 'for' statement on line 3",
+      "tronque": false,
+      "tokens": 250,
+      "raisonnement": 927,
+      "bloc": true,
+      "finish": "stop"
+    },
+    {
+      "id": "valid_parentheses",
+      "pass": false,
+      "detail": "IndentationError: expected an indented block after 'for' statement on line 4",
+      "tronque": false,
+      "tokens": 198,
+      "raisonnement": 531,
+      "bloc": true,
+      "finish": "stop"
+    },
+    {
+      "id": "merge_intervals",
+      "pass": false,
+      "detail": "IndentationError: expected an indented block after 'if' statement on line 2",
+      "tronque": false,
+      "tokens": 347,
+      "raisonnement": 1069,
+      "bloc": true,
+      "finish": "stop"
+    },
+    {
+      "id": "lcs",
+      "pass": false,
+      "detail": "IndentationError: expected an indented block after 'for' statement on line 4",
+      "tronque": false,
+      "tokens": 476,
+      "raisonnement": 913,
+      "bloc": true,
+      "finish": "stop"
+    },
+    {
+      "id": "roman_to_int",
+      "pass": false,
+      "detail": "IndentationError: expected an indented block after 'while' statement on line 5",
+      "tronque": false,
+      "tokens": 418,
+      "raisonnement": 960,
+      "bloc": true,
+      "finish": "stop"
+    },
+    {
+      "id": "regex_match",
+      "pass": false,
+      "detail": "IndentationError: expected an indented block after function definition on line 5",
+      "tronque": false,
+      "tokens": 2426,
+      "raisonnement": 7252,
+      "bloc": true,
+      "finish": "stop"
+    },
+    {
+      "id": "calc_ii",
+      "pass": false,
+      "detail": "Remote end closed connection without response",
+      "tronque": false
+    },
+    {
+      "id": "edit_distance",
+      "pass": false,
+      "detail": "<urlopen error [Errno 111] Connection refused>",
+      "tronque": false
+    },
+    {
+      "id": "median_sorted",
+      "pass": false,
+      "detail": "<urlopen error [Errno 111] Connection refused>",
+      "tronque": false
+    },
+    {
+      "id": "lis_smallest",
+      "pass": false,
+      "detail": "<urlopen error [Errno 111] Connection refused>",
+      "tronque": false
+    },
+    {
+      "id": "tree_roundtrip",
+      "pass": false,
+      "detail": "<urlopen error [Errno 111] Connection refused>",
+      "tronque": false
+    },
+    {
+      "id": "csv_quotes",
+      "pass": false,
+      "detail": "<urlopen error [Errno 111] Connection refused>",
+      "tronque": false
+    },
+    {
+      "id": "base_convert",
+      "pass": false,
+      "detail": "<urlopen error [Errno 111] Connection refused>",
+      "tronque": false
+    }
+  ],
+  "toolcall": [
+    {
+      "id": "weather",
+      "pass": false,
+      "detail": "<urlopen error [Errno 111] Connection refused>"
+    },
+    {
+      "id": "add",
+      "pass": false,
+      "detail": "<urlopen error [Errno 111] Connection refused>"
+    },
+    {
+      "id": "todo",
+      "pass": false,
+      "detail": "<urlopen error [Errno 111] Connection refused>"
+    },
+    {
+      "id": "search",
+      "pass": false,
+      "detail": "<urlopen error [Errno 111] Connection refused>"
+    },
+    {
+      "id": "tool_select_stock",
+      "pass": false,
+      "detail": "<urlopen error [Errno 111] Connection refused>"
+    },
+    {
+      "id": "book_flight_multiarg",
+      "pass": false,
+      "detail": "<urlopen error [Errno 111] Connection refused>"
+    },
+    {
+      "id": "desambiguation_meteo",
+      "pass": false,
+      "detail": "<urlopen error [Errno 111] Connection refused>"
+    },
+    {
+      "id": "argument_calcule",
+      "pass": false,
+      "detail": "<urlopen error [Errno 111] Connection refused>"
+    },
+    {
+      "id": "abstention",
+      "pass": false,
+      "detail": "<urlopen error [Errno 111] Connection refused>"
+    }
+  ],
+  "format": [
+    {
+      "id": "json_person",
+      "pass": false,
+      "detail": "<urlopen error [Errno 111] Connection refused>"
+    },
+    {
+      "id": "exact_word",
+      "pass": false,
+      "detail": "<urlopen error [Errno 111] Connection refused>"
+    },
+    {
+      "id": "csv_fruits",
+      "pass": false,
+      "detail": "<urlopen error [Errno 111] Connection refused>"
+    },
+    {
+      "id": "csv_minimal",
+      "pass": false,
+      "detail": "<urlopen error [Errno 111] Connection refused>"
+    }
+  ],
+  "reasoning": [
+    {
+      "id": "apples",
+      "pass": false,
+      "detail": "<urlopen error [Errno 111] Connection refused>"
+    },
+    {
+      "id": "pencils",
+      "pass": false,
+      "detail": "<urlopen error [Errno 111] Connection refused>"
+    },
+    {
+      "id": "train",
+      "pass": false,
+      "detail": "<urlopen error [Errno 111] Connection refused>"
+    },
+    {
+      "id": "ages",
+      "pass": false,
+      "detail": "<urlopen error [Errno 111] Connection refused>"
+    },
+    {
+      "id": "perimeter",
+      "pass": false,
+      "detail": "<urlopen error [Errno 111] Connection refused>"
+    },
+    {
+      "id": "tank",
+      "pass": false,
+      "detail": "<urlopen error [Errno 111] Connection refused>"
+    },
+    {
+      "id": "book_pages",
+      "pass": false,
+      "detail": "<urlopen error [Errno 111] Connection refused>"
+    },
+    {
+      "id": "chickens",
+      "pass": false,
+      "detail": "<urlopen error [Errno 111] Connection refused>"
+    },
+    {
+      "id": "jour_semaine",
+      "pass": false,
+      "detail": "<urlopen error [Errno 111] Connection refused>"
+    }
+  ],
+  "agentic": [
+    {
+      "id": "multi_lookup_calc",
+      "pass": false,
+      "turns": 1,
+      "calls": 0,
+      "bad_calls": 0,
+      "detail": "pas de r\u00e9ponse finale (boucle \u00e9puis\u00e9e/erreur)"
+    },
+    {
+      "id": "sequential_dependency",
+      "pass": false,
+      "turns": 1,
+      "calls": 0,
+      "bad_calls": 0,
+      "detail": "pas de r\u00e9ponse finale (boucle \u00e9puis\u00e9e/erreur)"
+    },
+    {
+      "id": "search_then_read",
+      "pass": false,
+      "turns": 1,
+      "calls": 0,
+      "bad_calls": 0,
+      "detail": "pas de r\u00e9ponse finale (boucle \u00e9puis\u00e9e/erreur)"
+    },
+    {
+      "id": "check_then_act",
+      "pass": false,
+      "turns": 1,
+      "calls": 0,
+      "bad_calls": 0,
+      "detail": "pas de r\u00e9ponse finale (boucle \u00e9puis\u00e9e/erreur)"
+    },
+    {
+      "id": "compare_two",
+      "pass": false,
+      "turns": 1,
+      "calls": 0,
+      "bad_calls": 0,
+      "detail": "pas de r\u00e9ponse finale (boucle \u00e9puis\u00e9e/erreur)"
+    },
+    {
+      "id": "three_step_chain",
+      "pass": false,
+      "turns": 1,
+      "calls": 0,
+      "bad_calls": 0,
+      "detail": "pas de r\u00e9ponse finale (boucle \u00e9puis\u00e9e/erreur)"
+    }
+  ]
+}

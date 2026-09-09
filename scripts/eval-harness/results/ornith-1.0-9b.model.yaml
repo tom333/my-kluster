@@ -13,11 +13,9 @@ parameters:
   temperature: 0.6
   top_p: 0.95
   top_k: 20
-download_files:
-  - filename: ornith-1.0-9b-Q6_K.gguf
-    uri: https://huggingface.co/deepreinforce-ai/Ornith-1.0-9B-GGUF/resolve/main/ornith-1.0-9b-Q6_K.gguf
 options:
   - use_jinja:true
+  - parallel:1
 function:
   automatic_tool_parsing_fallback: true
   grammar:

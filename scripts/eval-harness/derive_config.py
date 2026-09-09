@@ -310,6 +310,14 @@ def derive(a: dict, vram_mio: int, ctx_max: int | None) -> dict:
         ctx = CTX_PLANCHER
         while ctx * 2 <= plafond and prevision(ctx * 2) <= vram_mio:
             ctx *= 2
+        # Le plafond lui-même est un candidat, même s'il n'est pas une puissance de 2.
+        # Sans ça, un modèle entraîné à 128000 tokens plafonnait à 65536 : la
+        # croissance par doublement voulait passer à 131072, qui dépasse 128000, donc
+        # elle s'arrêtait au cran précédent — et le critère l'écartait ensuite pour
+        # « contexte insuffisant » alors que 128000 EST 128 K. Constaté le 2026-09-09
+        # sur lfm2.5-8b-a1b.
+        if plafond > ctx and prevision(plafond) <= vram_mio:
+            ctx = plafond
         if prevision(ctx) > vram_mio:
             raisons.append("même le plancher (%d) dépasse le budget : ce modèle ne "
                            "tient pas sur cette carte dans cette quantification"

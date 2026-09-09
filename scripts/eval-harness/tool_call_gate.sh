@@ -61,8 +61,17 @@ TACHE = (
     "Lance pytest -q pour verifier ta progression."
 )
 
+# BUDGET 4096 et non 500. Un modele qui RAISONNE depense ses premiers tokens en
+# reflexion avant d'emettre le moindre appel d'outil. A 500, ce garde-fou -- qui est
+# le PREMIER filtre du pipeline et decide si l'eval a lieu -- ecartait donc
+# silencieusement toute cette population, celle-la meme qui nous interesse.
+#
+# Constate le 2026-09-09 sur lfm2.5-8b-a1b : `finish_reason=length`, 0 appel
+# d'outil, 0 caractere de texte -- reponse ENTIEREMENT vide -- et le message rendu
+# etait « ECHEC : aucun appel d'outil, reponse en prose », donc un diagnostic FAUX.
+# Le meme modele avait pourtant toolcall_acc=1.000 a l'eval.
 corps = {"model": nom, "messages": [{"role": "user", "content": TACHE}],
-         "tools": OUTILS, "max_tokens": 500, "temperature": 0.6}
+         "tools": OUTILS, "max_tokens": 4096, "temperature": 0.6}
 
 r = subprocess.run(
     ["curl", "-s", "--max-time", "900", "-H", "Authorization: Bearer " + cle,
@@ -89,6 +98,16 @@ print("  texte         : %d caracteres" % len(texte))
 if appels:
     print("  -> PASSE : le modele appelle ses outils sur une tache longue.")
     sys.exit(0)
+
+# TRONCATURE nommee, et distinguee d'un refus d'appeler. Sans ca on accuse le
+# modele de « repondre en prose » alors qu'il n'a rien repondu du tout.
+if c.get("finish_reason") == "length" and not texte:
+    print("  -> ECHEC TRONQUE : budget de %d tokens epuise AVANT tout appel d'outil"
+          % corps["max_tokens"])
+    print("     (raisonnement qui ne converge pas, ou budget trop court : ce n'est")
+    print("      PAS un refus d'appeler un outil. Relancer avec un budget plus haut")
+    print("      pour trancher.)")
+    sys.exit(1)
 
 # Diagnostic utile : un appel emis en TEXTE au lieu du champ tool_calls est le
 # symptome exact du template casse. On le nomme pour ne pas rechercher a l'aveugle.

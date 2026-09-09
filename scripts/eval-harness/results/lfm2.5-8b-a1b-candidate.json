@@ -1,0 +1,400 @@
+{
+  "model": "lfm2.5-8b-a1b",
+  "tag": "candidate",
+  "metrics": {
+    "coding_pass_rate": 0.8888888888888888,
+    "toolcall_acc": 1.0,
+    "format_acc": 0.75,
+    "reasoning_acc": 1.0,
+    "mean_tokps": 144.61010582094391,
+    "coding_truncated": 0,
+    "agentic_success_rate": 1.0,
+    "agentic_avg_turns": 2.83,
+    "overall": 0.9097,
+    "hermes_ready": 1
+  },
+  "coding": [
+    {
+      "id": "reverse_string",
+      "pass": true,
+      "detail": "",
+      "tronque": false,
+      "tokens": 150,
+      "raisonnement": 585,
+      "bloc": true,
+      "finish": "stop"
+    },
+    {
+      "id": "fib",
+      "pass": true,
+      "detail": "",
+      "tronque": false,
+      "tokens": 188,
+      "raisonnement": 567,
+      "bloc": true,
+      "finish": "stop"
+    },
+    {
+      "id": "is_palindrome",
+      "pass": true,
+      "detail": "",
+      "tronque": false,
+      "tokens": 198,
+      "raisonnement": 748,
+      "bloc": true,
+      "finish": "stop"
+    },
+    {
+      "id": "two_sum",
+      "pass": true,
+      "detail": "",
+      "tronque": false,
+      "tokens": 238,
+      "raisonnement": 728,
+      "bloc": true,
+      "finish": "stop"
+    },
+    {
+      "id": "count_vowels",
+      "pass": true,
+      "detail": "",
+      "tronque": false,
+      "tokens": 175,
+      "raisonnement": 543,
+      "bloc": true,
+      "finish": "stop"
+    },
+    {
+      "id": "flatten",
+      "pass": true,
+      "detail": "",
+      "tronque": false,
+      "tokens": 314,
+      "raisonnement": 1140,
+      "bloc": true,
+      "finish": "stop"
+    },
+    {
+      "id": "valid_parentheses",
+      "pass": true,
+      "detail": "",
+      "tronque": false,
+      "tokens": 365,
+      "raisonnement": 1272,
+      "bloc": true,
+      "finish": "stop"
+    },
+    {
+      "id": "merge_intervals",
+      "pass": true,
+      "detail": "",
+      "tronque": false,
+      "tokens": 350,
+      "raisonnement": 1072,
+      "bloc": true,
+      "finish": "stop"
+    },
+    {
+      "id": "lcs",
+      "pass": true,
+      "detail": "",
+      "tronque": false,
+      "tokens": 345,
+      "raisonnement": 648,
+      "bloc": true,
+      "finish": "stop"
+    },
+    {
+      "id": "roman_to_int",
+      "pass": true,
+      "detail": "",
+      "tronque": false,
+      "tokens": 328,
+      "raisonnement": 833,
+      "bloc": true,
+      "finish": "stop"
+    },
+    {
+      "id": "regex_match",
+      "pass": true,
+      "detail": "",
+      "tronque": false,
+      "tokens": 742,
+      "raisonnement": 2333,
+      "bloc": true,
+      "finish": "stop"
+    },
+    {
+      "id": "calc_ii",
+      "pass": true,
+      "detail": "",
+      "tronque": false,
+      "tokens": 831,
+      "raisonnement": 2466,
+      "bloc": true,
+      "finish": "stop"
+    },
+    {
+      "id": "edit_distance",
+      "pass": true,
+      "detail": "",
+      "tronque": false,
+      "tokens": 482,
+      "raisonnement": 933,
+      "bloc": true,
+      "finish": "stop"
+    },
+    {
+      "id": "median_sorted",
+      "pass": true,
+      "detail": "",
+      "tronque": false,
+      "tokens": 544,
+      "raisonnement": 1553,
+      "bloc": true,
+      "finish": "stop"
+    },
+    {
+      "id": "lis_smallest",
+      "pass": true,
+      "detail": "",
+      "tronque": false,
+      "tokens": 1170,
+      "raisonnement": 4191,
+      "bloc": true,
+      "finish": "stop"
+    },
+    {
+      "id": "tree_roundtrip",
+      "pass": false,
+      "detail": "AssertionError",
+      "tronque": false,
+      "tokens": 1206,
+      "raisonnement": 4163,
+      "bloc": true,
+      "finish": "stop"
+    },
+    {
+      "id": "csv_quotes",
+      "pass": false,
+      "detail": "AssertionError",
+      "tronque": false,
+      "tokens": 1690,
+      "raisonnement": 5814,
+      "bloc": true,
+      "finish": "stop"
+    },
+    {
+      "id": "base_convert",
+      "pass": true,
+      "detail": "",
+      "tronque": false,
+      "tokens": 987,
+      "raisonnement": 2816,
+      "bloc": true,
+      "finish": "stop"
+    }
+  ],
+  "toolcall": [
+    {
+      "id": "weather",
+      "pass": true,
+      "detail": "name=get_weather args={'city': 'Paris'}"
+    },
+    {
+      "id": "add",
+      "pass": true,
+      "detail": "name=add_numbers args={'a': 3, 'b': 5}"
+    },
+    {
+      "id": "todo",
+      "pass": true,
+      "detail": "name=create_todo args={'task': 'buy milk'}"
+    },
+    {
+      "id": "search",
+      "pass": true,
+      "detail": "name=search_web args={'query': 'RTX 3060 price'}"
+    },
+    {
+      "id": "tool_select_stock",
+      "pass": true,
+      "detail": "name=get_stock_price args={'ticker': 'AAPL'}"
+    },
+    {
+      "id": "book_flight_multiarg",
+      "pass": true,
+      "detail": "name=book_flight args={'origin': 'Paris', 'destination': 'Tokyo', 'date': '2026-09-15'}"
+    },
+    {
+      "id": "desambiguation_meteo",
+      "pass": true,
+      "detail": "name=get_weather_forecast args={'city': 'Lyon', 'day': 'tomorrow'}"
+    },
+    {
+      "id": "argument_calcule",
+      "pass": true,
+      "detail": "name=set_timer args={'minutes': 150}"
+    },
+    {
+      "id": "abstention",
+      "pass": true,
+      "detail": "abstention correcte"
+    }
+  ],
+  "format": [
+    {
+      "id": "json_person",
+      "pass": true,
+      "detail": "{\n  \"name\": \"Bob\",\n  \"age\": 30\n}"
+    },
+    {
+      "id": "exact_word",
+      "pass": true,
+      "detail": "BANANA"
+    },
+    {
+      "id": "csv_fruits",
+      "pass": true,
+      "detail": "apple, banana, cherry"
+    },
+    {
+      "id": "csv_minimal",
+      "pass": false,
+      "detail": "\"a\",\"b,c,d\",\"d\""
+    }
+  ],
+  "reasoning": [
+    {
+      "id": "apples",
+      "pass": true,
+      "detail": "got=15 exp=15",
+      "tokens": 289,
+      "raisonnement": 862,
+      "finish": "stop",
+      "tronque": false
+    },
+    {
+      "id": "pencils",
+      "pass": true,
+      "detail": "got=28 exp=28",
+      "tokens": 246,
+      "raisonnement": 755,
+      "finish": "stop",
+      "tronque": false
+    },
+    {
+      "id": "train",
+      "pass": true,
+      "detail": "got=240 exp=240",
+      "tokens": 265,
+      "raisonnement": 677,
+      "finish": "stop",
+      "tronque": false
+    },
+    {
+      "id": "ages",
+      "pass": true,
+      "detail": "got=20 exp=20",
+      "tokens": 195,
+      "raisonnement": 565,
+      "finish": "stop",
+      "tronque": false
+    },
+    {
+      "id": "perimeter",
+      "pass": true,
+      "detail": "got=26 exp=26",
+      "tokens": 265,
+      "raisonnement": 691,
+      "finish": "stop",
+      "tronque": false
+    },
+    {
+      "id": "tank",
+      "pass": true,
+      "detail": "got=60 exp=60",
+      "tokens": 256,
+      "raisonnement": 616,
+      "finish": "stop",
+      "tronque": false
+    },
+    {
+      "id": "book_pages",
+      "pass": true,
+      "detail": "got=120 exp=120",
+      "tokens": 196,
+      "raisonnement": 393,
+      "finish": "stop",
+      "tronque": false
+    },
+    {
+      "id": "chickens",
+      "pass": true,
+      "detail": "got=8 exp=8",
+      "tokens": 296,
+      "raisonnement": 401,
+      "finish": "stop",
+      "tronque": false
+    },
+    {
+      "id": "jour_semaine",
+      "pass": true,
+      "detail": "got=5 exp=5",
+      "tokens": 1058,
+      "raisonnement": 3350,
+      "finish": "stop",
+      "tronque": false
+    }
+  ],
+  "agentic": [
+    {
+      "id": "multi_lookup_calc",
+      "pass": true,
+      "turns": 2,
+      "calls": 2,
+      "bad_calls": 0,
+      "detail": "got=80 exp=80"
+    },
+    {
+      "id": "sequential_dependency",
+      "pass": true,
+      "turns": 3,
+      "calls": 2,
+      "bad_calls": 0,
+      "detail": "got=3 exp=3"
+    },
+    {
+      "id": "search_then_read",
+      "pass": true,
+      "turns": 4,
+      "calls": 3,
+      "bad_calls": 0,
+      "detail": "final=The application configuration file is `app.conf`. After reading its contents, th"
+    },
+    {
+      "id": "check_then_act",
+      "pass": true,
+      "turns": 3,
+      "calls": 2,
+      "bad_calls": 0,
+      "detail": "final=The nginx service was initially down, so it was restarted. The final status is n"
+    },
+    {
+      "id": "compare_two",
+      "pass": true,
+      "turns": 2,
+      "calls": 2,
+      "bad_calls": 0,
+      "detail": "final=The current temperature in Paris is 15\u00b0C, while Lyon is 20\u00b0C. Therefore, **Lyon "
+    },
+    {
+      "id": "three_step_chain",
+      "pass": true,
+      "turns": 3,
+      "calls": 3,
+      "bad_calls": 0,
+      "detail": "final=The user with the most points is **bob** with 90 points. To find their email, I "
+    }
+  ]
+}

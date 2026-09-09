@@ -1,0 +1,376 @@
+{
+  "model": "ling-3.0-tiny",
+  "tag": "candidate",
+  "metrics": {
+    "coding_pass_rate": 0.6666666666666666,
+    "toolcall_acc": 1.0,
+    "format_acc": 1.0,
+    "reasoning_acc": 1.0,
+    "mean_tokps": 117.56975940721135,
+    "coding_truncated": 0,
+    "agentic_success_rate": 0.8333333333333334,
+    "agentic_avg_turns": 3.33,
+    "overall": 0.9167,
+    "hermes_ready": 1
+  },
+  "coding": [
+    {
+      "id": "reverse_string",
+      "pass": true,
+      "detail": "",
+      "tronque": false,
+      "tokens": 122,
+      "raisonnement": 384,
+      "bloc": true,
+      "finish": "stop"
+    },
+    {
+      "id": "fib",
+      "pass": true,
+      "detail": "",
+      "tronque": false,
+      "tokens": 293,
+      "raisonnement": 795,
+      "bloc": true,
+      "finish": "stop"
+    },
+    {
+      "id": "is_palindrome",
+      "pass": true,
+      "detail": "",
+      "tronque": false,
+      "tokens": 361,
+      "raisonnement": 1261,
+      "bloc": true,
+      "finish": "stop"
+    },
+    {
+      "id": "two_sum",
+      "pass": true,
+      "detail": "",
+      "tronque": false,
+      "tokens": 369,
+      "raisonnement": 1236,
+      "bloc": true,
+      "finish": "stop"
+    },
+    {
+      "id": "count_vowels",
+      "pass": true,
+      "detail": "",
+      "tronque": false,
+      "tokens": 209,
+      "raisonnement": 639,
+      "bloc": true,
+      "finish": "stop"
+    },
+    {
+      "id": "flatten",
+      "pass": true,
+      "detail": "",
+      "tronque": false,
+      "tokens": 758,
+      "raisonnement": 2843,
+      "bloc": true,
+      "finish": "stop"
+    },
+    {
+      "id": "valid_parentheses",
+      "pass": true,
+      "detail": "",
+      "tronque": false,
+      "tokens": 697,
+      "raisonnement": 2271,
+      "bloc": true,
+      "finish": "stop"
+    },
+    {
+      "id": "merge_intervals",
+      "pass": true,
+      "detail": "",
+      "tronque": false,
+      "tokens": 833,
+      "raisonnement": 2376,
+      "bloc": true,
+      "finish": "stop"
+    },
+    {
+      "id": "lcs",
+      "pass": true,
+      "detail": "",
+      "tronque": false,
+      "tokens": 591,
+      "raisonnement": 1487,
+      "bloc": true,
+      "finish": "stop"
+    },
+    {
+      "id": "roman_to_int",
+      "pass": true,
+      "detail": "",
+      "tronque": false,
+      "tokens": 636,
+      "raisonnement": 1534,
+      "bloc": true,
+      "finish": "stop"
+    },
+    {
+      "id": "regex_match",
+      "pass": false,
+      "detail": "The read operation timed out",
+      "tronque": false
+    },
+    {
+      "id": "calc_ii",
+      "pass": false,
+      "detail": "The read operation timed out",
+      "tronque": false
+    },
+    {
+      "id": "edit_distance",
+      "pass": true,
+      "detail": "",
+      "tronque": false,
+      "tokens": 747,
+      "raisonnement": 1828,
+      "bloc": true,
+      "finish": "stop"
+    },
+    {
+      "id": "median_sorted",
+      "pass": true,
+      "detail": "",
+      "tronque": false,
+      "tokens": 2429,
+      "raisonnement": 7950,
+      "bloc": true,
+      "finish": "stop"
+    },
+    {
+      "id": "lis_smallest",
+      "pass": false,
+      "detail": "The read operation timed out",
+      "tronque": false
+    },
+    {
+      "id": "tree_roundtrip",
+      "pass": false,
+      "detail": "The read operation timed out",
+      "tronque": false
+    },
+    {
+      "id": "csv_quotes",
+      "pass": false,
+      "detail": "The read operation timed out",
+      "tronque": false
+    },
+    {
+      "id": "base_convert",
+      "pass": false,
+      "detail": "The read operation timed out",
+      "tronque": false
+    }
+  ],
+  "toolcall": [
+    {
+      "id": "weather",
+      "pass": true,
+      "detail": "name=get_weather args={'city': 'Paris'}"
+    },
+    {
+      "id": "add",
+      "pass": true,
+      "detail": "name=add_numbers args={'a': 3, 'b': 5}"
+    },
+    {
+      "id": "todo",
+      "pass": true,
+      "detail": "name=create_todo args={'task': 'buy milk'}"
+    },
+    {
+      "id": "search",
+      "pass": true,
+      "detail": "name=search_web args={'query': 'RTX 3060 price'}"
+    },
+    {
+      "id": "tool_select_stock",
+      "pass": true,
+      "detail": "name=get_stock_price args={'ticker': 'AAPL'}"
+    },
+    {
+      "id": "book_flight_multiarg",
+      "pass": true,
+      "detail": "name=book_flight args={'date': '2026-09-15', 'destination': 'Tokyo', 'origin': 'Paris'}"
+    },
+    {
+      "id": "desambiguation_meteo",
+      "pass": true,
+      "detail": "name=get_weather_forecast args={'city': 'Lyon', 'day': 'tomorrow'}"
+    },
+    {
+      "id": "argument_calcule",
+      "pass": true,
+      "detail": "name=set_timer args={'minutes': 150}"
+    },
+    {
+      "id": "abstention",
+      "pass": true,
+      "detail": "abstention correcte"
+    }
+  ],
+  "format": [
+    {
+      "id": "json_person",
+      "pass": true,
+      "detail": "{\"name\": \"Bob\", \"age\": 30}"
+    },
+    {
+      "id": "exact_word",
+      "pass": true,
+      "detail": "BANANA"
+    },
+    {
+      "id": "csv_fruits",
+      "pass": true,
+      "detail": "Apple, banana, orange"
+    },
+    {
+      "id": "csv_minimal",
+      "pass": true,
+      "detail": "a,\"b,c\",d"
+    }
+  ],
+  "reasoning": [
+    {
+      "id": "apples",
+      "pass": true,
+      "detail": "got=15 exp=15",
+      "tokens": 285,
+      "raisonnement": 487,
+      "finish": "stop",
+      "tronque": false
+    },
+    {
+      "id": "pencils",
+      "pass": true,
+      "detail": "got=28 exp=28",
+      "tokens": 362,
+      "raisonnement": 866,
+      "finish": "stop",
+      "tronque": false
+    },
+    {
+      "id": "train",
+      "pass": true,
+      "detail": "got=240 exp=240",
+      "tokens": 404,
+      "raisonnement": 649,
+      "finish": "stop",
+      "tronque": false
+    },
+    {
+      "id": "ages",
+      "pass": true,
+      "detail": "got=20 exp=20",
+      "tokens": 487,
+      "raisonnement": 633,
+      "finish": "stop",
+      "tronque": false
+    },
+    {
+      "id": "perimeter",
+      "pass": true,
+      "detail": "got=26 exp=26",
+      "tokens": 198,
+      "raisonnement": 324,
+      "finish": "stop",
+      "tronque": false
+    },
+    {
+      "id": "tank",
+      "pass": true,
+      "detail": "got=60 exp=60",
+      "tokens": 333,
+      "raisonnement": 531,
+      "finish": "stop",
+      "tronque": false
+    },
+    {
+      "id": "book_pages",
+      "pass": true,
+      "detail": "got=120 exp=120",
+      "tokens": 418,
+      "raisonnement": 745,
+      "finish": "stop",
+      "tronque": false
+    },
+    {
+      "id": "chickens",
+      "pass": true,
+      "detail": "got=8 exp=8",
+      "tokens": 457,
+      "raisonnement": 610,
+      "finish": "stop",
+      "tronque": false
+    },
+    {
+      "id": "jour_semaine",
+      "pass": true,
+      "detail": "got=5 exp=5",
+      "tokens": 1757,
+      "raisonnement": 3744,
+      "finish": "stop",
+      "tronque": false
+    }
+  ],
+  "agentic": [
+    {
+      "id": "multi_lookup_calc",
+      "pass": true,
+      "turns": 2,
+      "calls": 2,
+      "bad_calls": 0,
+      "detail": "got=80 exp=80"
+    },
+    {
+      "id": "sequential_dependency",
+      "pass": true,
+      "turns": 3,
+      "calls": 2,
+      "bad_calls": 0,
+      "detail": "got=3 exp=3"
+    },
+    {
+      "id": "search_then_read",
+      "pass": true,
+      "turns": 3,
+      "calls": 2,
+      "bad_calls": 0,
+      "detail": "final=The app config uses **port 8080**."
+    },
+    {
+      "id": "check_then_act",
+      "pass": false,
+      "turns": 6,
+      "calls": 5,
+      "bad_calls": 0,
+      "detail": "final=The nginx service continues to report as \"down\" even after the restart attempts."
+    },
+    {
+      "id": "compare_two",
+      "pass": true,
+      "turns": 2,
+      "calls": 2,
+      "bad_calls": 0,
+      "detail": "final=Lyon is warmer right now! It's **20\u00b0C**, while Paris is **15\u00b0C**. Lyon is 5 degr"
+    },
+    {
+      "id": "three_step_chain",
+      "pass": true,
+      "turns": 4,
+      "calls": 4,
+      "bad_calls": 0,
+      "detail": "final=The user with the most points is **bob**, and their email address is **bob@examp"
+    }
+  ]
+}

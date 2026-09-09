@@ -31,6 +31,7 @@ Usage :  gguf_preflight.py <url-ou-chemin>          # exit 0 = passe, 3 = écart
 
 from __future__ import annotations
 import os
+import re
 import struct
 import sys
 import urllib.request
@@ -41,6 +42,10 @@ import urllib.request
 # Surchargeable : GGUF_MAX_GGML_TYPE / GGUF_MAX_FTYPE.
 MAX_GGML_TYPE = int(os.environ.get("GGUF_MAX_GGML_TYPE", "42"))  # GGML_TYPE_Q2_0
 MAX_FTYPE = int(os.environ.get("GGUF_MAX_FTYPE", "41"))          # LLAMA_FTYPE_MOSTLY_Q2_0
+# Nombre minimal de blocs `blk.N` pour qu'un GGUF soit un MODÈLE et non un fichier
+# accessoire. 3 : une tête MTP en porte 1 ou 2, un mmproj aucun, le plus petit
+# modèle croisé ici (24 blocs) est très au-dessus.
+MIN_BLOCS = int(os.environ.get("GGUF_MIN_BLOCS", "3"))
 
 NOMS_GGML = {
     0: "F32", 1: "F16", 2: "Q4_0", 3: "Q4_1", 6: "Q5_0", 7: "Q5_1", 8: "Q8_0",
@@ -135,8 +140,10 @@ def inspecte(cible: str) -> dict:
         kv[cle] = valeur(s, s.nb("I", 4))
 
     types = {}
+    noms_tenseurs = []
     for _ in range(n_tens):
         nom = s.chaine()
+        noms_tenseurs.append(nom)
         nd = s.nb("I", 4)
         for _ in range(nd):
             s.nb("Q", 8)
@@ -154,6 +161,30 @@ def inspecte(cible: str) -> dict:
         "types": types,
         "octets_lus": s.pos,
     }
+
+    # FICHIER ACCESSOIRE et non modèle. Un dépôt GGUF contient souvent, à côté du
+    # modèle, une tête de brouillon MTP (`mtp-*`, `*-draft-*`) et un projecteur
+    # multimodal (`mmproj*`). Ils ont une architecture valide, des types de tenseurs
+    # valides et une PETITE taille : ils passaient donc tous les garde-fous.
+    #
+    # Le 2026-09-09, les trois « meilleurs candidats » de la file — annoncés comme des
+    # 27 Md tenant dans 3 017 Mio — étaient en réalité des têtes MTP. Les vrais
+    # modèles du même dépôt pèsent 9 702 à 27 701 Mio, et aucun ne tient sur la
+    # carte. hf-discover.py avait pris le PREMIER .gguf du dépôt.
+    #
+    # Le test STRUCTUREL tranche mieux que le nom : une tête MTP porte un ou deux
+    # blocs `blk.N`, un mmproj n'en porte aucun, un modèle en porte des dizaines.
+    blocs = {int(m.group(1)) for n in noms_tenseurs
+             if (m := re.match(r"blk\.(\d+)\.", n))}
+    if len(blocs) < MIN_BLOCS:
+        info.update(
+            verdict="REJET",
+            raison="fichier ACCESSOIRE et non modèle : %d bloc(s) `blk.N` seulement "
+                   "(minimum %d). C'est une tête de brouillon MTP, un projecteur "
+                   "mmproj ou un fichier annexe. Chercher le modèle principal dans "
+                   "le même dépôt." % (len(blocs), MIN_BLOCS),
+        )
+        return info
 
     inconnus = sorted(t for t in types if t > MAX_GGML_TYPE)
     if inconnus:
