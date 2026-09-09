@@ -685,7 +685,8 @@ def _identifiant_application(workdir):
         if not chemin.exists():
             continue
         trouve = re.search(
-            r"""applicationId\s*=?\s*["']([\w.]+)["']""", chemin.read_text(errors="replace")
+            r"""applicationId\s*=?\s*["']([\w.]+)["']""",
+            chemin.read_text(errors="replace"),
         )
         if trouve:
             return trouve.group(1)
@@ -809,7 +810,9 @@ def _verifie_amorce_flutter(workdir, scenario):
         notes.append("[projet] %s" % projet.relative_to(workdir))
 
     # 1. MECANIQUE : est-ce que ca compile ?
-    code, sortie = _lance([flutter, "build", "apk", "--debug"], cwd=str(projet), timeout=1800)
+    code, sortie = _lance(
+        [flutter, "build", "apk", "--debug"], cwd=str(projet), timeout=1800
+    )
     apk = projet / "build/app/outputs/flutter-apk/app-debug.apk"
     if not etage("build", code == 0 and apk.exists(), sortie[-300:] if code else ""):
         # Sans APK, les deux etages suivants n'ont rien a mesurer. On les note echoues
@@ -844,8 +847,12 @@ def _verifie_amorce_flutter(workdir, scenario):
         argv += ["-d", appareils[0]]
     try:
         lancement = subprocess.Popen(
-            argv, cwd=str(projet), stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT, text=True, start_new_session=True,
+            argv,
+            cwd=str(projet),
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            start_new_session=True,
         )
     except (OSError, subprocess.SubprocessError) as exc:
         etage("lancement", False, "%s : %s" % (type(exc).__name__, exc))
@@ -853,8 +860,11 @@ def _verifie_amorce_flutter(workdir, scenario):
         return bilan()
 
     try:
-        if not etage("lancement", _attend_lancement(lancement),
-                     "l'application n'a pas demarre en %ds" % DELAI_LANCEMENT_MAX_S):
+        if not etage(
+            "lancement",
+            _attend_lancement(lancement),
+            "l'application n'a pas demarre en %ds" % DELAI_LANCEMENT_MAX_S,
+        ):
             etage("rendu", False, "application non lancee")
             return bilan()
 
@@ -864,13 +874,20 @@ def _verifie_amorce_flutter(workdir, scenario):
         capture, part, attendu = b"", None, 0
         while True:
             try:
-                capture = subprocess.run(
-                    [adb, "exec-out", "screencap", "-p"], capture_output=True, timeout=120
-                ).stdout or b""
+                capture = (
+                    subprocess.run(
+                        [adb, "exec-out", "screencap", "-p"],
+                        capture_output=True,
+                        timeout=120,
+                    ).stdout
+                    or b""
+                )
             except (OSError, subprocess.SubprocessError):
                 capture = b""
             part = _part_dominante(capture)
-            if (part is not None and part < PART_DOMINANTE_MAX) or attendu >= DELAI_RENDU_MAX_S:
+            if (
+                part is not None and part < PART_DOMINANTE_MAX
+            ) or attendu >= DELAI_RENDU_MAX_S:
                 break
             time.sleep(PAS_SONDE_RENDU_S)
             attendu += PAS_SONDE_RENDU_S
@@ -893,11 +910,16 @@ def _verifie_amorce_flutter(workdir, scenario):
         else:
             ok = part < PART_DOMINANTE_MAX
             if ok:
-                notes.append("[rendu] apparu apres %ds (dominante %.1f %%)"
-                             % (attendu, part * 100))
-            etage("rendu", ok,
-                  "toujours uniforme apres %ds : dominante %.1f %% (plancher mesure : "
-                  "98,0 %% sur ecran vide)" % (DELAI_RENDU_MAX_S, part * 100))
+                notes.append(
+                    "[rendu] apparu apres %ds (dominante %.1f %%)"
+                    % (attendu, part * 100)
+                )
+            etage(
+                "rendu",
+                ok,
+                "toujours uniforme apres %ds : dominante %.1f %% (plancher mesure : "
+                "98,0 %% sur ecran vide)" % (DELAI_RENDU_MAX_S, part * 100),
+            )
         return bilan()
     finally:
         # `flutter run` tourne en avant-plan : sans ce kill de GROUPE, chaque tirage
@@ -1121,6 +1143,60 @@ def pi_act_command(model, workdir, prompt):
     argv, env = pi_command(model, workdir, prompt)
     i = argv.index("-p")
     return argv[:i] + ["--append-system-prompt", INSTRUCTION_AGIR] + argv[i:], env
+
+
+# Mesuré le 2026-09-09 sur lfm2.5-8b-a1b. Motif : le modèle rend 0 appel d'outil sur
+# tetris (1 tour, `stopReason: stop`) alors qu'il en émet parfaitement dès qu'on
+# l'interroge sans prompt système. A/B à un seul facteur, mêmes 4 outils, même prompt
+# utilisateur, temp 0.2 :
+#
+#   A  prompt système de pi (2747 car.)          -> AUCUN appel, enveloppe JSON, 1564 tok
+#   B  sans prompt système                       -> appel natif `read`,            453 tok
+#   C  prompt de pi privé du bloc « Pi doc »     -> AUCUN appel,                  1282 tok
+#   D  prompt minimal ci-dessous (139 car.)      -> appel natif `bash`,           1006 tok
+#
+# C écarte l'hypothèse du bruit documentaire. Sous le prompt de `pi`, le modèle se rabat
+# sur un protocole d'agent qu'il s'est inventé — un objet JSON {analysis, plan, commands,
+# edits} déposé dans `content`, que `pi` ne peut pas exécuter (son seul `repairJson`
+# recolle des arguments malformés, pas un `content`). Les outils sont pourtant bien
+# déclarés : 1588 tokens d'entrée au premier tour, comme les autres (1595 à 1795).
+#
+# MAIS l'A/B ci-dessus ne mesure que le PREMIER tour, et le harnais n'a rien débloqué :
+# 3 essais tetris sous `pi-sysmin` donnent 0/44, 0 ligne écrite. L'essai 1 place deux
+# appels réels (`ls -la`, puis `read`) et s'effondre au tour suivant ; les essais 2 et 3
+# s'effondrent d'entrée. Les hypothèses suivantes ont été testées et REFUTEES :
+#
+#   « c'est la présence d'un résultat d'outil »  -> non : un résultat de 7 lignes passe
+#   « c'est la TAILLE du résultat d'outil »      -> non : 400 car. s'effondre aussi
+#   « c'est le prompt système »                  -> non : sans aucun message système, et
+#                                                   avec un système vide, l'effondrement
+#                                                   est identique (4096 tokens en JSON)
+#
+# Ce qui reste, mesuré : dès que le vrai contrat de 14 Ko est dans le contexte, ce modèle
+# produit son enveloppe JSON quel que soit le prompt. L'enveloppe EST son format agentique
+# entraîné ; elle est incompatible avec un harnais à `tool_calls`. `pi-sysmin` est donc
+# conservé comme témoin de l'A/B du premier tour, pas comme correctif.
+#
+# ATTENTION à la comparaison : ce harnais n'est PAS `pi`. Un score obtenu ici ne se
+# compare qu'à une référence rejouée dans le même harnais.
+PROMPT_SYSTEME_MINIMAL = (
+    "You are a coding agent. Use the provided tools to inspect and modify files. "
+    "Perform actions with tool calls; do not describe them in prose."
+)
+
+
+def pi_sysmin_command(model, workdir, prompt):
+    """pi avec un prompt système minimal à la place du sien. Variante d'A/B : tout le
+    reste est identique à `pi`, seul le contenu du message système change.
+
+    À la différence de `pi-act`, qui AJOUTE une consigne (`--append-system-prompt`),
+    celui-ci REMPLACE le prompt par défaut (`--system-prompt`). C'est ce que l'A/B
+    ci-dessus désigne : le défaut n'est pas une consigne manquante, c'est le prompt
+    de `pi` lui-même qui déclenche le mauvais format.
+    """
+    argv, env = pi_command(model, workdir, prompt)
+    i = argv.index("-p")
+    return argv[:i] + ["--system-prompt", PROMPT_SYSTEME_MINIMAL] + argv[i:], env
 
 
 def pi_metrics(transcript):
@@ -1550,8 +1626,15 @@ def nu_metrics(transcript):
 
 # Artefacts de build a NE PAS archiver : 1,2 Go contre 2,6 Mo de source sur le
 # tirage du 2026-08-07. Les exclure change l'archive d'inutilisable a triviale.
-EXCLUS_PROJET = ("build", ".dart_tool", ".pub-cache-agent", ".paquets-agent",
-                 "__pycache__", ".git", "node_modules")
+EXCLUS_PROJET = (
+    "build",
+    ".dart_tool",
+    ".pub-cache-agent",
+    ".paquets-agent",
+    "__pycache__",
+    ".git",
+    "node_modules",
+)
 
 
 def archive_projet(workdir, etiquette):
@@ -1578,9 +1661,11 @@ def archive_projet(workdir, etiquette):
             archive.add(
                 source,
                 arcname=etiquette,
-                filter=lambda info: None
-                if any(part in EXCLUS_PROJET for part in Path(info.name).parts)
-                else info,
+                filter=lambda info: (
+                    None
+                    if any(part in EXCLUS_PROJET for part in Path(info.name).parts)
+                    else info
+                ),
             )
     except (OSError, tarfile.TarError):
         return
@@ -1720,6 +1805,7 @@ HARNESSES = {
     "pi": (pi_command, pi_metrics),
     "pi-abspath": (pi_abspath_command, pi_metrics),
     "pi-act": (pi_act_command, pi_metrics),
+    "pi-sysmin": (pi_sysmin_command, pi_metrics),
     "little-coder": (little_coder_command, pi_metrics),
     "aider": (aider_command, aider_metrics),
     "nu": (nu_command, nu_metrics),
@@ -2001,8 +2087,12 @@ def run(harness, model, scenario_name, timeout, runs=1):
     # UNE fois par campagne, avant le premier tirage : refuse une campagne dont les
     # leviers ne mordent pas. Un bras doublon coute 40 minutes de GPU et une
     # conclusion fausse. Place ici et non dans run_once, qui est appele par tirage.
-    preambule(harness, model, scenario_name,
-              os.environ.get("HARNAIS_NU_BASE_URL", "http://127.0.0.1:8080/v1"))
+    preambule(
+        harness,
+        model,
+        scenario_name,
+        os.environ.get("HARNAIS_NU_BASE_URL", "http://127.0.0.1:8080/v1"),
+    )
     scenario = SCENARIOS[scenario_name]
     slug = slug_de(scenario_name, harness, model)
 
