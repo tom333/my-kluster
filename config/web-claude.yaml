@@ -9,6 +9,15 @@
 # Pattern k8s-natif : Service SANS selector + EndpointSlice manuel (même schéma que
 #   config/home-assistant-external.yaml).
 #
+# ⚠️ L'EndpointSlice n'est PAS déployé par ArgoCD : `resource.exclusions` d'argocd-cm
+#   exclut `discovery.k8s.io/EndpointSlice` (ressource à fort churn, générée d'ordinaire
+#   par le control plane). L'app `config` l'ignore en silence — sans erreur, sans trace
+#   dans la liste des ressources — et l'Ingress répond alors « no available server ».
+#   Il faut l'appliquer à la main, une fois, après tout changement d'IP ou de port :
+#     kubectl apply -f config/web-claude.yaml
+#   Il reste décrit ici pour être reproductible (même situation que home-assistant-1,
+#   appliqué à la main lui aussi).
+#
 # Accès : PUBLIC hors-LAN (usage mobile voulu), donc deux barrières chaînées sur l'Ingress :
 #   1. web-claude-oauth2-forwardauth@kubernetescrd → login GitHub obligatoire
 #      (github_users = tom333,tguyader côté oauth2-proxy) ; pose X-Auth-Request-User.
