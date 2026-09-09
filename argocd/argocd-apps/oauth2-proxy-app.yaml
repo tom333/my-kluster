@@ -34,6 +34,14 @@ spec:
             # renvoyer un 302 au navigateur non-authentifié (sinon 403 + page). Cf.
             # docs oauth2-proxy "Traefik ForwardAuth with static upstreams".
             skip_provider_button = true
+            # Ajoute X-Auth-Request-User / -Email / -Preferred-Username à la réponse
+            # d'authentification. Sans ça, la réponse 202 ne porte AUCUN en-tête et le
+            # `authResponseHeaders` des Middlewares forwardAuth ne recopie rien : les
+            # applications qui vérifient QUI est entré ne voient personne. web-claude
+            # refuse l'accès sur cette base (garde : secret + compte autorisé), d'où
+            # `utilisateur_absent` avant cette option. Purement additif pour les autres
+            # applications derrière la porte, qui ignorent ces en-têtes.
+            set_xauthrequest = true
         ingress:
           enabled: true
           path: /oauth2
