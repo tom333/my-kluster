@@ -13,6 +13,21 @@
 set -euo pipefail
 NS=localai
 NAME=""; GGUF=""; DRAFT=""; CTX=8192; BASELINE="qwen3-coder-30b-a3b-instruct"; CLEANUP=0; BACKEND="llama-cpp"
+
+# Échantillonnage. Les valeurs par défaut sont celles de Qwen3.6 pour du code précis,
+# et elles restent le défaut pour ne pas rejouer les relevés passés. Mais chaque
+# éditeur prescrit les SIENNES, parfois en sens opposé : Ling veut temp 1.0, LFM2.5
+# temp 0.2 avec top_k 80, Agents-A1 temp 0.85 avec une pénalité de présence de 1.1.
+# Les imposer toutes à 0.6/0.95/20 a produit deux relevés faux (ling boucle 85 fois
+# sur la même phrase à 0.6, et écrit 434 lignes à 1.0). Surchargeable par candidat :
+#   ECH_TEMP=0.85 ECH_TOP_K=20 ECH_PENALITE_PRESENCE=1.1 ./stage_candidate.sh ...
+# Les deux pénalités ne sont écrites dans le yaml que si elles sont fournies : une
+# valeur neutre explicite n'est pas équivalente à l'absence de clé côté llama.cpp.
+ECH_TEMP="${ECH_TEMP:-0.6}"
+ECH_TOP_P="${ECH_TOP_P:-0.95}"
+ECH_TOP_K="${ECH_TOP_K:-20}"
+ECH_PENALITE_PRESENCE="${ECH_PENALITE_PRESENCE:-}"
+ECH_PENALITE_REPETITION="${ECH_PENALITE_REPETITION:-}"
 while [ $# -gt 0 ]; do case "$1" in
   --name) NAME="$2"; shift 2;;
   --gguf) GGUF="$2"; shift 2;;
@@ -230,9 +245,11 @@ fi
   [ -n "$DRAFT" ] && echo "draft_model: $(basename "$DRAFT")"
   echo "parameters:"
   echo "  model: $GGUF_FILE"
-  echo "  temperature: 0.6"
-  echo "  top_p: 0.95"
-  echo "  top_k: 20"
+  echo "  temperature: $ECH_TEMP"
+  echo "  top_p: $ECH_TOP_P"
+  echo "  top_k: $ECH_TOP_K"
+  [ -n "$ECH_PENALITE_PRESENCE" ] && echo "  presence_penalty: $ECH_PENALITE_PRESENCE"
+  [ -n "$ECH_PENALITE_REPETITION" ] && echo "  repeat_penalty: $ECH_PENALITE_REPETITION"
   # Pas de download_files : le fichier est déjà présent sur le PVC
   echo "options:"
   echo "  - use_jinja:true"
