@@ -147,16 +147,21 @@ spec:
             entryPoints:
               - web
             matchRule: Host(`dashboard.localhost`)
-        logs:
-          general:
-            level: INFO
-            # JSON : enlève les codes couleur ANSI (\x1b) qui cassaient le parser CrowdSec.
-            format: json
-          # Access logs requis pour l'acquisition CrowdSec. Format JSON : le parser
-          # crowdsecurity/traefik fait un UnmarshalJSON → exige du JSON (pas du CLF).
-          access:
-            enabled: true
-            format: json
+        # v41.5.0 : `logs.general` / `logs.access` ont disparu du schéma au profit de
+        # `log` et `accessLog` (validation stricte : additionalProperties refusées).
+        # Le bump renovate (#1719) a donc cassé la génération des manifestes — l'app
+        # restait "Synced" sur un rendu en cache, et TOUTE modification des valeurs
+        # était ignorée en silence pendant treize jours. Rendu localement avant
+        # correction : aucun argument perdu, seuls ceux du provider file s'ajoutent.
+        log:
+          level: INFO
+          # JSON : enlève les codes couleur ANSI (\x1b) qui cassaient le parser CrowdSec.
+          format: json
+        # Access logs requis pour l'acquisition CrowdSec. Format JSON : le parser
+        # crowdsecurity/traefik fait un UnmarshalJSON → exige du JSON (pas du CLF).
+        accessLog:
+          enabled: true
+          format: json
         ports:
           web:
             exposedPort: 80
