@@ -1787,11 +1787,14 @@ def preambule(harness, model, scenario_name, client_url=None):
     #    74,6 tok/s et le chiffre attribue a l'A3B, dont le vrai debit est 28,8 :
     #    le port etait occupe par le serveur precedent.
     if client_url:
-        servi = _modele_servi(client_url)
+        servi = _modele_servi(client_url, model)
         if servi:
-            print("  modele servi : %s" % servi)
+            print("  modele servi : %s (present dans /v1/models)" % servi)
         else:
-            problemes.append("%s : /v1/models illisible, modele servi inconnu" % client_url)
+            problemes.append(
+                "%s : le modele demande (%s) n'est PAS servi, ou /v1/models est "
+                "illisible" % (client_url, model)
+            )
 
     if problemes:
         sys.exit(
@@ -1800,17 +1803,45 @@ def preambule(harness, model, scenario_name, client_url=None):
         )
 
 
-def _modele_servi(url):
-    """Nom du modele que le serveur repond. None si illisible. Ne leve jamais."""
+def _modele_servi(url, attendu=None):
+    """Nom du modele que le serveur repond. None si illisible. Ne leve jamais.
+
+    S'AUTHENTIFIE si une cle LocalAI est disponible. Sans ca, la sonde recevait un
+    401 sur toute instance LocalAI -- l'authentification est dans l'APPLICATION, pas
+    seulement dans l'ingress, donc un port-forward ne la contourne pas. Consequence
+    mesuree le 2026-09-09 : le preambule (ajoute le 2026-08-06) refusait TOUTE
+    campagne sur un modele `localai/...`, et le dernier releve tetris datait du
+    29 juillet. Le maillon tetris exige par promote.sh n'etait donc pas « oublie »,
+    il etait INATTEIGNABLE. On reutilise le meme fichier de cle que le harnais aider
+    plus bas dans ce fichier, pour ne pas avoir deux sources de verite.
+    """
     try:
         import urllib.request
 
-        with urllib.request.urlopen(url.rstrip("/") + "/models", timeout=10) as rep:
+        req = urllib.request.Request(url.rstrip("/") + "/models")
+        key_file = Path.home() / ".config" / "brain" / "localai-key"
+        if key_file.exists():
+            req.add_header("Authorization", "Bearer " + key_file.read_text().strip())
+        with urllib.request.urlopen(req, timeout=10) as rep:
             data = json.loads(rep.read().decode("utf-8", "replace"))
     except Exception:  # noqa: BLE001 - sonde d'environnement, aucune raison de tuer le banc
         return None
+    # Deux formes de reponse, et deux semantiques.
+    #   llama-server : un SEUL modele par serveur, champ `model` -> le premier suffit.
+    #   LocalAI      : PLUSIEURS modeles servis, champ `id` -> prendre le premier ne
+    #                  veut rien dire (c'etait `trellis2-4b` le 2026-09-09). Ce qu'il
+    #                  faut verifier, c'est que le modele DEMANDE est bien la.
     entrees = data.get("models") or data.get("data") or []
-    return os.path.basename(str((entrees or [{}])[0].get("model") or "")) or None
+    noms = [
+        os.path.basename(str(e.get("model") or e.get("id") or ""))
+        for e in entrees
+        if isinstance(e, dict)
+    ]
+    noms = [n for n in noms if n]
+    if attendu:
+        cible = os.path.basename(str(attendu))
+        return cible if cible in noms else None
+    return noms[0] if noms else None
 
 
 def slug_de(scenario_name, harness, model):
@@ -2175,7 +2206,23 @@ def main():
     parser.add_argument("--harness", default="pi")
     parser.add_argument("--scenario", default="repair", choices=sorted(SCENARIOS))
     parser.add_argument("--model", required=False)
-    parser.add_argument("--timeout", type=int, default=2400)
+    # TIMEOUT PAR ESSAI, ramene de 2400 a 500 s le 2026-09-09.
+    #
+    # La regle : le meilleur modele du jour resout le scenario en ~400 s, le
+    # concurrent ne doit pas depasser 500 s. Mesures de l'incumbent
+    # qwen3-coder-30b-a3b-instruct sur tetris : 395, 401 et 430 s pour 32/44.
+    #
+    # Motif. Ornith-1.5-9B-MTP-IQ4_XS a fait 44/44 -- mais en 2312 s, avec 84 tours,
+    # un pic de contexte de 76 210 tokens et 3,92 MILLIONS de tokens d'entree au
+    # total, contre 223 851 pour l'incumbent. Soit 17,5x le cout pour 12 tests de
+    # plus, et 250 tokens generes par ligne de code conservee. Ces 38 minutes ont
+    # sature le swap (15/15 Go) et gele le bureau. Un tel candidat n'est pas
+    # deployable, et le laisser courir 40 minutes ne fait que le confirmer plus tard.
+    #
+    # Le plafond ENCODE donc l'exigence au lieu de la decouvrir apres coup. Un essai
+    # coupe est compte a part (« pend »), il ne se confond pas avec un echec.
+    # A REVOIR si l'incumbent change : la regle est « meilleur du jour + 25 % ».
+    parser.add_argument("--timeout", type=int, default=500)
     parser.add_argument(
         "--runs",
         type=int,
