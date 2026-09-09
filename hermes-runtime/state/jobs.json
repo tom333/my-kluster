@@ -14,6 +14,12 @@
       ],
       "failure_streak": 0,
       "id": "2ee2afd955cb",
+      "last_dispatch": {
+        "dispatched_at": "2026-09-09T09:00:53.873423+00:00",
+        "kind": "on_time",
+        "lateness_seconds": 53.9,
+        "scheduled_at": "2026-09-09T09:00:00+00:00"
+      },
       "model": null,
       "name": "decouvertes-quotidienne",
       "no_agent": false,
@@ -44,7 +50,9 @@
     },
     {
       "base_url": null,
-      "context_from": null,
+      "context_from": [
+        "self"
+      ],
       "created_at": "2026-08-07T00:00:00.000000+00:00",
       "deliver": "origin",
       "enabled": true,
@@ -84,7 +92,9 @@
     },
     {
       "base_url": null,
-      "context_from": null,
+      "context_from": [
+        "self"
+      ],
       "created_at": "2026-08-21T00:00:00.000000+00:00",
       "deliver": "origin",
       "enabled": true,
@@ -131,6 +141,12 @@
       "enabled_toolsets": null,
       "failure_streak": 0,
       "id": "7ebbddc10caa",
+      "last_dispatch": {
+        "dispatched_at": "2026-09-09T08:15:46.898135+00:00",
+        "kind": "on_time",
+        "lateness_seconds": 46.9,
+        "scheduled_at": "2026-09-09T08:15:00+00:00"
+      },
       "model": null,
       "name": "bonsai-backend-watch",
       "no_agent": true,
@@ -158,7 +174,9 @@
     },
     {
       "base_url": null,
-      "context_from": null,
+      "context_from": [
+        "self"
+      ],
       "created_at": "2026-06-15T07:11:39.883654+00:00",
       "deliver": "origin",
       "enabled": true,
@@ -187,7 +205,7 @@
       },
       "schedule_display": "30 10 * * 6",
       "script": null,
-      "skill": null,
+      "skill": "veille-digest",
       "skills": [
         "veille-digest"
       ],
@@ -195,7 +213,9 @@
     },
     {
       "base_url": null,
-      "context_from": null,
+      "context_from": [
+        "self"
+      ],
       "created_at": "2026-06-24T04:40:58.860588+00:00",
       "deliver": "origin",
       "enabled": true,
@@ -206,6 +226,12 @@
       ],
       "failure_streak": 0,
       "id": "a03a6a8792b2",
+      "last_dispatch": {
+        "dispatched_at": "2026-09-09T10:00:05.127012+00:00",
+        "kind": "on_time",
+        "lateness_seconds": 5.1,
+        "scheduled_at": "2026-09-09T10:00:00+00:00"
+      },
       "model": null,
       "name": "veille-data-ia-quotidienne",
       "no_agent": false,
@@ -227,7 +253,7 @@
       },
       "schedule_display": "0 10 * * *",
       "script": null,
-      "skill": null,
+      "skill": "veille-digest",
       "skills": [
         "veille-digest"
       ],
@@ -235,7 +261,9 @@
     },
     {
       "base_url": null,
-      "context_from": null,
+      "context_from": [
+        "self"
+      ],
       "created_at": "2026-06-06T22:26:10.989578+00:00",
       "deliver": "origin",
       "enabled": true,
@@ -269,7 +297,7 @@
       },
       "schedule_display": "0 20 * * *",
       "script": null,
-      "skill": null,
+      "skill": "veille-digest",
       "skills": [
         "veille-digest"
       ],
@@ -277,7 +305,9 @@
     },
     {
       "base_url": null,
-      "context_from": null,
+      "context_from": [
+        "self"
+      ],
       "created_at": "2026-06-08T11:22:07.114714+00:00",
       "deliver": "origin",
       "enabled": true,
@@ -326,6 +356,12 @@
       "enabled_toolsets": null,
       "failure_streak": 0,
       "id": "b7c3e1a4f902",
+      "last_dispatch": {
+        "dispatched_at": "2026-09-09T08:45:51.525309+00:00",
+        "kind": "on_time",
+        "lateness_seconds": 51.5,
+        "scheduled_at": "2026-09-09T08:45:00+00:00"
+      },
       "model": null,
       "name": "k2horizon-watch",
       "no_agent": true,
@@ -360,6 +396,12 @@
       "enabled_toolsets": null,
       "failure_streak": 0,
       "id": "d1965700c0de",
+      "last_dispatch": {
+        "dispatched_at": "2026-09-09T16:15:16.461269+00:00",
+        "kind": "on_time",
+        "lateness_seconds": 16.5,
+        "scheduled_at": "2026-09-09T16:15:00+00:00"
+      },
       "model": null,
       "name": "digest-indexer",
       "no_agent": true,
@@ -382,7 +424,9 @@
     },
     {
       "base_url": null,
-      "context_from": null,
+      "context_from": [
+        "self"
+      ],
       "created_at": "2026-06-24T03:32:21.502891+00:00",
       "deliver": "origin",
       "enabled": true,
@@ -394,6 +438,12 @@
       ],
       "failure_streak": 0,
       "id": "e8c4b8c91103",
+      "last_dispatch": {
+        "dispatched_at": "2026-09-09T09:30:59.552830+00:00",
+        "kind": "on_time",
+        "lateness_seconds": 59.6,
+        "scheduled_at": "2026-09-09T09:30:00+00:00"
+      },
       "model": null,
       "name": "Résumé Korben soir",
       "no_agent": false,
@@ -415,7 +465,7 @@
       },
       "schedule_display": "30 9 * * *",
       "script": null,
-      "skill": null,
+      "skill": "veille-digest",
       "skills": [
         "veille-digest"
       ],
