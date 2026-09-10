@@ -65,17 +65,20 @@ spec:
           - name: web-claude-traefik-header
             mountPath: /etc/traefik/web-claude
             type: secret
+        # Épinglé sur pc. Le cache plugins vit sur un PVC microk8s-hostpath, donc un
+        # volume LOCAL : son PV porte `nodeAffinity: hostname In [pc]` et le pod du
+        # DaemonSet destiné à jeux ne pouvait pas se planifier — Pending permanent
+        # depuis 92 jours. Ce second pod ne servait rien de toute façon : Traefik
+        # écoute en hostPort 80/443 et le routeur ne redirige que vers pc.
+        # Pour vraiment servir l'ingress depuis les deux nœuds il faudrait un cache
+        # par nœud (hostPath au lieu du PVC) ET une redirection routeur vers les deux.
+        # ⚠️ nodeSelector est une clé RACINE du chart Traefik (values.yaml:1242),
+        # PAS une sous-clé de `deployment` — placée là, elle est silencieusement
+        # ignorée (même piège que additionalVolumeMounts plus bas).
+        nodeSelector:
+          kubernetes.io/hostname: pc
         deployment:
           kind: DaemonSet
-          # Épinglé sur pc. Le cache plugins vit sur un PVC microk8s-hostpath, donc un
-          # volume LOCAL : son PV porte `nodeAffinity: hostname In [pc]` et le pod du
-          # DaemonSet destiné à jeux ne pouvait pas se planifier — Pending permanent
-          # depuis 92 jours. Ce second pod ne servait rien de toute façon : Traefik
-          # écoute en hostPort 80/443 et le routeur ne redirige que vers pc.
-          # Pour vraiment servir l'ingress depuis les deux nœuds il faudrait un cache
-          # par nœud (hostPath au lieu du PVC) ET une redirection routeur vers les deux.
-          nodeSelector:
-            kubernetes.io/hostname: pc
           # Cache plugins sur PVC : /plugins-storage en emptyDir = re-download des
           # plugins (bouncer/sablier) depuis plugins.traefik.io à CHAQUE recréation
           # de pod → un timeout réseau pendant ce download a tué tout l'ingress
