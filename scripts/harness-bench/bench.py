@@ -2275,6 +2275,36 @@ def run(harness, model, scenario_name, timeout, runs=1):
         )
     print("  tours méd.  : %s" % result["tours_median"])
     print("  pic méd.    : %s" % result["pic_input_median"])
+    # DURÉE et DÉBIT EFFECTIF. Signalé manquant le 2026-09-10 : sans eux, deux
+    # candidats à score voisin sont indépartageables alors que l'un peut être sept
+    # fois plus lent. Le débit effectif (tokens émis / seconde de campagne) n'est PAS
+    # le tok/s du chargement : sur qwen3-coder-30b à ctx 131072 avec 34 couches
+    # d'experts sur le CPU, il tombe à 6,7 alors que le balayage mesure 25,7 — les
+    # trois quarts du temps partent en préremplissage et en exécution d'outils.
+    #
+    # ⚠️ SATURATION : si tous les essais sont `timeout`, la durée vaut le plafond et
+    # ne départage RIEN. On le dit au lieu d'afficher un chiffre trompeur.
+    duree = result.get("duree_s_median")
+    tous_coupes = (
+        all(e.get("timeout") for e in result["essais"]) if result["essais"] else False
+    )
+    sorties = [e.get("total_output") or 0 for e in result["essais"]]
+    durees = [e.get("duree_s") or 0 for e in result["essais"]]
+    debit = (sum(sorties) / sum(durees)) if sum(durees) else 0
+    print(
+        "  durée méd.  : %s s%s"
+        % (
+            duree,
+            "   ⚠️ TOUS les essais coupés au plafond :"
+            " la durée est saturée et ne départage rien"
+            if tous_coupes
+            else "",
+        )
+    )
+    print(
+        "  débit eff.  : %.1f tok/s émis sur la campagne (≠ tok/s du chargement)"
+        % debit
+    )
     # Cout par test reussi : ce qui departage des scores satures. Imprime SOUS la
     # mediane du score, jamais seul — un ratio sans le score absolu se lit a
     # l'envers (biais d'abandon : le plus « efficace » est souvent celui qui a

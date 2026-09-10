@@ -63,6 +63,7 @@ def valeur2(s: Source, t: int):
         return [valeur2(s, ti) for _ in range(c)]
     raise SystemExit("type de métadonnée inconnu: %r" % t)
 
+
 # Marge pour le tampon de calcul et le surcoût LocalAI.
 # MESURÉE le 2026-09-08 sur Qwen3.8-27B-GSQ-RCO-IQ2_S à ctx 32768 :
 #     nvidia-smi total occupé ....... 11516 Mio
@@ -95,6 +96,8 @@ def reserve_mio(ctx: int) -> int:
     if os.environ.get("DERIVE_RESERVE_MIO"):
         return RESERVE_MIO
     return int(150 + 0.0055 * ctx)
+
+
 # BUDGET VRAM = total de la carte MOINS l'empreinte du bureau.
 #
 # Ne PAS mesurer « la VRAM libre à l'instant » : sur `pc` un modèle est presque
@@ -120,10 +123,14 @@ FLUCTUATION_MIO = int(os.environ.get("DERIVE_FLUCTUATION_MIO", "500"))
 
 def vram_budget_mio() -> int:
     import subprocess
+
     try:
-        out = subprocess.run(["nvidia-smi", "--query-gpu=memory.total",
-                              "--format=csv,noheader,nounits"],
-                             capture_output=True, text=True, timeout=30).stdout
+        out = subprocess.run(
+            ["nvidia-smi", "--query-gpu=memory.total", "--format=csv,noheader,nounits"],
+            capture_output=True,
+            text=True,
+            timeout=30,
+        ).stdout
         total = int(out.splitlines()[0].strip())
     except Exception:
         total = 12288
@@ -155,8 +162,14 @@ def lire_entete(cible: str) -> dict:
         infos.append({"nom": nom, "dims": dims, "type": typ, "offset": off})
     align = kv.get("general.alignment", 32)
     debut = (s.pos + align - 1) // align * align
-    return {"kv": kv, "tenseurs": infos, "debut_donnees": debut, "octets_lus": s.pos,
-            "local": s.local, "cible": cible}
+    return {
+        "kv": kv,
+        "tenseurs": infos,
+        "debut_donnees": debut,
+        "octets_lus": s.pos,
+        "local": s.local,
+        "cible": cible,
+    }
 
 
 def tailles_exactes(e: dict, taille_fichier: int | None) -> None:
@@ -188,12 +201,16 @@ def analyse(e: dict, taille_fichier: int | None) -> dict:
         return defaut
 
     blocs = {int(m.group(1)) for n in noms if (m := re.match(r"blk\.(\d+)\.", n))}
-    attn = {int(m.group(1)) for n in noms
-            if (m := re.match(r"blk\.(\d+)\.attn_k\.weight", n))}
+    attn = {
+        int(m.group(1))
+        for n in noms
+        if (m := re.match(r"blk\.(\d+)\.attn_k\.weight", n))
+    }
     moe = any("_exps" in n for n in noms)
     ssm = any(".ssm_" in n for n in noms)
-    mtp = any(re.search(r"nextn|\.eh_proj", n, re.I) for n in noms) or \
-        any("nextn" in k.lower() for k in kv)
+    mtp = any(re.search(r"nextn|\.eh_proj", n, re.I) for n in noms) or any(
+        "nextn" in k.lower() for k in kv
+    )
 
     brut_kv = meta("attention.head_count_kv", 0) or 0
     k_len = meta("attention.key_length", 0) or 0
@@ -215,10 +232,10 @@ def analyse(e: dict, taille_fichier: int | None) -> dict:
     else:
         n_kv_heads = brut_kv
 
-    # KV par token en cache q8_0 (1 octet par valeur). Ne compte QUE les couches
-    # d'attention : sur un hybride, l'état des couches SSM est de taille CONSTANTE,
-    # indépendante du contexte. Ignorer ça multipliait mon estimation par 4 sur
-    # Qwen3.8-27B-GSQ-RCO (64 blocs dont 16 seulement en attention).
+        # KV par token en cache q8_0 (1 octet par valeur). Ne compte QUE les couches
+        # d'attention : sur un hybride, l'état des couches SSM est de taille CONSTANTE,
+        # indépendante du contexte. Ignorer ça multipliait mon estimation par 4 sur
+        # Qwen3.8-27B-GSQ-RCO (64 blocs dont 16 seulement en attention).
         n_couches_kv = len(attn) if attn else len(blocs)
         kv_par_token = n_couches_kv * n_kv_heads * (k_len + v_len)  # octets, q8_0
 
@@ -228,22 +245,61 @@ def analyse(e: dict, taille_fichier: int | None) -> dict:
         for t in T:
             m = re.match(r"blk\.(\d+)\..*_exps", t["nom"])
             if m:
-                exps[int(m.group(1))] = exps.get(int(m.group(1)), 0) + t.get("octets", 0)
+                exps[int(m.group(1))] = exps.get(int(m.group(1)), 0) + t.get(
+                    "octets", 0
+                )
 
     # Fenêtre glissante : si le modèle déclare des dimensions `*_swa`, une partie de
     # ses couches borne son cache par la FENÊTRE et non par le contexte. L'en-tête ne
     # dit pas QUELLES couches, donc le KV n'est pas calculable de façon fiable.
     swa = any(k.endswith(("_swa", ".sliding_window")) for k in kv)
 
-    return {"swa": swa,
-            "arch": arch, "blocs": len(blocs), "attn": len(attn), "moe": moe, "ssm": ssm,
-            "mtp": mtp, "n_kv_heads": n_kv_heads, "k_len": k_len, "v_len": v_len,
-            "kv_par_token": kv_par_token, "n_couches_kv": n_couches_kv,
-            "kv_par_couche": par_couche,
-            "ctx_entraine": meta("context_length", 0) or 0,
-            "experts": meta("expert_count", 0) or 0,
-            "poids_octets": poids_octets, "exps_par_couche": exps,
-            "octets_entete": e["octets_lus"]}
+    return {
+        "swa": swa,
+        "arch": arch,
+        "blocs": len(blocs),
+        "attn": len(attn),
+        "moe": moe,
+        "ssm": ssm,
+        "mtp": mtp,
+        "n_kv_heads": n_kv_heads,
+        "k_len": k_len,
+        "v_len": v_len,
+        "kv_par_token": kv_par_token,
+        "n_couches_kv": n_couches_kv,
+        "kv_par_couche": par_couche,
+        "ctx_entraine": meta("context_length", 0) or 0,
+        "experts": meta("expert_count", 0) or 0,
+        "poids_octets": poids_octets,
+        "exps_par_couche": exps,
+        "octets_entete": e["octets_lus"],
+    }
+
+
+def deport_experts(
+    poids_mio: float, dispo_mio: float, exps_par_couche: dict
+) -> tuple[float, int]:
+    """Rend (poids résidents en VRAM, nombre de couches d'experts déportées).
+
+    Sur un MoE, `--n-cpu-moe:N` fait CALCULER les experts des N couches les plus
+    grosses par le CPU : leurs poids ne résident pas en VRAM, et le trafic PCIe reste
+    quasi nul (contrairement à un streaming de poids). Comparer la taille TOTALE du
+    fichier au budget VRAM écarte donc à tort tout gros MoE — c'est ce que faisait le
+    contrôle `--exige-ctx`, qui a conclu que l'incumbent qwen3-coder-30b « dépasse de
+    5227 Mio » à 131072 alors que ses experts peuvent partir en RAM hôte.
+
+    Les couches sont déportées de la plus grosse à la plus petite, ce qui minimise le
+    nombre de couches confiées au CPU pour une place donnée — donc la perte de débit.
+    """
+    resident, n = poids_mio, 0
+    if not exps_par_couche:
+        return resident, n
+    for _, octets in sorted(exps_par_couche.items(), key=lambda kv: -kv[1]):
+        if resident <= dispo_mio:
+            break
+        resident -= octets / 1048576
+        n += 1
+    return resident, n
 
 
 def derive(a: dict, vram_mio: int, ctx_max: int | None) -> dict:
@@ -259,33 +315,63 @@ def derive(a: dict, vram_mio: int, ctx_max: int | None) -> dict:
     # config existante est pire que pas de générateur : on s'abstient et on le DIT.
     if a["swa"]:
         confiance = "basse"
-        raisons.append("couches à fenêtre glissante détectées (`*_swa`) : leur cache est "
-                       "borné par la fenêtre, pas par le contexte, et l'en-tête ne dit "
-                       "pas lesquelles. ctx et n_cpu_moe NON déduits — garder la config "
-                       "existante et régler par la mesure.")
-        return {"ctx": ctx_max or 0, "parallel": 1, "n_cpu_moe": 0, "mtp": a["mtp"],
-                "confiance": confiance, "poids_mio": round(poids_mio),
-                "poids_resident_mio": round(poids_mio), "kv_mio": 0,
-                "vram_prevue_mio": 0, "raisons": raisons}
+        raisons.append(
+            "couches à fenêtre glissante détectées (`*_swa`) : leur cache est "
+            "borné par la fenêtre, pas par le contexte, et l'en-tête ne dit "
+            "pas lesquelles. ctx et n_cpu_moe NON déduits — garder la config "
+            "existante et régler par la mesure."
+        )
+        return {
+            "ctx": ctx_max or 0,
+            "parallel": 1,
+            "n_cpu_moe": 0,
+            "mtp": a["mtp"],
+            "confiance": confiance,
+            "poids_mio": round(poids_mio),
+            "poids_resident_mio": round(poids_mio),
+            "kv_mio": 0,
+            "vram_prevue_mio": 0,
+            "raisons": raisons,
+        }
 
     # Ordre : d'abord le KV visé (donc le ctx), ensuite le déport d'experts qui doit
     # laisser la place à ce KV. L'inverse sous-dimensionnait le déport.
-    n_cpu_moe = 0
-    if a["moe"] and a["exps_par_couche"] and poids_mio > dispo:
-        # Déporte les couches d'experts les plus GROSSES d'abord, jusqu'à rentrer.
-        ordre = sorted(a["exps_par_couche"].items(), key=lambda kv: -kv[1])
-        reste = poids_mio
-        for _, oct_ in ordre:
-            if reste <= dispo:
-                break
-            reste -= oct_ / 1048576
-            n_cpu_moe += 1
-        raisons.append("MoE de %.0f Mio pour %.0f Mio utilisables : %d couche(s) "
-                       "d'experts déportées en RAM hôte (calculé sur les tailles "
-                       "exactes des tenseurs, pas estimé)" % (poids_mio, dispo, n_cpu_moe))
-        poids_resident = reste
-    else:
-        poids_resident = poids_mio
+    # Le déport d'experts n'est pas seulement un moyen de FAIRE TENIR les poids :
+    # c'est un levier qui ACHÈTE du contexte. Version précédente : on ne déportait
+    # que si les poids seuls dépassaient le budget, jamais pour laisser la place à un
+    # KV plus grand. Sur l'incumbent qwen3-coder-30b (8501 Mio, 48 couches d'experts)
+    # cela donnait `ctx=16384 n_cpu_moe=0`, soit MOINS que les 32768 auxquels il tourne
+    # réellement — alors qu'en déportant 31 couches il tient 131072. Signalé par
+    # l'utilisateur le 2026-09-10 : « c'est un MoE et doit donc déporter une partie des
+    # experts en RAM ».
+    #
+    # POLITIQUE : on paie du déport pour atteindre la CIBLE (le critère de contexte),
+    # pas au-delà. Chaque couche déportée est calculée par le CPU, donc coûte du débit ;
+    # il n'y a aucune raison d'en payer pour un contexte que le critère ne demande pas.
+    CIBLE = int(os.environ.get("DERIVE_CTX_CIBLE", "131072"))
+
+    def faisable(c: int):
+        """Rend (poids résidents, n_cpu_moe) si ce ctx tient, sinon None."""
+        maxi = vram_mio - c * a["kv_par_token"] / 1048576 - reserve_mio(c)
+        if maxi <= 0:
+            return None
+        # Le déport vise le budget MOINS la marge, pas le budget. Sinon il libère le
+        # minimum pour « tenir » et la marge exigée juste après n'est jamais atteinte :
+        # l'incumbent retombait alors à ctx=16384 sans déporter une seule couche.
+        vise = maxi - SEUIL_ALERTE_MARGE_MIO
+        if a["moe"] and a["exps_par_couche"] and poids_mio > vise:
+            resident, n = deport_experts(poids_mio, vise, a["exps_par_couche"])
+        else:
+            resident, n = poids_mio, 0
+        # La marge est une CONDITION, pas un avertissement. Sans ce test, la
+        # croissance retenait pour l'incumbent ctx=131072 avec 71 Mio de marge — or
+        # une config à 491 Mio de marge a déjà rendu `cudaMalloc failed` le lendemain
+        # de son chargement, le bureau KDE ayant grossi entre-temps. On refuse donc
+        # tout ctx qui ne laisse pas SEUIL_ALERTE_MARGE_MIO, et la croissance retombe
+        # d'elle-même sur le cran inférieur.
+        if maxi - resident < SEUIL_ALERTE_MARGE_MIO:
+            return None
+        return (resident, n) if resident <= maxi else None
 
     # CHOIX DU CONTEXTE par croissance monotone. On part du plancher et on double
     # tant que la prévision COMPLÈTE tient dans le budget — prévision qui inclut la
@@ -298,41 +384,61 @@ def derive(a: dict, vram_mio: int, ctx_max: int | None) -> dict:
     #   2. ne faire que RÉDUIRE depuis une valeur trop grande — ça ne remontait
     #      jamais quand la réduction avait été excessive.
     # La croissance monotone n'a aucun de ces deux défauts.
-    def prevision(c: int) -> float:
-        return poids_resident + c * a["kv_par_token"] / 1048576 + reserve_mio(c)
-
     plafonds = [x for x in (a["ctx_entraine"], ctx_max) if x]
     plafond = min(plafonds) if plafonds else 1 << 22
+    n_cpu_moe = 0
+    poids_resident = poids_mio
     if a["kv_par_token"] <= 0:
         ctx = CTX_PLANCHER
         raisons.append("dimensions KV illisibles : ctx laissé au plancher")
     else:
         ctx = CTX_PLANCHER
-        while ctx * 2 <= plafond and prevision(ctx * 2) <= vram_mio:
+        base = faisable(CTX_PLANCHER)
+        if base:
+            poids_resident, n_cpu_moe = base
+        while ctx * 2 <= plafond:
+            f = faisable(ctx * 2)
+            if not f:
+                break
+            # Au-delà de la cible, on ne double que si ça ne coûte pas de déport EN PLUS.
+            if ctx * 2 > CIBLE and f[1] > n_cpu_moe:
+                break
             ctx *= 2
+            poids_resident, n_cpu_moe = f
         # Le plafond lui-même est un candidat, même s'il n'est pas une puissance de 2.
         # Sans ça, un modèle entraîné à 128000 tokens plafonnait à 65536 : la
         # croissance par doublement voulait passer à 131072, qui dépasse 128000, donc
         # elle s'arrêtait au cran précédent — et le critère l'écartait ensuite pour
         # « contexte insuffisant » alors que 128000 EST 128 K. Constaté le 2026-09-09
         # sur lfm2.5-8b-a1b.
-        if plafond > ctx and prevision(plafond) <= vram_mio:
+        f = faisable(plafond) if plafond > ctx else None
+        if f and not (plafond > CIBLE and f[1] > n_cpu_moe):
             ctx = plafond
-        if prevision(ctx) > vram_mio:
-            raisons.append("même le plancher (%d) dépasse le budget : ce modèle ne "
-                           "tient pas sur cette carte dans cette quantification"
-                           % CTX_PLANCHER)
+            poids_resident, n_cpu_moe = f
+        if faisable(ctx) is None:
+            raisons.append(
+                "même le plancher (%d) dépasse le budget : ce modèle ne "
+                "tient pas sur cette carte dans cette quantification" % CTX_PLANCHER
+            )
     if plafonds and ctx >= plafond:
         raisons.append("ctx au plafond du modèle ou demandé (%d)" % plafond)
 
     res = reserve_mio(ctx)
-    return {"ctx": ctx, "parallel": 1, "n_cpu_moe": n_cpu_moe, "mtp": a["mtp"],
-            "confiance": confiance, "reserve": res,
-            "poids_mio": round(poids_mio), "poids_resident_mio": round(poids_resident),
-            "kv_mio": round(ctx * a["kv_par_token"] / 1048576),
-            "vram_prevue_mio": round(poids_resident + ctx * a["kv_par_token"] / 1048576
-                                     + res),
-            "raisons": raisons}
+    return {
+        "ctx": ctx,
+        "parallel": 1,
+        "n_cpu_moe": n_cpu_moe,
+        "mtp": a["mtp"],
+        "confiance": confiance,
+        "reserve": res,
+        "poids_mio": round(poids_mio),
+        "poids_resident_mio": round(poids_resident),
+        "kv_mio": round(ctx * a["kv_par_token"] / 1048576),
+        "vram_prevue_mio": round(
+            poids_resident + ctx * a["kv_par_token"] / 1048576 + res
+        ),
+        "raisons": raisons,
+    }
 
 
 def yaml_options(c: dict) -> str:
@@ -356,8 +462,11 @@ def yaml_options(c: dict) -> str:
 def main() -> int:
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
     if not args:
-        print("usage: derive_config.py <url-ou-chemin> [--vram-libre-mio N] "
-              "[--ctx-max N] [--yaml]", file=sys.stderr)
+        print(
+            "usage: derive_config.py <url-ou-chemin> [--vram-libre-mio N] "
+            "[--ctx-max N] [--yaml]",
+            file=sys.stderr,
+        )
         return 2
     cible = args[0]
 
@@ -392,13 +501,18 @@ def main() -> int:
             draft = sys.argv[i + 1]
     poids_draft = 0
     if draft:
-        poids_draft = (os.path.getsize(draft) if os.path.exists(draft)
-                       else (taille_distante(draft) or 0))
+        poids_draft = (
+            os.path.getsize(draft)
+            if os.path.exists(draft)
+            else (taille_distante(draft) or 0)
+        )
         vram -= poids_draft / 1048576
 
     if poids_draft:
-        print("  drafter MTP séparé : %.0f Mio retirés du budget (chargé en VRAM en "
-              "plus du modèle)" % (poids_draft / 1048576))
+        print(
+            "  drafter MTP séparé : %.0f Mio retirés du budget (chargé en VRAM en "
+            "plus du modèle)" % (poids_draft / 1048576)
+        )
     e = lire_entete(cible)
     taille = os.path.getsize(cible) if e["local"] else taille_distante(cible)
     tailles_exactes(e, taille)
@@ -416,25 +530,47 @@ def main() -> int:
     exige = opt("--exige-ctx", 0)
     if exige:
         if c["confiance"] == "basse":
-            print("  contexte minimum %d : NON ÉVALUABLE (fenêtre glissante) — on ne "
-                  "l'écarte pas" % exige)
+            print(
+                "  contexte minimum %d : NON ÉVALUABLE (fenêtre glissante) — on ne "
+                "l'écarte pas" % exige
+            )
             return 0
         if a["ctx_entraine"] and a["ctx_entraine"] < exige:
-            print("  ÉCARTÉ : contexte d'entraînement %d < %d exigé"
-                  % (a["ctx_entraine"], exige))
+            print(
+                "  ÉCARTÉ : contexte d'entraînement %d < %d exigé"
+                % (a["ctx_entraine"], exige)
+            )
             return 5
         kv = exige * a["kv_par_token"] / 1048576
         res = reserve_mio(exige)
         maxi = vram - kv - res
         poids = a["poids_octets"] / 1048576
-        if poids > maxi:
-            print("  ÉCARTÉ : à ctx %d il faudrait des poids ≤ %.0f Mio (budget %d "
-                  "− KV %.0f − réserve %d), or ce modèle pèse %.0f Mio — il dépasse "
-                  "de %.0f Mio. Une quantification plus basse pourrait passer."
-                  % (exige, maxi, vram, kv, res, poids, poids - maxi))
+        # Un MoE peut déporter ses experts en RAM hôte : c'est le poids RÉSIDENT qui
+        # doit tenir, pas le fichier entier. Sans ça la porte écartait l'incumbent.
+        resident, n_moe = poids, 0
+        if a["moe"] and a["exps_par_couche"]:
+            resident, n_moe = deport_experts(poids, maxi, a["exps_par_couche"])
+        if resident > maxi:
+            print(
+                "  ÉCARTÉ : à ctx %d il faudrait ≤ %.0f Mio résidents en VRAM "
+                "(budget %d − KV %.0f − réserve %d). Ce modèle pèse %.0f Mio et il "
+                "en reste %.0f après déport de %d couche(s) d'experts — il dépasse "
+                "de %.0f Mio. Une quantification plus basse pourrait passer."
+                % (exige, maxi, vram, kv, res, poids, resident, n_moe,
+                   resident - maxi)
+            )
             return 5
-        print("  contexte minimum %d : OK (poids %.0f Mio ≤ %.0f Mio disponibles)"
-              % (exige, poids, maxi))
+        if n_moe:
+            print(
+                "  contexte minimum %d : OK avec n_cpu_moe=%d — %.0f Mio résidents "
+                "sur %.0f Mio de poids, pour %.0f Mio disponibles"
+                % (exige, n_moe, resident, poids, maxi)
+            )
+        else:
+            print(
+                "  contexte minimum %d : OK (poids %.0f Mio ≤ %.0f Mio disponibles)"
+                % (exige, poids, maxi)
+            )
         return 0
 
     if "--yaml" in sys.argv:
@@ -446,12 +582,22 @@ def main() -> int:
         return 0
 
     print("=== %s ===" % os.path.basename(cible))
-    print("  arch=%s  blocs=%d (attn %d)  MoE=%s%s  SSM=%s  MTP=%s"
-          % (a["arch"], a["blocs"], a["attn"], "oui" if a["moe"] else "non",
-             " (%s experts)" % a["experts"] if a["experts"] else "",
-             "oui" if a["ssm"] else "non", "oui" if a["mtp"] else "non"))
-    print("  en-tête lu : %.2f Mio  ·  poids : %d Mio" % (a["octets_entete"] / 1048576,
-                                                          c["poids_mio"]))
+    print(
+        "  arch=%s  blocs=%d (attn %d)  MoE=%s%s  SSM=%s  MTP=%s"
+        % (
+            a["arch"],
+            a["blocs"],
+            a["attn"],
+            "oui" if a["moe"] else "non",
+            " (%s experts)" % a["experts"] if a["experts"] else "",
+            "oui" if a["ssm"] else "non",
+            "oui" if a["mtp"] else "non",
+        )
+    )
+    print(
+        "  en-tête lu : %.2f Mio  ·  poids : %d Mio"
+        % (a["octets_entete"] / 1048576, c["poids_mio"])
+    )
     print()
     if c["confiance"] == "basse":
         print("  CONFIG NON DÉDUITE (confiance basse) — voir la raison ci-dessous")
@@ -459,15 +605,28 @@ def main() -> int:
         for r in c["raisons"]:
             print("  · " + r)
         return 0
-    print("  CONFIG DÉDUITE : ctx=%d  parallel=1  n_cpu_moe=%d  mtp=%s"
-          % (c["ctx"], c["n_cpu_moe"], "oui" if c["mtp"] else "non"))
-    print("  VRAM prévue : %d Mio (poids résidents %d + KV %d + réserve %d) sur %d de "
-          "budget — marge %d Mio (minimum exigé %d)"
-          % (c["vram_prevue_mio"], c["poids_resident_mio"], c["kv_mio"], c["reserve"],
-             vram, vram - c["vram_prevue_mio"], SEUIL_ALERTE_MARGE_MIO))
+    print(
+        "  CONFIG DÉDUITE : ctx=%d  parallel=1  n_cpu_moe=%d  mtp=%s"
+        % (c["ctx"], c["n_cpu_moe"], "oui" if c["mtp"] else "non")
+    )
+    print(
+        "  VRAM prévue : %d Mio (poids résidents %d + KV %d + réserve %d) sur %d de "
+        "budget — marge %d Mio (minimum exigé %d)"
+        % (
+            c["vram_prevue_mio"],
+            c["poids_resident_mio"],
+            c["kv_mio"],
+            c["reserve"],
+            vram,
+            vram - c["vram_prevue_mio"],
+            SEUIL_ALERTE_MARGE_MIO,
+        )
+    )
     if vram - c["vram_prevue_mio"] < SEUIL_ALERTE_MARGE_MIO:
-        print("  ⚠ marge TANGENTE : cette config peut charger une fois et échouer "
-              "ensuite, le bureau partageant la carte. À vérifier au balayage.")
+        print(
+            "  ⚠ marge TANGENTE : cette config peut charger une fois et échouer "
+            "ensuite, le bureau partageant la carte. À vérifier au balayage."
+        )
     print()
     for r in c["raisons"]:
         print("  · " + r)
@@ -479,6 +638,7 @@ def main() -> int:
 
 def taille_distante(url: str) -> int | None:
     import urllib.request
+
     req = urllib.request.Request(url, method="HEAD")
     req.add_header("User-Agent", "derive-config")
     try:
