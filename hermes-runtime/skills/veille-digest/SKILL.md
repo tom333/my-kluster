@@ -208,6 +208,39 @@ Le modèle courant est celui vers lequel pointe l'alias `current` de LocalAI
 2026-07-29 : `gemma-4-12b-it-qat`, mesuré jusqu'à 41/44 sur le scénario `tetris` du banc
 `scripts/harness-bench`.
 
+#### AVANT TOUT : ce modèle a-t-il déjà été jugé ?
+
+**Lis `/opt/data/eval/queue-status.json` et cherche le modèle dans `juges` et
+`familles_jugees`.** C'est un contrôle obligatoire, pas une option, et il vient AVANT
+tous les autres : les autres coûtent des requêtes, celui-ci coûte une lecture de
+fichier.
+
+- `familles_jugees` porte la racine du nom, **suffixes de quantification retirés**.
+  Compare sur cette racine : tu diras « Ornith-1.5-9B » là où la file dit
+  `ornith-1.5-9b-mtp-iq4xs`. Normalise en minuscules avant de comparer.
+- Si tu trouves une correspondance : **n'émets PAS de ligne CANDIDAT**, et ne le
+  présente pas comme une découverte. Si le modèle mérite quand même une mention,
+  écris-la ainsi : « déjà évalué, écarté — <motif> », en reprenant le motif du champ
+  `juges[].motif`.
+- Un **quant différent ou un dépôt différent du même modèle ne le rend pas neuf.**
+  Le seul cas qui justifie de le reproposer est un changement qui lève le motif
+  d'origine — par exemple un quant plus BAS quand le rejet était « trop gros ». Dis
+  alors explicitement en quoi il lève le motif.
+
+Incident qui a rendu ce contrôle obligatoire, le 2026-09-11 : `Ornith-1.5-9B` a été
+présenté comme « nouveau modèle » avec ses 262 144 tokens de contexte en argument. Il
+avait été mesuré **deux jours plus tôt** — deux campagnes, une réussite sur six essais,
+écarté sur le coût (17,5× les tokens d'entrée de l'incumbent, 2312 s) — et il figurait
+dans la file, commenté, avec ce motif. La fiche recommandait de surcroît le quant
+`Q4_K_M`, que deux mesures indépendantes désignent comme celui qui détruit la
+compétence agentique sur cette taille. Et ses 262 144 ne tiennent pas sur la carte : à
+ce contexte le KV coûte 4608 Mio et le modèle dépasse le budget de 1423 Mio — son
+plafond réel est 131072. **Ne déduis jamais qu'un contexte annoncé est un contexte
+servable** : c'est le harnais d'éval qui le calcule, pas la fiche du modèle.
+
+Si `/opt/data/eval/queue-status.json` est absent ou illisible, dis-le dans le digest et
+émets quand même — mais signale que le contrôle d'antériorité n'a pas pu être fait.
+
 Si tu repères un modèle **local-exécutable** (GGUF dispo, ~≤12 GB en Q4, orienté
 coding/agentic) qui SEMBLE dépasser le courant, applique d'abord le **contrôle
 obligatoire** ci-dessous, puis ajoute en FIN de digest UNE ligne copiable :
