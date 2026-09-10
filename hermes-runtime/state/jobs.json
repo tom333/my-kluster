@@ -15,10 +15,10 @@
       "failure_streak": 0,
       "id": "2ee2afd955cb",
       "last_dispatch": {
-        "dispatched_at": "2026-09-09T09:00:53.873423+00:00",
+        "dispatched_at": "2026-09-10T09:00:31.453783+00:00",
         "kind": "on_time",
-        "lateness_seconds": 53.9,
-        "scheduled_at": "2026-09-09T09:00:00+00:00"
+        "lateness_seconds": 31.5,
+        "scheduled_at": "2026-09-10T09:00:00+00:00"
       },
       "model": null,
       "name": "decouvertes-quotidienne",
@@ -62,6 +62,12 @@
       ],
       "failure_streak": 0,
       "id": "3f1c9a2b7d84",
+      "last_dispatch": {
+        "dispatched_at": "2026-09-09T22:00:22.211167+00:00",
+        "kind": "on_time",
+        "lateness_seconds": 22.2,
+        "scheduled_at": "2026-09-09T22:00:00+00:00"
+      },
       "model": "gemma-4-12b-it-qat",
       "name": "harnais-et-agents-veille",
       "no_agent": false,
@@ -142,10 +148,10 @@
       "failure_streak": 0,
       "id": "7ebbddc10caa",
       "last_dispatch": {
-        "dispatched_at": "2026-09-09T08:15:46.898135+00:00",
+        "dispatched_at": "2026-09-10T08:15:22.827609+00:00",
         "kind": "on_time",
-        "lateness_seconds": 46.9,
-        "scheduled_at": "2026-09-09T08:15:00+00:00"
+        "lateness_seconds": 22.8,
+        "scheduled_at": "2026-09-10T08:15:00+00:00"
       },
       "model": null,
       "name": "bonsai-backend-watch",
@@ -227,10 +233,10 @@
       "failure_streak": 0,
       "id": "a03a6a8792b2",
       "last_dispatch": {
-        "dispatched_at": "2026-09-09T10:00:05.127012+00:00",
+        "dispatched_at": "2026-09-10T10:00:42.775470+00:00",
         "kind": "on_time",
-        "lateness_seconds": 5.1,
-        "scheduled_at": "2026-09-09T10:00:00+00:00"
+        "lateness_seconds": 42.8,
+        "scheduled_at": "2026-09-10T10:00:00+00:00"
       },
       "model": null,
       "name": "veille-data-ia-quotidienne",
@@ -275,6 +281,12 @@
       ],
       "failure_streak": 0,
       "id": "a38355a79f36",
+      "last_dispatch": {
+        "dispatched_at": "2026-09-09T20:00:59.728452+00:00",
+        "kind": "on_time",
+        "lateness_seconds": 59.7,
+        "scheduled_at": "2026-09-09T20:00:00+00:00"
+      },
       "model": null,
       "name": "job-scraper-data-ia",
       "no_agent": false,
@@ -319,6 +331,12 @@
       ],
       "failure_streak": 0,
       "id": "a6bd90e76dfa",
+      "last_dispatch": {
+        "dispatched_at": "2026-09-09T21:30:16.652222+00:00",
+        "kind": "on_time",
+        "lateness_seconds": 16.7,
+        "scheduled_at": "2026-09-09T21:30:00+00:00"
+      },
       "model": null,
       "name": "llm-veille-daily",
       "no_agent": false,
@@ -357,10 +375,10 @@
       "failure_streak": 0,
       "id": "b7c3e1a4f902",
       "last_dispatch": {
-        "dispatched_at": "2026-09-09T08:45:51.525309+00:00",
+        "dispatched_at": "2026-09-10T08:45:28.600758+00:00",
         "kind": "on_time",
-        "lateness_seconds": 51.5,
-        "scheduled_at": "2026-09-09T08:45:00+00:00"
+        "lateness_seconds": 28.6,
+        "scheduled_at": "2026-09-10T08:45:00+00:00"
       },
       "model": null,
       "name": "k2horizon-watch",
@@ -397,10 +415,10 @@
       "failure_streak": 0,
       "id": "d1965700c0de",
       "last_dispatch": {
-        "dispatched_at": "2026-09-09T16:15:16.461269+00:00",
+        "dispatched_at": "2026-09-10T16:15:54.286138+00:00",
         "kind": "on_time",
-        "lateness_seconds": 16.5,
-        "scheduled_at": "2026-09-09T16:15:00+00:00"
+        "lateness_seconds": 54.3,
+        "scheduled_at": "2026-09-10T16:15:00+00:00"
       },
       "model": null,
       "name": "digest-indexer",
@@ -439,10 +457,10 @@
       "failure_streak": 0,
       "id": "e8c4b8c91103",
       "last_dispatch": {
-        "dispatched_at": "2026-09-09T09:30:59.552830+00:00",
+        "dispatched_at": "2026-09-10T09:30:37.167743+00:00",
         "kind": "on_time",
-        "lateness_seconds": 59.6,
-        "scheduled_at": "2026-09-09T09:30:00+00:00"
+        "lateness_seconds": 37.2,
+        "scheduled_at": "2026-09-10T09:30:00+00:00"
       },
       "model": null,
       "name": "Résumé Korben soir",
