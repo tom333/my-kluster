@@ -87,7 +87,7 @@ Les fichiers `.disable` sont ignorés. Pour désactiver une app, suffixe son fic
 | Application        | Namespace      | Source                          | Version   | Notes                                  |
 |--------------------|----------------|---------------------------------|-----------|----------------------------------------|
 | `certmanager`      | `cert-manager` | charts.jetstack.io              | v1.20.0   | CRDs installées, sans Prometheus       |
-| `sealed-secrets`   | `kube-system`  | bitnami-labs.github.io/sealed-secrets | 2.16.2 | Controller de déchiffrement, Service `sealed-secrets-controller` |
+| `sealed-secrets`   | `kube-system`  | **bitnami**.github.io/sealed-secrets | 2.18.6 | Controller de déchiffrement, Service `sealed-secrets-controller`. ⚠️ Le projet a migré de `bitnami-labs` vers `bitnami` le 2026-06-15 et **GitHub Pages ne redirige pas** : l'ancienne URL renvoie 404 et ArgoCD ne peut plus générer les manifestes (le contrôleur déployé continue de tourner, donc la panne est silencieuse). |
 | `sealed`           | `kube-system`  | ce dépôt → `sealed/`           | HEAD      | App qui déploie tous les `SealedSecret` du repo |
 | `config`           | `infra`        | ce dépôt → `config/`           | HEAD      | Manifestes bruts (issuer, ingress...)  |
 | `oauth2-proxy`     | `kube-system`  | oauth2-proxy.github.io          | 10.1.4    | GitHub OAuth, `.tgu.ovh`, sans Redis   |
