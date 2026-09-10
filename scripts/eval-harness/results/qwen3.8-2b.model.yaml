@@ -1,7 +1,7 @@
-name: qwen3-coder-30b-a3b-instruct
+name: qwen3.8-2b
 backend: llama-cpp
 known_usecases: [chat]
-context_size: 131072
+context_size: 262144
 gpu_layers: 99
 f16: true
 flash_attention: true
@@ -9,15 +9,13 @@ mmap: true
 cache_type_k: q8_0
 cache_type_v: q8_0
 parameters:
-  model: Qwen3-Coder-30B-A3B-Instruct-UD-IQ1_S.gguf
+  model: Qwen3.8-2B-Q8_0.gguf
   temperature: 0.6
   top_p: 0.95
   top_k: 20
 options:
   - use_jinja:true
   - parallel:1
-  - "--n-cpu-moe:34"
-  - fit:on
 function:
   automatic_tool_parsing_fallback: true
   grammar:

@@ -11,19 +11,10 @@ cache_type_v: q8_0
 parameters:
   model: Qwen3-Coder-30B-A3B-Instruct-UD-IQ1_S.gguf
   temperature: 0.6
-  top_p: 0.95
-  top_k: 20
 options:
   - use_jinja:true
   - parallel:1
   - "--n-cpu-moe:34"
   - fit:on
-function:
-  automatic_tool_parsing_fallback: true
-  grammar:
-    disable: true
 template:
   use_tokenizer_template: true
-stopwords:
-  - "<|im_end|>"
-  - "<|endoftext|>"
