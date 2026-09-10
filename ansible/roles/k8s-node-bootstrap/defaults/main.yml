@@ -47,3 +47,7 @@ k8s_worker_kubelet_args:
   eviction-soft-grace-period: "memory.available=2m"
   eviction-minimum-reclaim: "memory.available=300Mi"
   system-reserved: "memory=1Gi,cpu=500m"
+
+# Pose un netplan qui prend n'importe quelle interface Ethernet et s'identifie en
+# DHCP par sa MAC. Évite qu'un changement de carte mère prive la machine de réseau.
+k8s_node_netplan_resilient: true

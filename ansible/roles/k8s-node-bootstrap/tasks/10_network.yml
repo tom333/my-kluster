@@ -1,0 +1,34 @@
+---
+# Réseau résilient au changement de matériel.
+#
+# Vécu le 2026-09-10 sur gaming-pc : après remplacement de la carte mère (MSI
+# LGA1151 morte -> HP Z240), la machine a démarré SANS AUCUN réseau. Le fichier
+# netplan généré à l'installation (`50-cloud-init.yaml`) nommait explicitement
+# l'ancienne interface, qui n'existait plus. Et cloud-init étant désactivé par le
+# rôle desktop, rien ne l'aurait jamais régénéré. Diagnostic depuis la console,
+# clavier en QWERTY, réseau mort : deux heures perdues.
+#
+# `match: en*` accepte n'importe quelle interface Ethernet, quel que soit son nom.
+#
+# `dhcp-identifier: mac` : par défaut systemd-networkd s'annonce par un DUID et
+# non par sa MAC, si bien qu'une réservation DHCP calée sur l'adresse MAC ne
+# correspond JAMAIS. C'est ce qui a fait revenir la machine sur une adresse du
+# pool malgré une réservation correcte côté MikroTik.
+- name: Réseau — netplan tolérant au changement de matériel
+  ansible.builtin.copy:
+    dest: /etc/netplan/99-dhcp-toutes-interfaces.yaml
+    owner: root
+    group: root
+    mode: '0600'          # netplan refuse tout fichier lisible par d'autres
+    content: |
+      # Managed by Ansible (k8s-node-bootstrap).
+      network:
+        version: 2
+        ethernets:
+          toutes:
+            match:
+              name: "en*"
+            dhcp4: true
+            dhcp-identifier: mac
+  when: k8s_node_netplan_resilient | bool
+  notify: apply netplan

@@ -1,10 +1,22 @@
 ---
 # Host-specific overrides for gaming-pc.
 #
-# Matériel (2026-07, après swap) : Intel i5-9400F (6c/6t Coffee Lake, PAS d'iGPU)
-# + ancienne CM MSI LGA1151 + GTX 1050 Ti (Pascal) + SSD (OS/pods) + HDD SATA 2 To
-# + 16 Go DDR4, 24/7. (Le R5 5500 est parti sur la station.) Double rôle : worker
-# MicroK8s + frontend jeu/média. Cf. docs/superpowers/plans/2026-07-24-hardware-swap-station-gaming.md
+# Matériel (2026-09-10, 2e swap) : station **HP Z240** — Intel **i7-6700**
+# (4c/8t Skylake, iGPU HD 530 présent mais désactivé par le BIOS en présence
+# d'une carte dédiée) + GTX 1050 Ti (Pascal) + SSD PNY 240 Go + 16 Go DDR4, 24/7.
+# Remplace la CM MSI LGA1151 + i5-9400F, morts après deux pannes en un mois
+# (alimentation le 09/08, mémoire le 06/09). Écart de performance assumé :
+# -7 % mono-cœur, -18 % multi. Double rôle : worker MicroK8s + frontend jeu/média.
+#
+# ⚠️ Secure Boot est ACTIVÉ d'origine sur le Z240 et bloque le module nvidia
+# (DKMS non signé) : le pilote s'installe mais ne se charge jamais, `nvidia-smi`
+# échoue et l'affichage tombe sur le framebuffer EFI. Désactivé dans le BIOS
+# (F10 → Security), en gardant **Legacy Support désactivé** — le système est
+# installé en UEFI, activer le Legacy le rendrait non amorçable.
+#
+# ⚠️ Carte réseau **eno1**, MAC 18:60:24:97:96:27, réservation MikroTik -> .150.
+# La réservation exige `dhcp-identifier: mac` côté client (cf. rôle
+# k8s-node-bootstrap, tâche 10_network) et un champ Client ID VIDE côté MikroTik.
 
 # --- Frontend / session (rôle desktop) ---
 desktop_frontend: pegasus          # UI canapé type Batocera (jeux PC + rétro + Brave + Jellyfin)
@@ -36,3 +48,7 @@ k8s_node_role: worker
 k8s_node_expected_hostname: jeux         # garde-fou hostname (≠ défaut "pc")
 gpu_enabled: true                        # installe nvidia-container-toolkit (NVENC jellyfin)
 # microk8s_channel : hérite du défaut 1.33/stable (DOIT matcher le master)
+
+# --- Accès distant ---
+# Pas de Tailscale sur ce nœud : poste de salle de jeux, accès LAN uniquement.
+tailscale_enabled: false

@@ -7,6 +7,8 @@
   tags: [bootstrap, preflight]
 
 # NVIDIA : check driver + container-toolkit. Worker : requis pour NVENC jellyfin.
+- ansible.builtin.import_tasks: 10_network.yml
+
 - ansible.builtin.import_tasks: 20_nvidia.yml
   tags: [bootstrap, nvidia]
   when: gpu_enabled | default(true)

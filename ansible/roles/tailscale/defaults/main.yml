@@ -1,4 +1,6 @@
 ---
+# Passer à false pour exclure un hôte (cf. host_vars/gaming-pc.yml).
+tailscale_enabled: true
 # tailscale — accès distant HORS CLUSTER.
 #
 # POURQUOI. L'accès distant reposait sur une chaîne à quatre maillons :

@@ -29,12 +29,27 @@
     mode: '0644'
   when: desktop_frontend == 'tint2'
 
-- name: Install light-locker (verrou écran à l'idle)
+# i3lock plutôt que light-locker. light-locker verrouille en BASCULANT vers le
+# greeter LightDM sur un autre terminal virtuel : le 2026-08-21 le greeter a
+# accepté le mot de passe sans jamais rendre la main à la session, et il a fallu
+# tuer le verrou par SSH PUIS taper Ctrl+Alt+F7 au clavier physique.
+# i3lock verrouille DANS la session courante : ni VT ni greeter, et la
+# récupération tient en `pkill i3lock` depuis n'importe quelle machine.
+# xss-lock relie l'économiseur X au verrou (déclenchement à l'inactivité).
+- name: Install screen locker (i3lock + xss-lock)
   ansible.builtin.apt:
-    name: light-locker
+    name:
+      - i3lock
+      - xss-lock
     state: present
     update_cache: false
   when: desktop_screenlock | bool
+
+- name: Remove light-locker (remplacé par i3lock)
+  ansible.builtin.apt:
+    name: light-locker
+    state: absent
+    purge: true
 
 - name: CPU tuning service (governor + EPP au boot)
   ansible.builtin.template:
@@ -69,9 +84,11 @@
     - not ansible_check_mode
 
 
-# Verrouillage à distance. light-locker refuse de démarrer ou de répondre sans
-# l'environnement posé par LightDM — `XDG_SESSION_PATH` en particulier, sinon il
-# meurt sur "Is LightDM running?". Une session SSH ne l'a pas. Le script le
+# Verrouillage à distance via l'économiseur X (`xset s activate`), que xss-lock
+# écoute pour lancer i3lock : un seul mécanisme pour le déclenchement manuel et
+# pour l'inactivité. Déverrouillage de secours : `ssh <hote> pkill i3lock`.
+# L'environnement graphique est relu sur `openbox`, car une session SSH n'a ni
+# DISPLAY ni XAUTHORITY. Le script le
 # reprend sur `openbox`, seul processus certainement issu de la vraie session
 # (ne pas viser pegasus-fe : il peut avoir été relancé hors session, son
 # environnement est alors celui du shell qui l'a lancé).
@@ -91,7 +108,7 @@
       while IFS= read -r -d "" v; do
         case "$v" in XDG_*|DBUS_*|DISPLAY=*|XAUTHORITY=*) export "$v";; esac
       done < "/proc/$P/environ"
-      exec light-locker-command "${1:--l}"
+      exec xset s activate
   when: desktop_screenlock | bool
 
 # Message plein écran temporaire, déclenchable à distance ("A TABLE !").

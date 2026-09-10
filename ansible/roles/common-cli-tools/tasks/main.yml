@@ -75,3 +75,27 @@
     enabled: true
     state: started
   when: not ansible_check_mode
+
+# Clavier de la CONSOLE texte. Le rôle desktop configure la session graphique,
+# mais pas la console — or c'est exactement celle dont on a besoin quand le
+# réseau est tombé et qu'on dépanne au clavier physique. Vécu le 2026-09-10 :
+# saisir un bloc netplan avec ses `/`, `:` et `"` sur un clavier AZERTY
+# interprété en QWERTY. Dépannage immédiat si ça se reproduit : `loadkeys fr`
+# (le `a` s'obtient alors sur la touche marquée Q).
+- name: Console — disposition clavier
+  ansible.builtin.lineinfile:
+    path: /etc/default/keyboard
+    regexp: '^XKBLAYOUT='
+    line: 'XKBLAYOUT="{{ console_keymap }}"'
+    create: true
+    owner: root
+    group: root
+    mode: '0644'
+  register: clavier_console
+
+- name: Console — appliquer la disposition
+  ansible.builtin.command: setupcon --save-only
+  changed_when: true
+  when:
+    - clavier_console is changed
+    - not ansible_check_mode

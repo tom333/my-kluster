@@ -46,8 +46,23 @@
   # would always evaluate true and trigger the download block (which fails in check).
   check_mode: false
 
+# Bloc ININSIMULABLE : chaque étape consomme le fichier produit par la précédente,
+# or `get_url` n'écrit rien en --check. L'extraction échouait donc sur « Source
+# does not exist », ce qui sortait l'hôte du play et empêchait de simuler tous les
+# rôles suivants. On saute le bloc en simulation et on annonce ce qui serait fait.
+- name: Beszel — mise à jour de l'agent qui SERAIT faite (simulation)
+  ansible.builtin.debug:
+    msg: >-
+      beszel-agent serait installé/mis à jour en {{ beszel_agent_version }}
+      (version detectée : {{ beszel_current_version.stdout | default('absent') | trim }})
+  when:
+    - ansible_check_mode
+    - beszel_current_version.rc != 0 or beszel_agent_version not in (beszel_current_version.stdout | default(''))
+
 - name: Download and install beszel-agent binary
-  when: beszel_current_version.rc != 0 or beszel_agent_version not in (beszel_current_version.stdout | default(''))
+  when:
+    - not ansible_check_mode
+    - beszel_current_version.rc != 0 or beszel_agent_version not in (beszel_current_version.stdout | default(''))
   block:
     - name: Download beszel-agent tarball
       ansible.builtin.get_url:

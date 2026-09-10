@@ -90,9 +90,10 @@ all:
     media_pcs:
       hosts:
         gaming-pc:
-          # i5-9400F + ancienne CM MSI LGA1151 + 1050 Ti, 24/7, filaire. Remplace le
-          # laptop mort (le R5 5500 est parti sur la station). Overrides dans
-          # host_vars/gaming-pc.yml. IP statique (réservation MikroTik).
+          # HP Z240 : i7-6700 + 1050 Ti + 16 Go DDR4, 24/7, filaire (eno1).
+          # 2e swap le 2026-09-10 après mort de la CM MSI. Overrides dans
+          # host_vars/gaming-pc.yml. Réservation DHCP MikroTik sur la MAC
+          # 18:60:24:97:96:27 — Client ID à laisser VIDE côté routeur.
           ansible_host: 192.168.88.150
           ansible_user: moi
           beszel_arch: amd64

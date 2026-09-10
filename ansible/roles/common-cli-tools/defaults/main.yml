@@ -26,3 +26,6 @@ cli_deb_get_packages:
 
 # deb-get script URL (pinned to main HEAD; review changes periodically).
 cli_deb_get_url: "https://raw.githubusercontent.com/wimpysworld/deb-get/main/deb-get"
+
+# Disposition du clavier de la console texte (/etc/default/keyboard).
+console_keymap: fr

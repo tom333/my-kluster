@@ -2,8 +2,10 @@
 # Solid background (pas de wallpaper lourd).
 xsetroot -solid "#15151f" &
 {% if desktop_screenlock | bool %}
-# Verrou parental. light-locker se déclenche sur l'ACTIVATION de l'économiseur X :
-# il faut donc l'armer, alors qu'un media PC le désactive d'ordinaire. DPMS reste
+# Verrou parental. xss-lock écoute l'ACTIVATION de l'économiseur X et lance
+# i3lock : il faut donc armer l'économiseur, alors qu'un media PC le désactive
+# d'ordinaire. i3lock verrouille DANS la session (ni VT ni greeter, contrairement
+# à light-locker qui a enfermé l'utilisateur dehors le 2026-08-21). DPMS reste
 # coupé — l'écran ne s'éteint pas (ce téléviseur supporte mal les cycles DPMS),
 # il affiche le verrou.
 # Ce qui ne verrouille PAS pendant l'usage : SDL (jeux, RetroArch) et mpv
@@ -12,7 +14,7 @@ xsetroot -solid "#15151f" &
 # naviguer longtemps dans Pegasus à la manette seule ne réarme pas le compteur.
 # D'où un délai généreux plutôt que serré.
 xset s {{ desktop_screenlock_timeout }} s blank -dpms &
-light-locker --no-late-locking &
+xss-lock -- i3lock --nofork --color=101018 --ignore-empty-password --show-failed-attempts &
 {% else %}
 # Media PC : pas de mise en veille écran pendant les vidéos.
 xset s off -dpms &

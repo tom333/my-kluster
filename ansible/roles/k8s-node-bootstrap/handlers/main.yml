@@ -14,3 +14,8 @@
     name: snap.microk8s.daemon-kubelite
     state: restarted
   when: not ansible_check_mode
+
+- name: apply netplan
+  ansible.builtin.command: netplan apply
+  changed_when: true
+  when: not ansible_check_mode
