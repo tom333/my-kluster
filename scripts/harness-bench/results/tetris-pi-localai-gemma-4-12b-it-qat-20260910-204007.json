@@ -1,0 +1,212 @@
+{
+  "scenario": "tetris",
+  "horodatage_debut": "2026-09-10T20:20:02",
+  "horodatage_fin": "2026-09-10T20:40:05",
+  "harnais": "pi",
+  "modele": "localai/gemma-4-12b-it-qat",
+  "runs": 3,
+  "tests_passed": 41,
+  "tests_passed_median": 41,
+  "tests_passed_min": 41,
+  "tests_passed_max": 41,
+  "tests_passed_ecart": 0,
+  "tests_passed_tous": [
+    41,
+    0,
+    0
+  ],
+  "tests_passed_notables": [
+    41
+  ],
+  "essais_comparables": 1,
+  "essais_erreur_collecte": 2,
+  "essais_pytest_pend": 0,
+  "tests_attendus": 44,
+  "verdict": "FAIL",
+  "tours_median": 4,
+  "pic_input_median": 9261,
+  "duree_s_median": 400,
+  "sortie_par_test_median": 467.415,
+  "tours_par_test_median": 0.098,
+  "config_env": {
+    "HARNAIS_NU_BASE_URL": "https://localai.tgu.ovh/v1"
+  },
+  "commande": "bench.py --scenario tetris --harness pi --model localai/gemma-4-12b-it-qat --runs 3 --timeout 400",
+  "serveur_actif": {
+    "nom": "gemma128k",
+    "modele": "gemma-4-12B-it-qat-UD-Q4_K_XL.gguf",
+    "log": "./logs-serveur/gemma128k-20260807-154253.log",
+    "image": "ghcr.io/ggml-org/llama.cpp:server-cuda-b10156",
+    "drapeaux": [
+      "--spec-draft-model",
+      "/models/mtp-gemma-4-12B-it.gguf",
+      "--spec-type",
+      "draft-mtp",
+      "--spec-draft-n-max",
+      "2",
+      "--temp",
+      "1.0",
+      "--top-p",
+      "0.95",
+      "--top-k",
+      "64",
+      "--no-mmap"
+    ],
+    "ctx_size": 128000,
+    "parallel": 1,
+    "flash_attn": true,
+    "kv": "q8_0",
+    "argv": [
+      "--model",
+      "/models/gemma-4-12B-it-qat-UD-Q4_K_XL.gguf",
+      "--ctx-size",
+      "128000",
+      "--parallel",
+      "1",
+      "-fa",
+      "on",
+      "-ctk",
+      "q8_0",
+      "-ctv",
+      "q8_0",
+      "--jinja",
+      "--no-webui",
+      "--host",
+      "0.0.0.0",
+      "--port",
+      "8080",
+      "--spec-draft-model",
+      "/models/mtp-gemma-4-12B-it.gguf",
+      "--spec-type",
+      "draft-mtp",
+      "--spec-draft-n-max",
+      "2",
+      "--temp",
+      "1.0",
+      "--top-p",
+      "0.95",
+      "--top-k",
+      "64",
+      "--no-mmap"
+    ]
+  },
+  "prompt_sha256": "c7ebe5bb7a797b7d",
+  "contrat_sha256": "c14dc4b5baf9ae8c",
+  "format_appels": "json",
+  "essais": [
+    {
+      "essai": 1,
+      "horodatage_debut": "2026-09-10T20:20:02",
+      "horodatage_fin": "2026-09-10T20:26:42",
+      "duree_s": 400.1,
+      "timeout": true,
+      "returncode": -1,
+      "depart": {
+        "passed": 0,
+        "failed": 0
+      },
+      "workdir": "/tmp/harness-bench-tetris-pi-localai-gemma-4-12b-it-qat-r1",
+      "tours": 4,
+      "appels_outils": 4,
+      "outils_utilises": [
+        "bash",
+        "read",
+        "write"
+      ],
+      "format_appels": "json",
+      "pic_input": 25656,
+      "total_input": 54304,
+      "total_output": 19164,
+      "verdict": "FAIL",
+      "tests_passed": 41,
+      "tests_failed": 3,
+      "tests_attendus": 44,
+      "etages": {},
+      "issue": "collecte_ok",
+      "lignes_ecrites": 270,
+      "pytest_tail": "3 failed, 41 passed in 0.05s",
+      "tests_ajoutes": [],
+      "gardes_violees": [],
+      "api_modifiee": [],
+      "fichiers_modifies": [
+        "tetris/__init__.py"
+      ]
+    },
+    {
+      "essai": 2,
+      "horodatage_debut": "2026-09-10T20:26:44",
+      "horodatage_fin": "2026-09-10T20:33:24",
+      "duree_s": 400.1,
+      "timeout": true,
+      "returncode": -1,
+      "depart": {
+        "passed": 0,
+        "failed": 0
+      },
+      "workdir": "/tmp/harness-bench-tetris-pi-localai-gemma-4-12b-it-qat-r2",
+      "tours": 6,
+      "appels_outils": 6,
+      "outils_utilises": [
+        "bash",
+        "edit",
+        "read",
+        "write"
+      ],
+      "format_appels": "json",
+      "pic_input": 9261,
+      "total_input": 42100,
+      "total_output": 19094,
+      "verdict": "FAIL",
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "tests_attendus": 44,
+      "etages": {},
+      "issue": "erreur_collecte",
+      "lignes_ecrites": 36,
+      "pytest_tail": "1 error in 0.07s",
+      "tests_ajoutes": [],
+      "gardes_violees": [],
+      "api_modifiee": [],
+      "fichiers_modifies": [
+        "tetris/__init__.py"
+      ]
+    },
+    {
+      "essai": 3,
+      "horodatage_debut": "2026-09-10T20:33:25",
+      "horodatage_fin": "2026-09-10T20:40:05",
+      "duree_s": 400.1,
+      "timeout": true,
+      "returncode": -1,
+      "depart": {
+        "passed": 0,
+        "failed": 0
+      },
+      "workdir": "/tmp/harness-bench-tetris-pi-localai-gemma-4-12b-it-qat-r3",
+      "tours": 3,
+      "appels_outils": 2,
+      "outils_utilises": [
+        "read",
+        "write"
+      ],
+      "format_appels": "json",
+      "pic_input": 6673,
+      "total_input": 8270,
+      "total_output": 504,
+      "verdict": "FAIL",
+      "tests_passed": 0,
+      "tests_failed": 0,
+      "tests_attendus": 44,
+      "etages": {},
+      "issue": "erreur_collecte",
+      "lignes_ecrites": 6,
+      "pytest_tail": "1 error in 0.08s",
+      "tests_ajoutes": [],
+      "gardes_violees": [],
+      "api_modifiee": [],
+      "fichiers_modifies": [
+        "tetris/__init__.py"
+      ]
+    }
+  ]
+}
