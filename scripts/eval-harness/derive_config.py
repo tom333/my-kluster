@@ -547,10 +547,14 @@ def main() -> int:
         poids = a["poids_octets"] / 1048576
         # Un MoE peut déporter ses experts en RAM hôte : c'est le poids RÉSIDENT qui
         # doit tenir, pas le fichier entier. Sans ça la porte écartait l'incumbent.
+        # MEME règle de marge que la dérivation principale, sinon la porte accepte
+        # ce que la dérivation refuse ensuite : elle validait agents-a1-4b-q8_0 à
+        # 262144 avec 326 Mio de marge, quand le seuil est de 400.
+        vise = maxi - SEUIL_ALERTE_MARGE_MIO
         resident, n_moe = poids, 0
         if a["moe"] and a["exps_par_couche"]:
-            resident, n_moe = deport_experts(poids, maxi, a["exps_par_couche"])
-        if resident > maxi:
+            resident, n_moe = deport_experts(poids, vise, a["exps_par_couche"])
+        if resident > vise:
             print(
                 "  ÉCARTÉ : à ctx %d il faudrait ≤ %.0f Mio résidents en VRAM "
                 "(budget %d − KV %.0f − réserve %d). Ce modèle pèse %.0f Mio et il "
