@@ -1,0 +1,268 @@
+{
+  "scenario": "tetris-etendu",
+  "horodatage_debut": "2026-09-11T12:49:04",
+  "horodatage_fin": "2026-09-11T12:55:28",
+  "harnais": "pi-verif",
+  "modele": "localai/gemma-4-12b-it-qat",
+  "runs": 3,
+  "tests_passed": 62,
+  "tests_passed_median": 62,
+  "tests_passed_min": 62,
+  "tests_passed_max": 62,
+  "tests_passed_ecart": 0,
+  "tests_passed_tous": [
+    62,
+    62,
+    62
+  ],
+  "tests_passed_notables": [
+    62,
+    62,
+    62
+  ],
+  "essais_comparables": 3,
+  "essais_erreur_collecte": 0,
+  "essais_pytest_pend": 0,
+  "tests_attendus": 62,
+  "verdict": "PASS",
+  "tours_median": 14,
+  "pic_input_median": 19532,
+  "duree_s_median": 133,
+  "sortie_par_test_median": 99.742,
+  "tours_par_test_median": 0.226,
+  "config_env": {
+    "HARNAIS_NU_BASE_URL": "https://localai.tgu.ovh/v1"
+  },
+  "commande": "bench.py --scenario tetris-etendu --harness pi-verif --model localai/gemma-4-12b-it-qat --runs 3 --timeout 900",
+  "serveur_actif": {
+    "nom": "gemma128k",
+    "modele": "gemma-4-12B-it-qat-UD-Q4_K_XL.gguf",
+    "log": "./logs-serveur/gemma128k-20260807-154253.log",
+    "image": "ghcr.io/ggml-org/llama.cpp:server-cuda-b10156",
+    "drapeaux": [
+      "--spec-draft-model",
+      "/models/mtp-gemma-4-12B-it.gguf",
+      "--spec-type",
+      "draft-mtp",
+      "--spec-draft-n-max",
+      "2",
+      "--temp",
+      "1.0",
+      "--top-p",
+      "0.95",
+      "--top-k",
+      "64",
+      "--no-mmap"
+    ],
+    "ctx_size": 128000,
+    "parallel": 1,
+    "flash_attn": true,
+    "kv": "q8_0",
+    "argv": [
+      "--model",
+      "/models/gemma-4-12B-it-qat-UD-Q4_K_XL.gguf",
+      "--ctx-size",
+      "128000",
+      "--parallel",
+      "1",
+      "-fa",
+      "on",
+      "-ctk",
+      "q8_0",
+      "-ctv",
+      "q8_0",
+      "--jinja",
+      "--no-webui",
+      "--host",
+      "0.0.0.0",
+      "--port",
+      "8080",
+      "--spec-draft-model",
+      "/models/mtp-gemma-4-12B-it.gguf",
+      "--spec-type",
+      "draft-mtp",
+      "--spec-draft-n-max",
+      "2",
+      "--temp",
+      "1.0",
+      "--top-p",
+      "0.95",
+      "--top-k",
+      "64",
+      "--no-mmap"
+    ]
+  },
+  "prompt_sha256": "e6b7f8c502191c6e",
+  "contrat_sha256": "dbd069847da8fd6b",
+  "format_appels": "json",
+  "essais": [
+    {
+      "essai": 1,
+      "horodatage_debut": "2026-09-11T12:49:04",
+      "horodatage_fin": "2026-09-11T12:50:56",
+      "duree_s": 112.1,
+      "timeout": false,
+      "returncode": 0,
+      "depart": {
+        "passed": 44,
+        "failed": 0
+      },
+      "workdir": "/tmp/harness-bench-tetris-etendu-pi-verif-localai-gemma-4-12b-it-qat-r1",
+      "tours": 14,
+      "appels_outils": 13,
+      "outils_utilises": [
+        "bash",
+        "edit",
+        "read",
+        "write"
+      ],
+      "format_appels": "json",
+      "pic_input": 12754,
+      "total_input": 103384,
+      "total_output": 5817,
+      "lignes_illisibles": 0,
+      "verdict": "PASS",
+      "tests_passed": 62,
+      "tests_failed": 0,
+      "tests_attendus": 62,
+      "etages": {
+        "regression": {
+          "passed": 44,
+          "failed": 0,
+          "attendus": 44,
+          "issue": "collecte_ok",
+          "verdict": "PASS"
+        },
+        "extension": {
+          "passed": 18,
+          "failed": 0,
+          "attendus": 18,
+          "issue": "collecte_ok",
+          "verdict": "PASS"
+        }
+      },
+      "issue": "collecte_ok",
+      "lignes_ecrites": 464,
+      "pytest_tail": "[regression]\n44 passed in 0.03s\n[extension]\n18 passed in 0.01s",
+      "tests_ajoutes": [],
+      "gardes_violees": [],
+      "api_modifiee": [],
+      "fichiers_modifies": [
+        "tetris/__init__.py",
+        "tetris/renderer.py"
+      ]
+    },
+    {
+      "essai": 2,
+      "horodatage_debut": "2026-09-11T12:50:57",
+      "horodatage_fin": "2026-09-11T12:53:14",
+      "duree_s": 136.1,
+      "timeout": false,
+      "returncode": 0,
+      "depart": {
+        "passed": 44,
+        "failed": 0
+      },
+      "workdir": "/tmp/harness-bench-tetris-etendu-pi-verif-localai-gemma-4-12b-it-qat-r2",
+      "tours": 15,
+      "appels_outils": 14,
+      "outils_utilises": [
+        "bash",
+        "edit",
+        "read",
+        "write"
+      ],
+      "format_appels": "json",
+      "pic_input": 22247,
+      "total_input": 208068,
+      "total_output": 6678,
+      "lignes_illisibles": 0,
+      "verdict": "PASS",
+      "tests_passed": 62,
+      "tests_failed": 0,
+      "tests_attendus": 62,
+      "etages": {
+        "regression": {
+          "passed": 44,
+          "failed": 0,
+          "attendus": 44,
+          "issue": "collecte_ok",
+          "verdict": "PASS"
+        },
+        "extension": {
+          "passed": 18,
+          "failed": 0,
+          "attendus": 18,
+          "issue": "collecte_ok",
+          "verdict": "PASS"
+        }
+      },
+      "issue": "collecte_ok",
+      "lignes_ecrites": 464,
+      "pytest_tail": "[regression]\n44 passed in 0.03s\n[extension]\n18 passed in 0.01s",
+      "tests_ajoutes": [],
+      "gardes_violees": [],
+      "api_modifiee": [],
+      "fichiers_modifies": [
+        "tetris/__init__.py",
+        "tetris/extension.py"
+      ]
+    },
+    {
+      "essai": 3,
+      "horodatage_debut": "2026-09-11T12:53:15",
+      "horodatage_fin": "2026-09-11T12:55:28",
+      "duree_s": 132.8,
+      "timeout": false,
+      "returncode": 0,
+      "depart": {
+        "passed": 44,
+        "failed": 0
+      },
+      "workdir": "/tmp/harness-bench-tetris-etendu-pi-verif-localai-gemma-4-12b-it-qat-r3",
+      "tours": 14,
+      "appels_outils": 13,
+      "outils_utilises": [
+        "bash",
+        "edit",
+        "read",
+        "write"
+      ],
+      "format_appels": "json",
+      "pic_input": 19532,
+      "total_input": 149538,
+      "total_output": 6184,
+      "lignes_illisibles": 0,
+      "verdict": "PASS",
+      "tests_passed": 62,
+      "tests_failed": 0,
+      "tests_attendus": 62,
+      "etages": {
+        "regression": {
+          "passed": 44,
+          "failed": 0,
+          "attendus": 44,
+          "issue": "collecte_ok",
+          "verdict": "PASS"
+        },
+        "extension": {
+          "passed": 18,
+          "failed": 0,
+          "attendus": 18,
+          "issue": "collecte_ok",
+          "verdict": "PASS"
+        }
+      },
+      "issue": "collecte_ok",
+      "lignes_ecrites": 463,
+      "pytest_tail": "[regression]\n44 passed in 0.03s\n[extension]\n18 passed in 0.01s",
+      "tests_ajoutes": [],
+      "gardes_violees": [],
+      "api_modifiee": [],
+      "fichiers_modifies": [
+        "tetris/__init__.py",
+        "tetris/utils.py"
+      ]
+    }
+  ]
+}
