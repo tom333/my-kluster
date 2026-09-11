@@ -1206,6 +1206,7 @@ def pi_metrics(transcript):
     peak_input = 0
     total_in = total_out = 0
     xml_leak = False
+    lignes_illisibles = 0
     for line in transcript.splitlines():
         line = line.strip()
         if not line.startswith("{"):
@@ -1213,6 +1214,14 @@ def pi_metrics(transcript):
         try:
             event = json.loads(line)
         except json.JSONDecodeError:
+            continue
+        except RecursionError:
+            # Une ligne trop IMBRIQUÉE pour le décodeur. Vu le 2026-09-11 : la
+            # campagne entière est morte en plein essai 2 sur un
+            # « maximum recursion depth exceeded », et comme le transcript n'est
+            # écrit qu'APRÈS le parsing, la preuve a disparu avec elle. Une ligne
+            # illisible se saute et se compte ; elle ne fait pas tomber le reste.
+            lignes_illisibles += 1
             continue
         if event.get("type") == "turn_end":
             turns += 1
@@ -1247,6 +1256,8 @@ def pi_metrics(transcript):
         "pic_input": peak_input,
         "total_input": total_in,
         "total_output": total_out,
+        # Sauter une ligne en silence rendrait un relevé faux indistinguable d'un bon.
+        "lignes_illisibles": lignes_illisibles,
     }
 
 
@@ -2048,6 +2059,14 @@ def run_once(harness, model, scenario_name, timeout, essai=1, total=1):
         "depart": {"passed": before[0], "failed": before[1]},
         "workdir": str(workdir),
     }
+    # Le transcript est posé sur le disque AVANT toute analyse. Il l'était après,
+    # si bien qu'une exception du parseur détruisait l'unique trace de l'essai —
+    # exactement ce qui s'est produit le 2026-09-11.
+    try:
+        RESULTS.mkdir(exist_ok=True)
+        (RESULTS / ("%s-r%d.transcript" % (slug, essai))).write_text(transcript)
+    except OSError:
+        pass
     result.update(parse_metrics(transcript))
     result.update(verify(workdir, scenario))
     return result, transcript
@@ -2314,6 +2333,10 @@ def run(harness, model, scenario_name, timeout, runs=1):
             "  cout méd.   : %s tours/test  %s tokens sortie/test  (a lire AVEC le score)"
             % (result["tours_par_test_median"], result["sortie_par_test_median"])
         )
+    illisibles = sum(e.get("lignes_illisibles") or 0 for e in result["essais"])
+    if illisibles:
+        print("  ⚠️  %d ligne(s) de transcript illisibles : des tours ont pu "
+              "échapper au comptage" % illisibles)
     print("  verdict     : %s" % result["verdict"])
     if runs == 1:
         print("  ⚠️  UN SEUL ESSAI : c'est un tirage, pas une mesure. --runs 3 minimum")
