@@ -1199,6 +1199,26 @@ def pi_sysmin_command(model, workdir, prompt):
     return argv[:i] + ["--system-prompt", PROMPT_SYSTEME_MINIMAL] + argv[i:], env
 
 
+def pi_verif_command(model, workdir, prompt):
+    """`pi` avec ses EXTENSIONS chargées — tout le reste identique à `pi`.
+
+    Motif, et c'est une erreur qui a produit de fausses conclusions le 2026-09-11 :
+    `pi_command` passe `--no-extensions`. L'extension `verifier.ts` (boucle de
+    vérification) était donc DÉSACTIVÉE dans toutes les campagnes lancées avec
+    `PI_VERIFY_CMD`, et les relevés attribués à son effet n'en portaient aucune
+    trace — zéro relance injectée dans les sept transcripts vérifiés après coup.
+
+    Seul `--no-extensions` est retiré. `--no-skills` et `--no-context-files` restent,
+    pour que l'écart avec `pi` tienne au chargement des extensions et à rien d'autre.
+
+    ⚠️ Charge TOUTES les extensions installées, pas seulement celle qu'on mesure.
+    Pour un A/B à un seul facteur, vérifier `pi list` et retirer temporairement ce
+    qui n'est pas sous test.
+    """
+    argv, env = pi_command(model, workdir, prompt)
+    return [a for a in argv if a != "--no-extensions"], env
+
+
 def pi_metrics(transcript):
     """Extrait tours, appels d'outils, format et tokens du JSONL de pi."""
     turns = 0
@@ -1817,6 +1837,7 @@ HARNESSES = {
     "pi-abspath": (pi_abspath_command, pi_metrics),
     "pi-act": (pi_act_command, pi_metrics),
     "pi-sysmin": (pi_sysmin_command, pi_metrics),
+    "pi-verif": (pi_verif_command, pi_metrics),
     "little-coder": (little_coder_command, pi_metrics),
     "aider": (aider_command, aider_metrics),
     "nu": (nu_command, nu_metrics),
