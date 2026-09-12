@@ -15,10 +15,10 @@
       "failure_streak": 0,
       "id": "2ee2afd955cb",
       "last_dispatch": {
-        "dispatched_at": "2026-09-11T09:00:30.671805+00:00",
+        "dispatched_at": "2026-09-12T09:00:37.382194+00:00",
         "kind": "on_time",
-        "lateness_seconds": 30.7,
-        "scheduled_at": "2026-09-11T09:00:00+00:00"
+        "lateness_seconds": 37.4,
+        "scheduled_at": "2026-09-12T09:00:00+00:00"
       },
       "model": null,
       "name": "decouvertes-quotidienne",
@@ -106,6 +106,12 @@
       "failure_streak": 0,
       "id": "42a01f72da31",
       "last_delivery_unverified": null,
+      "last_dispatch": {
+        "dispatched_at": "2026-09-12T09:00:37.382194+00:00",
+        "kind": "on_time",
+        "lateness_seconds": 37.4,
+        "scheduled_at": "2026-09-12T09:00:00+00:00"
+      },
       "model": null,
       "model_snapshot": null,
       "monitor_script": null,
@@ -230,6 +236,12 @@
       "enabled_toolsets": null,
       "failure_streak": 0,
       "id": "89e560928622",
+      "last_dispatch": {
+        "dispatched_at": "2026-09-12T10:30:14.003090+00:00",
+        "kind": "on_time",
+        "lateness_seconds": 14.0,
+        "scheduled_at": "2026-09-12T10:30:00+00:00"
+      },
       "model": null,
       "name": "Veille écosystème *arr (hebdomadaire)",
       "no_agent": false,
@@ -274,10 +286,10 @@
       "failure_streak": 0,
       "id": "a03a6a8792b2",
       "last_dispatch": {
-        "dispatched_at": "2026-09-11T10:00:44.320280+00:00",
+        "dispatched_at": "2026-09-12T10:02:07.011777+00:00",
         "kind": "on_time",
-        "lateness_seconds": 44.3,
-        "scheduled_at": "2026-09-11T10:00:00+00:00"
+        "lateness_seconds": 127.0,
+        "scheduled_at": "2026-09-12T10:00:00+00:00"
       },
       "model": null,
       "name": "veille-data-ia-quotidienne",
@@ -416,10 +428,10 @@
       "failure_streak": 0,
       "id": "b7c3e1a4f902",
       "last_dispatch": {
-        "dispatched_at": "2026-09-11T20:45:16.087813+00:00",
+        "dispatched_at": "2026-09-12T08:45:33.754299+00:00",
         "kind": "on_time",
-        "lateness_seconds": 16.1,
-        "scheduled_at": "2026-09-11T20:45:00+00:00"
+        "lateness_seconds": 33.8,
+        "scheduled_at": "2026-09-12T08:45:00+00:00"
       },
       "model": null,
       "name": "k2horizon-watch",
@@ -456,10 +468,10 @@
       "failure_streak": 0,
       "id": "d1965700c0de",
       "last_dispatch": {
-        "dispatched_at": "2026-09-12T08:15:26.229270+00:00",
+        "dispatched_at": "2026-09-12T16:15:21.224257+00:00",
         "kind": "on_time",
-        "lateness_seconds": 26.2,
-        "scheduled_at": "2026-09-12T08:15:00+00:00"
+        "lateness_seconds": 21.2,
+        "scheduled_at": "2026-09-12T16:15:00+00:00"
       },
       "model": null,
       "name": "digest-indexer",
@@ -498,10 +510,10 @@
       "failure_streak": 0,
       "id": "e8c4b8c91103",
       "last_dispatch": {
-        "dispatched_at": "2026-09-11T09:30:37.516403+00:00",
+        "dispatched_at": "2026-09-12T09:30:44.327458+00:00",
         "kind": "on_time",
-        "lateness_seconds": 37.5,
-        "scheduled_at": "2026-09-11T09:30:00+00:00"
+        "lateness_seconds": 44.3,
+        "scheduled_at": "2026-09-12T09:30:00+00:00"
       },
       "model": null,
       "name": "Résumé Korben soir",
