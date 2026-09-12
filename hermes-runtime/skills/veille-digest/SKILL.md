@@ -205,8 +205,58 @@ se fait en tâche de fond. N'attends pas sa réponse et ne la commente pas.
 
 Le modèle courant est celui vers lequel pointe l'alias `current` de LocalAI
 (`charts/localai/values.yaml`) — **ne code JAMAIS son nom en dur ici**, il change. Au
-2026-07-29 : `gemma-4-12b-it-qat`, mesuré jusqu'à 41/44 sur le scénario `tetris` du banc
-`scripts/harness-bench`.
+2026-09-12 : `gemma-4-12b-it-qat`, qui résout le `tetris` en **44/44 avec arrêt
+spontané à 596 s**, et le scénario d'extension `tetris-etendu` en **62/62, trois essais
+sur trois, 133 s** — sans aucune béquille, sous le harnais `pi` de série.
+
+#### LA BARRE EST HAUTE, ET C'EST LE POINT DE DÉPART
+
+Quinze candidats ont été triés et mesurés entre le 2026-09-09 et le 2026-09-12.
+**Aucun n'a battu le modèle déjà servi.** Ne propose donc plus par NOUVEAUTÉ : une
+veille qui remonte un candidat par mois en vérifiant les points ci-dessous vaut mieux
+qu'une qui en remonte un par jour. **Zéro ligne CANDIDAT est une réponse normale et
+souhaitable.** N'en émets une que si tu peux dire en une phrase POURQUOI ce modèle
+aurait une chance de faire mieux que 44/44 en 596 s.
+
+Les quatre critères qui ont réellement prédit, mesurés et non supposés :
+
+- **La quantification basse détruit l'agentique sur les PETITS modèles denses, pas sur
+  les gros MoE.** `ornith-1.0` (9 Md) : agentic 6/6 en Q6_K, ~0 en Q4_K_M.
+  `agents-a1-4b` : 32/44 en Q8_0, 18/44 en Q4_K_M. MAIS l'ancien incumbent
+  `qwen3-coder-30b` tourne en **UD-IQ1_S (~1,6 bit)** et fait 32 à 37/44. Donc : en
+  dessous de ~9 Md et en dense, exige Q6_K ou mieux ; sur un gros MoE, un quant
+  agressif est acceptable et ne justifie pas d'écarter.
+- **Pas de perte post-entraînement = avantage réel.** Les deux modèles qui n'en
+  subissent aucune sont `gemma-4-12b-it-qat` (quantification apprise pendant
+  l'entraînement) et `Bonsai-27B` (ternaire natif, 1,07 bit/paramètre). Ils font 44 et
+  28. Un **QAT officiel** ou une **précision native basse** est le signal le plus fort
+  qu'on ait trouvé. Google est à ce jour le seul éditeur à publier du QAT en GGUF.
+- **Ce qui force le déport d'experts est handicapé.** `qwen3-coder-30b` à
+  `n_cpu_moe=34` tombe à **6,7 tok/s effectifs contre 25,7 mesurés au chargement** :
+  74 % du temps part à relire les poids depuis la RAM hôte. Un modèle qui tient
+  ENTIÈREMENT en VRAM part avec un avantage décisif. (Le watcher `moe-cache-watch`
+  préviendra si le cache LRU d'experts de llama.cpp change cette donne.)
+- **Un finetune part avec un historique défavorable.** Cinq testés, cinq échecs, et
+  chacun par un mode différent : protocole propre au modèle, code écrit dans le chat
+  sans appeler `write`, indentation à un espace, rumination jusqu'au plafond de sortie.
+  Ce n'est pas une règle d'exclusion — `ornith-1.5` est un finetune officiel et a fait
+  44/44 une fois — mais c'est un ordre de priorité.
+
+#### LES MODES D'ÉCHEC DÉJÀ CATALOGUÉS
+
+Si la fiche du modèle ou les retours terrain évoquent l'un de ces comportements, dis-le
+explicitement dans ta ligne : ce sont les quatre façons dont un modèle au bon score
+échoue en tâche réelle.
+
+- **Protocole propre** : il dépose ses appels d'outils dans `content` au lieu de
+  `tool_calls` (JSON, ou bloc markdown). Aucun harnais ne peut l'exécuter.
+- **N'écrit jamais** : il lit, il raisonne, il n'appelle jamais `write`.
+- **Code non valide** : indentation perdue, blocs tronqués.
+- **Rumination** : il épuise son plafond de sortie sans rien produire.
+
+Un excellent score sur un banc à items COURTS ne prédit rien de tout cela : deux
+modèles ont rendu les meilleurs relevés d'éval de leur journée et 0/44 en tâche
+longue.
 
 #### AVANT TOUT : ce modèle a-t-il déjà été jugé ?
 
