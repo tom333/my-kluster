@@ -64,6 +64,20 @@ artifacts:
     owner: git
     mode: text
 
+  # Absent du manifeste jusqu'au 2026-09-12 alors que son cron tourne depuis le
+  # 2026-09-07 : un effacement du PVC aurait perdu le script sans que `diff` le voie.
+  - name: script-k2horizon-watch
+    pod: /opt/data/scripts/k2_horizon_watch.py
+    git: scripts/k2horizon-watcher/k2_horizon_watch.py
+    owner: git
+    mode: text
+
+  - name: script-moe-cache-watch
+    pod: /opt/data/scripts/moe_cache_watch.py
+    git: scripts/moe-cache-watcher/moe_cache_watch.py
+    owner: git
+    mode: text
+
   # Cas spécial : la source Git est le bloc YAML inline du manifeste ArgoCD,
   # chemin configMaps.bootstrap.data["config.yaml"] dans spec.source.helm.values.
   # `apply` est REFUSÉ sur cet artefact : son seul chemin d'écriture légitime est

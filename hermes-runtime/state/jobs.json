@@ -98,6 +98,41 @@
     },
     {
       "base_url": null,
+      "context_from": null,
+      "created_at": "2026-09-12T08:22:02.802685+00:00",
+      "deliver": "telegram",
+      "enabled": true,
+      "enabled_toolsets": null,
+      "failure_streak": 0,
+      "id": "42a01f72da31",
+      "last_delivery_unverified": null,
+      "model": null,
+      "model_snapshot": null,
+      "monitor_script": null,
+      "monitor_state": null,
+      "monitor_url": null,
+      "name": "moe-cache-watch",
+      "no_agent": true,
+      "origin": null,
+      "prompt": "",
+      "provider": null,
+      "provider_snapshot": null,
+      "repeat": {
+        "times": null
+      },
+      "schedule": {
+        "display": "0 9,21 * * *",
+        "expr": "0 9,21 * * *",
+        "kind": "cron"
+      },
+      "schedule_display": "0 9,21 * * *",
+      "script": "moe_cache_watch.py",
+      "skill": null,
+      "skills": [],
+      "workdir": null
+    },
+    {
+      "base_url": null,
       "context_from": [
         "self"
       ],
@@ -110,6 +145,12 @@
       ],
       "failure_streak": 0,
       "id": "7c4e1b9a2f60",
+      "last_dispatch": {
+        "dispatched_at": "2026-09-12T06:00:53.297481+00:00",
+        "kind": "on_time",
+        "lateness_seconds": 53.3,
+        "scheduled_at": "2026-09-12T06:00:00+00:00"
+      },
       "model": null,
       "name": "veille-3d-assets",
       "no_agent": false,
@@ -148,10 +189,10 @@
       "failure_streak": 0,
       "id": "7ebbddc10caa",
       "last_dispatch": {
-        "dispatched_at": "2026-09-11T08:15:19.774567+00:00",
+        "dispatched_at": "2026-09-12T08:15:26.229270+00:00",
         "kind": "on_time",
-        "lateness_seconds": 19.8,
-        "scheduled_at": "2026-09-11T08:15:00+00:00"
+        "lateness_seconds": 26.2,
+        "scheduled_at": "2026-09-12T08:15:00+00:00"
       },
       "model": null,
       "name": "bonsai-backend-watch",
@@ -282,10 +323,10 @@
       "failure_streak": 0,
       "id": "a38355a79f36",
       "last_dispatch": {
-        "dispatched_at": "2026-09-10T20:00:37.657492+00:00",
+        "dispatched_at": "2026-09-11T20:00:07.586569+00:00",
         "kind": "on_time",
-        "lateness_seconds": 37.7,
-        "scheduled_at": "2026-09-10T20:00:00+00:00"
+        "lateness_seconds": 7.6,
+        "scheduled_at": "2026-09-11T20:00:00+00:00"
       },
       "model": null,
       "name": "job-scraper-data-ia",
@@ -332,10 +373,10 @@
       "failure_streak": 0,
       "id": "a6bd90e76dfa",
       "last_dispatch": {
-        "dispatched_at": "2026-09-10T21:30:55.215118+00:00",
+        "dispatched_at": "2026-09-11T21:30:49.503171+00:00",
         "kind": "on_time",
-        "lateness_seconds": 55.2,
-        "scheduled_at": "2026-09-10T21:30:00+00:00"
+        "lateness_seconds": 49.5,
+        "scheduled_at": "2026-09-11T21:30:00+00:00"
       },
       "model": null,
       "name": "llm-veille-daily",
@@ -375,10 +416,10 @@
       "failure_streak": 0,
       "id": "b7c3e1a4f902",
       "last_dispatch": {
-        "dispatched_at": "2026-09-11T08:45:27.021996+00:00",
+        "dispatched_at": "2026-09-11T20:45:16.087813+00:00",
         "kind": "on_time",
-        "lateness_seconds": 27.0,
-        "scheduled_at": "2026-09-11T08:45:00+00:00"
+        "lateness_seconds": 16.1,
+        "scheduled_at": "2026-09-11T20:45:00+00:00"
       },
       "model": null,
       "name": "k2horizon-watch",
@@ -415,10 +456,10 @@
       "failure_streak": 0,
       "id": "d1965700c0de",
       "last_dispatch": {
-        "dispatched_at": "2026-09-11T16:15:38.621135+00:00",
+        "dispatched_at": "2026-09-12T08:15:26.229270+00:00",
         "kind": "on_time",
-        "lateness_seconds": 38.6,
-        "scheduled_at": "2026-09-11T16:15:00+00:00"
+        "lateness_seconds": 26.2,
+        "scheduled_at": "2026-09-12T08:15:00+00:00"
       },
       "model": null,
       "name": "digest-indexer",
