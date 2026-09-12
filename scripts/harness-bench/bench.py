@@ -1227,6 +1227,7 @@ def pi_metrics(transcript):
     total_in = total_out = 0
     xml_leak = False
     lignes_illisibles = 0
+    erreur_modele = None
     for line in transcript.splitlines():
         line = line.strip()
         if not line.startswith("{"):
@@ -1243,6 +1244,15 @@ def pi_metrics(transcript):
             # illisible se saute et se compte ; elle ne fait pas tomber le reste.
             lignes_illisibles += 1
             continue
+        # Un modele qui n'a pas CHARGE n'est pas un modele qui a echoue. Vu le
+        # 2026-09-12 sur agents-a1-4b-q8_0 : « cudaMalloc failed: out of memory »
+        # parce que LocalAI n'avait pas rendu la VRAM du modele precedent, et le banc
+        # a compte l'essai comme un 0/44. Un tel essai doit sortir de la mesure, pas
+        # la plomber.
+        if event.get("type") == "message_end":
+            msg = event.get("message") or {}
+            if msg.get("stopReason") == "error" and msg.get("errorMessage"):
+                erreur_modele = str(msg["errorMessage"])[:300]
         if event.get("type") == "turn_end":
             turns += 1
             usage = event["message"].get("usage") or {}
@@ -1278,6 +1288,7 @@ def pi_metrics(transcript):
         "total_output": total_out,
         # Sauter une ligne en silence rendrait un relevé faux indistinguable d'un bon.
         "lignes_illisibles": lignes_illisibles,
+        "erreur_modele": erreur_modele,
     }
 
 
@@ -2358,6 +2369,12 @@ def run(harness, model, scenario_name, timeout, runs=1):
     if illisibles:
         print("  ⚠️  %d ligne(s) de transcript illisibles : des tours ont pu "
               "échapper au comptage" % illisibles)
+    invalides = [e for e in result["essais"] if e.get("erreur_modele")]
+    if invalides:
+        print("  ⚠️  %d essai(s) INVALIDES : le modèle n'a pas chargé, ils ne "
+              "mesurent rien" % len(invalides))
+        for e in invalides:
+            print("      essai %s : %s" % (e.get("essai"), e["erreur_modele"][:110]))
     print("  verdict     : %s" % result["verdict"])
     if runs == 1:
         print("  ⚠️  UN SEUL ESSAI : c'est un tirage, pas une mesure. --runs 3 minimum")
