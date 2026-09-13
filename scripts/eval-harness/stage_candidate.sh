@@ -47,8 +47,12 @@ esac; done
 # déclarait « ready », et le `kubectl exec` suivant échouait sur
 # « container not found ». Constaté le 2026-09-09 : le relevé d'ornith-1.0-9b est
 # invalide pour cette raison.
+# Exiger RUNNING, pas seulement « pas Terminating ». Deux zombies successifs ont
+# fait viser le mauvais pod : d'abord localai-jeux (2026-09-09), puis un
+# localai-64bd96b6c6-56p4p resté « Unknown » 28 h (2026-09-12) — `head -1` le
+# prenait, l'exec échouait, et le staging repartait sans rien créer ni rien dire.
 POD() { kubectl get pods -n $NS --no-headers 2>/dev/null \
-        | awk '/^localai-[0-9a-f]/ && $3!="Terminating"{print $1}' | head -1; }
+        | awk '/^localai-[0-9a-f]/ && $3=="Running"{print $1}' | head -1; }
 
 restart_wait() {
   echo "restart LocalAI + attente ready (modèle déjà présent sur PVC, prêt en ~40s)..."
