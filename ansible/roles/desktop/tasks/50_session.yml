@@ -124,3 +124,38 @@
     owner: root
     group: root
     mode: '0755'
+
+# Jellyfin Media Player (Qt/mpv) demande l'inhibition de l'économiseur par
+# l'API D-Bus org.freedesktop.ScreenSaver. Sous Openbox PERSONNE ne détient ce
+# nom sur le bus de session (vérifié le 2026-09-13 : ListNames ne le retourne
+# pas), l'appel échoue donc SANS ERREUR VISIBLE et le compteur d'inactivité X
+# continue de courir -> i3lock tombait en pleine lecture.
+# Faute d'implémenter un service D-Bus complet, on réarme le compteur tant
+# qu'un son sort réellement : un sink PipeWire RUNNING veut dire que des
+# données audio circulent (pause -> IDLE en quelques secondes, le verrou
+# reprend alors son cours normal). Couvre aussi les jeux et RetroArch.
+# ⚠️ Le garde-fou `pgrep i3lock` n'est pas optionnel : xss-lock TUE le verrou
+# quand l'économiseur se désactive. Sans lui, un flux audio qui continue
+# derrière l'écran verrouillé (Jellyfin ne s'arrête pas tout seul) ferait
+# sauter le verrou sans mot de passe.
+- name: Verrou — ne pas verrouiller pendant une lecture audio
+  ansible.builtin.copy:
+    dest: /usr/local/bin/inhiber-verrou
+    owner: root
+    group: root
+    mode: '0755'
+    content: |
+      #!/usr/bin/env bash
+      # Managed by Ansible (desktop role). Lancé par l'autostart Openbox.
+      set -eu
+      export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
+      # 60 s, très en dessous du délai de verrouillage ({{ desktop_screenlock_timeout }} s).
+      while :; do
+        sleep 60
+        # Écran déjà verrouillé : ne rien faire, sinon xss-lock tue i3lock.
+        pgrep -x i3lock >/dev/null 2>&1 && continue
+        if pactl list short sinks 2>/dev/null | grep -qw RUNNING; then
+          xset s reset
+        fi
+      done
+  when: desktop_screenlock | bool
