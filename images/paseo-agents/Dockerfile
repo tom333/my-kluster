@@ -10,7 +10,7 @@
 # Build :
 #   docker build -t localhost:32000/paseo-agents:0.7.2-cc2.1.263 images/paseo-agents
 #   docker push localhost:32000/paseo-agents:0.7.2-cc2.1.263
-FROM ghcr.io/getpaseo/paseo:0.7.2
+FROM ghcr.io/getpaseo/paseo:0.8.0
 
 ARG CLAUDE_CODE_VERSION=2.1.263
 
