@@ -320,3 +320,26 @@ class TestBalayageApresGel:
         comparables = (bench.ISSUE_OK, bench.ISSUE_PARTIEL)
         notables = [e["tests_passed"] for e in essais if e["issue"] in comparables]
         assert notables == [44, 33]
+
+
+class TestVerdictMajorite:
+    """Un PASS exige une MAJORITE d'essais comparables, pas seulement une médiane.
+
+    Motif (2026-09-14) : campagne opencode sur crepuscule-amorce, essais 3/3, 0/3,
+    0/3. Les deux échecs écartés comme « ne compile pas », médiane calculée sur UN
+    essai, verdict PASS. Le banc a déclaré réussie une campagne où rien n'avait
+    fonctionné deux fois sur trois.
+    """
+
+    def _verdict(self, notables, runs, attendus):
+        med = bench.mediane(notables) if notables else None
+        return "PASS" if med == attendus and len(notables) * 2 > runs else "FAIL"
+
+    def test_un_seul_essai_comparable_sur_trois_ne_passe_pas(self):
+        assert self._verdict([3], runs=3, attendus=3) == "FAIL"
+
+    def test_deux_essais_comparables_sur_trois_passent(self):
+        assert self._verdict([3, 3], runs=3, attendus=3) == "PASS"
+
+    def test_la_majorite_ne_sauve_pas_une_mediane_insuffisante(self):
+        assert self._verdict([2, 3, 2], runs=3, attendus=3) == "FAIL"

@@ -1,0 +1,286 @@
+{
+  "scenario": "crepuscule-amorce",
+  "horodatage_debut": "2026-09-14T23:00:44",
+  "horodatage_fin": "2026-09-15T00:11:26",
+  "harnais": "opencode",
+  "modele": "localai/gemma-4-12b-it-qat",
+  "runs": 3,
+  "tests_passed": 3,
+  "tests_passed_median": 3,
+  "tests_passed_min": 3,
+  "tests_passed_max": 3,
+  "tests_passed_ecart": 0,
+  "tests_passed_tous": [
+    3,
+    0,
+    0
+  ],
+  "tests_passed_notables": [
+    3
+  ],
+  "essais_comparables": 1,
+  "essais_erreur_collecte": 2,
+  "essais_pytest_pend": 0,
+  "essais_balayes": 0,
+  "tests_attendus": 3,
+  "verdict": "PASS",
+  "tours_median": 34,
+  "pic_input_median": 87404,
+  "duree_s_median": 1157,
+  "sortie_par_test_median": 301.0,
+  "tours_par_test_median": 11.333,
+  "config_env": {},
+  "commande": "./bench.py --scenario crepuscule-amorce --harness opencode --model localai/gemma-4-12b-it-qat --runs 3 --timeout 2400",
+  "serveur_actif": {
+    "nom": "gemma128k",
+    "modele": "gemma-4-12B-it-qat-UD-Q4_K_XL.gguf",
+    "log": "./logs-serveur/gemma128k-20260807-154253.log",
+    "image": "ghcr.io/ggml-org/llama.cpp:server-cuda-b10156",
+    "drapeaux": [
+      "--spec-draft-model",
+      "/models/mtp-gemma-4-12B-it.gguf",
+      "--spec-type",
+      "draft-mtp",
+      "--spec-draft-n-max",
+      "2",
+      "--temp",
+      "1.0",
+      "--top-p",
+      "0.95",
+      "--top-k",
+      "64",
+      "--no-mmap"
+    ],
+    "ctx_size": 128000,
+    "parallel": 1,
+    "flash_attn": true,
+    "kv": "q8_0",
+    "argv": [
+      "--model",
+      "/models/gemma-4-12B-it-qat-UD-Q4_K_XL.gguf",
+      "--ctx-size",
+      "128000",
+      "--parallel",
+      "1",
+      "-fa",
+      "on",
+      "-ctk",
+      "q8_0",
+      "-ctv",
+      "q8_0",
+      "--jinja",
+      "--no-webui",
+      "--host",
+      "0.0.0.0",
+      "--port",
+      "8080",
+      "--spec-draft-model",
+      "/models/mtp-gemma-4-12B-it.gguf",
+      "--spec-type",
+      "draft-mtp",
+      "--spec-draft-n-max",
+      "2",
+      "--temp",
+      "1.0",
+      "--top-p",
+      "0.95",
+      "--top-k",
+      "64",
+      "--no-mmap"
+    ]
+  },
+  "prompt_sha256": "23da66fec039f782",
+  "contrat_sha256": "e3b0c44298fc1c14",
+  "format_appels": "json",
+  "essais": [
+    {
+      "essai": 1,
+      "horodatage_debut": "2026-09-14T23:00:44",
+      "horodatage_fin": "2026-09-14T23:10:56",
+      "duree_s": 612.4,
+      "timeout": false,
+      "returncode": 0,
+      "depart": {
+        "passed": 0,
+        "failed": 0
+      },
+      "workdir": "/tmp/harness-bench-crepuscule-amorce-opencode-localai-gemma-4-12b-it-qat-r1",
+      "tours": 34,
+      "appels_outils": 33,
+      "outils_utilises": [
+        "bash",
+        "edit",
+        "grep",
+        "read",
+        "write"
+      ],
+      "format_appels": "json",
+      "pic_input": 61721,
+      "total_input": 61721,
+      "total_output": 903,
+      "lignes_illisibles": 0,
+      "erreur_modele": null,
+      "stop_reason": "stop",
+      "verdict": "PASS",
+      "tests_passed": 3,
+      "tests_failed": 0,
+      "tests_attendus": 3,
+      "etages": {
+        "build": {
+          "passed": 1,
+          "failed": 0,
+          "attendus": 1,
+          "issue": "collecte_ok",
+          "verdict": "PASS"
+        },
+        "lancement": {
+          "passed": 1,
+          "failed": 0,
+          "attendus": 1,
+          "issue": "collecte_ok",
+          "verdict": "PASS"
+        },
+        "rendu": {
+          "passed": 1,
+          "failed": 0,
+          "attendus": 1,
+          "issue": "collecte_ok",
+          "verdict": "PASS"
+        }
+      },
+      "issue": "collecte_ok",
+      "lignes_ecrites": 0,
+      "pytest_tail": "[projet] crepuscule\n[capture] harness-bench-crepuscule-amorce-opencode-localai-gemma-4-12b-it-qat-r1.png\n[rendu] apparu apres 0s (dominante 86.8 %)",
+      "tests_ajoutes": [],
+      "gardes_violees": [],
+      "api_modifiee": [],
+      "fichiers_modifies": []
+    },
+    {
+      "essai": 2,
+      "horodatage_debut": "2026-09-14T23:12:18",
+      "horodatage_fin": "2026-09-14T23:50:40",
+      "duree_s": 2302.2,
+      "timeout": false,
+      "returncode": 0,
+      "depart": {
+        "passed": 0,
+        "failed": 0
+      },
+      "workdir": "/tmp/harness-bench-crepuscule-amorce-opencode-localai-gemma-4-12b-it-qat-r2",
+      "tours": 59,
+      "appels_outils": 58,
+      "outils_utilises": [
+        "bash",
+        "edit",
+        "glob",
+        "grep",
+        "read",
+        "write"
+      ],
+      "format_appels": "json",
+      "pic_input": 106013,
+      "total_input": 106013,
+      "total_output": 2257,
+      "lignes_illisibles": 0,
+      "erreur_modele": null,
+      "stop_reason": "stop",
+      "verdict": "FAIL",
+      "tests_passed": 0,
+      "tests_failed": 3,
+      "tests_attendus": 3,
+      "etages": {
+        "build": {
+          "passed": 0,
+          "failed": 1,
+          "attendus": 1,
+          "issue": "collecte_ok",
+          "verdict": "FAIL"
+        },
+        "lancement": {
+          "passed": 0,
+          "failed": 1,
+          "attendus": 1,
+          "issue": "collecte_ok",
+          "verdict": "FAIL"
+        },
+        "rendu": {
+          "passed": 0,
+          "failed": 1,
+          "attendus": 1,
+          "issue": "collecte_ok",
+          "verdict": "FAIL"
+        }
+      },
+      "issue": "erreur_collecte",
+      "lignes_ecrites": 0,
+      "pytest_tail": "[projet] crepuscule\n[build] acktrace option to get the stack trace.\n> Run with --info or --debug option to get more log output.\n> Run with --scan to get full insights from a Build Scan (powered by Develocity).\n> Get more help at https://help.gradle.org.\n\nBUILD FAILED in 1m 27s\nGradle task assembleDebug failed with exit code 1\n\n[lancement] pas d'APK\n[rendu] pas d'APK",
+      "tests_ajoutes": [],
+      "gardes_violees": [],
+      "api_modifiee": [],
+      "fichiers_modifies": []
+    },
+    {
+      "essai": 3,
+      "horodatage_debut": "2026-09-14T23:52:09",
+      "horodatage_fin": "2026-09-15T00:11:26",
+      "duree_s": 1157.0,
+      "timeout": false,
+      "returncode": 0,
+      "depart": {
+        "passed": 0,
+        "failed": 0
+      },
+      "workdir": "/tmp/harness-bench-crepuscule-amorce-opencode-localai-gemma-4-12b-it-qat-r3",
+      "tours": 33,
+      "appels_outils": 32,
+      "outils_utilises": [
+        "bash",
+        "glob",
+        "read",
+        "write"
+      ],
+      "format_appels": "json",
+      "pic_input": 87404,
+      "total_input": 87404,
+      "total_output": 16384,
+      "lignes_illisibles": 0,
+      "erreur_modele": null,
+      "stop_reason": "length",
+      "verdict": "FAIL",
+      "tests_passed": 0,
+      "tests_failed": 3,
+      "tests_attendus": 3,
+      "etages": {
+        "build": {
+          "passed": 0,
+          "failed": 1,
+          "attendus": 1,
+          "issue": "collecte_ok",
+          "verdict": "FAIL"
+        },
+        "lancement": {
+          "passed": 0,
+          "failed": 1,
+          "attendus": 1,
+          "issue": "collecte_ok",
+          "verdict": "FAIL"
+        },
+        "rendu": {
+          "passed": 0,
+          "failed": 1,
+          "attendus": 1,
+          "issue": "collecte_ok",
+          "verdict": "FAIL"
+        }
+      },
+      "issue": "erreur_collecte",
+      "lignes_ecrites": 0,
+      "pytest_tail": "[build] --stacktrace option to get the stack trace.\n> Run with --info or --debug option to get more log output.\n> Run with --scan to get full insights from a Build Scan (powered by Develocity).\n> Get more help at https://help.gradle.org.\n\nBUILD FAILED in 5s\nGradle task assembleDebug failed with exit code 1\n\n[lancement] pas d'APK\n[rendu] pas d'APK",
+      "tests_ajoutes": [],
+      "gardes_violees": [],
+      "api_modifiee": [],
+      "fichiers_modifies": []
+    }
+  ]
+}

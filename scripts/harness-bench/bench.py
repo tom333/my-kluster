@@ -2478,7 +2478,23 @@ def run(harness, model, scenario_name, timeout, runs=1):
         "essais_pytest_pend": n_pend,
         "essais_balayes": n_balaye,
         "tests_attendus": attendus,
-        "verdict": "PASS" if med == attendus else "FAIL",
+        # Un PASS exige AUSSI une MAJORITE d'essais comparables.
+        #
+        # Motif (2026-09-14) : campagne opencode sur crepuscule-amorce, essais
+        # 3/3, 0/3, 0/3 -- les deux echecs ecartes comme « ne compile pas », donc
+        # la mediane calculee sur UN seul essai, donc verdict PASS. Le banc a
+        # declare reussie une campagne ou rien n'a fonctionne deux fois sur trois.
+        #
+        # Ecarter un essai qui ne compile pas reste juste : une coquille ne doit
+        # pas tirer la mediane vers le bas. Mais quand la MAJORITE des essais ne
+        # compile pas, ce n'est plus du bruit, c'est le resultat -- et c'est
+        # exactement le motif qui avait fait ecarter ornith-1.5 (44/44 une fois
+        # sur six).
+        "verdict": (
+            "PASS"
+            if med == attendus and len(notables) * 2 > runs
+            else "FAIL"
+        ),
         "tours_median": mediane([e.get("tours") for e in essais]),
         "pic_input_median": mediane([e.get("pic_input") for e in essais]),
         "duree_s_median": mediane([e.get("duree_s") for e in essais]),
