@@ -733,6 +733,40 @@ def run_pytest(workdir, cibles=(), binaire=None, lanceur="pytest"):
 # dire laquelle est laquelle.
 
 PART_DOMINANTE_MAX = 0.90
+
+# Marqueurs du gabarit ecrit par `flutter create`. Leur presence dans lib/ signifie
+# que l'agent n'a PAS remplace l'application de demonstration.
+#
+# Motif (2026-09-14) : un tirage a ete note 3/3 alors que l'emulateur affichait
+# « Flutter Demo Home Page » et le compteur de clics. L'etage `rendu` est une
+# heuristique de couleur (dominante < 90 %) calibree contre un ECRAN VIDE (98 %) et
+# un cube ombre (78,9 %) -- jamais contre le GABARIT, qui sort a 86,8 % et passe
+# donc avec 3 points de marge. Or le gabarit est la sortie fausse la PLUS probable,
+# puisque `flutter create` la produit toute seule : il suffit que l'agent cree le
+# projet et n'ecrive rien.
+#
+# Le garde est deterministe la ou l'etage est heuristique : on ne devine pas ce que
+# l'image montre, on constate que le code n'a pas bouge.
+MARQUEURS_GABARIT_FLUTTER = (
+    "You have pushed the button this many times",
+    "_incrementCounter",
+)
+
+
+def _gabarit_intact(projet):
+    """Vrai si lib/ porte encore l'application de demonstration de `flutter create`."""
+    lib = Path(projet) / "lib"
+    if not lib.is_dir():
+        return False
+    for source in lib.rglob("*.dart"):
+        try:
+            texte = source.read_text(errors="replace")
+        except OSError:
+            continue
+        if any(m in texte for m in MARQUEURS_GABARIT_FLUTTER):
+            return True
+    return False
+
 # Seuil MESURE, pas devine : une scene flutter_scene VIDE, capturee sur l'emulateur
 # le 2026-08-06, met 98,0 % de ses pixels dans une seule couleur (254, 247, 255). Le
 # nombre de couleurs DISTINCTES serait un mauvais discriminant -- l'antialiasing du
@@ -985,7 +1019,15 @@ def _verifie_amorce_flutter(workdir, scenario):
                 notes.append("[capture] %s" % cible.name)
             except OSError:
                 pass
-        if part is None:
+        if _gabarit_intact(projet):
+            # Inutile de juger l'image : le code est celui de `flutter create`.
+            etage(
+                "rendu",
+                False,
+                "gabarit `flutter create` intact dans lib/ (compteur de demonstration) "
+                "-- l'agent n'a pas ecrit de scene",
+            )
+        elif part is None:
             etage("rendu", False, "capture illisible (Pillow absent ?)")
         else:
             ok = part < PART_DOMINANTE_MAX
