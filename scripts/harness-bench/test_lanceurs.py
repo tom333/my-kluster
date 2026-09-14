@@ -268,3 +268,55 @@ class TestRacineProjet:
         )
         racine = bench._racine_projet(str(tmp_path))
         assert bench._identifiant_application(racine) == "com.crepuscule.amorce"
+
+
+class TestBalayageApresGel:
+    """Un seul test qui boucle ne doit plus effacer le score des 43 autres.
+
+    Motif (2026-09-14) : mellum2-12b-a2.5b a perdu DEUX essais sur trois en
+    `pytest_pend`, et la campagne a conclu 0/44. Rejoués test par test, ces essais
+    donnaient 33/44 et 28/44, un seul test bouclant dans les deux cas. Neuf
+    campagnes sur 138 portent au moins un essai pendu, dont deux de l'incumbent.
+    """
+
+    def _fixture(self, tmp_path, corps_du_test_qui_boucle):
+        tests = tmp_path / "tests"
+        tests.mkdir()
+        (tests / "test_suite.py").write_text(
+            "def test_passe_un():\n    assert True\n\n"
+            "def test_passe_deux():\n    assert True\n\n"
+            "def test_echoue():\n    assert False\n\n"
+            "def test_boucle():\n" + corps_du_test_qui_boucle
+        )
+        return tmp_path
+
+    def test_le_gel_est_impute_a_un_seul_test(self, tmp_path, monkeypatch):
+        wd = self._fixture(tmp_path, "    while True:\n        pass\n")
+        # Budgets resserres : le but est la logique, pas d'attendre 180 s.
+        monkeypatch.setattr(bench, "TIMEOUT_SUITE", 5)
+        monkeypatch.setattr(bench, "TIMEOUT_PAR_TEST", 3)
+        passed, failed, texte, issue = bench.run_pytest(
+            wd, cibles=("tests/test_suite.py",)
+        )
+        assert issue == bench.ISSUE_PARTIEL
+        assert passed == 2, texte
+        assert failed == 2, texte  # l'echec franc + le test pendu
+        assert "test_boucle" in texte
+
+    def test_une_suite_saine_ne_declenche_pas_le_balayage(self, tmp_path):
+        wd = self._fixture(tmp_path, "    assert True\n")
+        passed, failed, _, issue = bench.run_pytest(
+            wd, cibles=("tests/test_suite.py",)
+        )
+        assert issue == bench.ISSUE_OK
+        assert (passed, failed) == (3, 1)
+
+    def test_un_essai_balaye_compte_dans_la_mediane(self):
+        essais = [
+            {"issue": bench.ISSUE_OK, "tests_passed": 44},
+            {"issue": bench.ISSUE_PARTIEL, "tests_passed": 33},
+            {"issue": bench.ISSUE_PEND, "tests_passed": 0},
+        ]
+        comparables = (bench.ISSUE_OK, bench.ISSUE_PARTIEL)
+        notables = [e["tests_passed"] for e in essais if e["issue"] in comparables]
+        assert notables == [44, 33]

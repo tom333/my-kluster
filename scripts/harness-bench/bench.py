@@ -438,6 +438,7 @@ ISSUE_COLLECTE = (
     "erreur_collecte"  # SyntaxError / IndentationError / ModuleNotFoundError
 )
 ISSUE_PEND = "pytest_pend"  # boucle infinie : pytest ne rend jamais la main
+ISSUE_PARTIEL = "pend_balaye"  # un test boucle, les autres ont ete notes un a un
 
 
 def _fichiers_de_test(racine):
@@ -591,6 +592,71 @@ LANCEURS = {
 }
 
 
+TIMEOUT_SUITE = int(os.environ.get("BENCH_TIMEOUT_SUITE", "180"))
+TIMEOUT_PAR_TEST = int(os.environ.get("BENCH_TIMEOUT_PAR_TEST", "15"))
+BUDGET_BALAYAGE = int(os.environ.get("BENCH_BUDGET_BALAYAGE", "600"))
+
+
+def _balayage_par_test(workdir, cibles, binaire):
+    """Note la suite test par test quand elle a PENDU en bloc. Retourne None si echec.
+
+    Motif, mesure le 2026-09-14 sur mellum2-12b-a2.5b : DEUX essais sur trois ont
+    ete jetes en `pytest_pend`, et la campagne a conclu 0/44. Rejoues test par
+    test, ces deux essais donnent 33/44 et 28/44 -- un seul et meme test bouclait,
+    `test_soft_drop_echoue_au_fond`. Un `return (0, 0)` sur le gel ne mesure donc
+    pas le modele, il mesure sa malchance sur UN test.
+
+    La portee depasse ce candidat : 9 campagnes sur 138 portent au moins un essai
+    pendu, dont deux de l'incumbent et une de gemma-qat a 44/44 de mediane. Elles
+    ont survecu parce qu'il leur restait deux essais comparables ; c'est un sursis,
+    pas une immunite.
+
+    Un test qui ne termine pas compte comme ECHOUE -- il ne passe pas. Ce qu'on
+    recupere, c'est le sort des 43 autres.
+    """
+    argv_de, _ = LANCEURS["pytest"]
+    try:
+        col = subprocess.run(
+            argv_de(binaire or PYTEST, cibles) + ["--collect-only"],
+            cwd=workdir,
+            capture_output=True,
+            text=True,
+            timeout=60,
+        )
+    except subprocess.TimeoutExpired:
+        return None
+    ids = [l.strip() for l in (col.stdout or "").splitlines() if "::" in l]
+    if not ids:
+        return None
+
+    debut = time.time()
+    passed = failed = 0
+    pendus = []
+    for tid in ids:
+        if time.time() - debut > BUDGET_BALAYAGE:
+            return None  # trop long : on retombe sur l'ancien comportement
+        un = subprocess.Popen(
+            argv_de(binaire or PYTEST, [tid]),
+            cwd=workdir,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            start_new_session=True,
+        )
+        try:
+            un.communicate(timeout=TIMEOUT_PAR_TEST)
+            if un.returncode == 0:
+                passed += 1
+            else:
+                failed += 1
+        except subprocess.TimeoutExpired:
+            _tuer_groupe(un)
+            un.communicate()
+            failed += 1
+            pendus.append(tid.rsplit("::", 1)[-1])
+    return passed, failed, pendus
+
+
 def run_pytest(workdir, cibles=(), binaire=None, lanceur="pytest"):
     """Retourne (passed, failed, sortie_courte, issue).
 
@@ -627,14 +693,28 @@ def run_pytest(workdir, cibles=(), binaire=None, lanceur="pytest"):
         start_new_session=True,
     )
     try:
-        stdout, _ = proc.communicate(timeout=180)
+        stdout, _ = proc.communicate(timeout=TIMEOUT_SUITE)
     except subprocess.TimeoutExpired:
         _tuer_groupe(proc)
         proc.communicate()
+        # La suite a pendu EN BLOC. Avant de jeter l'essai, on la rejoue test par
+        # test : le gel vient presque toujours d'UN test, et les autres portent une
+        # mesure valide (cf. _balayage_par_test).
+        bal = _balayage_par_test(workdir, cibles, binaire) if lanceur == "pytest" else None
+        if bal is not None:
+            passed, failed, pendus = bal
+            return (
+                passed,
+                failed,
+                "balaye test par test apres gel : %d passent, %d echouent (pendus: %s)"
+                % (passed, failed, ", ".join(pendus) or "aucun"),
+                ISSUE_PARTIEL,
+            )
         return (
             0,
             0,
-            "TIMEOUT %s apres 180s (boucle infinie dans le code genere)" % lanceur,
+            "TIMEOUT %s apres %ds (boucle infinie dans le code genere)"
+            % (lanceur, TIMEOUT_SUITE),
             ISSUE_PEND,
         )
     stdout = stdout or ""
@@ -2191,10 +2271,14 @@ def run(harness, model, scenario_name, timeout, runs=1):
     # performance à une panne de l'instrument. Les deux autres classes sont rapportées
     # comme des TAUX — « 1 essai sur 3 ne compile pas » informe sur le modèle, mais
     # ce n'est pas un score de zéro.
-    notables = [e["tests_passed"] for e in essais if e.get("issue") == ISSUE_OK]
+    # Un essai balaye porte un score REEL (mesure test par test), il entre donc dans
+    # la mediane au meme titre qu'un essai propre.
+    COMPARABLES = (ISSUE_OK, ISSUE_PARTIEL)
+    notables = [e["tests_passed"] for e in essais if e.get("issue") in COMPARABLES]
     med = mediane(notables) if notables else None
     n_collecte = sum(1 for e in essais if e.get("issue") == ISSUE_COLLECTE)
     n_pend = sum(1 for e in essais if e.get("issue") == ISSUE_PEND)
+    n_balaye = sum(1 for e in essais if e.get("issue") == ISSUE_PARTIEL)
     result = {
         "scenario": scenario_name,
         # La campagne se DATE ELLE-MEME : deduits des essais, donc coherents avec eux
@@ -2226,6 +2310,7 @@ def run(harness, model, scenario_name, timeout, runs=1):
         "essais_comparables": len(notables),
         "essais_erreur_collecte": n_collecte,
         "essais_pytest_pend": n_pend,
+        "essais_balayes": n_balaye,
         "tests_attendus": attendus,
         "verdict": "PASS" if med == attendus else "FAIL",
         "tours_median": mediane([e.get("tours") for e in essais]),
@@ -2243,7 +2328,7 @@ def run(harness, model, scenario_name, timeout, runs=1):
             [
                 e["total_output"] / e["tests_passed"]
                 for e in essais
-                if e.get("issue") == ISSUE_OK
+                if e.get("issue") in COMPARABLES
                 and e.get("tests_passed")
                 and e.get("total_output")
             ]
@@ -2252,7 +2337,7 @@ def run(harness, model, scenario_name, timeout, runs=1):
             [
                 e["tours"] / e["tests_passed"]
                 for e in essais
-                if e.get("issue") == ISSUE_OK
+                if e.get("issue") in COMPARABLES
                 and e.get("tests_passed")
                 and e.get("tours")
             ]
@@ -2296,6 +2381,7 @@ def run(harness, model, scenario_name, timeout, runs=1):
             ISSUE_OK: "",
             ISSUE_COLLECTE: "  <- NE COMPILE PAS",
             ISSUE_PEND: "  <- pytest pend",
+            ISSUE_PARTIEL: "  <- un test boucle, note test par test",
         }.get(e.get("issue"), "")
         print(
             "  essai %d : %2s/%s  %s lignes ecrites%s"
@@ -2315,6 +2401,11 @@ def run(harness, model, scenario_name, timeout, runs=1):
         )
     else:
         print("  ⚠️  AUCUN essai comparable : rien à médianiser")
+    if n_balaye:
+        print(
+            "  %d/%d essai(s) ont pendu en bloc et ont été notés test par test :"
+            " leur score est réel et compte dans la médiane." % (n_balaye, runs)
+        )
     if n_collecte or n_pend:
         print(
             "  hors médiane : %d/%d ne compile(nt) pas, %d pend(ent)"
