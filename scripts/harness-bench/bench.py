@@ -1923,6 +1923,110 @@ def no_metrics(transcript):
 # et la changer pour un seul serait disproportionne.
 SCENARIO_COURANT = None
 
+OPENCODE = os.environ.get("BENCH_OPENCODE", str(Path.home() / ".opencode/bin/opencode"))
+
+
+def opencode_command(model, workdir, prompt):
+    """opencode en mode non interactif, AVEC ses MCP (dont context7).
+
+    Motif (2026-09-14). Tous les harnais du banc etaient jusqu'ici prives de
+    documentation : `pi` passe `--no-extensions`, qui coupe aussi les MCP, et le
+    plancher `nu` n'expose que read/write/edit/bash. Or le premier scenario a
+    contrat NON fourni -- `crepuscule-amorce` -- echoue precisement sur une API
+    mal connue (`Vector3`/`Matrix4` non definis, import `vector_math` absent).
+    On avait donc exclu par construction le seul outil qui repare ce defaut.
+
+    opencode est retenu plutot que `pi` parce que son MCP est NATIF : `pi` n'en a
+    pas et exigerait `pi-mcp-extension`. Sa configuration (`~/.config/opencode`)
+    porte deja context7.
+
+    Cout mesure du sur-outillage : 36 489 tokens d'entree au PREMIER tour sur une
+    tache triviale, contre 18 857 pour le preambule de `pi`. C'est une variable a
+    surveiller, pas un detail -- elle se paie a chaque tour.
+
+    `--auto` approuve les permissions : sans lui la campagne attend une reponse
+    humaine et le banc expire sans rien dire.
+    """
+    cle = Path.home() / ".config" / "brain" / "localai-key"
+    env = {"LOCALAI_API_KEY": cle.read_text().strip()} if cle.exists() else {}
+    # NEUTRALISER `instructions` de la config globale, et RIEN D'AUTRE.
+    #
+    # `~/.config/opencode/opencode.json` pointe `instructions` sur
+    # AGENTS.caveman.md, qui demande au modele de repondre par fragments et de
+    # supprimer les articles. Mesurer un agent de code sous cette consigne
+    # mesurerait le style, pas la competence -- c'est le motif exact du
+    # `--no-context-files` de `pi`.
+    #
+    # OPENCODE_CONFIG ne conviendrait pas : il FUSIONNE au lieu de remplacer.
+    # OPENCODE_CONFIG_CONTENT s'applique en dernier, donc il ecrase la cle.
+    #
+    # `~/.config/opencode/AGENTS.md` reste charge (opencode le charge toujours,
+    # aucun drapeau ne le retire) et c'est VOULU : il ne contient que la consigne
+    # d'usage de context7, c'est-a-dire precisement le levier mesure.
+    env["OPENCODE_CONFIG_CONTENT"] = json.dumps({"instructions": []})
+    return [
+        OPENCODE,
+        "run",
+        "--dir",
+        str(workdir),
+        "-m",
+        model,
+        "--format",
+        "json",
+        "--auto",
+        prompt,
+    ], env
+
+
+def opencode_metrics(transcript):
+    """Metriques depuis le flux d'evenements JSON d'opencode (--format json).
+
+    Un tour = un `step_finish`. Les compteurs de tokens y sont CUMULES sur la
+    session (input croit a chaque pas), donc `total_input` se lit sur le DERNIER
+    evenement et non par somme -- sommer donnerait un total quadratique.
+    """
+    turns = 0
+    calls = []
+    peak_input = 0
+    dernier_in = dernier_out = 0
+    lignes_illisibles = 0
+    stop = None
+    for line in transcript.splitlines():
+        line = line.strip()
+        if not line.startswith("{"):
+            continue
+        try:
+            ev = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        except RecursionError:
+            lignes_illisibles += 1
+            continue
+        part = ev.get("part") or {}
+        if ev.get("type") == "tool_use":
+            calls.append(part.get("tool"))
+        if ev.get("type") == "step_finish":
+            turns += 1
+            stop = part.get("reason") or stop
+            toks = part.get("tokens") or {}
+            entree = toks.get("input") or 0
+            peak_input = max(peak_input, entree)
+            dernier_in = max(dernier_in, entree)
+            dernier_out = max(dernier_out, toks.get("output") or 0)
+    return {
+        "tours": turns,
+        "appels_outils": len(calls),
+        "outils_utilises": sorted(set(c for c in calls if c)),
+        "format_appels": "json" if calls else "aucun",
+        "pic_input": peak_input,
+        "total_input": dernier_in,
+        "total_output": dernier_out,
+        "lignes_illisibles": lignes_illisibles,
+        "erreur_modele": None,
+        "stop_reason": stop,
+    }
+
+
 HARNESSES = {
     "pi": (pi_command, pi_metrics),
     "pi-abspath": (pi_abspath_command, pi_metrics),
@@ -1934,6 +2038,7 @@ HARNESSES = {
     "nu": (nu_command, nu_metrics),
     "nu-pipeline": (nu_pipeline_command, nu_pipeline_metrics),
     "nu-contrat": (nu_contrat_command, nu_pipeline_metrics),
+    "opencode": (opencode_command, opencode_metrics),
 }
 
 
