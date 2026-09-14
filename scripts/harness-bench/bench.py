@@ -2045,6 +2045,30 @@ HARNESSES = {
 # --- orchestration -------------------------------------------------------
 
 
+def url_client_de(harness):
+    """URL a sonder pour ce harnais.
+
+    Motif (2026-09-14, deux fois dans la meme session) : la sonde lisait
+    HARNAIS_NU_BASE_URL quel que soit le harnais. Pour `opencode`, l'endpoint vit
+    dans SA configuration, donc la sonde interrogeait 127.0.0.1:8080 et refusait
+    la campagne avec « le modele demande n'est PAS servi ». Une URL qu'il faut
+    penser a passer est une URL qu'on oublie ; on la deduit.
+    """
+    if harness == "opencode":
+        cfg = Path.home() / ".config" / "opencode" / "opencode.json"
+        try:
+            fournisseurs = json.loads(cfg.read_text()).get("provider") or {}
+        except (OSError, json.JSONDecodeError):
+            fournisseurs = {}
+        # Un seul fournisseur local declare aujourd'hui. S'il en apparait
+        # plusieurs, le prefixe du modele (`localai/...`) les departage.
+        for nom, conf in fournisseurs.items():
+            base = (conf.get("options") or {}).get("baseURL")
+            if base:
+                return base
+    return os.environ.get("HARNAIS_NU_BASE_URL", "http://127.0.0.1:8080/v1")
+
+
 def preambule(harness, model, scenario_name, client_url=None):
     """Refuse de lancer une campagne dont les leviers ne mordent pas.
 
@@ -2323,12 +2347,7 @@ def run(harness, model, scenario_name, timeout, runs=1):
     # UNE fois par campagne, avant le premier tirage : refuse une campagne dont les
     # leviers ne mordent pas. Un bras doublon coute 40 minutes de GPU et une
     # conclusion fausse. Place ici et non dans run_once, qui est appele par tirage.
-    preambule(
-        harness,
-        model,
-        scenario_name,
-        os.environ.get("HARNAIS_NU_BASE_URL", "http://127.0.0.1:8080/v1"),
-    )
+    preambule(harness, model, scenario_name, url_client_de(harness))
     scenario = SCENARIOS[scenario_name]
     slug = slug_de(scenario_name, harness, model)
 
