@@ -2478,11 +2478,19 @@ def main():
     parser.add_argument("--harness", default="pi")
     parser.add_argument("--scenario", default="repair", choices=sorted(SCENARIOS))
     parser.add_argument("--model", required=False)
-    # TIMEOUT PAR ESSAI, ramene de 2400 a 500 s le 2026-09-09.
+    # TIMEOUT PAR ESSAI : 2400 -> 500 s le 2026-09-09, -> 745 s le 2026-09-14.
     #
-    # La regle : le meilleur modele du jour resout le scenario en ~400 s, le
-    # concurrent ne doit pas depasser 500 s. Mesures de l'incumbent
-    # qwen3-coder-30b-a3b-instruct sur tetris : 395, 401 et 430 s pour 32/44.
+    # La regle : « meilleur du jour + 25 % ». Elle se recalcule quand l'incumbent
+    # change, et c'est arrive sans que le plafond suive.
+    #
+    # 500 s etait cale sur qwen3-coder-30b-a3b-instruct (395, 401, 430 s pour
+    # 32/44). Depuis le 2026-09-11 l'incumbent est gemma-4-12b-it-qat, qui fait
+    # 44/44 en 596 s. Le plafond etait donc passe SOUS le temps du modele de
+    # reference : il aurait coupe gemma lui-meme. Constate le 2026-09-14 sur
+    # mellum2-12b-a2.5b, dont deux essais se sont arretes a 500,2 et 500,1 s en
+    # plein travail -- leurs 33/44 et 28/44 sont des planchers, pas des scores.
+    #
+    # 596 x 1,25 = 745.
     #
     # Motif. Ornith-1.5-9B-MTP-IQ4_XS a fait 44/44 -- mais en 2312 s, avec 84 tours,
     # un pic de contexte de 76 210 tokens et 3,92 MILLIONS de tokens d'entree au
@@ -2493,8 +2501,9 @@ def main():
     #
     # Le plafond ENCODE donc l'exigence au lieu de la decouvrir apres coup. Un essai
     # coupe est compte a part (« pend »), il ne se confond pas avec un echec.
-    # A REVOIR si l'incumbent change : la regle est « meilleur du jour + 25 % ».
-    parser.add_argument("--timeout", type=int, default=500)
+    # A REVOIR A CHAQUE CHANGEMENT D'INCUMBENT. Le defaut ci-dessous n'est pas une
+    # constante du banc, c'est une mesure qui se perime.
+    parser.add_argument("--timeout", type=int, default=745)
     parser.add_argument(
         "--runs",
         type=int,
