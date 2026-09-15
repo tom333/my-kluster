@@ -1,5 +1,3 @@
-import pytest
-import os
 """Analyseurs de sortie de tests, par lanceur.
 
 Motif (2026-08-06) : le banc devient multi-langage (scénario Flutter prévu). Ce qui
@@ -12,6 +10,9 @@ lisait 0/5 sur un oracle qui échouait proprement à 2 échecs / 3 réussis.
 """
 
 from __future__ import annotations
+
+import os
+import pytest
 
 import json
 
