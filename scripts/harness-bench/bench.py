@@ -2319,7 +2319,7 @@ HARNESSES = {
 # --- orchestration -------------------------------------------------------
 
 
-def url_client_de(harness):
+def url_client_de(harness, model_prefixe=None):
     """URL a sonder pour ce harnais.
 
     Motif (2026-09-14, deux fois dans la meme session) : la sonde lisait
@@ -2339,6 +2339,21 @@ def url_client_de(harness):
         for nom, conf in fournisseurs.items():
             base = (conf.get("options") or {}).get("baseURL")
             if base:
+                return base
+    if harness == "omp":
+        # Meme motif : l'endpoint vit dans la configuration GLOBALE du harnais,
+        # pas dans une variable d'environnement du banc.
+        cfg = Path.home() / ".omp" / "agent" / "models.yml"
+        try:
+            import yaml
+
+            fournisseurs = (yaml.safe_load(cfg.read_text()) or {}).get("providers") or {}
+        except (OSError, ImportError, ValueError):
+            fournisseurs = {}
+        prefixe = model_prefixe or ""
+        for nom, conf in fournisseurs.items():
+            base = conf.get("baseUrl")
+            if base and (not prefixe or nom == prefixe):
                 return base
     return os.environ.get("HARNAIS_NU_BASE_URL", "http://127.0.0.1:8080/v1")
 
@@ -2623,7 +2638,8 @@ def run(harness, model, scenario_name, timeout, runs=1):
     # UNE fois par campagne, avant le premier tirage : refuse une campagne dont les
     # leviers ne mordent pas. Un bras doublon coute 40 minutes de GPU et une
     # conclusion fausse. Place ici et non dans run_once, qui est appele par tirage.
-    preambule(harness, model, scenario_name, url_client_de(harness))
+    prefixe = model.split("/")[0] if "/" in model else None
+    preambule(harness, model, scenario_name, url_client_de(harness, prefixe))
     scenario = SCENARIOS[scenario_name]
     slug = slug_de(scenario_name, harness, model)
 

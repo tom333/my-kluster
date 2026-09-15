@@ -418,3 +418,23 @@ class TestDepotGitPrealable:
         )
         # La signature GPG bloquerait l'agent sur une demande de phrase de passe.
         assert (code, sortie.strip()) == (0, "false")
+
+
+class TestUrlSondeParHarnais:
+    """La sonde doit lire l'endpoint DU HARNAIS, jamais une valeur par defaut.
+
+    Motif (2026-09-15, troisieme occurrence du meme defaut) : la sonde a refuse
+    la premiere campagne omp avec « le modele demande n'est PAS servi » en
+    interrogeant 127.0.0.1:8080, alors que omp sert depuis
+    `~/.omp/agent/models.yml`. Le harnais suivant qu'on ajoutera retombera dans
+    le meme piege si la deduction n'est pas testee.
+    """
+
+    def test_omp_lit_sa_configuration_globale(self):
+        url = bench.url_client_de("omp", "localai")
+        assert url.endswith("/v1")
+        assert "127.0.0.1:8080" not in url
+
+    def test_harnais_inconnu_retombe_sur_le_defaut(self, monkeypatch):
+        monkeypatch.delenv("HARNAIS_NU_BASE_URL", raising=False)
+        assert bench.url_client_de("nu") == "http://127.0.0.1:8080/v1"
