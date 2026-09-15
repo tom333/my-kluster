@@ -313,7 +313,9 @@ SCENARIOS = {
         # Chaine d'outils posee en tete de PATH pour l'agent (cf. outils.env_pour).
         # Ce n'est pas un venv Python : env_pour ne posera donc pas VIRTUAL_ENV.
         "venv": "/home/moi/develop/flutter-master",
-        "expected_tests": 6,  # build/lancement/rendu + tests/test_dabord/historique
+        "expected_tests": 6,
+        # Le depot est pose AVANT l'agent : cf. _init_depot.
+        "depot_git": True,  # build/lancement/rendu + tests/test_dabord/historique
         # Le code produit EST le livrable ici : un tirage reussi vaut d'etre garde,
         # voire promu dans le depot du jeu.
         "archiver_projet": True,
@@ -798,7 +800,12 @@ def _commits(projet):
         timeout=60,
     )
     if code != 0:
-        return None
+        # `git log` sort en erreur sur un depot VIDE comme sur une absence de
+        # depot. Les confondre produirait la note « pas de depot git lisible »
+        # alors que le banc en a pose un lui-meme -- un motif faux envoie
+        # chercher la panne au mauvais endroit.
+        present, _ = _lance(["git", "rev-parse", "--git-dir"], cwd=str(projet), timeout=30)
+        return [] if present == 0 else None
     commits = []
     for bloc in sortie.split("\0\0"):
         if not bloc.strip():
@@ -1026,6 +1033,32 @@ def _attend_lancement(proc, delai=DELAI_LANCEMENT_MAX_S):
         if "Flutter run key commands" in ligne or "Application finished" in ligne:
             return "key commands" in ligne
     return False
+
+
+def _init_depot(workdir):
+    """Depot git vide dans le workdir, AVANT le lancement de l'agent.
+
+    Deux raisons, aucune n'est une faveur faite a un harnais :
+
+    1. La SPEC (§3bis) note l'HISTORIQUE. Un depot est le support de la mesure,
+       pas la mesure : tout le contenu de l'historique reste le travail de
+       l'agent, qui part de zero commit.
+    2. La detection des serveurs de langage est cwd-only AU DEMARRAGE chez omp
+       (et de forme voisine ailleurs). Sans marqueur racine au lancement, dartls
+       ne demarre jamais -- silencieusement -- et on mesurerait un defaut
+       d'instrument au lieu d'un harnais.
+
+    La signature GPG est coupee LOCALEMENT : elle est active dans le gitconfig
+    global (role ansible dev-workstation) et bloquerait l'agent sur une demande
+    de phrase de passe, sans aucun message lisible.
+    """
+    for args in (
+        ["init", "-q", "-b", "main"],
+        ["config", "user.name", "banc"],
+        ["config", "user.email", "banc@harness-bench.local"],
+        ["config", "commit.gpgsign", "false"],
+    ):
+        subprocess.run(["git", "-C", str(workdir)] + args, check=True)
 
 
 # Source UNIQUE des etages de `crepuscule-amorce`. Les enumerer a la main dans le
@@ -2450,6 +2483,8 @@ def run_once(harness, model, scenario_name, timeout, essai=1, total=1):
     shutil.copytree(fixture, workdir)
     for cache in workdir.rglob("__pycache__"):
         shutil.rmtree(cache, ignore_errors=True)
+    if scenario.get("depot_git"):
+        _init_depot(workdir)
 
     # Par ETAGE quand le scenario en a : sur une fixture deja partiellement verte
     # (`columns-web` demarre a 80/109), un seul appel pytest annonce 0 passed, parce

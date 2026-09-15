@@ -393,3 +393,28 @@ class TestBibliothequeExigee:
             "import 'package:flutter_scene/flutter_scene.dart';\nvoid main() {}\n",
         )
         assert bench._bibliotheque_absente(p) is False
+
+
+class TestDepotGitPrealable:
+    """Le depot doit exister AVANT l'agent, et vide.
+
+    Motif (2026-09-15) : sans marqueur racine au lancement, `dartls` ne demarre
+    jamais chez omp -- silencieusement -- et la campagne mesure un defaut
+    d'instrument. Et la SPEC §3bis note l'historique : le support doit etre la,
+    le contenu reste le travail de l'agent.
+    """
+
+    def test_le_scenario_amorce_demande_un_depot(self):
+        assert bench.SCENARIOS["crepuscule-amorce"]["depot_git"] is True
+
+    def test_depot_vide_et_sans_signature(self, tmp_path):
+        bench._init_depot(tmp_path)
+        assert (tmp_path / ".git").is_dir()
+        # Zero commit : l'agent part d'un historique vierge, sinon les seuils de
+        # l'etage `historique` seraient atteints sans qu'il ait rien fait.
+        assert bench._commits(tmp_path) == []
+        code, sortie = bench._lance(
+            ["git", "config", "commit.gpgsign"], cwd=str(tmp_path), timeout=30
+        )
+        # La signature GPG bloquerait l'agent sur une demande de phrase de passe.
+        assert (code, sortie.strip()) == (0, "false")
