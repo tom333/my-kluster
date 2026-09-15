@@ -1,0 +1,19 @@
+providers:
+  localai:
+    baseUrl: https://localai.tgu.ovh/v1
+    api: openai-completions
+    apiKey: LOCALAI_API_KEY
+    authHeader: true
+    models:
+      - id: gemma-4-12b-it-qat
+        name: Gemma-4-12B-it-QAT (local, servi a 150000)
+        contextWindow: 131072
+        maxTokens: 16384
+      - id: qwen3-coder-reap-25b
+        name: Qwen3-Coder-REAP-25B-A3B (local, servi a 65536)
+        contextWindow: 49152
+        maxTokens: 16384
+      - id: mellum2-12b-a2.5b-instruct
+        name: Mellum2-12B-A2.5B-Instruct (local, servi a 131072)
+        contextWindow: 98304
+        maxTokens: 32768

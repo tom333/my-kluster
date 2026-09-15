@@ -1,0 +1,25 @@
+{
+  "servers": {
+    "dartls": {
+      "command": "dart",
+      "args": [
+        "language-server",
+        "--protocol=lsp"
+      ],
+      "fileTypes": [
+        ".dart"
+      ],
+      "rootMarkers": [
+        "pubspec.yaml",
+        "pubspec.lock",
+        ".git"
+      ],
+      "initOptions": {
+        "closingLabels": true,
+        "flutterOutline": true,
+        "outline": true
+      }
+    }
+  },
+  "idleTimeoutMs": 300000
+}
