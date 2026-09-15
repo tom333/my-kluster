@@ -1,10 +1,19 @@
 ## Verified-before-written
 
 Before writing any code against a library you have not inspected in THIS session,
-list what it actually exports. Use the LSP symbol tools, or list the package
-directory. Never write an import path you have not seen with your own tools.
+list what it actually exports: `glob` the package manager's cache for the
+package directory, then `read` its entry file, or `bash ls` its source tree.
+Never write an import path you have not seen with your own tools.
 Guessing an import that "looks right" is the single most common way this task
 fails.
+
+## Read the diagnostics you were just given
+
+When a `write` or `edit` result ends with `LSP Diagnostics`, every error listed
+there is blocking. Fix them BEFORE writing another file. An error saying a URI
+does not exist means the path is wrong or the file is outside the project — not
+that the project needs another file. The project is where `pubspec`, `package.json`,
+`Cargo.toml` or the equivalent manifest lives; code written elsewhere is not built.
 
 ## The compiler is not a suggestion box
 

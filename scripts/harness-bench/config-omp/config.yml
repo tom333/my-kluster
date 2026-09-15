@@ -1,0 +1,5 @@
+setupVersion: 2
+lsp:
+  shared: false
+ttsr:
+  repeatMode: after-gap

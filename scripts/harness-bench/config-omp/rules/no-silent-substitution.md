@@ -24,10 +24,10 @@ failure that looks like a success, and it is checked for.
 Before you decide the dependency is unusable, you have not yet exhausted the
 tools that answer the question:
 
-- `lsp` — symbols, definitions and diagnostics say what the dependency really
-  offers, and what the real error is.
-- `read` / `glob` — the dependency's own source and examples.
-- `bash` — build or analyse and read the ACTUAL message, not the one you expect.
+- `LSP Diagnostics` appended to your last `write`/`edit` result — the ACTUAL
+  error, with file and line. Read it before guessing at a cause.
+- `glob` / `read` — the dependency's own source, examples and manifest.
+- `bash` — build or analyse and read the real message, not the one you expect.
 
 If it genuinely blocks you after that, say so explicitly and report what you
 tried. A reported blocker is a result. A silent substitution is a false one.

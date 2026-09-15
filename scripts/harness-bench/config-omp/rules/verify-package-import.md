@@ -18,15 +18,15 @@ The package name you know. The file or submodule *within* it you are guessing �
 and that guess is the single most frequent way this kind of task fails. A package
 named `foo` very often does NOT expose `foo/foo.<ext>`.
 
-Resolve it with the tools you already have, before finishing this line:
+Resolve it with the tools you have, before finishing this line:
 
-- `lsp` — document and workspace symbols tell you what a dependency actually
-  exports, in every language the server covers. These tools are available on
-  every turn and are the fastest answer.
-- `glob` — match the dependency's source tree and read the entry points back.
-- `read` — open the manifest, the index, or the entry file and see the real
-  names.
-- `bash` — list the dependency directory when nothing above applies.
+- `glob` — find the package directory in the package manager's cache or vendor
+  tree (for example `**/<package>-*/lib/**` or `**/node_modules/<package>/**`),
+  then read what it actually exposes.
+- `read` — open the package manifest or its entry file; the real names are there.
+- `bash` — `ls` the package's source directory when nothing above applies.
+- If your last `write` or `edit` result carried `LSP Diagnostics`, the wrong
+  paths are already named there. Read them.
 
 Then write the path you SAW, not the one you expected.
 

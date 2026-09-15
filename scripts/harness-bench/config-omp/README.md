@@ -7,6 +7,7 @@ d'intérêt.
 
 | fichier | rôle |
 |---|---|
+| `config.yml` | `lsp.shared: false` (serveur en-processus ; le mux partagé était `exited(137)`, jamais relancé) et `ttsr.repeatMode: after-gap` (par défaut `once` : UNE interruption par session, puis simple texte) |
 | `APPEND_SYSTEM.md` | prompt de méthode, chargé automatiquement (vérifié par sonde) |
 | `lsp.json` | `dartls`, marqueurs racine dont `.git` — la détection est cwd-only **au démarrage**, sans récursion |
 | `models.yml` | fournisseur LocalAI ; `apiKey` est un **nom de variable**, pas une clé |
@@ -41,3 +42,16 @@ les exécutions du 2026-09-15.
 omp ttsr test -r ~/.omp/agent/rules/verify-package-import.md \
   --source tool --tool edit --path a.rs "use serde::Serialize;"
 ```
+
+## Ce que le modèle voit vraiment (capturé le 2026-09-15)
+
+Le schéma envoyé au modèle contient **11 outils** : `bash edit eval glob grep hub
+read task todo web_search write`. **Il n'y a pas d'outil `lsp`** — `omp --help`
+en liste un, le modèle ne le voit pas. Le LSP agit uniquement par les
+`LSP Diagnostics` collés au résultat de `write`/`edit`. Toute règle ou consigne
+qui dit « use the lsp tool » envoie le modèle vers un nom absent de son schéma
+(sonde : 13 appels `hub` ratés d'affilée). Les textes ne nomment donc que des
+outils du schéma, et renvoient vers les diagnostics reçus.
+
+Fiabilité mesurée après `lsp.shared: false` : 3 runs × 2 `write` → 6/6 avec
+diagnostics. Avant : r1 11 writes → 4, r2 6 → 2, r3 6 → 0.
