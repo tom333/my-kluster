@@ -21,6 +21,7 @@ import shutil
 import signal
 import statistics
 import subprocess
+import tempfile
 import sys
 import tarfile
 import time
@@ -1664,8 +1665,46 @@ def little_coder_command(model, workdir, prompt):
     # celle-ci pour comparer a armes egales. C'est l'echappatoire documentee du
     # projet, et c'est un CHOIX DE BANC, pas un defaut de little-coder : sa posture
     # par defaut est plus prudente que celle de pi.
+    #
+    # 2026-09-16, v1.19.0 : little-coder n'enregistre ses modeles QUE depuis son
+    # propre `models.json` (paquet + override `~/.config/little-coder/models.json`),
+    # jamais depuis `~/.pi/agent/models.json`. Le fournisseur `localai` est donc
+    # declare dans l'override, avec `apiKey: "LOCALAI_API_KEY"` -- un NOM de
+    # variable, que le banc doit fournir. Sans elle : « No API key » et un essai
+    # qui mesure la plomberie.
+    #
+    # Sa temperature de profil (0.3) n'est injectee que pour llamacpp/ollama/
+    # lmstudio (DEFAULT_TEMPERATURE_PROVIDERS) : `localai` n'en fait pas partie,
+    # donc l'echantillonnage reste celui du serveur, comme pour tous les autres
+    # harnais du banc. C'est voulu : un seul facteur change a la fois.
+    #
+    # Et cette variable n'est PAS resolue : `resolveApiKey` ne sert qu'a la sonde
+    # `/props` de l'extension, `pi.registerProvider` recoit la chaine brute et
+    # l'envoie comme Bearer -> 401 (verifie le 2026-09-16 ; avec la valeur
+    # litterale, l'essai passe). Le banc genere donc, a chaque lancement, un
+    # fichier de modeles temporaire avec la VALEUR, a partir du gabarit versionne
+    # `config-little-coder/models.json` qui ne contient que le NOM. Le fichier
+    # vit hors du workdir (qui est archive) et en 0600 -- meme exposition que
+    # `~/.pi/agent/models.json`, qui porte deja la cle en clair.
+    env = {"LITTLE_CODER_PERMISSION_MODE": "accept-all"}
+    gabarit = HERE / "config-little-coder" / "models.json"
+    cle = Path.home() / ".config" / "brain" / "localai-key"
+    if gabarit.exists() and cle.exists():
+        modeles = json.loads(gabarit.read_text())
+        for conf in modeles.get("providers", {}).values():
+            if conf.get("apiKey") == "LOCALAI_API_KEY":
+                conf["apiKey"] = cle.read_text().strip()
+        fichier = Path(tempfile.gettempdir()) / "harness-bench-little-coder-models.json"
+        fichier.touch(mode=0o600, exist_ok=True)
+        fichier.chmod(0o600)
+        fichier.write_text(json.dumps(modeles))
+        env["LITTLE_CODER_MODELS_FILE"] = str(fichier)
     return [
         "little-coder",
+        # Sans lui, le lanceur interroge le registre npm a CHAQUE essai (et
+        # proposerait une mise a jour a mi-campagne). Le harnais mesure est
+        # celui installe, pas celui du jour.
+        "--no-update-check",
         "--model",
         model,
         "--mode",
@@ -1674,7 +1713,7 @@ def little_coder_command(model, workdir, prompt):
         "--no-context-files",
         "-p",
         prompt,
-    ], {"LITTLE_CODER_PERMISSION_MODE": "accept-all"}
+    ], env
 
 
 def aider_command(model, workdir, prompt):
@@ -2374,6 +2413,17 @@ def url_client_de(harness, model_prefixe=None):
         for nom, conf in fournisseurs.items():
             base = (conf.get("options") or {}).get("baseURL")
             if base:
+                return base
+    if harness == "little-coder":
+        cfg = HERE / "config-little-coder" / "models.json"
+        try:
+            fournisseurs = json.loads(cfg.read_text()).get("providers") or {}
+        except (OSError, json.JSONDecodeError):
+            fournisseurs = {}
+        prefixe = model_prefixe or ""
+        for nom, conf in fournisseurs.items():
+            base = conf.get("baseUrl")
+            if base and (not prefixe or nom == prefixe):
                 return base
     if harness == "omp":
         # Meme motif : l'endpoint vit dans la configuration GLOBALE du harnais,

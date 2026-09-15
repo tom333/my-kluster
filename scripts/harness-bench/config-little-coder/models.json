@@ -1,0 +1,19 @@
+{
+  "providers": {
+    "localai": {
+      "api": "openai-completions",
+      "baseUrl": "https://localai.tgu.ovh/v1",
+      "apiKey": "LOCALAI_API_KEY",
+      "models": [
+        {
+          "id": "gemma-4-12b-it-qat",
+          "name": "Gemma-4-12B-it-QAT (LocalAI, servi a 150000)",
+          "input": ["text"],
+          "contextWindow": 131072,
+          "maxTokens": 16384,
+          "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 }
+        }
+      ]
+    }
+  }
+}

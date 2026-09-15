@@ -1,3 +1,5 @@
+import pytest
+import os
 """Analyseurs de sortie de tests, par lanceur.
 
 Motif (2026-08-06) : le banc devient multi-langage (scénario Flutter prévu). Ce qui
@@ -497,3 +499,23 @@ class TestCheminsRelatifsAuProjet:
         assert etages["test_dabord"] is True
         # Deux commits conventionnels : le format est bon, le PLANCHER ne l'est pas.
         assert etages["historique"] is False
+
+
+class TestLittleCoderModeles:
+    """little-coder ne resout pas le NOM de variable d'`apiKey` (verifie 2026-09-16 :
+    401 avec le nom, succes avec la valeur). Le banc genere donc un fichier
+    temporaire avec la valeur, et le gabarit versionne ne doit JAMAIS la porter."""
+
+    def test_le_gabarit_ne_porte_que_le_nom_de_variable(self):
+        gabarit = bench.HERE / "config-little-coder" / "models.json"
+        conf = json.loads(gabarit.read_text())
+        assert conf["providers"]["localai"]["apiKey"] == "LOCALAI_API_KEY"
+
+    def test_le_fichier_genere_est_prive_et_hors_workdir(self, tmp_path):
+        _argv, env = bench.little_coder_command("localai/gemma-4-12b-it-qat", tmp_path, "x")
+        assert env["LITTLE_CODER_PERMISSION_MODE"] == "accept-all"
+        fichier = env.get("LITTLE_CODER_MODELS_FILE")
+        if fichier is None:
+            pytest.skip("pas de cle LocalAI sur cette machine")
+        assert not str(fichier).startswith(str(tmp_path)), "le workdir est archive"
+        assert (os.stat(fichier).st_mode & 0o777) == 0o600
