@@ -22,5 +22,5 @@ requests-mock==1.12.1
 # collection time, so the test job must install them explicitly. Keep in lockstep
 # with manifest.json requirements.
 pronotepy==2.15.7
-python-slugify==8.0.4
+python-slugify==9.0.0
 holidays==0.104
