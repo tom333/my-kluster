@@ -313,7 +313,7 @@ SCENARIOS = {
         # Chaine d'outils posee en tete de PATH pour l'agent (cf. outils.env_pour).
         # Ce n'est pas un venv Python : env_pour ne posera donc pas VIRTUAL_ENV.
         "venv": "/home/moi/develop/flutter-master",
-        "expected_tests": 3,
+        "expected_tests": 6,  # build/lancement/rendu + tests/test_dabord/historique
         # Le code produit EST le livrable ici : un tirage reussi vaut d'etre garde,
         # voire promu dans le depot du jeu.
         "archiver_projet": True,
@@ -767,6 +767,114 @@ MARQUEURS_GABARIT_FLUTTER = (
 # neuf mais vide. Les deux franchissent une heuristique d'image.
 BIBLIOTHEQUE_EXIGEE = "flutter_scene"
 
+# Les trois etages de METHODE, ajoutes le 2026-09-15. Motif : les etages
+# build/lancement/rendu mesurent un ARTEFACT. Deux harnais peuvent produire le
+# meme APK en travaillant tres differemment -- l'un en commitant une fois a la
+# fin, l'autre en cycles rouge-vert. C'est cette difference qui departage les
+# deux configurations gagnantes, et elle etait invisible.
+#
+# Tout est verifie par machine : `flutter test`, et `git log`. Aucune heuristique,
+# aucun jugement -- on a vu ce que coute une heuristique (le gabarit
+# `flutter create` note 3/3 le 2026-09-14).
+TYPES_CONVENTIONNELS = (
+    "feat", "fix", "test", "chore", "docs", "refactor", "build", "ci", "style", "perf",
+)
+MOTIF_CONVENTIONNEL = re.compile(
+    r"^(%s)(\([^)]+\))?!?: .+" % "|".join(TYPES_CONVENTIONNELS)
+)
+COMMITS_MINIMUM = 3
+
+
+def _commits(projet):
+    """[(sha, sujet, [fichiers])] du plus ANCIEN au plus recent, ou None.
+
+    Separateur NUL entre champs et double NUL entre commits : un sujet de commit
+    peut contenir n'importe quel caractere imprimable, y compris des sauts de
+    ligne apres un `--format` mal choisi.
+    """
+    code, sortie = _lance(
+        ["git", "log", "--reverse", "--name-only", "--format=%x00%x00%H%x00%s"],
+        cwd=str(projet),
+        timeout=60,
+    )
+    if code != 0:
+        return None
+    commits = []
+    for bloc in sortie.split("\0\0"):
+        if not bloc.strip():
+            continue
+        champs = bloc.split("\0")
+        if len(champs) < 2:
+            continue
+        sha = champs[0].strip()
+        lignes = champs[1].splitlines()
+        sujet = lignes[0].strip() if lignes else ""
+        fichiers = [x.strip() for x in lignes[1:] if x.strip()]
+        if sha:
+            commits.append((sha, sujet, fichiers))
+    return commits
+
+
+def _verifie_methode(projet, etage):
+    """Ajoute les etages `tests`, `test_dabord` et `historique`."""
+    # --- tests : la suite passe, et au moins un test n'est pas le gabarit ---
+    code, sortie = _lance(["flutter", "test"], cwd=str(projet), timeout=900)
+    suite_verte = code == 0
+    propre = False
+    dossier = Path(projet) / "test"
+    if dossier.is_dir():
+        for f in dossier.rglob("*.dart"):
+            try:
+                texte = f.read_text(errors="replace")
+            except OSError:
+                continue
+            # Le gabarit de `flutter create` teste le compteur de demonstration.
+            if "Counter increments smoke test" not in texte and "testWidgets" not in texte:
+                propre = True
+            elif "Counter increments smoke test" not in texte:
+                propre = True
+    etage(
+        "tests",
+        suite_verte and propre,
+        "flutter test %s ; test propre : %s"
+        % ("passe" if suite_verte else "echoue", propre),
+    )
+
+    commits = _commits(projet)
+    if commits is None:
+        etage("test_dabord", False, "pas de depot git lisible")
+        etage("historique", False, "pas de depot git lisible")
+        return
+
+    # --- test d'abord : un commit qui touche test/ sans lib/, puis un sur lib/ ---
+    rouge = None
+    vert = False
+    for n, (_sha, _sujet, fichiers) in enumerate(commits):
+        touche_test = any(f.startswith("test/") for f in fichiers)
+        touche_lib = any(f.startswith("lib/") for f in fichiers)
+        if rouge is None and touche_test and not touche_lib:
+            rouge = n
+        elif rouge is not None and touche_lib:
+            vert = True
+            break
+    etage(
+        "test_dabord",
+        vert,
+        "aucun cycle rouge-vert : il faut un commit test/ SANS lib/, puis un commit lib/",
+    )
+
+    # --- historique : assez de commits, tous au format conventionnel ---
+    propres = [s for _h, s, _f in commits if MOTIF_CONVENTIONNEL.match(s)]
+    assez = len(commits) >= COMMITS_MINIMUM
+    tous = len(propres) == len(commits) and commits
+    etage(
+        "historique",
+        bool(assez and tous),
+        "%d commit(s), %d au format conventionnel (minimum %d, tous conformes)"
+        % (len(commits), len(propres), COMMITS_MINIMUM),
+    )
+
+
 
 def _bibliotheque_absente(projet):
     """Vrai si `flutter_scene` n'est ni declare dans le pubspec ni importe."""
@@ -920,12 +1028,20 @@ def _attend_lancement(proc, delai=DELAI_LANCEMENT_MAX_S):
     return False
 
 
+# Source UNIQUE des etages de `crepuscule-amorce`. Les enumerer a la main dans le
+# verificateur ET dans ses tests les a fait diverger des l'ajout des trois etages
+# de methode : les tests exigeaient toujours trois etages quand le banc en rendait
+# six. L'ordre est celui du rapport : resultat d'abord, methode ensuite.
+ETAGES_AMORCE = ("build", "lancement", "rendu", "tests", "test_dabord", "historique")
+
+
 def _verifie_amorce_flutter(workdir, scenario):
     """(passed, failed, tail, issue, etages) pour `crepuscule-amorce`.
 
-    Trois etages INDEPENDANTS, pour que le score soit informatif plutot que binaire :
+    Six etages INDEPENDANTS, pour que le score soit informatif plutot que binaire :
     un projet qui compile mais n'affiche rien doit se distinguer d'un projet qui ne
-    compile pas.
+    compile pas, et un resultat juste obtenu sans methode doit se distinguer d'un
+    resultat juste obtenu en TDD avec un historique lisible.
     """
     sdk = scenario.get("sdk_bin") or ""
     flutter = str(Path(sdk) / "flutter") if sdk else "flutter"
@@ -948,14 +1064,14 @@ def _verifie_amorce_flutter(workdir, scenario):
 
     def bilan():
         passed = sum(e["passed"] for e in etages.values())
-        return passed, 3 - passed, "\n".join(notes), ISSUE_OK, etages
+        return passed, len(etages) - passed, "\n".join(notes), ISSUE_OK, etages
 
     # OU est le projet : trouve, jamais suppose (cf. _racine_projet).
     projet = _racine_projet(workdir)
     if projet is None:
-        for nom in ("build", "lancement", "rendu"):
+        for nom in ETAGES_AMORCE:
             etage(nom, False, "aucun pubspec.yaml : pas de projet Flutter")
-        return 0, 3, "\n".join(notes), ISSUE_COLLECTE, etages
+        return 0, len(etages), "\n".join(notes), ISSUE_COLLECTE, etages
     if projet != Path(workdir):
         notes.append("[projet] %s" % projet.relative_to(workdir))
 
@@ -970,7 +1086,11 @@ def _verifie_amorce_flutter(workdir, scenario):
         # etage reussi dans un agregat.
         etage("lancement", False, "pas d'APK")
         etage("rendu", False, "pas d'APK")
-        return 0, 3, "\n".join(notes), ISSUE_COLLECTE, etages
+        # Les etages de METHODE restent mesurables sans APK : les tests et
+        # l'historique git ne dependent pas de la compilation Android.
+        _verifie_methode(projet, etage)
+        reussis = sum(e["passed"] for e in etages.values())
+        return reussis, len(etages) - reussis, "\n".join(notes), ISSUE_COLLECTE, etages
 
     # Appareil LU depuis `adb devices`, pas code en dur.
     _, liste = _lance([adb, "devices"], timeout=60)
@@ -1055,6 +1175,7 @@ def _verifie_amorce_flutter(workdir, scenario):
                 notes.append("[capture] %s" % cible.name)
             except OSError:
                 pass
+        _verifie_methode(projet, etage)
         if _bibliotheque_absente(projet):
             etage(
                 "rendu",
@@ -2112,6 +2233,40 @@ def opencode_metrics(transcript):
     }
 
 
+OMP = os.environ.get("BENCH_OMP", str(Path.home() / ".local/bin/omp"))
+
+
+def omp_command(model, workdir, prompt):
+    """omp (oh-my-pi), configuration GLOBALE de `~/.omp/agent/`.
+
+    Fork de pi, donc meme flux JSONL : `pi_metrics` s'applique tel quel.
+
+    On ne passe AUCUN reglage en ligne de commande : le prompt de methode
+    (APPEND_SYSTEM.md), les regles a interruption de flux (rules/) et la
+    declaration du serveur Dart (lsp.json) vivent dans `~/.omp/agent/` et
+    doivent s'appliquer d'eux-memes. Mesurer autre chose que la configuration
+    reellement installee n'aurait pas d'interet.
+
+    Piege (2026-09-15) : la detection des serveurs de langage est cwd-only, au
+    demarrage, sans recursion. Quand CREER le projet est la tache, `pubspec.yaml`
+    n'existe pas encore et `dartls` ne demarre jamais -- en silence. D'ou le
+    marqueur `.git` dans le lsp.json global.
+    """
+    cle = Path.home() / ".config" / "brain" / "localai-key"
+    env = {"LOCALAI_API_KEY": cle.read_text().strip()} if cle.exists() else {}
+    return [
+        OMP,
+        "-p",
+        "--model",
+        model,
+        "--mode",
+        "json",
+        "--no-session",
+        "--auto-approve",
+        prompt,
+    ], env
+
+
 HARNESSES = {
     "pi": (pi_command, pi_metrics),
     "pi-abspath": (pi_abspath_command, pi_metrics),
@@ -2124,6 +2279,7 @@ HARNESSES = {
     "nu-pipeline": (nu_pipeline_command, nu_pipeline_metrics),
     "nu-contrat": (nu_contrat_command, nu_pipeline_metrics),
     "opencode": (opencode_command, opencode_metrics),
+    "omp": (omp_command, pi_metrics),
 }
 
 

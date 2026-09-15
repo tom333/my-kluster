@@ -324,6 +324,47 @@ jouant, et il sera pénible à reproduire.
 
 ---
 
+## 3bis. Méthode de développement — non négociable
+
+L'oracle du § 3 dit *ce qu'on vérifie*. Cette section dit *comment on y arrive*. Elle
+s'applique dès l'étape 0, pas « quand le projet sera sérieux » : une amorce écrite sans
+méthode est une amorce qu'il faudra refaire.
+
+### Le test avant le code
+
+La projection isométrique est de l'arithmétique. Elle se vérifie sans écran, sans
+appareil, en millisecondes — le § 3 l'a déjà établi. Il n'y a donc aucune excuse à
+écrire la projection avant le test qui la contraint.
+
+Concrètement, un cycle rouge-vert doit être **lisible dans l'historique** : un commit qui
+ajoute un test sans toucher à `lib/`, puis un commit ultérieur qui touche `lib/`. Si les
+deux arrivent ensemble, personne ne peut savoir si le test a été écrit pour contraindre
+le code ou pour décrire ce qu'il faisait déjà.
+
+Le gabarit `widget_test.dart` que `flutter create` dépose ne compte pas : il teste le
+compteur de démonstration. `flutter test` doit passer, et au moins un test doit exercer
+la logique du projet.
+
+### L'historique comme document
+
+Le dépôt est initialisé dès le départ. On commite **au fur et à mesure**, pas à la fin :
+un commit unique en fin de course ne dit rien de la démarche et rend toute bissection
+impossible.
+
+Chaque sujet suit Conventional Commits — `type(portée): sujet` — avec `feat`, `fix`,
+`test`, `chore`, `docs`, `refactor`, `build`, `ci`, `style` ou `perf`. Un commit porte
+**une** intention : l'échafaudage, les tests et l'implémentation ne se mélangent pas.
+
+Trois commits est un plancher, pas une cible.
+
+### Pourquoi c'est dans la spec et pas dans une consigne
+
+Parce qu'un projet se juge aussi sur la trace qu'il laisse. Un cube à l'écran obtenu par
+un seul commit de six cents lignes, sans test, est un résultat qu'on ne peut ni relire,
+ni reprendre, ni faire évoluer — et la tranche 1 du § 5 en demande douze fois autant.
+
+---
+
 ## 4. Transposition — ce qui change, ce qui reste
 
 C&C repose sur cinq mécaniques imbriquées. On garde la structure, on change le décor, et

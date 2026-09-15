@@ -156,18 +156,18 @@ class TestVerifieurAmorce:
         image.save(tampon, format="PNG")
         assert bench._part_dominante(tampon.getvalue()) < bench.PART_DOMINANTE_MAX
 
-    def test_trois_etages_construits_par_le_verificateur(self, monkeypatch):
+    def test_tous_les_etages_construits_par_le_verificateur(self, monkeypatch):
         """Un score binaire confondrait « ne compile pas » et « compile mais plante ».
 
-        Les trois étages viennent du VÉRIFICATEUR, pas d'une clé de scénario : les
+        Les étages viennent du VÉRIFICATEUR, pas d'une clé de scénario : les
         déclarer en double a fait planter la première campagne. On vérifie donc qu'un
-        build raté produit bien les trois, tous à FAIL — parce qu'un étage OMIS se
-        lirait comme un étage réussi dans un agrégat.
+        build raté produit bien TOUS les étages, tous à FAIL — parce qu'un étage OMIS
+        se lirait comme un étage réussi dans un agrégat.
         """
         sc = dict(bench.SCENARIOS["crepuscule-amorce"], sdk_bin="/inexistant")
         passed, failed, _, issue, etages = bench._verifie_amorce_flutter("/tmp", sc)
-        assert sorted(etages) == ["build", "lancement", "rendu"]
-        assert (passed, failed) == (0, 3)
+        assert sorted(etages) == sorted(bench.ETAGES_AMORCE)
+        assert (passed, failed) == (0, len(bench.ETAGES_AMORCE))
         assert all(e["verdict"] == "FAIL" for e in etages.values())
         assert issue == bench.ISSUE_COLLECTE
 
@@ -189,11 +189,11 @@ class TestScenarioSansPytest:
 
     def test_pas_de_faux_etages_pytest(self):
         """La clé `etages` est réservée aux scénarios notés par un appel pytest PAR
-        FICHIER. `amorce-flutter` construit lui-même ses trois étages. Les déclarer en
+        FICHIER. `amorce-flutter` construit lui-même ses étages. Les déclarer en
         double a fait lire la clé avec le mauvais sens."""
         sc = bench.SCENARIOS["crepuscule-amorce"]
         assert "etages" not in sc
-        assert sc["expected_tests"] == 3
+        assert sc["expected_tests"] == len(bench.ETAGES_AMORCE)
         assert sc["verifieur"] == "amorce-flutter"
 
     def test_aucun_scenario_ne_cumule_verifieur_et_etages(self):
@@ -247,16 +247,16 @@ class TestRacineProjet:
         assert bench._racine_projet(str(tmp_path)) == tmp_path
 
     def test_aucun_projet_rend_none(self, tmp_path):
-        """Et le vérificateur doit alors noter les trois étages ÉCHOUÉS avec un motif
+        """Et le vérificateur doit alors noter TOUS les étages ÉCHOUÉS avec un motif
         lisible, pas planter."""
         assert bench._racine_projet(str(tmp_path)) is None
         sc = dict(bench.SCENARIOS["crepuscule-amorce"], sdk_bin="/inexistant")
         passed, failed, notes, issue, etages = bench._verifie_amorce_flutter(
             str(tmp_path), sc
         )
-        assert (passed, failed) == (0, 3)
+        assert (passed, failed) == (0, len(bench.ETAGES_AMORCE))
         assert "pubspec" in notes
-        assert sorted(etages) == ["build", "lancement", "rendu"]
+        assert sorted(etages) == sorted(bench.ETAGES_AMORCE)
 
     def test_identifiant_lu_depuis_la_racine_trouvee(self, tmp_path):
         """L'`applicationId` doit être cherché DANS le projet, pas dans le workdir."""
