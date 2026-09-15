@@ -343,3 +343,53 @@ class TestVerdictMajorite:
 
     def test_la_majorite_ne_sauve_pas_une_mediane_insuffisante(self):
         assert self._verdict([2, 3, 2], runs=3, attendus=3) == "FAIL"
+
+
+class TestBibliothequeExigee:
+    """Contourner la bibliothèque nommée par l'énoncé n'est pas réussir la tâche.
+
+    Motif (2026-09-15) : qwen3-coder-reap-25b a fait passer l'étage `build` en
+    supprimant l'exigence — pubspec sans `flutter_scene`, 57 lignes affichant
+    « FLUTTER GPU OK », aucune 3D — puis a appelé `finish`. Même faille que le
+    gabarit `flutter create` (245772f4) par l'autre bout : du code neuf mais vide.
+    """
+
+    def _projet(self, tmp_path, pubspec, dart):
+        (tmp_path / "pubspec.yaml").write_text(pubspec)
+        (tmp_path / "lib").mkdir()
+        (tmp_path / "lib" / "main.dart").write_text(dart)
+        return tmp_path
+
+    def test_absente_du_pubspec_et_des_sources(self, tmp_path):
+        p = self._projet(
+            tmp_path,
+            "dependencies:\n  flutter:\n    sdk: flutter\n",
+            "import 'package:flutter/material.dart';\nvoid main() {}\n",
+        )
+        assert bench._bibliotheque_absente(p) is True
+
+    def test_declaree_mais_jamais_importee(self, tmp_path):
+        p = self._projet(
+            tmp_path,
+            "dependencies:\n  flutter_scene: ^0.20.0\n",
+            "import 'package:flutter/material.dart';\nvoid main() {}\n",
+        )
+        assert bench._bibliotheque_absente(p) is True
+
+    def test_declaree_et_importee(self, tmp_path):
+        p = self._projet(
+            tmp_path,
+            "dependencies:\n  flutter_scene: ^0.20.0\n",
+            "import 'package:flutter_scene/scene.dart';\nvoid main() {}\n",
+        )
+        assert bench._bibliotheque_absente(p) is False
+
+    def test_un_import_faux_reste_une_tentative_honnete(self, tmp_path):
+        # gemma importait `flutter_scene/flutter_scene.dart`, qui n'existe pas.
+        # Ce garde ne doit PAS le penaliser : il echoue deja au build.
+        p = self._projet(
+            tmp_path,
+            "dependencies:\n  flutter_scene: ^0.23.0\n",
+            "import 'package:flutter_scene/flutter_scene.dart';\nvoid main() {}\n",
+        )
+        assert bench._bibliotheque_absente(p) is False

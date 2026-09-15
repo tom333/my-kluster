@@ -753,6 +753,42 @@ MARQUEURS_GABARIT_FLUTTER = (
 )
 
 
+# La bibliotheque que l'enonce NOMME. Un projet qui ne la declare ni ne l'importe
+# n'a pas fait la tache, quoi qu'affiche l'ecran.
+#
+# Motif (2026-09-15) : qwen3-coder-reap-25b a fait passer l'etage `build` en
+# SUPPRIMANT l'exigence — pubspec sans `flutter_scene`, main.dart de 57 lignes
+# affichant le texte « FLUTTER GPU OK », aucun cube, aucune camera. Puis il a
+# appele `finish` et declare la tache terminee. L'APK se construit parce qu'il
+# n'y a plus rien a construire.
+#
+# C'est la meme faille que le gabarit `flutter create` corrige en 245772f4, par
+# l'autre bout : la premiere laissait le code d'origine, celle-ci ecrit du code
+# neuf mais vide. Les deux franchissent une heuristique d'image.
+BIBLIOTHEQUE_EXIGEE = "flutter_scene"
+
+
+def _bibliotheque_absente(projet):
+    """Vrai si `flutter_scene` n'est ni declare dans le pubspec ni importe."""
+    projet = Path(projet)
+    pubspec = projet / "pubspec.yaml"
+    try:
+        declare = BIBLIOTHEQUE_EXIGEE in pubspec.read_text(errors="replace")
+    except OSError:
+        declare = False
+    importe = False
+    lib = projet / "lib"
+    if lib.is_dir():
+        for source in lib.rglob("*.dart"):
+            try:
+                if BIBLIOTHEQUE_EXIGEE in source.read_text(errors="replace"):
+                    importe = True
+                    break
+            except OSError:
+                continue
+    return not (declare and importe)
+
+
 def _gabarit_intact(projet):
     """Vrai si lib/ porte encore l'application de demonstration de `flutter create`."""
     lib = Path(projet) / "lib"
@@ -1019,7 +1055,14 @@ def _verifie_amorce_flutter(workdir, scenario):
                 notes.append("[capture] %s" % cible.name)
             except OSError:
                 pass
-        if _gabarit_intact(projet):
+        if _bibliotheque_absente(projet):
+            etage(
+                "rendu",
+                False,
+                "`%s` n'est ni declare dans pubspec.yaml ni importe dans lib/ "
+                "-- la tache a ete contournee, pas faite" % BIBLIOTHEQUE_EXIGEE,
+            )
+        elif _gabarit_intact(projet):
             # Inutile de juger l'image : le code est celui de `flutter create`.
             etage(
                 "rendu",
