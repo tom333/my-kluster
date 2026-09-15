@@ -819,13 +819,48 @@ def _commits(projet):
         fichiers = [x.strip() for x in lignes[1:] if x.strip()]
         if sha:
             commits.append((sha, sujet, fichiers))
-    return commits
+    return _relativise(projet, commits)
 
 
-def _verifie_methode(projet, etage):
-    """Ajoute les etages `tests`, `test_dabord` et `historique`."""
+def _relativise(projet, commits):
+    """Reecrit les chemins de `git log` relativement au PROJET.
+
+    `git log --name-only` rend des chemins relatifs a la racine du DEPOT. Or le
+    banc pose le depot sur le workdir et l'agent cree souvent son projet dans un
+    sous-repertoire : les chemins arrivent alors en `crepuscule/lib/main.dart`,
+    et le test `startswith("lib/")` de l'etage `test_dabord` ne matche JAMAIS --
+    un cycle rouge-vert parfait serait note en echec.
+
+    Les fichiers hors du projet (la SPEC a la racine du workdir) sont retires :
+    ils ne disent rien de la methode de developpement.
+    """
+    code, racine = _lance(
+        ["git", "rev-parse", "--show-toplevel"], cwd=str(projet), timeout=30
+    )
+    if code != 0:
+        return commits
+    try:
+        prefixe = Path(projet).resolve().relative_to(Path(racine.strip()).resolve())
+    except ValueError:
+        return commits
+    if prefixe == Path("."):
+        return commits
+    tete = str(prefixe) + "/"
+    return [
+        (sha, sujet, [f[len(tete):] for f in fichiers if f.startswith(tete)])
+        for sha, sujet, fichiers in commits
+    ]
+
+
+def _verifie_methode(projet, etage, flutter="flutter"):
+    """Ajoute les etages `tests`, `test_dabord` et `historique`.
+
+    `flutter` vient du SCENARIO : le banc cible flutter-master, et le `flutter`
+    du PATH est la branche stable. Mesurer la suite avec un autre SDK que celui
+    qui a construit l'APK ne veut rien dire.
+    """
     # --- tests : la suite passe, et au moins un test n'est pas le gabarit ---
-    code, sortie = _lance(["flutter", "test"], cwd=str(projet), timeout=900)
+    code, sortie = _lance([flutter, "test"], cwd=str(projet), timeout=900)
     suite_verte = code == 0
     propre = False
     dossier = Path(projet) / "test"
@@ -1121,7 +1156,7 @@ def _verifie_amorce_flutter(workdir, scenario):
         etage("rendu", False, "pas d'APK")
         # Les etages de METHODE restent mesurables sans APK : les tests et
         # l'historique git ne dependent pas de la compilation Android.
-        _verifie_methode(projet, etage)
+        _verifie_methode(projet, etage, flutter)
         reussis = sum(e["passed"] for e in etages.values())
         return reussis, len(etages) - reussis, "\n".join(notes), ISSUE_COLLECTE, etages
 
@@ -1208,7 +1243,7 @@ def _verifie_amorce_flutter(workdir, scenario):
                 notes.append("[capture] %s" % cible.name)
             except OSError:
                 pass
-        _verifie_methode(projet, etage)
+        _verifie_methode(projet, etage, flutter)
         if _bibliotheque_absente(projet):
             etage(
                 "rendu",

@@ -438,3 +438,62 @@ class TestUrlSondeParHarnais:
     def test_harnais_inconnu_retombe_sur_le_defaut(self, monkeypatch):
         monkeypatch.delenv("HARNAIS_NU_BASE_URL", raising=False)
         assert bench.url_client_de("nu") == "http://127.0.0.1:8080/v1"
+
+
+class TestCheminsRelatifsAuProjet:
+    """Le cycle rouge-vert doit se lire quand le projet est dans un SOUS-REPERTOIRE.
+
+    Motif (2026-09-15) : le banc pose le depot sur le workdir, et le premier
+    essai omp a cree `crepuscule_project/`. `git log --name-only` rendait alors
+    `crepuscule_project/test/x_test.dart`, que `startswith("test/")` ne matche
+    pas -- un cycle rouge-vert parfait aurait ete note en echec.
+    """
+
+    def _depot(self, tmp_path, imbrique):
+        bench._init_depot(tmp_path)
+        projet = tmp_path / "crepuscule_project" if imbrique else tmp_path
+        (projet / "test").mkdir(parents=True, exist_ok=True)
+        (projet / "lib").mkdir(parents=True, exist_ok=True)
+        (projet / "test" / "iso_test.dart").write_text("// rouge\n")
+        bench._lance(["git", "add", "-A"], cwd=str(tmp_path), timeout=30)
+        bench._lance(
+            ["git", "commit", "-m", "test(iso): projection isometrique"],
+            cwd=str(tmp_path),
+            timeout=30,
+        )
+        (projet / "lib" / "iso.dart").write_text("// vert\n")
+        bench._lance(["git", "add", "-A"], cwd=str(tmp_path), timeout=30)
+        bench._lance(
+            ["git", "commit", "-m", "feat(iso): implemente la projection"],
+            cwd=str(tmp_path),
+            timeout=30,
+        )
+        return projet
+
+    def test_projet_imbrique_rend_des_chemins_du_projet(self, tmp_path):
+        projet = self._depot(tmp_path, imbrique=True)
+        commits = bench._commits(projet)
+        assert [f for _s, _m, fs in commits for f in fs] == [
+            "test/iso_test.dart",
+            "lib/iso.dart",
+        ]
+
+    def test_projet_a_la_racine_inchange(self, tmp_path):
+        projet = self._depot(tmp_path, imbrique=False)
+        commits = bench._commits(projet)
+        assert [f for _s, _m, fs in commits for f in fs] == [
+            "test/iso_test.dart",
+            "lib/iso.dart",
+        ]
+
+    def test_le_cycle_rouge_vert_est_vu_dans_un_sous_repertoire(self, tmp_path):
+        projet = self._depot(tmp_path, imbrique=True)
+        etages = {}
+
+        def etage(nom, ok, detail=""):
+            etages[nom] = ok
+
+        bench._verifie_methode(projet, etage, flutter="/inexistant")
+        assert etages["test_dabord"] is True
+        # Deux commits conventionnels : le format est bon, le PLANCHER ne l'est pas.
+        assert etages["historique"] is False
