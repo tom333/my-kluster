@@ -134,38 +134,6 @@ spec:
 
                     echo "Installed CLI extras:"
                     ls -la /opt/data/.local/bin/
-              # Install firecrawl-py into the PVC (consumed via PYTHONPATH on main).
-              # The official image registers the web-firecrawl PLUGIN but does NOT
-              # bundle the firecrawl-py client package, and lazy-install is blocked
-              # (security.allow_lazy_installs=false) → web_search/web_extract fail →
-              # the agent falls back to the OOM-flaky browser (lightpanda) → burns
-              # max_turns(90) → cron scheduler treats max-iterations as a failure
-              # (RuntimeError) → NO Telegram delivery. The venv lives on the ephemeral
-              # image layer (not the PVC), so a cross-container venv install is
-              # impossible; we install to a PVC dir on PYTHONPATH instead. Idempotent.
-              # NB: the python3.13 path is pinned — bump if the base image's python
-              # minor version changes. Shared deps (websockets/aiohttp) shadow the
-              # venv by minor versions only; Hermes core imports verified OK.
-              install-py-extras:
-                image:
-                  repository: nousresearch/hermes-agent
-                  tag: "v2026.9.14"
-                  pullPolicy: IfNotPresent
-                command: ["sh", "-c"]
-                args:
-                  - |
-                    set -e
-                    TGT=/opt/data/.local/lib/python3.13/site-packages
-                    if [ -d "$TGT/firecrawl" ]; then
-                      echo "firecrawl-py already present in $TGT, skip"
-                    else
-                      echo "Installing firecrawl-py==4.17.0 -> $TGT"
-                      /usr/local/bin/uv pip install --target "$TGT" --python /opt/hermes/.venv/bin/python3 "firecrawl-py==4.17.0"
-                    fi
-                    chown -R 10000:10000 "$TGT"
-                securityContext:
-                  runAsUser: 0
-                  runAsGroup: 0
               # Normalize PVC ownership to 10000:10000 — the uid the official
               # v2026.6 agent runs `gateway run` AND `hermes dashboard` as (verified
               # via /proc; it chowns HERMES_HOME root to 10000:10000 0700 at boot but
@@ -208,9 +176,6 @@ spec:
                 env:
                   # --- Hermes data home: reuse the EXISTING PVC layout ---
                   HERMES_HOME: "/opt/data"
-                  # firecrawl-py (+ other pip extras) installed on the PVC by the
-                  # install-py-extras initContainer — restores web_search/web_extract.
-                  PYTHONPATH: "/opt/data/.local/lib/python3.13/site-packages"
                   # --- Built-in web dashboard (admin panel, port 9119) ---
                   HERMES_DASHBOARD: "1"
                   # --- API server: REQUIRED for the dashboard to function (it talks
@@ -244,14 +209,6 @@ spec:
                   TELEGRAM_HOME_CHANNEL: "843341688"
                   GATEWAY_ALLOW_ALL_USERS: "false"
                   WHATSAPP_ENABLED: "false"
-                  # --- Web integrations (in-cluster, no keys) ---
-                  SEARXNG_URL: "http://searxng.searxng.svc.cluster.local:8080"
-                  # NB: pas de OPENAI_BASE_URL ici. La var GÉNÉRIQUE détournait les clients
-                  # auxiliaires (web_extract/session_search/compression) vers LocalAI alors que
-                  # le provider agent est openrouter (warning agent.auxiliary_client). Le provider
-                  # nommé `localai` ci-dessous porte son propre base_url → reste joignable sans la var.
-                  # CRW (fastCRW) — Firecrawl-compatible scrape/search backend.
-                  FIRECRAWL_API_URL: "http://crw.hermes.svc.cluster.local:3000"
                 envFrom:
                   - secretRef:
                       name: hermes-secrets   # OPENAI_API_KEY + OPENROUTER_API_KEY + TELEGRAM_BOT_TOKEN + API_SERVER_KEY
@@ -312,8 +269,6 @@ spec:
                 bootstrap:
                   - path: /opt/data
                 install-cli-extras:
-                  - path: /opt/data
-                install-py-extras:
                   - path: /opt/data
                 fix-ownership:
                   - path: /opt/data
@@ -514,22 +469,6 @@ spec:
                     timeout: 60
                     connect_timeout: 10
                     enabled: true
-                  # veille — serveur MCP maison (veille-mcp-app.yaml), 3 outils GitHub
-                  # deterministes : releases_recentes, ajouts_listes, depot. Remplace le
-                  # `curl api.github.com` + `search_files` du skill veille-digest : le
-                  # filtrage par date se fait cote serveur, donc quelques lignes au lieu
-                  # des 197 897 caracteres que CRW ramenait (et tronquait) pour un seul
-                  # depot. Les depots suivis vivent dans sources.json du ConfigMap, pas
-                  # dans le prompt du cron.
-                  # Pas de header Authorization : le serveur est en ClusterIP sans jeton
-                  # (comme crw et lightpanda) et ne fait que des lectures publiques sur
-                  # api.github.com. Transport par defaut (streamable-HTTP) comme arrconf —
-                  # fastmcp sert `transport="http"`, pas du SSE, donc pas de `transport:`.
-                  veille:
-                    url: "http://veille-mcp.hermes.svc.cluster.local:8080/mcp"
-                    timeout: 60
-                    connect_timeout: 10
-                    enabled: true
                 agent:
                   max_turns: 90
                   gateway_timeout: 1800
@@ -548,48 +487,17 @@ spec:
                   inactivity_timeout: 120
                   command_timeout: 30
                   allow_private_urls: false
-                  # Remote headless browser over CDP (lightpanda-app.yaml) — the
-                  # image has no usable local Chromium. Hermes GETs /json/version on
-                  # this URL, reads webSocketDebuggerUrl (lightpanda advertises the
-                  # Service host, not 0.0.0.0), connects. Tokenless (ClusterIP only).
-                  cdp_url: http://lightpanda.hermes.svc.cluster.local:9222
-                # Search + extract both routed through CRW / fastCRW — a self-hosted,
-                # Firecrawl-compatible API (crw-app.yaml). CRW runs search via our
-                # SearXNG and renders JS pages via our lightpanda, returning clean
-                # markdown for web_extract. FIRECRAWL_API_URL (container env) points
-                # the firecrawl backend at CRW.
                 web:
-                  # RECHERCHE chez Tavily, EXTRACTION chez CRW. Hermes gère ce
-                  # découpage par capacité (web_search_registry : `web.search_backend`
-                  # / `web.extract_backend` primet sur `web.backend`).
-                  #
-                  # POURQUOI, mesuré : la recherche via CRW→SearXNG tombe par
-                  # intermittence parce que ses quatre moteurs généralistes se font
-                  # bannir (429 → suspension 1 h, CAPTCHA → 24 h). Les crons ont
-                  # signalé « web_search (SearXNG) indisponible » plusieurs fois. La
-                  # cause est arithmétique, pas accidentelle : CRW applique
-                  # `query_expand_variants = 3`, donc chaque recherche devient 3
-                  # requêtes sortantes depuis une IP résidentielle unique.
-                  #
-                  # Basculer la RECHERCHE sur une API à clé supprime les DEUX causes
-                  # d'un coup : plus de CAPTCHA possible, et plus d'amplification ×3
-                  # (c'est une fonction de CRW, pas de Tavily).
-                  #
-                  # Dimensionnement mesuré sur la semaine du 14 au 20/08 : 8 à 16
-                  # appels web_search par jour, ~11,6 de moyenne, soit ~350/mois —
-                  # contre ~1 000/mois offerts. 2,5× de marge, la veille
-                  # hebdomadaire supplémentaire comprise (~40/mois).
-                  #
-                  # L'EXTRACTION reste sur CRW : son chemin de scraping fonctionne
-                  # (vérifié sur les API GitHub et sur des pages lourdes avec
-                  # escalade JS via lightpanda), et Tavily est search-only côté
-                  # capacités qui nous intéressent ici.
-                  #
-                  # SearXNG n'est pas retiré : il sert l'usage interactif depuis le
-                  # LAN, où le volume est faible et un bannissement tolérable.
+                  # Recherche ET extraction chez Tavily (clé TAVILY_API_KEY, hermes-secrets).
+                  # Historique : la recherche y était déjà depuis août (CRW→SearXNG se
+                  # faisait bannir : 3 requêtes sortantes par recherche depuis une IP
+                  # résidentielle → 429/CAPTCHA). L'extraction restait sur CRW ; CRW,
+                  # SearXNG et lightpanda sont retirés le 2026-09-16 (zéro session chat
+                  # depuis le 26/07, veille passée sur Kestra). Tavily fait l'extraction
+                  # (`_BUILTIN_AVAILABILITY["tavily"]` accepte extract_backend).
                   search_backend: tavily
-                  extract_backend: firecrawl
-                  backend: firecrawl
+                  extract_backend: tavily
+                  backend: tavily
                 compression:
                   enabled: true
                   # Large-context model → compress LATE so tool results aren't
@@ -600,12 +508,13 @@ spec:
                   protect_first_n: 1
                 # Restrict Telegram toolset: drop tts/image_gen/vision/messaging to
                 # shrink the tool-schema portion of the system prompt (~2-3k tokens).
-                # Keep web, browser, file, todo, cronjob, skills, terminal, code_execution.
+                # Keep web, file, todo, cronjob, skills, terminal, code_execution (browser
+                # retiré le 2026-09-16 avec lightpanda : aucun Chromium local dans l'image).
                 # Security: TELEGRAM_ALLOWED_USERS pins the bot to user 843341688 only;
                 # container is non-privileged, no host mount, no sudo — terminal access
                 # cannot escape the container.
                 platform_toolsets:
-                  telegram: [web, browser, file, todo, cronjob, skills, terminal, code_execution]
+                  telegram: [web, file, todo, cronjob, skills, terminal, code_execution]
                 # Disable Nous Portal as auxiliary fallback — no subscription, every
                 # call returns 402 and floods logs.
                 fallback:
