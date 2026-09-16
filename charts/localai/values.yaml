@@ -94,7 +94,7 @@ env:
   # Default context window for models that don't override it in their YAML.
   # The 7B and Coder configs below specify their own context_size.
   CONTEXT_SIZE: "16384"
-  DEBUG: "true"   # TEMPORAIRE 2026-09-16 : localiser les 7-24 GB de RSS hôte du backend gemma-4-12b (lignes "buffer size" llama.cpp)
+  DEBUG: "false"
   MODELS_PATH: "/models"
   # Single GPU (12GB) → un seul modèle résident à la fois. Sans ça, charger un 2e
   # modèle pendant que le 1er occupe la VRAM → cudaMalloc OOM (constaté 2026-07-05
@@ -398,6 +398,15 @@ modelsConfigs:
         uri: https://huggingface.co/unsloth/gemma-4-12B-it-qat-GGUF/resolve/main/mmproj-BF16.gguf
     options:
       - use_jinja:true
+      # cache_ram:0 — AJOUTÉ le 2026-09-16. Depuis LocalAI 4.3 le prompt cache
+      # serveur (cache_ram + kv_unified + cache_idle_slots, ON par défaut) stashe
+      # les états KV des slots inactifs EN RAM HÔTE. Avec 4 slots et les contextes
+      # agentiques uniques du banc, le backend montait à 24 GB de RSS à ctx 150000
+      # (3 OOM globaux les 15-16/09) et 7 GB à 65536, alors que gpu_layers: 99 et que
+      # la VRAM porte tout (10,5 GB). Le cache n'apporte rien ici (prompts jamais
+      # répétés) : coupé. Le remettre (ex. cache_ram:2048) si un client rejoue de
+      # gros system prompts identiques.
+      - cache_ram:0
       # NB : gemma-4-it raisonne par défaut (préambule reasoning) — BON pour
       # chat/coding, on le GARDE. Testé 2026-07-05 : le template GGUF unsloth
       # n'expose PAS de toggle enable_thinking (no-op), et le reasoning NE bloque
@@ -459,6 +468,9 @@ modelsConfigs:
         uri: https://huggingface.co/SC117/gemma-4-26B-A4B-it-qat-heretic-GGUF/resolve/main/mmproj-gemma-4-26B-A4B-it-qat-heretic-F16.gguf
     options:
       - use_jinja:true
+      # cache_ram:0 — cf. gemma-4-12b-it-qat : ici les experts MoE sont DÉJÀ en RAM
+      # hôte (--n-cpu-moe), un prompt cache par-dessus est le pire endroit où grossir.
+      - cache_ram:0
       # `parallel:1` — AJOUTÉ le 2026-09-03. LocalAI ouvrait 4 slots
       # (`parallel="4"` dans ses logs) et llama-server RÉPARTIT `--ctx-size` entre
       # eux : le contexte réellement servi était de 8 192, pas 32 768. Même défaut
