@@ -43,7 +43,7 @@ Hermes garde le chat Telegram. Voir `PASSATION`/notes dans `hermes-runtime/`.
 | App ArgoCD, chart `kestra/kestra` 2.0.2, valeurs | `argocd/argocd-apps/kestra-app.yaml` |
 | Middleware Traefik `lan-only` (ns `kestra`) | `config/traefik-middlewares.yaml` |
 | Secret config (mot de passe Postgres, basic-auth UI) | `sealed/kestra-config.yaml` |
-| Secrets de flux (`SECRET_TELEGRAM_TOKEN`, `SECRET_LOCALAI_API_KEY`) | `sealed/kestra-flow-secrets.yaml` |
+| Secrets de flux (`SECRET_TELEGRAM_TOKEN`, `SECRET_LOCALAI_API_KEY`, `SECRET_MINIFLUX_TOKEN`, `SECRET_GITHUB_TOKEN`, `SECRET_TXTAI_TOKEN` — valeurs en base64) | `sealed/kestra-flow-secrets.yaml` |
 | Base `kestra`, rôle `kestra` | PostgreSQL partagé `postgresql.datalab` — **créés à la main** le 2026-09-16 (`ALTER DATABASE template1 REFRESH COLLATION VERSION` a été nécessaire : glibc 2.36 → 2.43) |
 | UI | `https://kestra.tgu.ovh` (LAN), `admin@tgu.ovh`, mot de passe dans `~/.config/kestra/admin-password` |
 
@@ -53,8 +53,10 @@ donc aucun conflit avec la passerelle.
 ## Architecture des flux
 
 - **`digest`** (générique) : non-lus d'une catégorie Miniflux → **un** appel gemma
-  selon la consigne du thème → Telegram (découpé ≤ 3 800 car.) → marquer lu.
-  Sentinelle `RIEN_DE_NEUF` = silence sur vide (entrées quand même marquées lues).
+  selon la consigne du thème → Telegram (découpé ≤ 3 800 car.) → **txtai** (un
+  document par bloc, `source='veille'`, `job=<catégorie>`, `allowFailure`) → marquer lu.
+  Sentinelle `RIEN_DE_NEUF` = silence sur vide (entrées quand même marquées lues,
+  rien d'indexé).
 - **`watcher`** (générique) : script Python du dépôt tiré à l'exécution, état en KV,
   stdout non vide = alerte Telegram.
 - Un **mini-flux par job** porte le cron et la consigne, et appelle le générique
@@ -75,7 +77,7 @@ donc aucun conflit avec la passerelle.
 | `bonsai-watch` | — (script, KV) | `15 8,20 * * *` | bonsai-backend-watch (`7ebbddc10caa`) |
 | `k2horizon-watch` | — (script, KV) | `45 8,20 * * *` | k2horizon-watch (`b7c3e1a4f902`) |
 | `moe-cache-watch` | — (script, KV) | `0 9,21 * * *` | moe-cache-watch (`42a01f72da31`) |
-| *(non repris)* | | `15 * * * *` | digest-indexer (`d1965700c0de`) — indexait les digests Hermes dans txtai ; la dédup vit dans Miniflux |
+| *(intégré à `digest`)* | tâche `indexer` | à chaque digest | digest-indexer (`d1965700c0de`) — indexait les digests Hermes dans txtai toutes les heures ; la dédup vit dans Miniflux, l'indexation suit l'envoi |
 
 Ce qui n'est plus couvert par rapport aux prompts Hermes : le statut du cluster *arr via
 le MCP arrconf, et le contrôle API Hugging Face (`context_length`, template d'outils)
