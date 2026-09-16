@@ -1889,6 +1889,8 @@ def nu_command(model, workdir, prompt):
     # toutes les campagnes anterieures deviendraient incomparables en silence,
     # sans que rien ne le signale (piege 21). On epingle donc les coupures ici,
     # et chaque variable d'environnement LEVE la sienne.
+    if not os.environ.get("HARNAIS_NU_CONSIGNE_OUTILS"):
+        verify += ["--sans-consigne-outils"]
     if not os.environ.get("HARNAIS_NU_LSP"):
         verify += ["--sans-lsp"]
     if os.environ.get("HARNAIS_NU_VERIFY_CMD"):
