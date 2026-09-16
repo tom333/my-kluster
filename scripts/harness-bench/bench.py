@@ -1699,7 +1699,7 @@ def little_coder_command(model, workdir, prompt):
         fichier.chmod(0o600)
         fichier.write_text(json.dumps(modeles))
         env["LITTLE_CODER_MODELS_FILE"] = str(fichier)
-    return [
+    argv = [
         "little-coder",
         # Sans lui, le lanceur interroge le registre npm a CHAQUE essai (et
         # proposerait une mise a jour a mi-campagne). Le harnais mesure est
@@ -1711,12 +1711,28 @@ def little_coder_command(model, workdir, prompt):
         "json",
         "--no-session",
         "--no-context-files",
-        "-p",
-        prompt,
-    ], env
+    ]
+    if EXCLURE_OUTILS:
+        argv += ["--exclude-tools", EXCLURE_OUTILS]
+    return argv + ["-p", prompt], env
 
 
 PI_LENS = Path.home() / ".pi" / "agent" / "npm" / "node_modules" / "pi-lens" / "dist" / "index.js"
+
+# Liste noire d'outils, posee par --exclude-tools. Vide = aucun retrait, donc
+# inerte par defaut.
+#
+# Motif (2026-09-16, essai 3 de little-coder+pi-lens) : `dispatch` lance des
+# sous-codeurs, qui ont mange 12 min sur 28 et ouvert un SECOND flux concurrent
+# sur le GPU -- suspecte dans l'OOM LocalAI du matin. `flutter build` n'a jamais
+# ete lance avant le couperet. C'est un REGLAGE du harnais, pas une
+# transformation : la famille pi expose `--exclude-tools` nativement.
+#
+# Constante de module et pas parametre de `build_command` : la signature
+# (model, workdir, prompt) est partagee par la vingtaine de lanceurs, et la
+# changer pour un reglage qui n'en concerne qu'une famille couterait plus qu'il
+# ne rapporte. La valeur reste tracee : `commande` enregistre sys.argv.
+EXCLURE_OUTILS = ""
 
 
 def little_coder_lens_command(model, workdir, prompt):
@@ -3052,6 +3068,12 @@ def main():
     # constante du banc, c'est une mesure qui se perime.
     parser.add_argument("--timeout", type=int, default=745)
     parser.add_argument(
+        "--exclude-tools",
+        default="",
+        help="liste noire d'outils, separee par des virgules (famille pi "
+        "uniquement ; ex. `dispatch`). Vide = inerte.",
+    )
+    parser.add_argument(
         "--runs",
         type=int,
         default=3,
@@ -3064,6 +3086,8 @@ def main():
         return 0
     if not args.model:
         parser.error("--model requis")
+    global EXCLURE_OUTILS
+    EXCLURE_OUTILS = args.exclude_tools
     return run(args.harness, args.model, args.scenario, args.timeout, args.runs)
 
 

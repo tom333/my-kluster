@@ -536,3 +536,59 @@ class TestLittleCoderLens:
         # Sinon le lanceur avertit et continue SANS l'extension : le bras B
         # mesurerait le bras A en croyant mesurer pi-lens (bras doublon silencieux).
         assert bench.PI_LENS.is_file()
+
+
+class TestExclusionOutils:
+    """`--exclude-tools` : un REGLAGE du harnais, pas une transformation.
+
+    Motif (2026-09-16, essai 3 de little-coder+pi-lens) : `dispatch` lance des
+    sous-codeurs qui ont mange 12 min sur 28 et ouvert un second flux concurrent
+    sur le GPU, si bien que `flutter build` n'a jamais ete lance avant le
+    couperet. La famille pi expose nativement `--exclude-tools`.
+    """
+
+    def test_inerte_par_defaut(self, tmp_path):
+        """Par defaut on ne retire RIEN : sinon toutes les campagnes passees
+        deviendraient incomparables sans que rien ne le signale."""
+        avant = bench.EXCLURE_OUTILS
+        bench.EXCLURE_OUTILS = ""
+        try:
+            argv, _ = bench.little_coder_command("localai/gemma-4-12b-it-qat", tmp_path, "x")
+            assert "--exclude-tools" not in argv
+        finally:
+            bench.EXCLURE_OUTILS = avant
+
+    def test_pose_la_liste_noire(self, tmp_path):
+        avant = bench.EXCLURE_OUTILS
+        bench.EXCLURE_OUTILS = "dispatch"
+        try:
+            argv, _ = bench.little_coder_command("localai/gemma-4-12b-it-qat", tmp_path, "x")
+            i = argv.index("--exclude-tools")
+            assert argv[i + 1] == "dispatch"
+        finally:
+            bench.EXCLURE_OUTILS = avant
+
+    def test_le_prompt_reste_en_dernier(self, tmp_path):
+        """`-p <prompt>` doit rester la DERNIERE paire : inserer un drapeau
+        apres elle le ferait avaler comme argument du prompt."""
+        avant = bench.EXCLURE_OUTILS
+        bench.EXCLURE_OUTILS = "dispatch,glob"
+        try:
+            argv, _ = bench.little_coder_command("localai/gemma-4-12b-it-qat", tmp_path, "TACHE")
+            assert argv[-2:] == ["-p", "TACHE"]
+        finally:
+            bench.EXCLURE_OUTILS = avant
+
+    def test_le_bras_lens_en_herite(self, tmp_path):
+        """little-coder-lens delegue a little_coder_command : le reglage doit
+        traverser, sinon les deux bras ne seraient plus comparables."""
+        avant = bench.EXCLURE_OUTILS
+        bench.EXCLURE_OUTILS = "dispatch"
+        try:
+            argv, env = bench.little_coder_lens_command(
+                "localai/gemma-4-12b-it-qat", tmp_path, "x"
+            )
+            assert "--exclude-tools" in argv
+            assert env["LITTLE_CODER_EXTRA_EXTENSIONS"] == str(bench.PI_LENS)
+        finally:
+            bench.EXCLURE_OUTILS = avant
