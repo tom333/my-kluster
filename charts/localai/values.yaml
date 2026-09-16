@@ -382,11 +382,15 @@ modelsConfigs:
     # `parallel: 4` ne DIVISE PAS le contexte utilisable : une seule requête a
     # consommé 64 914 des 65 536 tokens (vérifié, pas déduit).
     #
+    # VÉRIFIÉ APRÈS DÉPLOIEMENT à 131072 : VRAM 10 926 MiB / 12 288, RSS 1,67 GB.
+    # Aucun débordement hôte. Le pansement était bien inutile.
+    #
     # ⚠️ POURQUOI PAS 256k, la cible : gemma-4 est 256k natif, mais ça ne TIENT PAS.
-    # Quatre points mesurés (9711 à 32768, 9655 à 49152, 10200 à 65536, 10831 à
-    # 131072) donnent 9,6 à 14,4 MiB par millier de tokens, soit 12 100 à 12 700 MiB
-    # projetés à 262144 — au-delà des ~11 300 MiB réellement disponibles (12 288
-    # moins ~1 000 pris par l'affichage). Ce qui ne tient pas en VRAM part en RAM
+    # En retranchant l'affichage (1 013 MiB mesurés GPU au repos, sans modèle), le
+    # backend seul pèse 9 187 MiB à 65536 et 9 913 MiB à 131072, soit une pente de
+    # 11,1 MiB par millier de tokens. Projection à 262144 : 11 365 MiB de backend
+    # + 1 013 d'affichage = 12 378 MiB, pour une carte de 12 288. Il manque ~90 MiB.
+    # C'est serré, mais du mauvais côté — et ce qui ne tient pas en VRAM part en RAM
     # hôte, c'est-à-dire précisément le débordement qu'on vient d'éteindre.
     # Pour viser 256k il faudrait libérer ~645 MiB en retirant `mmproj` — mais gemma
     # est le modèle VISION du cluster (Hermes, OpenWebUI) : ce n'est plus un réglage,
