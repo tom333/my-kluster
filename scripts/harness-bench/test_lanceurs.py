@@ -592,3 +592,26 @@ class TestExclusionOutils:
             assert env["LITTLE_CODER_EXTRA_EXTENSIONS"] == str(bench.PI_LENS)
         finally:
             bench.EXCLURE_OUTILS = avant
+
+
+class TestLintSurLeTemoin:
+    """`HARNAIS_NU_LINT_CMD` atteint le bras `nu` (pas seulement `nu-contrat`).
+
+    Bug trouve en revue le 2026-09-16 : le drapeau etait ajoute a `verify`, puis
+    le bloc VERIFY faisait `verify = [...]` — une AFFECTATION. Avec les deux
+    variables posees, c'est-a-dire dans toute campagne reelle, le lint etait
+    silencieusement perdu et rien ne le disait.
+    """
+
+    def test_lint_et_verify_ensemble_survivent_tous_les_deux(self, tmp_path, monkeypatch):
+        monkeypatch.setenv("HARNAIS_NU_LINT_CMD", ".dart=dart analyze {}")
+        monkeypatch.setenv("HARNAIS_NU_VERIFY_CMD", "flutter test")
+        argv, _ = bench.nu_command("localai/gemma-4-12b-it-qat", tmp_path, "x")
+        assert "--lint-cmd" in argv, "le lint a ete ecrase par l'affectation de verify"
+        assert "--verify-cmd" in argv
+        assert argv[argv.index("--lint-cmd") + 1] == ".dart=dart analyze {}"
+
+    def test_inerte_sans_la_variable(self, tmp_path, monkeypatch):
+        monkeypatch.delenv("HARNAIS_NU_LINT_CMD", raising=False)
+        argv, _ = bench.nu_command("localai/gemma-4-12b-it-qat", tmp_path, "x")
+        assert "--lint-cmd" not in argv

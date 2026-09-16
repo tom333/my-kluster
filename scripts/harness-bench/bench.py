@@ -1873,8 +1873,15 @@ def nu_command(model, workdir, prompt):
     # témoin nu. HARNAIS_NU_VERIFY_CMD l'active sans toucher au code, pour mesurer
     # la règle contre le plancher du témoin.
     verify = []
+    # HARNAIS_NU_LINT_CMD sur le TEMOIN aussi, pas seulement sur le pipeline.
+    # Motif (2026-09-16) : `lint.py` porte le seul levier jamais mesure gagnant
+    # -- opencode + `lsp: true` fait 3/3 la ou le MEME modele fait 0/6 sans --
+    # et il etait injoignable depuis le bras nu. Forme par langage acceptee :
+    #   HARNAIS_NU_LINT_CMD=".py=ruff check {},.dart=dart analyze {}"
+    if os.environ.get("HARNAIS_NU_LINT_CMD"):
+        verify += ["--lint-cmd", os.environ["HARNAIS_NU_LINT_CMD"]]
     if os.environ.get("HARNAIS_NU_VERIFY_CMD"):
-        verify = [
+        verify += [
             "--verify-cmd",
             os.environ["HARNAIS_NU_VERIFY_CMD"],
             "--max-verify",
