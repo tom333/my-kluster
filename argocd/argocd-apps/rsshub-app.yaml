@@ -48,10 +48,13 @@ spec:
                   CACHE_TYPE: memory
                   CACHE_EXPIRE: "3600"
                   MEMORY_MAX: "512"
-                  # Pas de GITHUB_ACCESS_TOKEN pour l'instant : trending est du
-                  # HTML (pas d'API), topics/search passent par l'API a 60 req/h
-                  # non authentifiees -- assez pour un run quotidien. A ajouter
-                  # (SealedSecret) si une route commence a rendre 403.
+                # GITHUB_ACCESS_TOKEN (SealedSecret rsshub-secrets) : sans lui
+                # RSSHub DESACTIVE les routes trending et search (« disabled due
+                # to the lack of relevant config », verifie le 2026-09-16).
+                # Jeton fine-grained, depots publics en lecture, aucune permission.
+                envFrom:
+                  - secretRef:
+                      name: rsshub-secrets
                 probes:
                   liveness:
                     enabled: true
