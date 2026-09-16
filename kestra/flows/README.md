@@ -55,3 +55,23 @@ donc aucun conflit avec la passerelle.
 | flux | remplace | déclencheur |
 |---|---|---|
 | `veille/korben.yaml` | cron Hermes « Résumé Korben soir » (`e8c4b8c91103`) | `30 9 * * *` UTC (20:30 NC) |
+
+## Points d'API utiles (Kestra 2.0.2, vérifiés)
+
+Le payload de `GET /api/v1/main/executions/{id}` **ne porte plus les sorties**.
+- Sorties d'une tâche : `GET /api/v1/main/outputs/tasks/{executionId}/{taskRunId}`
+- Sorties du flux : `GET /api/v1/main/outputs/executions/{executionId}`
+- Évaluer une expression dans le contexte d'une tâche (« Debug Outputs ») :
+  `POST /api/v1/main/executions/{executionId}/actions/eval/{taskRunId}` (corps : l'expression)
+- Valider un flux avant push : `POST /api/v1/main/flows/validate` (YAML)
+- Le paramètre `minLevel` de `/logs/{executionId}` est ignoré : filtrer côté client.
+- OpenAPI : `/swagger/kestra.yml`.
+
+## Leçons du premier run (2026-09-16)
+
+- gemma-4 via LocalAI raisonne par défaut : `max_tokens: 2048` partaient
+  entièrement en `reasoning`, `content` vide → Telegram `message text is empty`.
+  `reasoning_effort: "none"` règle le problème (20 s, digest complet).
+- Le venv Python de l'image n'a ni `pip` ni `ensurepip` : scripts en stdlib.
+- `options.timeout` du client HTTP : `connectTimeout` + `readIdleTimeout` seulement
+  en 2.0.2 ; le défaut de lecture est de 10 s.

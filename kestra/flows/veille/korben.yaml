@@ -81,13 +81,18 @@ tasks:
           "thématique, puis un résumé de 2 à 3 phrases, puis une ligne '🔗 ' suivie du lien EXACT "
           "fourni. Sépare les articles par une ligne '———'. Texte brut uniquement : pas de Markdown, "
           "pas d'astérisques, pas de crochets. N'invente aucun lien, n'ajoute aucun article, aucune "
-          "introduction ni conclusion. Longueur totale sous 3500 caractères : si nécessaire, "
+          "introduction ni conclusion. Longueur totale sous 3000 caractères (Telegram coupe à 4096) : si nécessaire, "
           "raccourcis les résumés, jamais les liens."
       )
       corps = {
           "model": os.environ["MODELE"],
           "temperature": 1.0,
           "max_tokens": 2048,
+          # gemma-4 raisonne par défaut et dépense TOUT le budget en `reasoning`
+          # (mesuré : 2048 tokens, content vide, finish_reason=length). Sans
+          # raisonnement : 20 s, digest complet. Le témoin à max_tokens 6000
+          # aboutit aussi, en 66 s et 9 000 caractères de pensée jetés.
+          "reasoning_effort": "none",
           "messages": [
               {"role": "system", "content": consigne},
               {"role": "user", "content": json.dumps(nouveaux, ensure_ascii=False)},
