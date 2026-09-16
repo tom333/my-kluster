@@ -118,3 +118,61 @@ de méthode n'ont jamais été approchés.
   **Arrêté** au moment de la passation.
 - Mémoire Claude corrigée : `reference_suroutillage_gemma_mesure.md` (« 14 outils
   LSP » et « 10 interruptions » étaient faux), `feedback_pas_de_patchs_paralleles_meme_fichier.md`.
+
+---
+
+## 8. Session du 16/09 après-midi — corrections faites, campagne interrompue
+
+### Corrections du §4, faites
+
+1. **Contexte** : les quatre catalogues déclaraient 131 072 quand le serveur
+   servait 65 536. Mais la baisse à 65 536 (11:05) était elle-même un
+   **pansement** : la vraie cause du RSS de 24 GB a été trouvée 33 min plus tard
+   (`cache_ram:0`, prompt cache hôte de LocalAI 4.3). Le pansement est levé —
+   serveur ET catalogues sont à **131 072** (commits `f160c09c`, `17a0b24e`).
+   Mesuré après déploiement : **VRAM 10 926 MiB / 12 288, RSS 1,67 GB**.
+2. **`--exclude-tools`** : le drapeau n'existait pas, il était seulement
+   *proposé*. Implémenté comme drapeau de banc (donc tracé dans `commande`),
+   inerte par défaut, 4 tests (commit `3da283de`). Total 56 tests verts.
+3. **Timeout** : `--timeout 3600` passé en ligne de commande.
+4. **Redéploiement LocalAI** : aucun pendant la campagne (surveillé).
+
+### Vérifié au passage, et qui n'était pas dans la passation
+
+- **`parallel: 4` ne divise PAS le contexte utilisable** : une requête unique a
+  consommé **64 914 des 65 536 tokens**. Vérifié, pas déduit.
+- **256k (la cible) ne tient pas** : backend seul à 9 187 MiB à 65 536 et
+  9 913 MiB à 131 072, soit 11,1 MiB par millier de tokens → 11 365 + 1 013
+  (affichage) = **12 378 MiB pour une carte de 12 288**. Il manque ~90 MiB. Les
+  deux seules voies : `cache_type_k/v` en `q4_0` (non mesuré), ou retirer
+  `mmproj` (645 MiB — mais gemma est le modèle vision de Hermes/OpenWebUI).
+- **Entrée fantôme dans `adb`** (`emulator-5568 offline` sans processus qemu) :
+  aurait fait échouer `lancement` et `rendu` en donnant l'apparence d'un défaut
+  du modèle. Purger `adb kill-server` avant toute campagne.
+- **L'étage `build` est SAIN** : il relance lui-même `flutter build apk --debug`
+  et exige `code == 0`. Un APK périmé ne peut pas le faire passer — soupçon levé.
+
+### Le mur, confirmé à la source
+
+Aucune des **trois** versions en cache n'expose le point d'entrée deviné :
+
+| version | `lib/*.dart` |
+|---|---|
+| 0.19.0 | `build_hooks` `fscene` `gpu` `noise` **`scene`** |
+| 0.20.0 | + `audio` `physics` |
+| 0.23.0 | + `annotations` `kit` |
+
+L'agent écrit `package:flutter_scene/flutter_scene.dart` — inexistant partout.
+
+### Ce que l'essai 1 a montré avant l'arrêt
+
+Campagne interrompue à la demande, en cours de notation de l'essai 1. L'agent
+avait produit un APK (14:28) puis réécrit `main.dart` (14:41) **avec l'import
+faux**. Donc, avec pi-lens ET le contexte à 131 072, **le mur n'est pas tombé** —
+contrairement au seul essai intact du 16/09 matin.
+
+⚠️ **Facteur confondant introduit par cette session** : le contexte est passé de
+65 536 à 131 072 juste avant. Or le banc a déjà mesuré 34-41/44 à 49 152 contre
+**19/44 à 131 072** (« plus de place lui permet de tourner en rond plus
+longtemps »). Avant d'accuser pi-lens ou le harnais, **rejouer à 49 152**.
+C'est le premier suspect, et il est de mon fait.
