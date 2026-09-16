@@ -23,6 +23,12 @@ spec:
       releaseName: kestra
       values: |
         common:
+          # Sur `pc` obligatoirement : le PVC est du hostpath (local au noeud) et
+          # le noeud `jeux` est la box TV, eteinte une partie du temps. Le premier
+          # deploiement etait parti sur jeux (image tiree a 4 min, PV provisionne
+          # la-bas) -- meme motif que paseo.
+          nodeSelector:
+            kubernetes.io/hostname: pc
           # Deux secrets, deux usages :
           #  - kestra-config       : fragment YAML monte en fichier de config
           #                          (mot de passe Postgres, basic-auth de l'UI)
