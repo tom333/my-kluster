@@ -1,79 +1,62 @@
 id: korben
 namespace: veille
 description: >
-  Résumé quotidien des articles de Korben.info sur Telegram. Transposition
-  déterministe du cron Hermes « Résumé Korben soir » (job e8c4b8c91103) :
-  collecte RSS → filtre « déjà vu » (KV) → un appel LLM local → Telegram.
+  Résumé quotidien des articles de Korben.info sur Telegram. Transposition du cron
+  Hermes « Résumé Korben soir » (job e8c4b8c91103). La collecte et la dédup sont
+  faites par Miniflux (catégorie « korben ») : ce flux ne lit que les NON-LUS,
+  résume en un appel LLM, envoie, puis marque lu.
 
 labels:
   source: korben.info
   remplace: hermes-cron-e8c4b8c91103
 
 variables:
-  flux: https://korben.info/feed
-  fenetre_heures: 36
-  # gemma via LocalAI, en cluster. Le modèle qui résume 5 à 15 items titrés :
-  # l'usage où un 12 B est bon, contrairement à la boucle d'agent.
+  miniflux: http://miniflux.miniflux.svc.cluster.local:8080
+  categorie: korben
+  # gemma via LocalAI, en cluster : résumer 5 à 15 items titrés, l'usage où un
+  # 12 B est bon. `reasoning_effort: none` — sinon il dépense tout le budget en
+  # raisonnement et rend un contenu vide (mesuré le 2026-09-16).
   localai: http://localai.localai.svc.cluster.local:8080/v1/chat/completions
   modele: gemma-4-12b-it-qat
   chat_id: "843341688"
 
 tasks:
-  # 1. Ce qu'on a déjà envoyé : une liste JSON de liens dans le KV store du
-  #    namespace. Absent au premier run -> null, le script part de [].
-  - id: vus
-    type: io.kestra.plugin.core.kv.Get
-    key: korben_vus
-    errorOnMissing: false
+  # 1. Les catégories : l'id de « korben » se résout par son titre, pour que le
+  #    flux reste valable si Miniflux est recréé.
+  - id: categories
+    type: io.kestra.plugin.core.http.Request
+    uri: "{{ vars.miniflux }}/v1/categories"
+    headers:
+      X-Auth-Token: "{{ secret('MINIFLUX_TOKEN') }}"
 
-  # 2. Collecte déterministe, stdlib seulement : l'image kestra/kestra n'a ni pip
-  #    ni ensurepip dans son venv, et un flux RSS 2.0 se lit avec xml.etree.
-  #    Pas de LLM ici : le flux dit tout, avec les vrais liens -- le point que le
-  #    prompt Hermes devait rappeler trois fois (« ne les invente pas »).
-  #    Le corps de l'appel LLM est construit ICI, en JSON propre, plutôt qu'en
-  #    littéral Pebble dans le YAML.
-  - id: collecte
+  # 2. Les entrées NON LUES de la catégorie. C'est tout le curseur « nouveau
+  #    depuis le dernier digest » : Miniflux a poll, dédupliqué par GUID et tenu
+  #    l'état ; il n'y a plus ni fenêtre temporelle ni liste de liens en KV.
+  - id: non_lus
+    type: io.kestra.plugin.core.http.Request
+    uri: "{{ vars.miniflux }}/v1/categories/{{ outputs.categories.body | jq('.[] | select(.title == \"' ~ vars.categorie ~ '\") | .id') | first }}/entries?status=unread&order=published_at&direction=asc&limit=40"
+    headers:
+      X-Auth-Token: "{{ secret('MINIFLUX_TOKEN') }}"
+
+  # 3. Préparer l'appel LLM (stdlib : le venv de l'image n'a pas pip). Le corps
+  #    est construit ici en JSON propre plutôt qu'en littéral Pebble.
+  - id: prepare
     type: io.kestra.plugin.scripts.python.Script
     taskRunner:
       type: io.kestra.plugin.core.runner.Process
     env:
-      FLUX: "{{ vars.flux }}"
-      FENETRE_HEURES: "{{ vars.fenetre_heures }}"
+      ENTREES: "{{ outputs.non_lus.body | toJson }}"
       MODELE: "{{ vars.modele }}"
-      VUS: "{{ outputs.vus.value ?? '[]' }}"
     script: |
-      import json, os, re, time, urllib.request
-      import xml.etree.ElementTree as ET
-      from email.utils import parsedate_to_datetime
+      import json, os, re
       from html import unescape
 
-      vus = set(json.loads(os.environ["VUS"]))
-      limite = time.time() - int(os.environ["FENETRE_HEURES"]) * 3600
-
-      req = urllib.request.Request(os.environ["FLUX"], headers={"User-Agent": "kestra-veille/1.0"})
-      with urllib.request.urlopen(req, timeout=30) as r:
-          racine = ET.fromstring(r.read())
-
-      def texte(item, balise):
-          e = item.find(balise)
-          return (e.text or "").strip() if e is not None else ""
-
       def sans_html(s):
-          return unescape(re.sub(r"<[^>]+>", " ", s)).replace("\xa0", " ")
+          return " ".join(unescape(re.sub(r"<[^>]+>", " ", s or "")).replace("\xa0", " ").split())
 
-      nouveaux = []
-      for item in racine.iter("item"):
-          lien = texte(item, "link")
-          if not lien or lien in vus:
-              continue
-          date = texte(item, "pubDate")
-          try:
-              if date and parsedate_to_datetime(date).timestamp() < limite:
-                  continue
-          except (TypeError, ValueError):
-              pass
-          resume = " ".join(sans_html(texte(item, "description")).split())
-          nouveaux.append({"titre": texte(item, "title"), "lien": lien, "resume": resume[:600]})
+      entrees = json.loads(os.environ["ENTREES"]).get("entries", [])
+      items = [{"titre": e.get("title", "").strip(), "lien": e.get("url"), "resume": sans_html(e.get("content"))[:600]} for e in entrees]
+      ids = [e["id"] for e in entrees]
 
       consigne = (
           "Tu rédiges un digest Telegram en français des nouveaux articles de Korben.info. "
@@ -81,40 +64,33 @@ tasks:
           "thématique, puis un résumé de 2 à 3 phrases, puis une ligne '🔗 ' suivie du lien EXACT "
           "fourni. Sépare les articles par une ligne '———'. Texte brut uniquement : pas de Markdown, "
           "pas d'astérisques, pas de crochets. N'invente aucun lien, n'ajoute aucun article, aucune "
-          "introduction ni conclusion. Longueur totale sous 3000 caractères (Telegram coupe à 4096) : si nécessaire, "
-          "raccourcis les résumés, jamais les liens."
+          "introduction ni conclusion. Longueur totale sous 3000 caractères (Telegram coupe à 4096) : "
+          "si nécessaire, raccourcis les résumés, jamais les liens."
       )
       corps = {
           "model": os.environ["MODELE"],
           "temperature": 1.0,
           "max_tokens": 2048,
-          # gemma-4 raisonne par défaut et dépense TOUT le budget en `reasoning`
-          # (mesuré : 2048 tokens, content vide, finish_reason=length). Sans
-          # raisonnement : 20 s, digest complet. Le témoin à max_tokens 6000
-          # aboutit aussi, en 66 s et 9 000 caractères de pensée jetés.
           "reasoning_effort": "none",
           "messages": [
               {"role": "system", "content": consigne},
-              {"role": "user", "content": json.dumps(nouveaux, ensure_ascii=False)},
+              {"role": "user", "content": json.dumps(items, ensure_ascii=False)},
           ],
       }
-
-      # Mémoire bornée : les 500 derniers liens suffisent pour une fenêtre de 36 h.
-      vus_maj = (list(vus) + [n["lien"] for n in nouveaux])[-500:]
       print("::" + json.dumps({"outputs": {
-          "n": len(nouveaux),
-          "titres": [n["titre"] for n in nouveaux],
+          "n": len(items),
+          "ids": json.dumps(ids),
+          "titres": [i["titre"] for i in items],
           "corps": json.dumps(corps, ensure_ascii=False),
-          "vus_maj": json.dumps(vus_maj),
       }}, ensure_ascii=False) + "::")
 
-  # 3. Rien de neuf : silence. Pas de message « rien de neuf ».
+  # 4. Rien de non-lu : silence.
   - id: si_nouveaux
     type: io.kestra.plugin.core.flow.If
-    condition: "{{ outputs.collecte.vars.n > 0 }}"
+    condition: "{{ outputs.prepare.vars.n > 0 }}"
     then:
-      # 4. UN appel LLM. Délais explicites : gemma prend 60 à 120 s pour un digest.
-      #    (Kestra 2.0.2 ne connaît que connectTimeout et readIdleTimeout ici.)
+      # 5. UN appel LLM. Délais explicites (Kestra 2.0.2 : connectTimeout et
+      #    readIdleTimeout seulement ; le défaut de lecture est de 10 s).
       - id: resume
         type: io.kestra.plugin.core.http.Request
         uri: "{{ vars.localai }}"
@@ -126,22 +102,25 @@ tasks:
           timeout:
             connectTimeout: PT30S
             readIdleTimeout: PT10M
-        body: "{{ outputs.collecte.vars.corps }}"
+        body: "{{ outputs.prepare.vars.corps }}"
 
-      # 5. Livraison. Le jeton est celui du bot Hermes (sendMessage seul, pas de
-      #    polling : aucun conflit avec la passerelle).
+      # 6. Livraison. Jeton du bot Hermes : sendMessage seul, pas de polling.
       - id: envoi
         type: io.kestra.plugin.telegram.TelegramSend
         token: "{{ secret('TELEGRAM_TOKEN') }}"
         channel: "{{ vars.chat_id }}"
         payload: "{{ outputs.resume.body | jq('.choices[0].message.content') | first }}"
 
-  # 6. Mémoriser APRÈS l'envoi : un échec d'envoi laisse les items « non vus »
-  #    et ils repartent au run suivant.
-  - id: memorise
-    type: io.kestra.plugin.core.kv.Set
-    key: korben_vus
-    value: "{{ outputs.collecte.vars.vus_maj }}"
+      # 7. Marquer lu APRÈS l'envoi : un envoi raté laisse les entrées non lues,
+      #    elles repartent au run suivant.
+      - id: marquer_lu
+        type: io.kestra.plugin.core.http.Request
+        uri: "{{ vars.miniflux }}/v1/entries"
+        method: PUT
+        contentType: application/json
+        headers:
+          X-Auth-Token: "{{ secret('MINIFLUX_TOKEN') }}"
+        body: '{"entry_ids": {{ outputs.prepare.vars.ids }}, "status": "read"}'
 
 triggers:
   # Même heure que le cron Hermes (09:30 UTC = 20:30 en Nouvelle-Calédonie).

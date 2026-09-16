@@ -52,6 +52,11 @@ spec:
                   # archive, pour que les categories ne s'encombrent pas.
                   CLEANUP_ARCHIVE_UNREAD_DAYS: "30"
                   HTTP_CLIENT_USER_AGENT: "Mozilla/5.0 (compatible; Miniflux veille tgu.ovh)"
+                  # RSSHub est un Service EN CLUSTER (10.152.x.x) : sans ceci Miniflux
+                  # refuse le fetch (« refusing to access private network host »,
+                  # protection SSRF). Acceptable ici : Miniflux est LAN + login, et
+                  # ses flux sont ajoutes par toi seul.
+                  FETCHER_ALLOW_PRIVATE_NETWORKS: "1"
                 # DATABASE_URL, ADMIN_USERNAME, ADMIN_PASSWORD : SealedSecret.
                 # Base `miniflux` (extension hstore) sur le PostgreSQL du datalab.
                 envFrom:
