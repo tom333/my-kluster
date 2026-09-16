@@ -7,9 +7,9 @@
       "models": [
         {
           "id": "gemma-4-12b-it-qat",
-          "name": "Gemma-4-12B-it-QAT (LocalAI, servi a 65536)",
+          "name": "Gemma-4-12B-it-QAT (LocalAI, servi a 131072)",
           "input": ["text"],
-          "contextWindow": 65536,
+          "contextWindow": 131072,
           "maxTokens": 16384,
           "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 }
         }

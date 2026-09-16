@@ -370,12 +370,33 @@ modelsConfigs:
     # pour 10/44 — plus de place lui permet de tourner en rond plus longtemps). À rejouer
     # au banc à cette valeur si on veut de nouveau savoir où on est.
     # Coût VRAM contenu par la SWA : 9711 MiB à 32768, 9655 à 49152, 10831 à 131072.
-    # 2026-09-16 : 150000 → 65536. À 150000 le backend pesait 24 GB de RAM HÔTE
-    # (3 OOM en 11 h, RSS identique à chaque chargement) pour un modèle « 100 % GPU » :
-    # sur 12 GB de VRAM, 6,7 GB de poids + KV 150k ne tiennent pas, le reste atterrit
-    # côté CPU. 65536 reste au-dessus du plancher Hermes (64 000). Cause exacte
-    # (KV hôte ? drafter MTP ? mmap:false ?) à établir avec DEBUG=true.
-    context_size: 65536          # gemma-4 = 256k natif, donc pas de YaRN à cette valeur
+    # 2026-09-16 (11:05) : 150000 → 65536, en tâtonnant — le backend pesait 24 GB de
+    # RAM HÔTE (3 OOM en 11 h) pour un modèle « 100 % GPU ».
+    # 2026-09-16 (11:38) : CAUSE TROUVÉE, et ce n'était pas le contexte — c'était le
+    # prompt cache hôte de LocalAI 4.3 (cf. `cache_ram:0` plus bas). La baisse de
+    # contexte était donc un pansement sur un symptôme.
+    # 2026-09-16 (13:40) : 65536 → 131072, le pansement est levé. MESURÉ après
+    # cache_ram:0, backend chargé, sur une requête réelle de 64 914 tokens :
+    #   RSS backend 1,9 GB   (contre 7 GB à ce MÊME contexte avant cache_ram:0)
+    #   VRAM        10 200 MiB / 12 288
+    # `parallel: 4` ne DIVISE PAS le contexte utilisable : une seule requête a
+    # consommé 64 914 des 65 536 tokens (vérifié, pas déduit).
+    #
+    # ⚠️ POURQUOI PAS 256k, la cible : gemma-4 est 256k natif, mais ça ne TIENT PAS.
+    # Quatre points mesurés (9711 à 32768, 9655 à 49152, 10200 à 65536, 10831 à
+    # 131072) donnent 9,6 à 14,4 MiB par millier de tokens, soit 12 100 à 12 700 MiB
+    # projetés à 262144 — au-delà des ~11 300 MiB réellement disponibles (12 288
+    # moins ~1 000 pris par l'affichage). Ce qui ne tient pas en VRAM part en RAM
+    # hôte, c'est-à-dire précisément le débordement qu'on vient d'éteindre.
+    # Pour viser 256k il faudrait libérer ~645 MiB en retirant `mmproj` — mais gemma
+    # est le modèle VISION du cluster (Hermes, OpenWebUI) : ce n'est plus un réglage,
+    # c'est un changement de service.
+    #
+    # ⚠️ ET LE BANC DIT L'INVERSE DE L'INTUITION : à 49152 gemma donne 34-41/44, à
+    # 131072 seulement 19/44 (un essai à 54 693 tokens pour 10/44). Plus de place lui
+    # permet de tourner en rond plus longtemps. Cette valeur sert le plancher Hermes
+    # et les tâches à gros contexte, PAS la qualité agentique mesurée.
+    context_size: 131072         # gemma-4 = 256k natif, donc pas de YaRN à cette valeur
     gpu_layers: 99
     f16: true
     flash_attention: true
