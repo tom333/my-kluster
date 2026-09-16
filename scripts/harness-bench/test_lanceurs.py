@@ -615,3 +615,19 @@ class TestLintSurLeTemoin:
         monkeypatch.delenv("HARNAIS_NU_LINT_CMD", raising=False)
         argv, _ = bench.nu_command("localai/gemma-4-12b-it-qat", tmp_path, "x")
         assert "--lint-cmd" not in argv
+
+
+class TestLspSurLeTemoin:
+    """`HARNAIS_NU_LSP=1` -> `--lsp` sur le bras `nu`. Meme piege que le lint :
+    doit SURVIVRE a la presence simultanee de VERIFY_CMD."""
+
+    def test_lsp_transmis_et_survit_a_verify(self, tmp_path, monkeypatch):
+        monkeypatch.setenv("HARNAIS_NU_LSP", "1")
+        monkeypatch.setenv("HARNAIS_NU_VERIFY_CMD", "flutter test")
+        argv, _ = bench.nu_command("localai/gemma-4-12b-it-qat", tmp_path, "x")
+        assert "--lsp" in argv and "--verify-cmd" in argv
+
+    def test_inerte_sans_la_variable(self, tmp_path, monkeypatch):
+        monkeypatch.delenv("HARNAIS_NU_LSP", raising=False)
+        argv, _ = bench.nu_command("localai/gemma-4-12b-it-qat", tmp_path, "x")
+        assert "--lsp" not in argv

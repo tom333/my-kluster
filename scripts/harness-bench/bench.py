@@ -1880,6 +1880,12 @@ def nu_command(model, workdir, prompt):
     #   HARNAIS_NU_LINT_CMD=".py=ruff check {},.dart=dart analyze {}"
     if os.environ.get("HARNAIS_NU_LINT_CMD"):
         verify += ["--lint-cmd", os.environ["HARNAIS_NU_LINT_CMD"]]
+    # HARNAIS_NU_LSP=1 : diagnostics de serveur de langage POUSSES apres chaque
+    # ecriture (harnais-nu/lsp.py). C'est le mecanisme exact d'opencode
+    # `lsp: true`, mesure 3/3 la ou le meme modele fait 0/6 sans. Inerte la ou
+    # aucun serveur n'est installe (auto-detection par suffixe).
+    if os.environ.get("HARNAIS_NU_LSP"):
+        verify += ["--lsp"]
     if os.environ.get("HARNAIS_NU_VERIFY_CMD"):
         verify += [
             "--verify-cmd",

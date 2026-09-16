@@ -176,3 +176,60 @@ contrairement au seul essai intact du 16/09 matin.
 **19/44 à 131 072** (« plus de place lui permet de tourner en rond plus
 longtemps »). Avant d'accuser pi-lens ou le harnais, **rejouer à 49 152**.
 C'est le premier suspect, et il est de mon fait.
+
+---
+
+## 9. `nu` a maintenant un LSP — le levier gagnant, en Python (16/09 soir)
+
+Pourquoi opencode passe de 0/6 à **3/3** avec `lsp: true` : lu dans
+`opencode/tool/write.ts`, après une écriture réussie il fait `touchFile ->
+diagnostics` et **concatène** `LSP errors detected in this file, please fix:` au
+résultat de l'outil. Même tour. Trois propriétés, chacune nécessaire pour un
+12B : le **moment** (dans le résultat, pas N tours plus tard quand le modèle
+*décide* de lancer un build — mesuré : 0 appel context7 sur 58), l'**isolement**
+(une ligne, pas 3 900 caractères de gradle), l'**attribution** (fichier:ligne
+collé à l'écriture qui l'a causée).
+
+`harnais-nu/lsp.py` (commit `558d671`) reproduit ce mécanisme : client JSON-RPC
+persistant par (racine, langue), auto-détecté par suffixe, **inerte là où aucun
+serveur n'est installé**. Deux garde-fous de Hermes Agent : **fraîcheur** (on
+n'accepte qu'un `publishDiagnostics` pour la version qu'on vient d'envoyer ;
+au-delà de 5 s, rien — jamais un état périmé) et **bruit** (fichier écrit seul,
+erreurs seules, triées par position, plafonnées à 20).
+
+Vérifié contre le vrai `dart language-server` sur le `main.dart` cassé de
+l'essai r1 : **0,89 s au premier appel** (démarrage + indexation compris),
+1,54 s au second, et le mur sort tel quel :
+
+    ERROR lib/main.dart:3:8 Target of URI doesn't exist: 'package:flutter_scene/flutter_scene.dart'.
+
+Pourquoi pas une bibliothèque, vérifié une à une : `multilspy` n'expose pas les
+diagnostics ; `cli-lsp-client`/`pi-lens` sont en Node et couplés à leur hôte ;
+`agent-lsp` expose une API Go ; `python-lsp-server` est un *serveur*, pas un
+client. La couche « client générique multi-langage » n'existait pas en Python.
+
+### Lancer
+
+```bash
+HARNAIS_NU_LSP=1 \
+HARNAIS_NU_VERIFY_CMD="flutter test" HARNAIS_NU_MAX_VERIFY=3 \
+python3 bench.py --scenario crepuscule-amorce --harness nu \
+  --model localai/gemma-4-12b-it-qat --runs 3 --timeout 3600
+```
+
+Serveurs présents sur `pc` : `dart language-server` **seulement**. Pour Python il
+faudrait `pyright-langserver` (`npm i -g pyright`), pour TS
+`typescript-language-server`. La table est `lsp.SERVEURS`.
+
+Bug de câblage corrigé en revue (`755fc6f3`) : `HARNAIS_NU_LINT_CMD` était ajouté
+à `verify` puis écrasé par `verify = [...]` du bloc VERIFY_CMD. Les deux
+variables ensemble — toute campagne réelle — perdaient le lint en silence.
+`HARNAIS_NU_LSP` suit le même chemin, avec le même test de régression.
+
+### ⚠️ Avant de lire un résultat
+
+Le contexte est à **131 072** depuis 13:40, valeur où le banc mesure **19/44
+contre 34-41/44 à 49 152**. Le LSP peut compenser — c'est l'hypothèse la plus
+intéressante — mais si le résultat est mauvais, redescendre à 49 152 avant
+d'accuser le capteur. Et l'émulateur est **arrêté** : `lancement`/`rendu` en
+dépendent.
