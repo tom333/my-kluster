@@ -520,3 +520,19 @@ class TestLittleCoderModeles:
             pytest.skip("pas de cle LocalAI sur cette machine")
         assert not str(fichier).startswith(str(tmp_path)), "le workdir est archive"
         assert (os.stat(fichier).st_mode & 0o777) == 0o600
+
+
+class TestLittleCoderLens:
+    """Bras B = bras A + pi-lens, et RIEN d'autre (un seul facteur change)."""
+
+    def test_meme_argv_que_le_bras_a_plus_une_extension(self, tmp_path):
+        argv_a, env_a = bench.little_coder_command("localai/gemma-4-12b-it-qat", tmp_path, "x")
+        argv_b, env_b = bench.little_coder_lens_command("localai/gemma-4-12b-it-qat", tmp_path, "x")
+        assert argv_a == argv_b
+        assert set(env_b) - set(env_a) == {"LITTLE_CODER_EXTRA_EXTENSIONS"}
+        assert env_b["LITTLE_CODER_EXTRA_EXTENSIONS"] == str(bench.PI_LENS)
+
+    def test_pi_lens_est_installe(self):
+        # Sinon le lanceur avertit et continue SANS l'extension : le bras B
+        # mesurerait le bras A en croyant mesurer pi-lens (bras doublon silencieux).
+        assert bench.PI_LENS.is_file()

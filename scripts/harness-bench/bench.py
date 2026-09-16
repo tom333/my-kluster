@@ -1716,6 +1716,30 @@ def little_coder_command(model, workdir, prompt):
     ], env
 
 
+PI_LENS = Path.home() / ".pi" / "agent" / "npm" / "node_modules" / "pi-lens" / "dist" / "index.js"
+
+
+def little_coder_lens_command(model, workdir, prompt):
+    """little-coder + pi-lens, et RIEN d'autre : un seul facteur change.
+
+    Motif (2026-09-16). Sur crepuscule-amorce, six configurations et trois
+    harnais echouent sur le MEME mur : un chemin d'import devine dans
+    `flutter_scene`, et un modele qui ne lit pas le message du compilateur quand
+    il est noye dans 3 900 caracteres de gradle. Le seul run qui a passe ce mur
+    (opencode + lsp) avait le diagnostic ISOLE et COLLE au resultat de
+    l'ecriture. little-coder n'a pas de diagnostics ; pi-lens les injecte en fin
+    de tour (dart-analyze / dartls). C'est le levier qu'on n'a jamais mesure seul.
+
+    Chargement par `LITTLE_CODER_EXTRA_EXTENSIONS` (chemin de fichier) : le
+    lanceur garde son `--no-extensions`, donc le reste de `~/.pi/agent`
+    (context7, blackhole, verifier...) ne charge PAS. `--with-pi-extensions`
+    aurait tout charge d'un coup et melange les facteurs.
+    """
+    argv, env = little_coder_command(model, workdir, prompt)
+    env["LITTLE_CODER_EXTRA_EXTENSIONS"] = str(PI_LENS)
+    return argv, env
+
+
 def aider_command(model, workdir, prompt):
     """aider n'expose aucun schema d'outil : il edite par diff textuel.
 
@@ -2381,6 +2405,7 @@ HARNESSES = {
     "pi-sysmin": (pi_sysmin_command, pi_metrics),
     "pi-verif": (pi_verif_command, pi_metrics),
     "little-coder": (little_coder_command, pi_metrics),
+    "little-coder-lens": (little_coder_lens_command, pi_metrics),
     "aider": (aider_command, aider_metrics),
     "nu": (nu_command, nu_metrics),
     "nu-pipeline": (nu_pipeline_command, nu_pipeline_metrics),
@@ -2414,7 +2439,7 @@ def url_client_de(harness, model_prefixe=None):
             base = (conf.get("options") or {}).get("baseURL")
             if base:
                 return base
-    if harness == "little-coder":
+    if harness in ("little-coder", "little-coder-lens"):
         cfg = HERE / "config-little-coder" / "models.json"
         try:
             fournisseurs = json.loads(cfg.read_text()).get("providers") or {}
@@ -2641,9 +2666,14 @@ def run_once(harness, model, scenario_name, timeout, essai=1, total=1):
     # ca, un timeout ne tue que le harnais lui-meme et les PETITS-FILS survivent
     # (l'agent teste lance `bash -c "... && pytest -q"` ; du code genere qui boucle
     # a l'infini laisse alors un pytest orphelin a 100% CPU, indefiniment).
+    # stdin FERME : pi (et ses derives omp, little-coder) lit un stdin qui est
+    # un tube comme un prompt a venir et attend l'EOF indefiniment -- « Reading
+    # prompt from piped stdin ». Sous nohup le banc heritait de /dev/null par
+    # hasard ; lance depuis un terminal ou un outil, il pendrait au timeout.
     proc = subprocess.Popen(
         argv,
         cwd=workdir,
+        stdin=subprocess.DEVNULL,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         text=True,
