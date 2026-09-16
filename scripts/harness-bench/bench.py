@@ -2528,6 +2528,12 @@ def preambule(harness, model, scenario_name, client_url=None):
     #    exactement la classe de defaut qu'on traque). Faible seule : une variable
     #    citee en commentaire passerait. D'ou le controle 2.
     connues = set(re.findall(r"HARNAIS_NU_[A-Z_]+", Path(__file__).read_text()))
+    # Variables transmises par l'ENVIRONNEMENT et non par un drapeau : boucle.py
+    # les lit directement (l'environnement est herite par le Popen). Elles sont
+    # donc legitimes ET invisibles au controle 2, qui compare des argv.
+    #   HARNAIS_NU_API_KEY : boucle.py:1464, en-tete Authorization vers LocalAI.
+    PAR_ENVIRONNEMENT = {"HARNAIS_NU_API_KEY"}
+    connues |= PAR_ENVIRONNEMENT
     for var in sorted(posees - connues):
         problemes.append("%s : inconnue du banc, donc sans effet" % var)
 
@@ -2540,7 +2546,7 @@ def preambule(harness, model, scenario_name, client_url=None):
         precedent, SCENARIO_COURANT = SCENARIO_COURANT, scenario_name
         try:
             reference = builder(model, "/tmp/preambule", "tache")[0]
-            for var in sorted(posees & connues):
+            for var in sorted((posees & connues) - PAR_ENVIRONNEMENT):
                 garde = os.environ.pop(var)
                 try:
                     sans = builder(model, "/tmp/preambule", "tache")[0]

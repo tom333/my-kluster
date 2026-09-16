@@ -641,3 +641,35 @@ class TestLspSurLeTemoin:
             monkeypatch.delenv(v, raising=False)
         argv, _ = bench.nu_command("localai/gemma-4-12b-it-qat", tmp_path, "x")
         assert {"--sans-lsp", "--sans-structure", "--sans-recherche", "--sans-graphe"} <= set(argv)
+
+
+class TestGardePreambuleEnvironnement:
+    """Certaines variables agissent par l'ENVIRONNEMENT, pas par un drapeau :
+    boucle.py les lit directement (le Popen herite de l'environnement). Le
+    controle 2 compare des argv, il ne peut pas les voir — sans exemption il
+    refusait une configuration correcte (`HARNAIS_NU_API_KEY`, indispensable
+    pour atteindre LocalAI). `preambule` sort par SystemExit, message en clair.
+    """
+
+    def _refus(self, monkeypatch):
+        """Le message de refus, ou None si le preambule passe."""
+        for v in list(os.environ):
+            if v.startswith("HARNAIS_NU_"):
+                monkeypatch.delenv(v, raising=False)
+        monkeypatch.setenv("HARNAIS_NU_VERIFY_CMD", "flutter test")
+        return None
+
+    def test_api_key_ne_declenche_pas_de_refus(self, monkeypatch):
+        self._refus(monkeypatch)
+        monkeypatch.setenv("HARNAIS_NU_API_KEY", "secret")
+        try:
+            bench.preambule("nu", "localai/gemma-4-12b-it-qat", "crepuscule-amorce")
+        except SystemExit as e:
+            assert "HARNAIS_NU_API_KEY" not in str(e), str(e)
+
+    def test_une_variable_vraiment_inconnue_reste_refusee(self, monkeypatch):
+        self._refus(monkeypatch)
+        monkeypatch.setenv("HARNAIS_NU_INVENTEE", "1")
+        with pytest.raises(SystemExit) as e:
+            bench.preambule("nu", "localai/gemma-4-12b-it-qat", "crepuscule-amorce")
+        assert "HARNAIS_NU_INVENTEE" in str(e.value)
