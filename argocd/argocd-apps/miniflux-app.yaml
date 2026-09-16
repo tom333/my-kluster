@@ -1,0 +1,110 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: miniflux
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  # Miniflux (9.7k ⭐, Go, API-first) : le LECTEUR de la veille Kestra
+  # (POC 2026-09-16). Il poll les flux (natifs et RSSHub) toutes les 15 min avec
+  # ETag, deduplique par GUID, et tient l'etat lu / non-lu -- qui est le curseur
+  # « nouveau depuis le dernier digest ». Les categories sont les themes de
+  # veille : un flux Kestra par categorie, chacun son cron, qui lit
+  # GET /v1/categories/{id}/entries?status=unread puis marque lu apres l'envoi.
+  # Les flux s'ajoutent dans l'UI (Feeds -> Add feed, ou import OPML).
+  # Consomme en cluster : http://miniflux.miniflux.svc.cluster.local:8080
+spec:
+  destination:
+    namespace: miniflux
+    server: https://kubernetes.default.svc
+  project: infra-project
+  source:
+    repoURL: https://bjw-s-labs.github.io/helm-charts
+    chart: app-template
+    targetRevision: 5.1.0
+    helm:
+      values: |
+        defaultPodOptions:
+          nodeSelector:
+            kubernetes.io/hostname: pc
+        controllers:
+          miniflux:
+            type: deployment
+            strategy: Recreate
+            containers:
+              main:
+                image:
+                  repository: miniflux/miniflux
+                  tag: "2.3.3"
+                  pullPolicy: IfNotPresent
+                env:
+                  LISTEN_ADDR: "0.0.0.0:8080"
+                  BASE_URL: https://miniflux.tgu.ovh
+                  # Migrations au demarrage, admin cree au premier boot (idempotent).
+                  RUN_MIGRATIONS: "1"
+                  CREATE_ADMIN: "1"
+                  # Toutes les 15 min : les digests sont quotidiens, la fraicheur
+                  # intra-journee ne sert qu'a la lecture manuelle.
+                  POLLING_FREQUENCY: "15"
+                  BATCH_SIZE: "50"
+                  WORKER_POOL_SIZE: "4"
+                  # Un non-lu de plus de 30 jours n'est plus une nouveaute :
+                  # archive, pour que les categories ne s'encombrent pas.
+                  CLEANUP_ARCHIVE_UNREAD_DAYS: "30"
+                  HTTP_CLIENT_USER_AGENT: "Mozilla/5.0 (compatible; Miniflux veille tgu.ovh)"
+                # DATABASE_URL, ADMIN_USERNAME, ADMIN_PASSWORD : SealedSecret.
+                # Base `miniflux` (extension hstore) sur le PostgreSQL du datalab.
+                envFrom:
+                  - secretRef:
+                      name: miniflux-secrets
+                probes:
+                  liveness:
+                    enabled: true
+                    custom: true
+                    spec:
+                      httpGet: { path: /healthcheck, port: 8080 }
+                      initialDelaySeconds: 15
+                      periodSeconds: 30
+                  readiness:
+                    enabled: true
+                    custom: true
+                    spec:
+                      httpGet: { path: /healthcheck, port: 8080 }
+                      initialDelaySeconds: 5
+                      periodSeconds: 15
+                resources:
+                  limits:   { cpu: "500m", memory: 256Mi }
+                  requests: { cpu: "20m",  memory: 64Mi }
+        service:
+          app:
+            controller: miniflux
+            ports:
+              http:
+                port: 8080
+                targetPort: 8080
+                protocol: TCP
+        ingress:
+          app:
+            className: nginx
+            annotations:
+              cert-manager.io/cluster-issuer: letsencrypt-prod
+              # LAN seulement, + login Miniflux.
+              traefik.ingress.kubernetes.io/router.middlewares: miniflux-lan-only@kubernetescrd
+            hosts:
+              - host: miniflux.tgu.ovh
+                paths:
+                  - path: /
+                    pathType: Prefix
+                    service:
+                      identifier: app
+                      port: http
+            tls:
+              - secretName: miniflux-tls
+                hosts:
+                  - miniflux.tgu.ovh
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
