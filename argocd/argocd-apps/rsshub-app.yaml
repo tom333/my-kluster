@@ -1,0 +1,107 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: rsshub
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  # RSSHub (46k ⭐) : transforme en flux RSS ce qui n'en a pas -- GitHub trending
+  # et topics, Hugging Face, Product Hunt, Hacker News, YouTube, arXiv... C'est
+  # la brique « decouverte » de la veille Kestra (POC 2026-09-16) : on s'abonne
+  # aux signaux d'attention que d'autres agregent, au lieu de faire chercher un
+  # agent. Consomme EN CLUSTER par Kestra : http://rsshub.rsshub.svc.cluster.local:1200
+  # L'ingress LAN sert a tester une route dans un navigateur.
+spec:
+  destination:
+    namespace: rsshub
+    server: https://kubernetes.default.svc
+  project: infra-project
+  source:
+    repoURL: https://bjw-s-labs.github.io/helm-charts
+    chart: app-template
+    targetRevision: 5.1.0
+    helm:
+      values: |
+        defaultPodOptions:
+          # Meme noeud que Kestra qui l'appelle a 20:30 : `jeux` (offload) est la
+          # box TV, eteinte une partie du temps.
+          nodeSelector:
+            kubernetes.io/hostname: pc
+        controllers:
+          rsshub:
+            type: deployment
+            strategy: Recreate
+            containers:
+              main:
+                image:
+                  repository: diygod/rsshub
+                  # Tags date-scheme YYYY-MM-DD (sans Chromium : les routes
+                  # Puppeteer ne sont pas utilisees). Renovate peut suivre.
+                  tag: "2026-09-15"
+                  pullPolicy: IfNotPresent
+                env:
+                  NODE_ENV: production
+                  PORT: "1200"
+                  # Cache memoire : une seule replique, pas de Redis a ajouter.
+                  # 1 h : Kestra passe une fois par jour, le cache sert surtout
+                  # a absorber les tests manuels sur la meme route.
+                  CACHE_TYPE: memory
+                  CACHE_EXPIRE: "3600"
+                  MEMORY_MAX: "512"
+                  # Pas de GITHUB_ACCESS_TOKEN pour l'instant : trending est du
+                  # HTML (pas d'API), topics/search passent par l'API a 60 req/h
+                  # non authentifiees -- assez pour un run quotidien. A ajouter
+                  # (SealedSecret) si une route commence a rendre 403.
+                probes:
+                  liveness:
+                    enabled: true
+                    custom: true
+                    spec:
+                      httpGet: { path: /healthz, port: 1200 }
+                      initialDelaySeconds: 15
+                      periodSeconds: 30
+                  readiness:
+                    enabled: true
+                    custom: true
+                    spec:
+                      httpGet: { path: /healthz, port: 1200 }
+                      initialDelaySeconds: 10
+                      periodSeconds: 15
+                resources:
+                  # Noeud pc a 80-90 % de requests CPU : requete minimale.
+                  limits:   { cpu: "1",   memory: 512Mi }
+                  requests: { cpu: "50m", memory: 192Mi }
+        service:
+          app:
+            controller: rsshub
+            ports:
+              http:
+                port: 1200
+                targetPort: 1200
+                protocol: TCP
+        ingress:
+          app:
+            className: nginx
+            annotations:
+              cert-manager.io/cluster-issuer: letsencrypt-prod
+              # LAN seulement (cf. searxng/kestra). RSSHub n'a pas d'auth :
+              # ne JAMAIS l'exposer public sans ACCESS_KEY.
+              traefik.ingress.kubernetes.io/router.middlewares: rsshub-lan-only@kubernetescrd
+            hosts:
+              - host: rsshub.tgu.ovh
+                paths:
+                  - path: /
+                    pathType: Prefix
+                    service:
+                      identifier: app
+                      port: http
+            tls:
+              - secretName: rsshub-tls
+                hosts:
+                  - rsshub.tgu.ovh
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
