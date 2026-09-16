@@ -621,13 +621,23 @@ class TestLspSurLeTemoin:
     """`HARNAIS_NU_LSP=1` -> `--lsp` sur le bras `nu`. Meme piege que le lint :
     doit SURVIVRE a la presence simultanee de VERIFY_CMD."""
 
-    def test_lsp_transmis_et_survit_a_verify(self, tmp_path, monkeypatch):
+    def test_lsp_leve_sa_coupure_et_survit_a_verify(self, tmp_path, monkeypatch):
         monkeypatch.setenv("HARNAIS_NU_LSP", "1")
         monkeypatch.setenv("HARNAIS_NU_VERIFY_CMD", "flutter test")
         argv, _ = bench.nu_command("localai/gemma-4-12b-it-qat", tmp_path, "x")
-        assert "--lsp" in argv and "--verify-cmd" in argv
+        assert "--sans-lsp" not in argv, "la coupure devait etre levee"
+        assert "--verify-cmd" in argv
 
-    def test_inerte_sans_la_variable(self, tmp_path, monkeypatch):
-        monkeypatch.delenv("HARNAIS_NU_LSP", raising=False)
+    def test_le_temoin_epingle_ses_coupures(self, tmp_path, monkeypatch):
+        """harnais-nu OFFRE ces outils par defaut depuis le 2026-09-17. Sans
+        epinglage, le temoin du banc changerait et TOUTES les campagnes
+        anterieures deviendraient incomparables sans que rien ne le dise."""
+        for v in (
+            "HARNAIS_NU_LSP",
+            "HARNAIS_NU_STRUCTURE",
+            "HARNAIS_NU_RECHERCHE",
+            "HARNAIS_NU_GRAPHE",
+        ):
+            monkeypatch.delenv(v, raising=False)
         argv, _ = bench.nu_command("localai/gemma-4-12b-it-qat", tmp_path, "x")
-        assert "--lsp" not in argv
+        assert {"--sans-lsp", "--sans-structure", "--sans-recherche", "--sans-graphe"} <= set(argv)

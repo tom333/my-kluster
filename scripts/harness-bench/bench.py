@@ -1884,8 +1884,13 @@ def nu_command(model, workdir, prompt):
     # ecriture (harnais-nu/lsp.py). C'est le mecanisme exact d'opencode
     # `lsp: true`, mesure 3/3 la ou le meme modele fait 0/6 sans. Inerte la ou
     # aucun serveur n'est installe (auto-detection par suffixe).
-    if os.environ.get("HARNAIS_NU_LSP"):
-        verify += ["--lsp"]
+    # 2026-09-17 : harnais-nu OFFRE ces outils PAR DEFAUT (les drapeaux
+    # `--sans-*` coupent). Le temoin du banc doit rester le TEMOIN — sinon
+    # toutes les campagnes anterieures deviendraient incomparables en silence,
+    # sans que rien ne le signale (piege 21). On epingle donc les coupures ici,
+    # et chaque variable d'environnement LEVE la sienne.
+    if not os.environ.get("HARNAIS_NU_LSP"):
+        verify += ["--sans-lsp"]
     if os.environ.get("HARNAIS_NU_VERIFY_CMD"):
         verify += [
             "--verify-cmd",
@@ -1906,8 +1911,8 @@ def nu_command(model, workdir, prompt):
         ]
     # Edition structurelle (ast-grep) : un outil de plus dans le preambule, donc un
     # changement du temoin — a mesurer comme un levier, une variable a la fois.
-    if os.environ.get("HARNAIS_NU_STRUCTURE"):
-        verify += ["--structure"]
+    if not os.environ.get("HARNAIS_NU_STRUCTURE"):
+        verify += ["--sans-structure"]
     # Porter le resultat des tests DANS le write/edit, au lieu d un `bash pytest`
     # separe. Levier sur le NOMBRE de tours : 48 des 61 `bash` mesures sur columns
     # etaient des pytest suivant une ecriture, et 100 % des tours ne portent qu un
@@ -1952,10 +1957,10 @@ def nu_command(model, workdir, prompt):
         verify += ["--porte-tests"]
         if os.environ.get("HARNAIS_NU_COLLECTE_CMD"):
             verify += ["--collecte-cmd", os.environ["HARNAIS_NU_COLLECTE_CMD"]]
-    if os.environ.get("HARNAIS_NU_RECHERCHE"):
-        verify += ["--recherche"]
-    if os.environ.get("HARNAIS_NU_GRAPHE"):
-        verify += ["--graphe"]
+    if not os.environ.get("HARNAIS_NU_RECHERCHE"):
+        verify += ["--sans-recherche"]
+    if not os.environ.get("HARNAIS_NU_GRAPHE"):
+        verify += ["--sans-graphe"]
     if os.environ.get("HARNAIS_NU_DEDUPE_RELECTURES"):
         verify += ["--dedupe-relectures"]
     # ECHANTILLONNAGE. Jusqu'au 2026-08-05 le harnais n'en envoyait AUCUN et le serveur
