@@ -1,0 +1,342 @@
+{
+  "scenario": "crepuscule-amorce",
+  "horodatage_debut": "2026-09-16T11:08:55",
+  "horodatage_fin": "2026-09-16T12:44:19",
+  "harnais": "little-coder-lens",
+  "modele": "localai/gemma-4-12b-it-qat",
+  "runs": 3,
+  "tests_passed": 2,
+  "tests_passed_median": 2,
+  "tests_passed_min": 2,
+  "tests_passed_max": 2,
+  "tests_passed_ecart": 0,
+  "tests_passed_tous": [
+    0,
+    2,
+    0
+  ],
+  "tests_passed_notables": [
+    2
+  ],
+  "essais_comparables": 1,
+  "essais_erreur_collecte": 2,
+  "essais_pytest_pend": 0,
+  "essais_balayes": 0,
+  "tests_attendus": 6,
+  "verdict": "FAIL",
+  "tours_median": 30,
+  "pic_input_median": 55904,
+  "duree_s_median": 1800,
+  "sortie_par_test_median": 4443.5,
+  "tours_par_test_median": 12.5,
+  "config_env": {},
+  "commande": "bench.py --scenario crepuscule-amorce --harness little-coder-lens --model localai/gemma-4-12b-it-qat --runs 3 --timeout 1800",
+  "serveur_actif": {
+    "nom": "gemma128k",
+    "modele": "gemma-4-12B-it-qat-UD-Q4_K_XL.gguf",
+    "log": "./logs-serveur/gemma128k-20260807-154253.log",
+    "image": "ghcr.io/ggml-org/llama.cpp:server-cuda-b10156",
+    "drapeaux": [
+      "--spec-draft-model",
+      "/models/mtp-gemma-4-12B-it.gguf",
+      "--spec-type",
+      "draft-mtp",
+      "--spec-draft-n-max",
+      "2",
+      "--temp",
+      "1.0",
+      "--top-p",
+      "0.95",
+      "--top-k",
+      "64",
+      "--no-mmap"
+    ],
+    "ctx_size": 128000,
+    "parallel": 1,
+    "flash_attn": true,
+    "kv": "q8_0",
+    "argv": [
+      "--model",
+      "/models/gemma-4-12B-it-qat-UD-Q4_K_XL.gguf",
+      "--ctx-size",
+      "128000",
+      "--parallel",
+      "1",
+      "-fa",
+      "on",
+      "-ctk",
+      "q8_0",
+      "-ctv",
+      "q8_0",
+      "--jinja",
+      "--no-webui",
+      "--host",
+      "0.0.0.0",
+      "--port",
+      "8080",
+      "--spec-draft-model",
+      "/models/mtp-gemma-4-12B-it.gguf",
+      "--spec-type",
+      "draft-mtp",
+      "--spec-draft-n-max",
+      "2",
+      "--temp",
+      "1.0",
+      "--top-p",
+      "0.95",
+      "--top-k",
+      "64",
+      "--no-mmap"
+    ]
+  },
+  "prompt_sha256": "23da66fec039f782",
+  "contrat_sha256": "e3b0c44298fc1c14",
+  "format_appels": "json",
+  "essais": [
+    {
+      "essai": 1,
+      "horodatage_debut": "2026-09-16T11:08:55",
+      "horodatage_fin": "2026-09-16T11:38:55",
+      "duree_s": 1800.4,
+      "timeout": true,
+      "returncode": -1,
+      "depart": {
+        "passed": 0,
+        "failed": 0
+      },
+      "workdir": "/tmp/harness-bench-crepuscule-amorce-little-coder-lens-localai-gemma-4-12b-it-qat-r1",
+      "tours": 39,
+      "appels_outils": 35,
+      "outils_utilises": [
+        "bash",
+        "edit",
+        "read",
+        "write"
+      ],
+      "format_appels": "json",
+      "pic_input": 57253,
+      "total_input": 1180181,
+      "total_output": 25893,
+      "lignes_illisibles": 0,
+      "erreur_modele": "503 no available server\n",
+      "verdict": "FAIL",
+      "tests_passed": 0,
+      "tests_failed": 6,
+      "tests_attendus": 6,
+      "etages": {
+        "build": {
+          "passed": 0,
+          "failed": 1,
+          "attendus": 1,
+          "issue": "collecte_ok",
+          "verdict": "FAIL"
+        },
+        "lancement": {
+          "passed": 0,
+          "failed": 1,
+          "attendus": 1,
+          "issue": "collecte_ok",
+          "verdict": "FAIL"
+        },
+        "rendu": {
+          "passed": 0,
+          "failed": 1,
+          "attendus": 1,
+          "issue": "collecte_ok",
+          "verdict": "FAIL"
+        },
+        "tests": {
+          "passed": 0,
+          "failed": 1,
+          "attendus": 1,
+          "issue": "collecte_ok",
+          "verdict": "FAIL"
+        },
+        "test_dabord": {
+          "passed": 0,
+          "failed": 1,
+          "attendus": 1,
+          "issue": "collecte_ok",
+          "verdict": "FAIL"
+        },
+        "historique": {
+          "passed": 0,
+          "failed": 1,
+          "attendus": 1,
+          "issue": "collecte_ok",
+          "verdict": "FAIL"
+        }
+      },
+      "issue": "erreur_collecte",
+      "lignes_ecrites": 0,
+      "pytest_tail": "[build] > Run with --stacktrace option to get the stack trace.\n> Run with --info or --debug option to get more log output.\n> Run with --scan to generate a Build Scan (Powered by Develocity).\n> Get more help at https://help.gradle.org.\n\nBUILD FAILED in 2m 2s\nGradle task assembleDebug failed with exit code 1\n\n[lancement] pas d'APK\n[rendu] pas d'APK\n[tests] flutter test echoue ; test propre : False\n[test_dabord] aucun cycle rouge-vert : il faut un commit test/ SANS lib/, puis un commit lib/\n[historique] 0 commit(s), 0 au format conventionnel (minimum 3, tous conformes)",
+      "tests_ajoutes": [],
+      "gardes_violees": [],
+      "api_modifiee": [],
+      "fichiers_modifies": []
+    },
+    {
+      "essai": 2,
+      "horodatage_debut": "2026-09-16T11:41:43",
+      "horodatage_fin": "2026-09-16T12:11:43",
+      "duree_s": 1800.3,
+      "timeout": true,
+      "returncode": -1,
+      "depart": {
+        "passed": 0,
+        "failed": 0
+      },
+      "workdir": "/tmp/harness-bench-crepuscule-amorce-little-coder-lens-localai-gemma-4-12b-it-qat-r2",
+      "tours": 25,
+      "appels_outils": 21,
+      "outils_utilises": [
+        "bash",
+        "edit",
+        "read"
+      ],
+      "format_appels": "json",
+      "pic_input": 33486,
+      "total_input": 532889,
+      "total_output": 8887,
+      "lignes_illisibles": 0,
+      "erreur_modele": "503 no available server\n",
+      "verdict": "FAIL",
+      "tests_passed": 2,
+      "tests_failed": 4,
+      "tests_attendus": 6,
+      "etages": {
+        "build": {
+          "passed": 1,
+          "failed": 0,
+          "attendus": 1,
+          "issue": "collecte_ok",
+          "verdict": "PASS"
+        },
+        "lancement": {
+          "passed": 1,
+          "failed": 0,
+          "attendus": 1,
+          "issue": "collecte_ok",
+          "verdict": "PASS"
+        },
+        "tests": {
+          "passed": 0,
+          "failed": 1,
+          "attendus": 1,
+          "issue": "collecte_ok",
+          "verdict": "FAIL"
+        },
+        "test_dabord": {
+          "passed": 0,
+          "failed": 1,
+          "attendus": 1,
+          "issue": "collecte_ok",
+          "verdict": "FAIL"
+        },
+        "historique": {
+          "passed": 0,
+          "failed": 1,
+          "attendus": 1,
+          "issue": "collecte_ok",
+          "verdict": "FAIL"
+        },
+        "rendu": {
+          "passed": 0,
+          "failed": 1,
+          "attendus": 1,
+          "issue": "collecte_ok",
+          "verdict": "FAIL"
+        }
+      },
+      "issue": "collecte_ok",
+      "lignes_ecrites": 0,
+      "pytest_tail": "[projet] crepuscule\n[capture] harness-bench-crepuscule-amorce-little-coder-lens-localai-gemma-4-12b-it-qat-r2.png\n[tests] flutter test passe ; test propre : False\n[test_dabord] aucun cycle rouge-vert : il faut un commit test/ SANS lib/, puis un commit lib/\n[historique] 0 commit(s), 0 au format conventionnel (minimum 3, tous conformes)\n[rendu] `flutter_scene` n'est ni declare dans pubspec.yaml ni importe dans lib/ -- la tache a ete contournee, pas faite",
+      "tests_ajoutes": [],
+      "gardes_violees": [],
+      "api_modifiee": [],
+      "fichiers_modifies": []
+    },
+    {
+      "essai": 3,
+      "horodatage_debut": "2026-09-16T12:14:19",
+      "horodatage_fin": "2026-09-16T12:44:19",
+      "duree_s": 1800.4,
+      "timeout": true,
+      "returncode": -1,
+      "depart": {
+        "passed": 0,
+        "failed": 0
+      },
+      "workdir": "/tmp/harness-bench-crepuscule-amorce-little-coder-lens-localai-gemma-4-12b-it-qat-r3",
+      "tours": 30,
+      "appels_outils": 31,
+      "outils_utilises": [
+        "bash",
+        "dispatch",
+        "edit",
+        "read"
+      ],
+      "format_appels": "json",
+      "pic_input": 55904,
+      "total_input": 978838,
+      "total_output": 26874,
+      "lignes_illisibles": 0,
+      "erreur_modele": null,
+      "verdict": "FAIL",
+      "tests_passed": 0,
+      "tests_failed": 6,
+      "tests_attendus": 6,
+      "etages": {
+        "build": {
+          "passed": 0,
+          "failed": 1,
+          "attendus": 1,
+          "issue": "collecte_ok",
+          "verdict": "FAIL"
+        },
+        "lancement": {
+          "passed": 0,
+          "failed": 1,
+          "attendus": 1,
+          "issue": "collecte_ok",
+          "verdict": "FAIL"
+        },
+        "rendu": {
+          "passed": 0,
+          "failed": 1,
+          "attendus": 1,
+          "issue": "collecte_ok",
+          "verdict": "FAIL"
+        },
+        "tests": {
+          "passed": 0,
+          "failed": 1,
+          "attendus": 1,
+          "issue": "collecte_ok",
+          "verdict": "FAIL"
+        },
+        "test_dabord": {
+          "passed": 0,
+          "failed": 1,
+          "attendus": 1,
+          "issue": "collecte_ok",
+          "verdict": "FAIL"
+        },
+        "historique": {
+          "passed": 0,
+          "failed": 1,
+          "attendus": 1,
+          "issue": "collecte_ok",
+          "verdict": "FAIL"
+        }
+      },
+      "issue": "erreur_collecte",
+      "lignes_ecrites": 0,
+      "pytest_tail": "[build]  Run with --stacktrace option to get the stack trace.\n> Run with --info or --debug option to get more log output.\n> Run with --scan to generate a Build Scan (Powered by Develocity).\n> Get more help at https://help.gradle.org.\n\nBUILD FAILED in 1m 28s\nGradle task assembleDebug failed with exit code 1\n\n[lancement] pas d'APK\n[rendu] pas d'APK\n[tests] flutter test echoue ; test propre : False\n[test_dabord] aucun cycle rouge-vert : il faut un commit test/ SANS lib/, puis un commit lib/\n[historique] 0 commit(s), 0 au format conventionnel (minimum 3, tous conformes)",
+      "tests_ajoutes": [],
+      "gardes_violees": [],
+      "api_modifiee": [],
+      "fichiers_modifies": []
+    }
+  ]
+}
