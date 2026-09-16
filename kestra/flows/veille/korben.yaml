@@ -59,7 +59,12 @@ tasks:
           return " ".join(unescape(re.sub(r"<[^>]+>", " ", s or "")).replace("\xa0", " ").split())
 
       with open("entrees.json", encoding="utf-8") as f:
-          entrees = json.load(f).get("entries", [])
+          donnees = json.load(f)
+      # `body | toJson` rend une CHAINE JSON (le corps est déjà du texte) : on
+      # décode une seconde fois si nécessaire.
+      if isinstance(donnees, str):
+          donnees = json.loads(donnees)
+      entrees = donnees.get("entries", [])
       items = [{"titre": e.get("title", "").strip(), "lien": e.get("url"), "resume": sans_html(e.get("content"))[:600]} for e in entrees]
       ids = [e["id"] for e in entrees]
 
