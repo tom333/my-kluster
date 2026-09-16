@@ -57,9 +57,13 @@ resources:
   limits:
     # Bumped from cpu:4 / mem:16Gi pour offload MoE (cf. charts/localai/MOE-DEPLOY.md).
     # i5-9400F = 6 cœurs ; les experts MoE tournent CPU-side via override_tensor.
-    # mem 56Gi : nœud = 62 GB ; offload experts ~17-21 GB + KV + système.
+    # mem 32Gi (était 56Gi) : nœud = 62 GB partagé avec le bureau (KDE, Firefox,
+    # Claude, émulateur Android… ≈ 30-45 GB). À 56Gi le dépassement devenait un OOM
+    # GLOBAL arbitré par le kernel (3 fois les 15-16/09/2026, backend gemma-4-12b à
+    # 24 GB de RSS hôte) ; à 32Gi c'est le pod qui meurt seul, proprement. Reste
+    # suffisant pour l'offload d'experts du 26B MoE (~17-21 GB + KV).
     cpu: "6"
-    memory: 56Gi
+    memory: 32Gi
     nvidia.com/gpu: 1
   requests:
     # request CPU = plancher de scheduling ; avec la PriorityClass, LocalAI
@@ -366,7 +370,12 @@ modelsConfigs:
     # pour 10/44 — plus de place lui permet de tourner en rond plus longtemps). À rejouer
     # au banc à cette valeur si on veut de nouveau savoir où on est.
     # Coût VRAM contenu par la SWA : 9711 MiB à 32768, 9655 à 49152, 10831 à 131072.
-    context_size: 150000         # gemma-4 = 256k natif, donc pas de YaRN à cette valeur
+    # 2026-09-16 : 150000 → 65536. À 150000 le backend pesait 24 GB de RAM HÔTE
+    # (3 OOM en 11 h, RSS identique à chaque chargement) pour un modèle « 100 % GPU » :
+    # sur 12 GB de VRAM, 6,7 GB de poids + KV 150k ne tiennent pas, le reste atterrit
+    # côté CPU. 65536 reste au-dessus du plancher Hermes (64 000). Cause exacte
+    # (KV hôte ? drafter MTP ? mmap:false ?) à établir avec DEBUG=true.
+    context_size: 65536          # gemma-4 = 256k natif, donc pas de YaRN à cette valeur
     gpu_layers: 99
     f16: true
     flash_attention: true
