@@ -50,11 +50,43 @@ Hermes garde le chat Telegram. Voir `PASSATION`/notes dans `hermes-runtime/`.
 Le jeton Telegram est celui du bot Hermes : `sendMessage` seul, pas de polling,
 donc aucun conflit avec la passerelle.
 
-## Flux
+## Architecture des flux
 
-| flux | remplace | déclencheur |
-|---|---|---|
-| `veille/korben.yaml` | cron Hermes « Résumé Korben soir » (`e8c4b8c91103`) | `30 9 * * *` UTC (20:30 NC) |
+- **`digest`** (générique) : non-lus d'une catégorie Miniflux → **un** appel gemma
+  selon la consigne du thème → Telegram (découpé ≤ 3 800 car.) → marquer lu.
+  Sentinelle `RIEN_DE_NEUF` = silence sur vide (entrées quand même marquées lues).
+- **`watcher`** (générique) : script Python du dépôt tiré à l'exécution, état en KV,
+  stdout non vide = alerte Telegram.
+- Un **mini-flux par job** porte le cron et la consigne, et appelle le générique
+  (`Subflow`). Ajouter un thème = une catégorie Miniflux + un fichier de 25 lignes.
+
+## Flux (transposition des 12 crons Hermes, 2026-09-16)
+
+| flux Kestra | catégorie Miniflux | cron (UTC) | remplace le cron Hermes |
+|---|---|---|---|
+| `korben` | korben | `30 9 * * *` | Résumé Korben soir (`e8c4b8c91103`) |
+| `decouvertes` | decouvertes | `0 9 * * *` | decouvertes-quotidienne (`2ee2afd955cb`) |
+| `data-ia` | data-ia | `0 10 * * *` | veille-data-ia-quotidienne (`a03a6a8792b2`) |
+| `llm-local` | llm-local | `30 21 * * *` | llm-veille-daily (`a6bd90e76dfa`) |
+| `harnais-agents` | harnais-agents | `0 22 * * 3` | harnais-et-agents-veille (`3f1c9a2b7d84`) |
+| `3d-assets` | 3d-assets | `0 6 * * 6` | veille-3d-assets (`7c4e1b9a2f60`) |
+| `arr` | arr | `30 10 * * 6` | Veille écosystème *arr (`89e560928622`) |
+| `emploi-nc` | — (14 pages HTML, KV) | `0 20 * * *` | job-scraper-data-ia (`a38355a79f36`) |
+| `bonsai-watch` | — (script, KV) | `15 8,20 * * *` | bonsai-backend-watch (`7ebbddc10caa`) |
+| `k2horizon-watch` | — (script, KV) | `45 8,20 * * *` | k2horizon-watch (`b7c3e1a4f902`) |
+| `moe-cache-watch` | — (script, KV) | `0 9,21 * * *` | moe-cache-watch (`42a01f72da31`) |
+| *(non repris)* | | `15 * * * *` | digest-indexer (`d1965700c0de`) — indexait les digests Hermes dans txtai ; la dédup vit dans Miniflux |
+
+Ce qui n'est plus couvert par rapport aux prompts Hermes : le statut du cluster *arr via
+le MCP arrconf, et le contrôle API Hugging Face (`context_length`, template d'outils)
+des candidats GGUF — deux appels d'outil que le pipeline ne fait pas. À réintroduire
+comme tâches `http.Request` si le besoin se confirme.
+
+Les **flux RSS s'ajoutent dans l'UI Miniflux** (Feeds → Add feed, ou import OPML) dans
+la catégorie du thème ; aucun changement côté Kestra. 60 flux amorcés le 2026-09-16
+(releases GitHub, topics et trending via RSSHub, hnrss, HF papers, console.dev,
+Product Hunt, Reddit, duckdb.org, 80.lv). Reddit limite à 429 sur les ajouts en rafale :
+r/blender, r/gamedev, r/sonarr restent à ajouter à la main.
 
 ## Points d'API utiles (Kestra 2.0.2, vérifiés)
 
