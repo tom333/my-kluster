@@ -1,0 +1,15 @@
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  creationTimestamp: null
+  name: kestra-config
+  namespace: kestra
+spec:
+  encryptedData:
+    secrets.yml: AgC3TeniCrRtnGL5KQsVSbDhB16drOjsxiAe6M58OECCBNFbV36ZvMJcMvIsBQAKHobkEOnMBVb36PZ89bNueBZOWbDC8B0TRBh/wu1PXKSuwAyyu1N0WWP1RHi1EspclsgP1qk3rkdn4mNao6rsSPSiT8W7FZsONwna0GFxfscbdgWLqZIWoJ/eP49LnVyN5oC9MzwGX+LZzLMjm6ciWNRM+0yf2w5RNyV//kbtqFF3+qjAqwQGeDocKjGUQHLa15a59NjPErcUsyJFmQ3VME2knwS3Md07OpTzQ5GcfgiTjAogw9vnhr5LFkIs33xiBFFuTpRTTbFRBSlfnyRqlYPL+kNCEW7qhEYVOHReXsMqLOzsmJ73byh92FnK338OQwH+hITeFcqp9+Qp+n1laYmJy5VBsDkrKzW4NhfYBNtiAnPeBvXu5yrcOyzoYa/R1cvy14AXIZ8UFVeHZJhmXa5mPXDPKvVjoLlLks+/qLCvdnQ6CMlXdMRoPfbJrkDWbLV/dvXo+y93qd073q0A7hLpqk5AIgwxPpMiC0ss8jMqYCEYEjm4ZmBduaeylsvw2/RB18oFctfQsT40oHSAg5u8Seh6MsBdUxpzl/U7ntPERu2rTO5NZkpcbEsM2AAs/lAZ3tHZK4t4gzH+PDGI0pt+HikP6pRSKnVMxLekOtqKpWuvl35x8YWZ+EouDoV5VxGgt5RqbgkwGjrjl31wv678UuetdbCbqUaXa1CPTB0Izd0cxQrBlnk92K/LGZa23fuC7l8vg1XOCDzaxx2U574wnHbzngd73N2wSoWFXTabwbkpUqI+/D8uqP+K14re/FFwVuP5PezYsJRBXsrlMOS2ESn5TEPZwGmCQBIInOBkckj117kODl5qE4TFazm+aQbJ6gIWNuuTbS+a+qrsqmH57cH/AdFcYizu4ct5s6UhXPLkTZdJNvX2SI/o22KOAI/NIp2iT3LBkA==
+  template:
+    metadata:
+      creationTimestamp: null
+      name: kestra-config
+      namespace: kestra

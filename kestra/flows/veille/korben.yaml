@@ -1,0 +1,124 @@
+id: korben
+namespace: veille
+description: >
+  Résumé quotidien des articles de Korben.info sur Telegram. Transposition
+  déterministe du cron Hermes « Résumé Korben soir » (job e8c4b8c91103) :
+  collecte RSS → filtre « déjà vu » (KV) → un appel LLM local → Telegram.
+
+labels:
+  source: korben.info
+  remplace: hermes-cron-e8c4b8c91103
+
+variables:
+  flux: https://korben.info/feed
+  fenetre_heures: 36
+  # gemma via LocalAI, en cluster. Le modèle qui résume 5 à 15 items titrés :
+  # l'usage où un 12 B est bon, contrairement à la boucle d'agent.
+  localai: http://localai.localai.svc.cluster.local:8080/v1/chat/completions
+  modele: gemma-4-12b-it-qat
+  chat_id: "843341688"
+
+tasks:
+  # 1. Ce qu'on a déjà envoyé : une liste JSON de liens dans le KV store du
+  #    namespace. Absent au premier run -> null, le script part de [].
+  - id: vus
+    type: io.kestra.plugin.core.kv.Get
+    key: korben_vus
+    errorOnMissing: false
+
+  # 2. Collecte déterministe. Pas de LLM ici : le flux RSS dit tout, avec les
+  #    vrais liens -- le point que le prompt Hermes devait rappeler trois fois
+  #    (« ne les invente pas »).
+  - id: collecte
+    type: io.kestra.plugin.scripts.python.Script
+    taskRunner:
+      type: io.kestra.plugin.core.runner.Process
+    beforeCommands:
+      - python3 -m venv .venv
+      - . .venv/bin/activate
+      - pip install --quiet feedparser kestra
+    env:
+      FLUX: "{{ vars.flux }}"
+      FENETRE_HEURES: "{{ vars.fenetre_heures }}"
+      VUS: "{{ outputs.vus.value ?? '[]' }}"
+    script: |
+      import calendar, json, os, time
+      import feedparser
+      from kestra import Kestra
+
+      vus = set(json.loads(os.environ["VUS"]))
+      limite = time.time() - int(os.environ["FENETRE_HEURES"]) * 3600
+      flux = feedparser.parse(os.environ["FLUX"])
+
+      nouveaux = []
+      for e in flux.entries:
+          lien = e.get("link")
+          if not lien or lien in vus:
+              continue
+          date = e.get("published_parsed") or e.get("updated_parsed")
+          if date and calendar.timegm(date) < limite:
+              continue
+          resume = e.get("summary", "")
+          nouveaux.append({
+              "titre": e.get("title", "").strip(),
+              "lien": lien,
+              "resume": resume[:600],
+          })
+
+      # Mémoire bornée : les 500 derniers liens suffisent pour une fenêtre de 36 h.
+      vus_maj = (list(vus) + [n["lien"] for n in nouveaux])[-500:]
+      Kestra.outputs({
+          "n": len(nouveaux),
+          "nouveaux": json.dumps(nouveaux, ensure_ascii=False),
+          "vus_maj": json.dumps(vus_maj),
+      })
+
+  # 3. Rien de neuf : silence. Le cron Hermes envoyait « Aucun nouvel article » ;
+  #    ici le job Hermes à silence-sur-vide avait déjà tranché : pas de bruit.
+  - id: si_nouveaux
+    type: io.kestra.plugin.core.flow.If
+    condition: "{{ outputs.collecte.vars.n > 0 }}"
+    then:
+      # 4. UN appel LLM : résumer et formater. Consignes reprises du prompt
+      #    Hermes ; texte brut sans Markdown, pour ne rien avoir à échapper.
+      - id: resume
+        type: io.kestra.plugin.core.http.Request
+        uri: "{{ vars.localai }}"
+        method: POST
+        contentType: application/json
+        headers:
+          Authorization: "Bearer {{ secret('LOCALAI_API_KEY') }}"
+        options:
+          readTimeout: PT10M
+          connectTimeout: PT30S
+        body: |
+          {{ {
+            "model": vars.modele,
+            "temperature": 1.0,
+            "max_tokens": 2048,
+            "messages": [
+              {"role": "system", "content": "Tu rédiges un digest Telegram en français des nouveaux articles de Korben.info. Pour CHAQUE article fourni, dans l'ordre : une ligne de titre commençant par un emoji thématique, puis un résumé de 2 à 3 phrases, puis une ligne '🔗 ' suivie du lien EXACT fourni. Sépare les articles par une ligne '———'. Texte brut uniquement : pas de Markdown, pas d'astérisques, pas de crochets. N'invente aucun lien, n'ajoute aucun article, aucune introduction ni conclusion. Longueur totale sous 3500 caractères : si nécessaire, raccourcis les résumés, jamais les liens."},
+              {"role": "user", "content": outputs.collecte.vars.nouveaux}
+            ]
+          } | toJson }}
+
+      # 5. Livraison. Le jeton est celui du bot Hermes (sendMessage seul, pas de
+      #    polling : aucun conflit avec la passerelle).
+      - id: envoi
+        type: io.kestra.plugin.telegram.TelegramSend
+        token: "{{ secret('TELEGRAM_TOKEN') }}"
+        channel: "{{ vars.chat_id }}"
+        payload: "{{ outputs.resume.body | jq('.choices[0].message.content') | first }}"
+
+  # 6. Mémoriser APRÈS l'envoi : un échec d'envoi laisse les items « non vus »
+  #    et ils repartent au run suivant.
+  - id: memorise
+    type: io.kestra.plugin.core.kv.Set
+    key: korben_vus
+    value: "{{ outputs.collecte.vars.vus_maj }}"
+
+triggers:
+  # Même heure que le cron Hermes (09:30 UTC = 20:30 en Nouvelle-Calédonie).
+  - id: quotidien
+    type: io.kestra.plugin.core.trigger.Schedule
+    cron: "30 9 * * *"

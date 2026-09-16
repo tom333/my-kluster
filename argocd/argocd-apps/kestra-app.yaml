@@ -1,0 +1,163 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kestra
+  namespace: argocd
+  # POC 2026-09-16 : orchestrateur declaratif (YAML en git) pour la VEILLE, en
+  # remplacement de la boucle d'agent Hermes sur les crons. Motif : sur un mois,
+  # 20 % des appels d'outils des crons servaient a chercher les outils, et la
+  # mise a jour d'image v2026.9.14 a fait boucler tous les jobs (rejeu des
+  # reasoning_details vers DeepSeek). Une veille est un pipeline : collecte
+  # deterministe -> dedup -> UN appel LLM -> Telegram. Hermes garde le chat.
+  # Premier flux : Resume Korben, cf. kestra/flows/veille/korben.yaml.
+spec:
+  project: infra-project
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kestra
+  source:
+    repoURL: https://helm.kestra.io/
+    chart: kestra
+    targetRevision: 2.0.2
+    helm:
+      releaseName: kestra
+      values: |
+        common:
+          # Deux secrets, deux usages :
+          #  - kestra-config       : fragment YAML monte en fichier de config
+          #                          (mot de passe Postgres, basic-auth de l'UI)
+          #  - kestra-flow-secrets : variables SECRET_* lues par secret('...')
+          #                          dans les flux (Telegram, LocalAI). Kestra
+          #                          attend la VALEUR en base64 dans la variable.
+          extraEnvFrom:
+            - secretRef:
+                name: kestra-flow-secrets
+          # Stockage interne (fichiers de tache, sorties) : PVC hostpath, cf.
+          # extraManifests. Le chart ne gere pas de persistence lui-meme.
+          extraVolumes:
+            - name: kestra-storage
+              persistentVolumeClaim:
+                claimName: kestra-storage
+            # Flux d'amorcage (cf. extraManifests), lus par `--flow-path /flows`.
+            - name: kestra-bootstrap-flows
+              configMap:
+                name: kestra-bootstrap-flows
+          extraVolumeMounts:
+            - name: kestra-storage
+              mountPath: /app/storage
+            - name: kestra-bootstrap-flows
+              mountPath: /flows
+              readOnly: true
+          resources:
+            # Noeud a 80-90 % de requests CPU : requete minimale, la JVM se sert
+            # dans le slack. Memoire : JVM + runner Process (pip feedparser).
+            requests:
+              cpu: 100m
+              memory: 1Gi
+            limits:
+              memory: 2Gi
+
+        configurations:
+          application:
+            kestra:
+              queue:
+                type: postgres
+              repository:
+                type: postgres
+              storage:
+                type: local
+                local:
+                  base-path: /app/storage
+              url: https://kestra.tgu.ovh
+            datasources:
+              postgres:
+                # Base `kestra` sur le PostgreSQL partage du datalab (role
+                # `kestra`, cree a la main le 2026-09-16 -- voir README des flux).
+                url: jdbc:postgresql://postgresql.datalab.svc.cluster.local:5432/kestra
+                driver-class-name: org.postgresql.Driver
+                username: kestra
+                # password : dans kestra-config (secrets.yml)
+          secrets:
+            - name: kestra-config
+              key: secrets.yml
+
+        deployments:
+          standalone:
+            enabled: true
+            # Les flux d'amorcage sont charges au demarrage depuis un ConfigMap
+            # (extraManifests). Ils ne contiennent QUE le flux de synchro git :
+            # tout le reste vit dans kestra/flows/ du depot et arrive par
+            # SyncFlows. Un flux edite dans l'UI est ecrase au sync suivant :
+            # c'est voulu, git est la source de verite.
+            extraArgs:
+              - "--flow-path"
+              - "/flows"
+            dind:
+              # Pas de docker-in-docker : les scripts Python tournent avec le
+              # runner Process dans le conteneur standalone. Plus simple sur
+              # microk8s, et suffisant pour feedparser + requests.
+              enabled: false
+
+        ingress:
+          enabled: true
+          className: nginx
+          annotations:
+            cert-manager.io/cluster-issuer: letsencrypt-prod
+            # LAN seulement (cf. hermes/beszel/searxng) + basic-auth de Kestra.
+            traefik.ingress.kubernetes.io/router.middlewares: kestra-lan-only@kubernetescrd
+          hosts:
+            - host: kestra.tgu.ovh
+              paths:
+                - path: /
+                  pathType: Prefix
+          tls:
+            - secretName: kestra-tls
+              hosts:
+                - kestra.tgu.ovh
+
+        extraManifests:
+          - apiVersion: v1
+            kind: PersistentVolumeClaim
+            metadata:
+              name: kestra-storage
+            spec:
+              accessModes: ["ReadWriteOnce"]
+              storageClassName: microk8s-hostpath
+              resources:
+                requests:
+                  storage: 5Gi
+          - apiVersion: v1
+            kind: ConfigMap
+            metadata:
+              name: kestra-bootstrap-flows
+            data:
+              # Le SEUL flux hors git : il va chercher les autres. Depot public,
+              # pas de jeton. Toutes les 10 min ; `delete: true` retire de Kestra
+              # ce qui a disparu du depot.
+              sync-from-git.yaml: |
+                id: sync-from-git
+                namespace: system
+                description: "GitOps : kestra/flows/ du depot my-kluster est la source de verite des flux."
+                tasks:
+                  - id: sync
+                    type: io.kestra.plugin.git.SyncFlows
+                    url: https://github.com/tom333/my-kluster
+                    branch: main
+                    # Les sous-repertoires deviennent des namespaces ENFANTS du
+                    # targetNamespace : `kestra/flows/veille/` pointe directement
+                    # sur `veille`, sinon le flux tombait dans `veille.veille`.
+                    gitDirectory: kestra/flows/veille
+                    targetNamespace: veille
+                    includeChildNamespaces: true
+                    delete: true
+                    dryRun: false
+                triggers:
+                  - id: toutes-les-10-min
+                    type: io.kestra.plugin.core.trigger.Schedule
+                    cron: "*/10 * * * *"
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
