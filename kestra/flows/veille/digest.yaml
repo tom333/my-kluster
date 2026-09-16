@@ -38,21 +38,26 @@ tasks:
     headers:
       X-Auth-Token: "{{ secret('MINIFLUX_TOKEN') }}"
 
+  # Download, pas Request : la réponse (HTML complet des entrées) part dans le
+  # stockage interne. En sortie de Request, 100 entrées faisaient 1,9 Mo et
+  # dépassaient la limite de message de la file (1 Mo) → data-ia et llm-local
+  # échouaient AVANT `prepare`, sans qu'aucune tâche ne soit marquée en échec.
+  # Et on ne tire que ce qu'on traite (max_entrees) : le reste attend, non lu.
   - id: non_lus
-    type: io.kestra.plugin.core.http.Request
-    uri: "{{ vars.miniflux }}/v1/categories/{{ outputs.categories.body | jq('.[] | select(.title == \"' ~ inputs.categorie ~ '\") | .id') | first }}/entries?status=unread&order=published_at&direction=asc&limit=100"
+    type: io.kestra.plugin.core.http.Download
+    uri: "{{ vars.miniflux }}/v1/categories/{{ outputs.categories.body | jq('.[] | select(.title == \"' ~ inputs.categorie ~ '\") | .id') | first }}/entries?status=unread&order=published_at&direction=asc&limit={{ inputs.max_entrees }}"
     headers:
       X-Auth-Token: "{{ secret('MINIFLUX_TOKEN') }}"
 
   # Contrat de sortie commun (texte brut, liens exacts, longueur, sentinelle),
-  # puis la consigne du thème. Les entrées passent en fichier : 30 articles avec
-  # leur HTML dépassent la taille d'un exec.
+  # puis la consigne du thème. Les entrées arrivent en fichier depuis le stockage
+  # interne (URI de Download) : jamais par env ni par message de file.
   - id: prepare
     type: io.kestra.plugin.scripts.python.Script
     taskRunner:
       type: io.kestra.plugin.core.runner.Process
     inputFiles:
-      entrees.json: "{{ outputs.non_lus.body | toJson }}"
+      entrees.json: "{{ outputs.non_lus.uri }}"
       consigne.txt: "{{ inputs.consigne }}"
     env:
       MODELE: "{{ vars.modele }}"

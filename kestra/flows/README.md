@@ -109,3 +109,10 @@ Le payload de `GET /api/v1/main/executions/{id}` **ne porte plus les sorties**.
 - Le venv Python de l'image n'a ni `pip` ni `ensurepip` : scripts en stdlib.
 - `options.timeout` du client HTTP : `connectTimeout` + `readIdleTimeout` seulement
   en 2.0.2 ; le défaut de lecture est de 10 s.
+- **Limite de message de la file : 1 Mo** (`kestra.queue.message-protection.limit`).
+  Une sortie de tâche plus grosse (ex. `http.Request` sur 100 entrées Miniflux avec
+  leur HTML = 1,9 Mo) fait échouer l'exécution **sans tâche en échec** (l'erreur est
+  dans les logs : `MessageTooBigException`, puis `Unable to find prepare`). data-ia et
+  llm-local ont raté leur 1er run planifié pour ça (16/09). Parade : `http.Download`
+  → `outputs.uri` (stockage interne) consommé via `inputFiles`, et ne tirer que
+  `max_entrees`.
