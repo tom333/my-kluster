@@ -44,8 +44,12 @@ tasks:
     type: io.kestra.plugin.scripts.python.Script
     taskRunner:
       type: io.kestra.plugin.core.runner.Process
+    # Les entrées (contenu HTML complet) passent en FICHIER, pas en variable
+    # d'environnement : 34 articles dépassaient la taille d'un exec
+    # (« Argument list too long », mesuré le 2026-09-16).
+    inputFiles:
+      entrees.json: "{{ outputs.non_lus.body | toJson }}"
     env:
-      ENTREES: "{{ outputs.non_lus.body | toJson }}"
       MODELE: "{{ vars.modele }}"
     script: |
       import json, os, re
@@ -54,7 +58,8 @@ tasks:
       def sans_html(s):
           return " ".join(unescape(re.sub(r"<[^>]+>", " ", s or "")).replace("\xa0", " ").split())
 
-      entrees = json.loads(os.environ["ENTREES"]).get("entries", [])
+      with open("entrees.json", encoding="utf-8") as f:
+          entrees = json.load(f).get("entries", [])
       items = [{"titre": e.get("title", "").strip(), "lien": e.get("url"), "resume": sans_html(e.get("content"))[:600]} for e in entrees]
       ids = [e["id"] for e in entrees]
 
