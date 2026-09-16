@@ -1,0 +1,35 @@
+id: harnais-agents
+namespace: veille
+description: >
+  Veille hebdomadaire sur les HARNAIS et AGENTS de codage — le logiciel qui pilote le modèle, pas les modèles (ex-cron Hermes « harnais-et-agents-veille »).
+
+labels:
+  remplace: hermes-cron-3f1c9a2b7d84
+
+tasks:
+  - id: digest
+    type: io.kestra.plugin.core.flow.Subflow
+    namespace: veille
+    flowId: digest
+    wait: true
+    transmitFailed: true
+    inputs:
+      categorie: harnais-agents
+      max_entrees: 60
+      consigne: |
+        Objet : le LOGICIEL QUI PILOTE le modèle (opencode, aider, goose, crush, cline, Roo,
+        nanocoder, OpenHands, openclaw, oh-my-pi, little-coder, interfaces pour Claude Code…).
+        Ce qui DÉCIDE, dans cet ordre : la façon dont le harnais POUSSE de l'information au
+        modèle (diagnostics injectés, règles à interruption, relance sur erreur), la taille du
+        préambule et du schéma d'outils, le format d'édition, le support des serveurs
+        OpenAI-compatibles locaux. Les benchmarks annoncés ne décident pas.
+        Format : 🔧 Harnais — max 3 releases : version, date, ce que la note change sur ces
+        critères, sinon « rien sur les critères ». 🆕 Découvertes — max 3 projets inconnus
+        (topics, trending, awesome-lists) avec date de création, étoiles et ce qu'ils apportent.
+        🎯 Levier — quand un mécanisme est portable sur un harnais déjà en place, la
+        modification concrète. Chaque item avec '🔗 ' + lien exact. Rien qui passe : sentinelle.
+
+triggers:
+  - id: planifie
+    type: io.kestra.plugin.core.trigger.Schedule
+    cron: "0 22 * * 3"

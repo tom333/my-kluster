@@ -1,0 +1,34 @@
+id: decouvertes
+namespace: veille
+description: >
+  Découverte quotidienne WILDCARD (trending GitHub, HN, Show HN, Lobsters, Product Hunt, HF papers) filtrée par mes centres d'intérêt (ex-cron Hermes « decouvertes-quotidienne »). Silence les jours creux.
+
+labels:
+  remplace: hermes-cron-2ee2afd955cb
+
+tasks:
+  - id: digest
+    type: io.kestra.plugin.core.flow.Subflow
+    namespace: veille
+    flowId: digest
+    wait: true
+    transmitFailed: true
+    inputs:
+      categorie: decouvertes
+      max_entrees: 60
+      consigne: |
+        Tu es un filtre de DÉCOUVERTE, pas un résumeur. Mes centres d'intérêt : agents et harnais
+        de codage LLM, petits modèles locaux (llama.cpp, GGUF, LocalAI, RTX 3060 12 Go),
+        orchestration de workflows (Kestra, Dagster), Kubernetes auto-hébergé, GitOps, data
+        (DuckDB, Polars, marimo), génération d'assets 3D (ComfyUI, TRELLIS), Flutter. Retiens
+        au MAXIMUM 3 items, uniquement s'ils apportent quelque chose de NEUF et d'actionnable
+        pour ces sujets — un projet inconnu, un mécanisme portable, un résultat mesuré. Pour
+        chaque item : titre avec emoji, la source et son signal (points HN, tendance GitHub…),
+        2 phrases sur ce que ça apporte et pourquoi c'est pertinent pour moi, puis '🔗 ' + lien
+        exact. La plupart des jours il n'y a rien qui passe ce filtre : c'est normal, réponds
+        alors par la sentinelle. Ne baisse JAMAIS le seuil pour remplir.
+
+triggers:
+  - id: planifie
+    type: io.kestra.plugin.core.trigger.Schedule
+    cron: "0 9 * * *"

@@ -1,0 +1,31 @@
+id: llm-local
+namespace: veille
+description: >
+  Veille quotidienne : ce qui peut améliorer le codage LOCAL sur RTX 3060 12 Go — modèles (GGUF, QAT) et runtimes (llama.cpp, LocalAI) (ex-cron Hermes « llm-veille-daily »).
+
+labels:
+  remplace: hermes-cron-a6bd90e76dfa
+
+tasks:
+  - id: digest
+    type: io.kestra.plugin.core.flow.Subflow
+    namespace: veille
+    flowId: digest
+    wait: true
+    transmitFailed: true
+    inputs:
+      categorie: llm-local
+      max_entrees: 60
+      consigne: |
+        Deux voies. 🚀 Modèles — max 3 : uniquement des modèles ≤ 12 Go en GGUF exploitables sur
+        une RTX 3060 12 Go ; provenance (officiel/QAT > finetune), fichier et taille quand ils sont
+        dans le texte, contexte et appel d'outils si mentionnés. Les benchmarks annoncés ne
+        décident pas et ne sont pas rapportés. 🔧 Leviers — max 3 : options ou releases
+        llama.cpp/LocalAI/unsloth actionnables, formulées « X arrive → chez nous, tel réglage,
+        gain attendu, risque ». Chaque item : titre avec emoji, 2 phrases, '🔗 ' + lien exact.
+        Ignore les items sans rapport avec le codage local sur petit GPU. Rien : sentinelle.
+
+triggers:
+  - id: planifie
+    type: io.kestra.plugin.core.trigger.Schedule
+    cron: "30 21 * * *"

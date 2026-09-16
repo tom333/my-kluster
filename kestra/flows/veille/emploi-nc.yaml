@@ -1,0 +1,137 @@
+id: emploi-nc
+namespace: veille
+description: >
+  Offres d'emploi tech / data / IA en Nouvelle-Calédonie (ex-cron Hermes
+  « job-scraper-data-ia »). Pas de flux RSS : les pages sont lues en HTML, une
+  extraction JSON par page par le LLM, dédup par empreinte (KV), puis un message.
+labels:
+  remplace: hermes-cron-a38355a79f36
+
+variables:
+  localai: http://localai.localai.svc.cluster.local:8080/v1/chat/completions
+  modele: gemma-4-12b-it-qat
+  chat_id: "843341688"
+  pages:
+    - https://www.lemploi.nc
+    - https://emploi.nc
+    - https://job.nc/
+    - https://www.aircalin.fr/fr/recrutement
+    - https://groupejeandot.nc/offres-emploi
+    - https://drhfpnc.gouv.nc/avis-vacances-postes-AVP
+    - https://www.gbnc.nc/nos-opportunites
+    - https://www.cph.nc/le-groupe/carrieres/offres-demploi/
+    - https://fr.careers.spc.int/all-jobs
+    - https://www.saintvincent.nc/recrutement
+    - https://ballandesas.nc/nous-rejoindre/
+    - https://carrieres.bci.nc/
+    - https://www.bnc.nc/informations/recrutement?view=listing
+    - https://societegenerale.nc/fr/votre-banque/recrutement/opportunites-demploi/
+
+tasks:
+  - id: vues
+    type: io.kestra.plugin.core.kv.Get
+    key: emploi_nc_vues
+    errorOnMissing: false
+
+  # Lecture des pages (stdlib), extraction par le LLM PAGE PAR PAGE en JSON strict
+  # (une page = un appel court, plus fiable qu'un seul appel sur 14 pages), filtre
+  # tech/data, dédup par empreinte titre+entreprise, message final.
+  - id: collecte
+    type: io.kestra.plugin.scripts.python.Script
+    taskRunner:
+      type: io.kestra.plugin.core.runner.Process
+    inputFiles:
+      vues.json: "{{ outputs.vues.value ?? '[]' }}"
+      pages.json: "{{ vars.pages | toJson }}"
+    env:
+      LOCALAI: "{{ vars.localai }}"
+      MODELE: "{{ vars.modele }}"
+      LOCALAI_API_KEY: "{{ secret('LOCALAI_API_KEY') }}"
+      TELEGRAM_TOKEN: "{{ secret('TELEGRAM_TOKEN') }}"
+      CHAT_ID: "{{ vars.chat_id }}"
+    script: |
+      import hashlib, json, os, re, sys, urllib.request
+      from html import unescape
+
+      UA = "Mozilla/5.0 (X11; Linux x86_64; rv:130.0) Gecko/20100101 Firefox/130.0"
+      vues = set(json.load(open("vues.json")))
+      pages = json.load(open("pages.json"))
+      if isinstance(pages, str):
+          pages = json.loads(pages)
+
+      def texte_page(url):
+          req = urllib.request.Request(url, headers={"User-Agent": UA, "Accept-Language": "fr"})
+          with urllib.request.urlopen(req, timeout=40) as r:
+              html = r.read(600_000).decode("utf-8", "replace")
+          html = re.sub(r"(?is)<(script|style|noscript|svg)[^>]*>.*?</\1>", " ", html)
+          # garder les liens : « texte (href) » pour que le LLM rende de vrais href
+          html = re.sub(r'(?is)<a\s[^>]*href="([^"]+)"[^>]*>(.*?)</a>', lambda m: " %s (%s) " % (re.sub(r"<[^>]+>", " ", m.group(2)), m.group(1)), html)
+          t = " ".join(unescape(re.sub(r"<[^>]+>", " ", html)).split())
+          return t[:9000]
+
+      def llm(page, texte):
+          consigne = (
+              "Tu extrais des OFFRES D'EMPLOI depuis le texte d'une page web (les liens y figurent entre "
+              "parenthèses après leur libellé). Ne garde QUE les offres tech / data / IT : data (analyst, "
+              "scientist, engineer), machine learning / IA, développement, Python, SQL, DevOps, réseau, "
+              "cybersécurité. Jette tout le reste (mécanique, vente, secrétariat, santé, finance non-IT…). "
+              "Réponds UNIQUEMENT par un tableau JSON, sans texte autour : "
+              '[{"titre": "...", "entreprise": "...", "lieu": "...", "lien": "..."}]. '
+              "Le lien est l'URL entre parenthèses la plus proche du titre ; si elle est relative, "
+              "préfixe-la par l'origine de la page ; s'il n'y en a pas, mets l'URL de la page. "
+              "Aucune offre : []."
+          )
+          corps = json.dumps({"model": os.environ["MODELE"], "temperature": 0.2, "max_tokens": 1500, "reasoning_effort": "none",
+                              "messages": [{"role": "system", "content": consigne},
+                                           {"role": "user", "content": "PAGE: %s\n\n%s" % (page, texte)}]}).encode()
+          req = urllib.request.Request(os.environ["LOCALAI"], data=corps, headers={"Content-Type": "application/json", "Authorization": "Bearer " + os.environ["LOCALAI_API_KEY"]})
+          with urllib.request.urlopen(req, timeout=600) as r:
+              contenu = json.load(r)["choices"][0]["message"].get("content") or "[]"
+          m = re.search(r"\[.*\]", contenu, re.S)
+          try:
+              return json.loads(m.group(0)) if m else []
+          except json.JSONDecodeError:
+              return []
+
+      offres, erreurs, nouvelles = [], [], []
+      for page in pages:
+          try:
+              t = texte_page(page)
+          except Exception as e:
+              erreurs.append("%s : %s" % (page, str(e)[:60])); continue
+          if len(t) < 200:
+              erreurs.append("%s : page vide (%d car.)" % (page, len(t))); continue
+          for o in llm(page, t):
+              if not isinstance(o, dict) or not o.get("titre"):
+                  continue
+              cle = hashlib.sha1(("%s|%s" % (o.get("titre", ""), o.get("entreprise", ""))).lower().encode()).hexdigest()[:16]
+              offres.append(cle)
+              if cle not in vues:
+                  nouvelles.append(o)
+
+      lignes = ["• %s — %s (%s) — %s" % (o.get("titre", "?"), o.get("entreprise", "?"), o.get("lieu", "NC"), o.get("lien", "")) for o in nouvelles]
+      texte = "💼 Offres tech/data NC — %d nouvelle(s)\n\n" % len(nouvelles) + "\n".join(lignes) if nouvelles else ""
+      if erreurs:
+          texte += ("\n\n" if texte else "⚠️ Emploi NC — aucune nouvelle offre, mais des sources en erreur :\n") + "\n".join("⚠️ " + e for e in erreurs)
+
+      if texte:
+          url = "https://api.telegram.org/bot%s/sendMessage" % os.environ["TELEGRAM_TOKEN"]
+          for i in range(0, len(texte), 3900):
+              corps = json.dumps({"chat_id": os.environ["CHAT_ID"], "text": texte[i:i + 3900], "disable_web_page_preview": True}).encode()
+              with urllib.request.urlopen(urllib.request.Request(url, data=corps, headers={"Content-Type": "application/json"}), timeout=30) as r:
+                  if not json.load(r).get("ok"):
+                      raise SystemExit("Telegram a refusé l'envoi")
+
+      # mémoire bornée : les 2 000 dernières empreintes vues
+      vues_maj = (list(vues) + [c for c in offres if c not in vues])[-2000:]
+      print("::" + json.dumps({"outputs": {"nouvelles": len(nouvelles), "total": len(offres), "erreurs": len(erreurs), "vues_maj": json.dumps(vues_maj)}}) + "::")
+
+  - id: memoriser
+    type: io.kestra.plugin.core.kv.Set
+    key: emploi_nc_vues
+    value: "{{ outputs.collecte.vars.vues_maj }}"
+
+triggers:
+  - id: quotidien
+    type: io.kestra.plugin.core.trigger.Schedule
+    cron: "0 20 * * *"

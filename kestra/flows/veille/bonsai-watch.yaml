@@ -1,0 +1,23 @@
+id: bonsai-watch
+namespace: veille
+description: >
+  Alerte quand Ternary-Bonsai-27B (Q2_0 ternaire) devient déployable sur LocalAI (runtime installable). Ex-cron Hermes « bonsai-backend-watch » (no_agent).
+labels:
+  remplace: hermes-cron-7ebbddc10caa
+
+tasks:
+  - id: watcher
+    type: io.kestra.plugin.core.flow.Subflow
+    namespace: veille
+    flowId: watcher
+    wait: true
+    transmitFailed: true
+    inputs:
+      script: scripts/bonsai-watcher/bonsai_watch.py
+      cle_etat: bonsai_watch_state
+      var_etat: BONSAI_WATCH_STATE
+
+triggers:
+  - id: planifie
+    type: io.kestra.plugin.core.trigger.Schedule
+    cron: "15 8,20 * * *"

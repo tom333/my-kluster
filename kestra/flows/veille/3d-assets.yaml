@@ -1,0 +1,33 @@
+id: 3d-assets
+namespace: veille
+description: >
+  Veille hebdomadaire : ce qui peut améliorer la génération d'assets 3D sur RTX 3060 12 Go — ComfyUI, TRELLIS, LocalAI, image-vers-3D, édition d'image (ex-cron Hermes « veille-3d-assets »).
+
+labels:
+  remplace: hermes-cron-7c4e1b9a2f60
+
+tasks:
+  - id: digest
+    type: io.kestra.plugin.core.flow.Subflow
+    namespace: veille
+    flowId: digest
+    wait: true
+    transmitFailed: true
+    inputs:
+      categorie: 3d-assets
+      max_entrees: 60
+      consigne: |
+        Notre chaîne : concept 2D (Klein, ComfyUI) → maillage (TRELLIS.2, cible 15 000 faces)
+        → finition Blender. Le temps se perd dans les REPRISES (géométrie fausse, texture
+        décalée), pas dans le débit. Retiens ce qui réduit les reprises ou tient dans 10 Go de
+        VRAM. 🧱 Modèles — max 3 : famille (édition / image-vers-3D / texture / multi-vues),
+        licence si citée, VRAM si citée, nœud ComfyUI ou backend LocalAI si mentionné.
+        🔧 Leviers — max 3 : releases actionnables « X arrive → chez nous, tel fichier/option,
+        gain attendu ». 🧭 Approches — max 2 : ce que fait la communauté (r/gamedev, blender,
+        80.lv) qui remplace une étape de notre chaîne. Chaque item : titre avec emoji,
+        2 phrases, '🔗 ' + lien exact. Rien : sentinelle.
+
+triggers:
+  - id: planifie
+    type: io.kestra.plugin.core.trigger.Schedule
+    cron: "0 6 * * 6"

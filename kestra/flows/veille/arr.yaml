@@ -1,0 +1,29 @@
+id: arr
+namespace: veille
+description: >
+  Veille hebdomadaire sur l'écosystème *arr (Radarr, Sonarr, Prowlarr, Bazarr, Recyclarr, Configarr, cross-seed, autobrr…) (ex-cron Hermes « Veille écosystème *arr »). Le statut du cluster via arrconf n'est plus couvert ici.
+
+labels:
+  remplace: hermes-cron-89e560928622
+
+tasks:
+  - id: digest
+    type: io.kestra.plugin.core.flow.Subflow
+    namespace: veille
+    flowId: digest
+    wait: true
+    transmitFailed: true
+    inputs:
+      categorie: arr
+      max_entrees: 60
+      consigne: |
+        Sections : 📦 Nouveautés des apps principales (releases : version, date, changements
+        notables, signes d'une version majeure), 🆕 Nouveaux outils de l'écosystème (awesome-arr,
+        Reddit), 📈 Tendances et discussions, 👀 À surveiller la semaine prochaine. Max 3 items
+        par section : titre, 1 à 2 phrases, '🔗 ' + lien exact. Les releases purement
+        correctives sans changement visible ne sont pas rapportées. Rien : sentinelle.
+
+triggers:
+  - id: planifie
+    type: io.kestra.plugin.core.trigger.Schedule
+    cron: "30 10 * * 6"

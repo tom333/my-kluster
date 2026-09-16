@@ -1,0 +1,23 @@
+id: moe-cache-watch
+namespace: veille
+description: >
+  Veille sur le cache LRU d'experts MoE de llama.cpp (PR #27861) — ce qui débloquerait gemma-4-26B-A4B ici. Ex-cron Hermes « moe-cache-watch » (no_agent).
+labels:
+  remplace: hermes-cron-42a01f72da31
+
+tasks:
+  - id: watcher
+    type: io.kestra.plugin.core.flow.Subflow
+    namespace: veille
+    flowId: watcher
+    wait: true
+    transmitFailed: true
+    inputs:
+      script: scripts/moe-cache-watcher/moe_cache_watch.py
+      cle_etat: moe_cache_watch_state
+      var_etat: MOE_WATCH_STATE
+
+triggers:
+  - id: planifie
+    type: io.kestra.plugin.core.trigger.Schedule
+    cron: "0 9,21 * * *"

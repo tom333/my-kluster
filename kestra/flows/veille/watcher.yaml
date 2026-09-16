@@ -1,0 +1,70 @@
+id: watcher
+namespace: veille
+description: >
+  Flux GÉNÉRIQUE pour les trois watchers Python existants (bonsai, k2horizon,
+  moe-cache), ex-crons Hermes `no_agent`. Le script est tiré du dépôt à
+  l'exécution (git = source de vérité, comme les flux), tourne en stdlib dans le
+  runner Process, garde son état JSON dans le KV store, et tout ce qu'il écrit sur
+  stdout est une alerte à envoyer sur Telegram. stdout vide = silence.
+
+inputs:
+  - id: script
+    type: STRING
+    description: Chemin du script dans le dépôt, ex. scripts/bonsai-watcher/bonsai_watch.py
+  - id: cle_etat
+    type: STRING
+    description: Clé KV de l'état, ex. bonsai_watch_state
+  - id: var_etat
+    type: STRING
+    description: Nom de la variable d'environnement que le script lit pour le chemin d'état.
+  - id: chat_id
+    type: STRING
+    defaults: "843341688"
+
+variables:
+  depot: https://raw.githubusercontent.com/tom333/my-kluster/main
+
+tasks:
+  - id: etat
+    type: io.kestra.plugin.core.kv.Get
+    key: "{{ inputs.cle_etat }}"
+    errorOnMissing: false
+
+  - id: executer
+    type: io.kestra.plugin.scripts.python.Script
+    taskRunner:
+      type: io.kestra.plugin.core.runner.Process
+    inputFiles:
+      etat.json: "{{ outputs.etat.value ?? '{}' }}"
+    outputFiles:
+      - etat.json
+    env:
+      SCRIPT_URL: "{{ vars.depot }}/{{ inputs.script }}"
+      VAR_ETAT: "{{ inputs.var_etat }}"
+      TELEGRAM_TOKEN: "{{ secret('TELEGRAM_TOKEN') }}"
+      CHAT_ID: "{{ inputs.chat_id }}"
+      GITHUB_TOKEN: "{{ secret('GITHUB_TOKEN') }}"
+    script: |
+      import json, os, subprocess, sys, urllib.request
+      with urllib.request.urlopen(os.environ["SCRIPT_URL"], timeout=30) as r:
+          open("watch.py", "wb").write(r.read())
+      env = dict(os.environ)
+      env[os.environ["VAR_ETAT"]] = os.path.abspath("etat.json")
+      # Les scripts lisent un éventuel sentinelle de forçage sous /opt/data : absent ici.
+      res = subprocess.run([sys.executable, "watch.py"], env=env, capture_output=True, text=True, timeout=600)
+      sys.stderr.write(res.stderr)
+      alerte = res.stdout.strip()
+      if res.returncode != 0:
+          raise SystemExit("le watcher a rendu %d : %s" % (res.returncode, res.stderr[-500:]))
+      if alerte:
+          url = "https://api.telegram.org/bot%s/sendMessage" % os.environ["TELEGRAM_TOKEN"]
+          corps = json.dumps({"chat_id": os.environ["CHAT_ID"], "text": alerte[:4096], "disable_web_page_preview": True}).encode()
+          with urllib.request.urlopen(urllib.request.Request(url, data=corps, headers={"Content-Type": "application/json"}), timeout=30) as r:
+              if not json.load(r).get("ok"):
+                  raise SystemExit("Telegram a refusé l'envoi")
+      print("::" + json.dumps({"outputs": {"alerte": bool(alerte), "caracteres": len(alerte)}}) + "::")
+
+  - id: memoriser
+    type: io.kestra.plugin.core.kv.Set
+    key: "{{ inputs.cle_etat }}"
+    value: "{{ read(outputs.executer.outputFiles['etat.json']) }}"

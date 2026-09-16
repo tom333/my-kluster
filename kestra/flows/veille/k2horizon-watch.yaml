@@ -1,0 +1,23 @@
+id: k2horizon-watch
+namespace: veille
+description: >
+  Alerte quand K2-Horizon-MoVA-36B-A4B devient exploitable : llama.cpp amont connaît l'architecture, puis l'image LocalAI l'embarque. Ex-cron Hermes « k2horizon-watch » (no_agent).
+labels:
+  remplace: hermes-cron-b7c3e1a4f902
+
+tasks:
+  - id: watcher
+    type: io.kestra.plugin.core.flow.Subflow
+    namespace: veille
+    flowId: watcher
+    wait: true
+    transmitFailed: true
+    inputs:
+      script: scripts/k2horizon-watcher/k2_horizon_watch.py
+      cle_etat: k2horizon_watch_state
+      var_etat: K2_WATCH_STATE
+
+triggers:
+  - id: planifie
+    type: io.kestra.plugin.core.trigger.Schedule
+    cron: "45 8,20 * * *"

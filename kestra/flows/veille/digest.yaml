@@ -1,0 +1,186 @@
+id: digest
+namespace: veille
+description: >
+  Flux GÉNÉRIQUE de digest : lit les entrées NON LUES d'une catégorie Miniflux,
+  les résume en UN appel LLM local selon une consigne propre au thème, envoie sur
+  Telegram (découpé si besoin), puis marque lu. Appelé par un mini-flux par thème,
+  qui porte le cron et la consigne (korben, decouvertes, harnais-agents, …).
+
+inputs:
+  - id: categorie
+    type: STRING
+    description: Titre de la catégorie Miniflux (= le dossier du thème).
+  - id: consigne
+    type: STRING
+    description: Consigne système du LLM pour ce thème (format, filtres, maximums).
+  - id: max_entrees
+    type: INT
+    defaults: 12
+    description: Entrées traitées par run ; le reste attend, non lu.
+  - id: chat_id
+    type: STRING
+    defaults: "843341688"
+
+variables:
+  miniflux: http://miniflux.miniflux.svc.cluster.local:8080
+  localai: http://localai.localai.svc.cluster.local:8080/v1/chat/completions
+  modele: gemma-4-12b-it-qat
+  # Si la consigne conclut qu'il n'y a rien à rapporter, le LLM répond EXACTEMENT
+  # ce mot : rien n'est envoyé, mais les entrées sont marquées lues (elles ont
+  # été considérées). C'est le « silence sur vide » des crons Hermes, en sûr.
+  sentinelle: RIEN_DE_NEUF
+
+tasks:
+  - id: categories
+    type: io.kestra.plugin.core.http.Request
+    uri: "{{ vars.miniflux }}/v1/categories"
+    headers:
+      X-Auth-Token: "{{ secret('MINIFLUX_TOKEN') }}"
+
+  - id: non_lus
+    type: io.kestra.plugin.core.http.Request
+    uri: "{{ vars.miniflux }}/v1/categories/{{ outputs.categories.body | jq('.[] | select(.title == \"' ~ inputs.categorie ~ '\") | .id') | first }}/entries?status=unread&order=published_at&direction=asc&limit=100"
+    headers:
+      X-Auth-Token: "{{ secret('MINIFLUX_TOKEN') }}"
+
+  # Contrat de sortie commun (texte brut, liens exacts, longueur, sentinelle),
+  # puis la consigne du thème. Les entrées passent en fichier : 30 articles avec
+  # leur HTML dépassent la taille d'un exec.
+  - id: prepare
+    type: io.kestra.plugin.scripts.python.Script
+    taskRunner:
+      type: io.kestra.plugin.core.runner.Process
+    inputFiles:
+      entrees.json: "{{ outputs.non_lus.body | toJson }}"
+      consigne.txt: "{{ inputs.consigne }}"
+    env:
+      MODELE: "{{ vars.modele }}"
+      MAX: "{{ inputs.max_entrees }}"
+      SENTINELLE: "{{ vars.sentinelle }}"
+      CATEGORIE: "{{ inputs.categorie }}"
+    script: |
+      import json, os, re
+      from html import unescape
+
+      def sans_html(s):
+          return " ".join(unescape(re.sub(r"<[^>]+>", " ", s or "")).replace("\xa0", " ").split())
+
+      with open("entrees.json", encoding="utf-8") as f:
+          d = json.load(f)
+      if isinstance(d, str):
+          d = json.loads(d)
+      entrees = d.get("entries", [])[: int(os.environ["MAX"])]
+      items = [{
+          "source": (e.get("feed") or {}).get("title", ""),
+          "titre": (e.get("title") or "").strip(),
+          "lien": e.get("url"),
+          "date": (e.get("published_at") or "")[:10],
+          "resume": sans_html(e.get("content"))[:700],
+      } for e in entrees]
+      ids = [e["id"] for e in entrees]
+
+      with open("consigne.txt", encoding="utf-8") as f:
+          consigne_theme = f.read().strip()
+      contrat = (
+          "CONTRAT DE SORTIE. Tu écris un digest Telegram en français à partir UNIQUEMENT des items "
+          "fournis (source, titre, lien, date, résumé). Texte brut : pas de Markdown, pas d'astérisques, "
+          "pas de crochets. Chaque item retenu porte son lien EXACT sur une ligne commençant par '🔗 '. "
+          "N'invente ni lien, ni version, ni chiffre. Sépare les blocs par une ligne '———'. Longueur "
+          "totale sous 3000 caractères. Aucune introduction, aucune conclusion, aucune description de "
+          "ta démarche. Si, après application de la consigne ci-dessous, il n'y a RIEN à rapporter, "
+          "réponds exactement et uniquement : %s\n\nCONSIGNE DU THÈME (%s) :\n%s"
+      ) % (os.environ["SENTINELLE"], os.environ["CATEGORIE"], consigne_theme)
+
+      corps = {
+          "model": os.environ["MODELE"],
+          "temperature": 1.0,
+          "max_tokens": 2048,
+          "reasoning_effort": "none",
+          "messages": [
+              {"role": "system", "content": contrat},
+              {"role": "user", "content": json.dumps(items, ensure_ascii=False)},
+          ],
+      }
+      print("::" + json.dumps({"outputs": {
+          "n": len(items),
+          "ids": json.dumps(ids),
+          "corps": json.dumps(corps, ensure_ascii=False),
+      }}, ensure_ascii=False) + "::")
+
+  - id: si_nouveaux
+    type: io.kestra.plugin.core.flow.If
+    condition: "{{ outputs.prepare.vars.n > 0 }}"
+    then:
+      - id: resume
+        type: io.kestra.plugin.core.http.Request
+        uri: "{{ vars.localai }}"
+        method: POST
+        contentType: application/json
+        headers:
+          Authorization: "Bearer {{ secret('LOCALAI_API_KEY') }}"
+        options:
+          timeout:
+            connectTimeout: PT30S
+            readIdleTimeout: PT10M
+        body: "{{ outputs.prepare.vars.corps }}"
+
+      # Découpe (≤ 3 800 car., jamais au milieu d'un bloc) et envoi sendMessage,
+      # un message par morceau. Sentinelle -> aucun envoi.
+      - id: envoi
+        type: io.kestra.plugin.scripts.python.Script
+        taskRunner:
+          type: io.kestra.plugin.core.runner.Process
+        inputFiles:
+          reponse.json: "{{ outputs.resume.body | toJson }}"
+        env:
+          TELEGRAM_TOKEN: "{{ secret('TELEGRAM_TOKEN') }}"
+          CHAT_ID: "{{ inputs.chat_id }}"
+          SENTINELLE: "{{ vars.sentinelle }}"
+        script: |
+          import json, os, time, urllib.request
+          with open("reponse.json", encoding="utf-8") as f:
+              d = json.load(f)
+          if isinstance(d, str):
+              d = json.loads(d)
+          texte = (d["choices"][0]["message"].get("content") or "").strip()
+          if not texte:
+              raise SystemExit("le modèle a rendu un contenu vide")
+          if os.environ["SENTINELLE"] in texte[:80] and len(texte) < 120:
+              print("::" + json.dumps({"outputs": {"messages": 0, "silence": True}}) + "::")
+              raise SystemExit(0)
+          morceaux, courant = [], ""
+          for b in (x.strip() for x in texte.split("———") if x.strip()):
+              candidat = (courant + "\n———\n" + b) if courant else b
+              if len(candidat) > 3800 and courant:
+                  morceaux.append(courant); courant = b
+              else:
+                  courant = candidat
+          if courant:
+              morceaux.append(courant)
+          url = "https://api.telegram.org/bot%s/sendMessage" % os.environ["TELEGRAM_TOKEN"]
+          for i, m in enumerate(morceaux):
+              corps = json.dumps({"chat_id": os.environ["CHAT_ID"], "text": m[:4096], "disable_web_page_preview": True}).encode()
+              req = urllib.request.Request(url, data=corps, headers={"Content-Type": "application/json"})
+              with urllib.request.urlopen(req, timeout=30) as r:
+                  rep = json.load(r)
+              if not rep.get("ok"):
+                  raise SystemExit("Telegram: %s" % rep)
+              if i + 1 < len(morceaux):
+                  time.sleep(1)
+          print("::" + json.dumps({"outputs": {"messages": len(morceaux), "silence": False, "caracteres": len(texte)}}) + "::")
+
+      # Marquer lu APRÈS l'envoi (ou après un silence délibéré) : un envoi raté
+      # laisse les entrées non lues, elles repartent au run suivant.
+      - id: marquer_lu
+        type: io.kestra.plugin.core.http.Request
+        uri: "{{ vars.miniflux }}/v1/entries"
+        method: PUT
+        contentType: application/json
+        headers:
+          X-Auth-Token: "{{ secret('MINIFLUX_TOKEN') }}"
+        body: '{"entry_ids": {{ outputs.prepare.vars.ids }}, "status": "read"}'
+
+outputs:
+  - id: entrees
+    type: INT
+    value: "{{ outputs.prepare.vars.n }}"

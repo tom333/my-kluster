@@ -1,0 +1,29 @@
+id: data-ia
+namespace: veille
+description: >
+  Veille quotidienne Data / IA : Python data (Polars, pandas, PyTorch, scikit-learn), DuckDB, marimo, Hermes Agent, orchestrateurs (Dagster, Airflow, Kestra) (ex-cron Hermes « veille-data-ia-quotidienne »).
+
+labels:
+  remplace: hermes-cron-a03a6a8792b2
+
+tasks:
+  - id: digest
+    type: io.kestra.plugin.core.flow.Subflow
+    namespace: veille
+    flowId: digest
+    wait: true
+    transmitFailed: true
+    inputs:
+      categorie: data-ia
+      max_entrees: 40
+      consigne: |
+        Sections, dans cet ordre, chacune seulement si elle a du neuf : 🐍 Python Data,
+        🦆 DuckDB, 📓 marimo, 🧠 Hermes Agent, 🔄 Orchestrateurs, 🧠 IA & Data (tendances).
+        Par section, max 3 items : titre, 1 à 2 phrases sur ce qui change (release : la version
+        et l'apport concret ; article : la thèse), '🔗 ' + lien exact. Les notes de version
+        purement correctives (typos, CI) ne sont pas rapportées. Rien de notable : sentinelle.
+
+triggers:
+  - id: planifie
+    type: io.kestra.plugin.core.trigger.Schedule
+    cron: "0 10 * * *"
