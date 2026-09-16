@@ -25,6 +25,7 @@ variables:
   miniflux: http://miniflux.miniflux.svc.cluster.local:8080
   localai: http://localai.localai.svc.cluster.local:8080/v1/chat/completions
   modele: gemma-4-12b-it-qat
+  txtai: http://txtai.txtai.svc.cluster.local:8000
   # Si la consigne conclut qu'il n'y a rien à rapporter, le LLM répond EXACTEMENT
   # ce mot : rien n'est envoyé, mais les entrées sont marquées lues (elles ont
   # été considérées). C'est le « silence sur vide » des crons Hermes, en sûr.
@@ -168,6 +169,55 @@ tasks:
               if i + 1 < len(morceaux):
                   time.sleep(1)
           print("::" + json.dumps({"outputs": {"messages": len(morceaux), "silence": False, "caracteres": len(texte)}}) + "::")
+
+      # Mémoire : le digest livré part dans txtai, un document par bloc, même
+      # schéma que l'ancien `digest-indexer` Hermes (id `digest:…`, source `veille`)
+      # pour la recherche sémantique depuis Claude Code. Un échec ici ne doit ni
+      # bloquer le marquage lu ni faire renvoyer le digest : allowFailure.
+      - id: indexer
+        type: io.kestra.plugin.scripts.python.Script
+        allowFailure: true
+        taskRunner:
+          type: io.kestra.plugin.core.runner.Process
+        inputFiles:
+          reponse.json: "{{ outputs.resume.body | toJson }}"
+        env:
+          TXTAI: "{{ vars.txtai }}"
+          TXTAI_TOKEN: "{{ secret('TXTAI_TOKEN') }}"
+          SENTINELLE: "{{ vars.sentinelle }}"
+          CATEGORIE: "{{ inputs.categorie }}"
+          EXECUTION: "{{ execution.id }}"
+          DATE: "{{ execution.startDate | date('yyyy-MM-dd') }}"
+        script: |
+          import json, os, urllib.request
+          with open("reponse.json", encoding="utf-8") as f:
+              d = json.load(f)
+          if isinstance(d, str):
+              d = json.loads(d)
+          texte = (d["choices"][0]["message"].get("content") or "").strip()
+          if not texte or (os.environ["SENTINELLE"] in texte[:80] and len(texte) < 120):
+              print("::" + json.dumps({"outputs": {"documents": 0}}) + "::")
+              raise SystemExit(0)
+          entete = "[Digest veille — thème: %s · date: %s · execution: %s]" % (
+              os.environ["CATEGORIE"], os.environ["DATE"], os.environ["EXECUTION"])
+          blocs = [b.strip() for b in texte.split("———") if b.strip()]
+          docs = [{
+              "id": "digest:%s:%s:%04d" % (os.environ["CATEGORIE"], os.environ["EXECUTION"], i),
+              "text": entete + "\n\n" + b,
+              "source": "veille",
+              "job": os.environ["CATEGORIE"],
+              "date": os.environ["DATE"],
+          } for i, b in enumerate(blocs)]
+
+          def appel(chemin, data=None):
+              req = urllib.request.Request(os.environ["TXTAI"] + chemin, data=data, headers={
+                  "Authorization": "Bearer " + os.environ["TXTAI_TOKEN"], "Content-Type": "application/json"})
+              with urllib.request.urlopen(req, timeout=300) as r:
+                  return r.read()
+
+          appel("/add", json.dumps(docs, ensure_ascii=False).encode())
+          appel("/upsert")
+          print("::" + json.dumps({"outputs": {"documents": len(docs)}}) + "::")
 
       # Marquer lu APRÈS l'envoi (ou après un silence délibéré) : un envoi raté
       # laisse les entrées non lues, elles repartent au run suivant.
