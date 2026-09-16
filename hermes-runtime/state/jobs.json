@@ -5,7 +5,7 @@
       "context_from": null,
       "created_at": "2026-07-25T02:52:28.556963+00:00",
       "deliver": "origin",
-      "enabled": true,
+      "enabled": false,
       "enabled_toolsets": [
         "web",
         "browser",
@@ -55,7 +55,7 @@
       ],
       "created_at": "2026-08-07T00:00:00.000000+00:00",
       "deliver": "origin",
-      "enabled": true,
+      "enabled": false,
       "enabled_toolsets": [
         "web",
         "mcp-txtai"
@@ -101,16 +101,16 @@
       "context_from": null,
       "created_at": "2026-09-12T08:22:02.802685+00:00",
       "deliver": "telegram",
-      "enabled": true,
+      "enabled": false,
       "enabled_toolsets": null,
       "failure_streak": 0,
       "id": "42a01f72da31",
       "last_delivery_unverified": null,
       "last_dispatch": {
-        "dispatched_at": "2026-09-15T09:00:25.217000+00:00",
+        "dispatched_at": "2026-09-15T21:00:57.838172+00:00",
         "kind": "on_time",
-        "lateness_seconds": 25.2,
-        "scheduled_at": "2026-09-15T09:00:00+00:00"
+        "lateness_seconds": 57.8,
+        "scheduled_at": "2026-09-15T21:00:00+00:00"
       },
       "model": null,
       "model_snapshot": null,
@@ -144,7 +144,7 @@
       ],
       "created_at": "2026-08-21T00:00:00.000000+00:00",
       "deliver": "origin",
-      "enabled": true,
+      "enabled": false,
       "enabled_toolsets": [
         "web",
         "mcp-txtai"
@@ -190,15 +190,15 @@
       "context_from": null,
       "created_at": "2026-07-19T00:15:30.367711+00:00",
       "deliver": "origin",
-      "enabled": true,
+      "enabled": false,
       "enabled_toolsets": null,
       "failure_streak": 0,
       "id": "7ebbddc10caa",
       "last_dispatch": {
-        "dispatched_at": "2026-09-15T08:15:17.571054+00:00",
+        "dispatched_at": "2026-09-15T20:15:48.667118+00:00",
         "kind": "on_time",
-        "lateness_seconds": 17.6,
-        "scheduled_at": "2026-09-15T08:15:00+00:00"
+        "lateness_seconds": 48.7,
+        "scheduled_at": "2026-09-15T20:15:00+00:00"
       },
       "model": null,
       "name": "bonsai-backend-watch",
@@ -232,7 +232,7 @@
       ],
       "created_at": "2026-06-15T07:11:39.883654+00:00",
       "deliver": "origin",
-      "enabled": true,
+      "enabled": false,
       "enabled_toolsets": null,
       "failure_streak": 0,
       "id": "89e560928622",
@@ -277,7 +277,7 @@
       ],
       "created_at": "2026-06-24T04:40:58.860588+00:00",
       "deliver": "origin",
-      "enabled": true,
+      "enabled": false,
       "enabled_toolsets": [
         "web",
         "file",
@@ -325,7 +325,7 @@
       ],
       "created_at": "2026-06-06T22:26:10.989578+00:00",
       "deliver": "origin",
-      "enabled": true,
+      "enabled": false,
       "enabled_toolsets": [
         "web",
         "browser",
@@ -335,10 +335,10 @@
       "failure_streak": 0,
       "id": "a38355a79f36",
       "last_dispatch": {
-        "dispatched_at": "2026-09-14T20:00:36.577904+00:00",
+        "dispatched_at": "2026-09-15T20:00:45.452501+00:00",
         "kind": "on_time",
-        "lateness_seconds": 36.6,
-        "scheduled_at": "2026-09-14T20:00:00+00:00"
+        "lateness_seconds": 45.5,
+        "scheduled_at": "2026-09-15T20:00:00+00:00"
       },
       "model": null,
       "name": "job-scraper-data-ia",
@@ -375,7 +375,7 @@
       ],
       "created_at": "2026-06-08T11:22:07.114714+00:00",
       "deliver": "origin",
-      "enabled": true,
+      "enabled": false,
       "enabled_toolsets": [
         "web",
         "browser",
@@ -385,10 +385,10 @@
       "failure_streak": 0,
       "id": "a6bd90e76dfa",
       "last_dispatch": {
-        "dispatched_at": "2026-09-14T21:30:54.771034+00:00",
+        "dispatched_at": "2026-09-15T21:30:04.099593+00:00",
         "kind": "on_time",
-        "lateness_seconds": 54.8,
-        "scheduled_at": "2026-09-14T21:30:00+00:00"
+        "lateness_seconds": 4.1,
+        "scheduled_at": "2026-09-15T21:30:00+00:00"
       },
       "model": null,
       "name": "llm-veille-daily",
@@ -423,15 +423,15 @@
       "context_from": null,
       "created_at": "2026-09-07T23:38:34.131177+00:00",
       "deliver": "origin",
-      "enabled": true,
+      "enabled": false,
       "enabled_toolsets": null,
       "failure_streak": 0,
       "id": "b7c3e1a4f902",
       "last_dispatch": {
-        "dispatched_at": "2026-09-15T08:45:22.697122+00:00",
+        "dispatched_at": "2026-09-15T20:45:55.073007+00:00",
         "kind": "on_time",
-        "lateness_seconds": 22.7,
-        "scheduled_at": "2026-09-15T08:45:00+00:00"
+        "lateness_seconds": 55.1,
+        "scheduled_at": "2026-09-15T20:45:00+00:00"
       },
       "model": null,
       "name": "k2horizon-watch",
@@ -463,15 +463,15 @@
       "context_from": null,
       "created_at": "2026-07-09T00:00:00+00:00",
       "deliver": "local",
-      "enabled": true,
+      "enabled": false,
       "enabled_toolsets": null,
       "failure_streak": 0,
       "id": "d1965700c0de",
       "last_dispatch": {
-        "dispatched_at": "2026-09-15T16:15:57.864149+00:00",
+        "dispatched_at": "2026-09-16T05:15:48.995050+00:00",
         "kind": "on_time",
-        "lateness_seconds": 57.9,
-        "scheduled_at": "2026-09-15T16:15:00+00:00"
+        "lateness_seconds": 49.0,
+        "scheduled_at": "2026-09-16T05:15:00+00:00"
       },
       "model": null,
       "name": "digest-indexer",
@@ -500,7 +500,7 @@
       ],
       "created_at": "2026-06-24T03:32:21.502891+00:00",
       "deliver": "origin",
-      "enabled": true,
+      "enabled": false,
       "enabled_toolsets": [
         "web",
         "browser",
