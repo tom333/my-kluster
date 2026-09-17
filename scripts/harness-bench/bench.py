@@ -2063,12 +2063,13 @@ def nu_command(model, workdir, prompt):
         verify += ["--sans-consigne-outils"]
     if not os.environ.get("HARNAIS_NU_LSP"):
         verify += ["--sans-lsp"]
-    # HARNAIS_NU_CONSIGNE_LSP : la phrase qui dit QUOI FAIRE du bloc, separee du
-    # capteur qui le produit. Par defaut coupee, pour que `HARNAIS_NU_LSP=1` seul
+    # HARNAIS_NU_CONSIGNE_DIAGNOSTICS : la phrase qui dit QUOI FAIRE du bloc,
+    # separee des capteurs qui le produisent (`lsp.py` ET `lint.py` : meme point
+    # d'injection, et en Python seul `lint` parle, faute de serveur installe). Par defaut coupee, pour que `HARNAIS_NU_LSP=1` seul
     # mesure le CAPTEUR et rien d'autre. La mesure du 2026-09-17 (temoin 1/6,
     # bras arme 6/6) empilait les deux et ne disait donc pas la part de chacun.
-    if not os.environ.get("HARNAIS_NU_CONSIGNE_LSP"):
-        verify += ["--sans-consigne-lsp"]
+    if not os.environ.get("HARNAIS_NU_CONSIGNE_DIAGNOSTICS"):
+        verify += ["--sans-consigne-diagnostics"]
     if os.environ.get("HARNAIS_NU_VERIFY_CMD"):
         verify += [
             "--verify-cmd",
