@@ -457,6 +457,44 @@ SCENARIOS = {
         "protected": ("graine.sql", "verifie_visible.py", "SPEC.md"),
         "check_api": False,
     },
+    # CONCEPTION. Ecrit pour mesurer une phase d'architecte : le contrat dit ce
+    # qui doit etre VRAI, jamais comment. Qui fait autorite, ce qu'on diffuse,
+    # ou vit l'identite -- ce sont des DECISIONS, et elles ne se rattrapent pas
+    # en corrigeant du code ensuite.
+    #
+    # La surface observable (messages, lancement) est imposee, parce que le
+    # correcteur doit pouvoir parler au serveur. Tout le reste est libre.
+    #
+    # Pas de navigateur : `crepuscule-amorce` a montre ce que coute un etage qui
+    # exige un emulateur (« echoue en silence et ca ressemble a un defaut du
+    # modele »), et playwright n'est meme pas installe. Le client web est juge sur
+    # sa fonction de reduction d'etat, exécutée dans `node`, sans DOM.
+    "crepuscule-mmo": {
+        "fixture": HERE / "fixture-crepuscule-mmo",
+        "notes_oracle": (
+            "Instrument controle le 17/09 AVANT usage : conception juste 7/7,",
+            "conception qui croit le client 4/7 (tombe sur `autorite` et `reconnexion`).",
+            "`tardif` et `convergence` ne sont PAS testes comme discriminants : la",
+            "reference naive leur donnait une diffusion d'etat complete. A refaire.",
+            "Un serveur purement evenementiel echoue deja le controle VISIBLE : la",
+            "surface imposee force une forme de diffusion d'etat.",
+            "Le controle visible ne sonde AUCUNE decision de conception.",
+        ),
+        "prompt": HERE / "PROMPT-crepuscule-mmo.txt",
+        "verifieur": "crepuscule-mmo",
+        "oracle": HERE / "oracle-crepuscule-mmo" / "grade.py",
+        # `websockets` n'est PAS dans le python global ; les workdirs sont dans
+        # /tmp, hors de portee du `.python-version` du projet.
+        "venv": str(HERE / "venv-crepuscule-mmo"),
+        "expected_tests": 7,
+        "depot_git": False,
+        "archiver_projet": True,
+        # Le contrat et l'outillage de test : les modifier reviendrait a se noter
+        # soi-meme. `protocole.py` est visible EXPRES (c'est de l'outillage, pas
+        # une reponse : il ne dit rien de l'autorite ni de la diffusion).
+        "protected": ("SPEC.md", "verifie_visible.py", "protocole.py"),
+        "check_api": False,
+    },
     "pronote": {
         "fixture": HERE / "fixture-pronote",
         # Ce que l'oracle verifie VRAIMENT, et ce qu'il ne verifie pas.
@@ -1540,10 +1578,63 @@ def _verifie_sql_sessions(workdir, scenario):
     return passed, failed, "\n".join(notes), ISSUE_OK, etages
 
 
+def _verifie_crepuscule_mmo(workdir, scenario):
+    """(passed, failed, tail, issue, etages) pour `crepuscule-mmo`.
+
+    Delegue au correcteur CACHE, lance avec le venv DU SCENARIO. Motif :
+    `/data/projets/perso/.python-version` epingle 3.10 (ou `websockets` est
+    installe) mais les workdirs vivent dans `/tmp`, qui retombe sur le python
+    global sans `websockets`. Sans ce venv, les sept etages sortent a zero avec
+    l'air d'un defaut du modele -- exactement le piege paye en ecrivant ce
+    scenario.
+
+    Controle de l'instrument le 2026-09-17 : une conception juste (serveur
+    autoritaire, etat complet, identite par jeton) fait 7/7 ; une conception qui
+    croit le client et lie l'identite a la connexion fait 4/7, en tombant sur
+    `autorite` et `reconnexion`.
+    """
+    python = str(Path(scenario["venv"]) / "bin" / "python")
+    grade = Path(workdir) / Path(scenario["oracle"]).name
+    proc = subprocess.run(
+        [python, str(grade), str(workdir)],
+        cwd=str(workdir),
+        capture_output=True,
+        text=True,
+        timeout=900,
+    )
+    try:
+        resultats = json.loads(proc.stdout.strip().splitlines()[-1])
+    except (ValueError, IndexError):
+        detail = (proc.stderr or proc.stdout).strip()[-400:]
+        return (
+            0,
+            scenario["expected_tests"],
+            "[correcteur] " + detail,
+            "erreur_collecte",
+            {},
+        )
+    etages, notes = {}, []
+    for nom, r in resultats.items():
+        ok = bool(r.get("ok"))
+        etages[nom] = {
+            "passed": 1 if ok else 0,
+            "failed": 0 if ok else 1,
+            "attendus": 1,
+            "issue": ISSUE_OK,
+            "verdict": "PASS" if ok else "FAIL",
+        }
+        if not ok and r.get("detail"):
+            notes.append("[%s] %s" % (nom, r["detail"][:200]))
+    passed = sum(e["passed"] for e in etages.values())
+    failed = sum(e["failed"] for e in etages.values())
+    return passed, failed, "\n".join(notes), ISSUE_OK, etages
+
+
 VERIFIEURS = {
     "amorce-flutter": _verifie_amorce_flutter,
     "diagnostic-import": _verifie_diagnostic_import,
     "sql-sessions": _verifie_sql_sessions,
+    "crepuscule-mmo": _verifie_crepuscule_mmo,
 }
 
 

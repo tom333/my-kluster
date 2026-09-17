@@ -34,3 +34,6 @@ scripts/harness-bench/trajectoires/
 # Le CODE archive est un artefact de mesure, pas une source : il vit avec les
 # resultats, et un tirage promu est copie explicitement dans son propre depot.
 scripts/harness-bench/projets/
+
+# Venv du scenario crepuscule-mmo : recree par `uv venv`, jamais versionne.
+scripts/harness-bench/venv-crepuscule-mmo/

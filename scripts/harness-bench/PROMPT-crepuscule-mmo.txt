@@ -1,0 +1,4 @@
+Lis `SPEC.md` et realise ce qui y est demande : le serveur dans `serveur.py`, la
+reduction d'etat du client web dans `client/reduction.js`.
+
+Tu peux lancer `python3 verifie_visible.py` pour un controle partiel.
