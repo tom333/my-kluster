@@ -410,6 +410,46 @@ SCENARIOS = {
         "protected": (),
         "check_api": False,
     },
+    # PREMIER SCENARIO NON-PYTHON NOTE PAR LE CODE PRODUIT. Motif : les huit
+    # scenarios historiques sont 100 % Python, donc tout levier mesure peut etre
+    # un artefact Python (note ouverte depuis le 2026-08-06). `crepuscule-amorce`
+    # est en Dart mais note un APK et exige un emulateur ; ici le livrable est une
+    # requete, gradee en une seconde, sans rien compiler.
+    #
+    # Structure reprise de `microbench_16` (Zux1U) : un controle VISIBLE que le
+    # modele peut lancer, et un correcteur CACHE aux cas limites. Le depot n'a
+    # PAS de licence -- rien n'en est copie, ni contrat, ni donnees, ni code ;
+    # seule la structure est reprise, comme `notes_oracle` l'avait ete.
+    #
+    # Le controle visible porte sur des donnees SAGES (`graine.sql` : deux
+    # utilisateurs, une coupure franche chacun). Les cas limites -- 45 minutes
+    # pile, horodatages en double, session a cheval sur minuit, utilisateur a un
+    # seul evenement, evenements en desordre -- ne sont QUE dans le correcteur.
+    # Un modele qui lit les donnees au lieu du contrat passe le premier et echoue
+    # sur le second.
+    "sql-sessions": {
+        "fixture": HERE / "fixture-sql-sessions",
+        "notes_oracle": (
+            "Six cas independants -> credit partiel. Instrument controle le 17/09 :",
+            "requete juste 6/6, requete naive 1/6 (`solitaire` passe legitimement).",
+            "Le controle visible NE contient aucun cas limite : le passer ne prouve rien.",
+            "Aucun serveur de langage ni lint pour `.sql` -> le levier diagnostic est",
+            "INERTE ici. Ce scenario mesure le harnais hors de Python, pas le capteur.",
+        ),
+        "prompt": HERE / "PROMPT-sql-sessions.txt",
+        "verifieur": "sql-sessions",
+        "oracle": HERE / "oracle-sql-sessions" / "grade.py",
+        # Construit la base AVANT l'agent : le contrat parle d'un fichier qui doit
+        # exister, pas d'un fichier a creer.
+        "preparation": (("sqlite3", "evenements.sqlite", ".read graine.sql"),),
+        "expected_tests": 6,
+        "depot_git": False,
+        "archiver_projet": False,
+        # `graine.sql` et le controle visible sont le CONTRAT : les modifier
+        # reviendrait a se noter soi-meme.
+        "protected": ("graine.sql", "verifie_visible.py", "SPEC.md"),
+        "check_api": False,
+    },
     "pronote": {
         "fixture": HERE / "fixture-pronote",
         # Ce que l'oracle verifie VRAIMENT, et ce qu'il ne verifie pas.
@@ -1450,9 +1490,53 @@ def _verifie_diagnostic_import(workdir, scenario):
     return passed, failed, "\n".join(notes), ISSUE_OK, etages
 
 
+def _verifie_sql_sessions(workdir, scenario):
+    """(passed, failed, tail, issue, etages) pour `sql-sessions`.
+
+    Delegue au correcteur CACHE (`oracle-sql-sessions/grade.py`), depose par
+    `verify()` au moment de noter. Six cas independants, chacun un etage : une
+    requete qui gere tout sauf les horodatages en double doit se distinguer d'une
+    requete fausse partout. Controle de l'instrument le 2026-09-17 : une requete
+    juste fait 6/6, une requete naive 1/6 (`solitaire` passe, et c'est un vrai
+    credit partiel -- un evenement unique forme bien une session de duree 0).
+    """
+    grade = Path(workdir) / Path(scenario["oracle"]).name
+    proc = subprocess.run(
+        [sys.executable, str(grade), str(workdir)],
+        cwd=str(workdir),
+        capture_output=True,
+        text=True,
+        timeout=120,
+    )
+    try:
+        resultats = json.loads(proc.stdout.strip().splitlines()[-1])
+    except (ValueError, IndexError):
+        # Le correcteur n'a pas parle : c'est un defaut d'INSTRUMENT, pas un
+        # score. On le dit, plutot que de rendre un zero qui passerait pour une
+        # mesure (piege deja paye le 2026-09-17 sur `erreur_collecte`).
+        detail = (proc.stderr or proc.stdout).strip()[-400:]
+        return 0, scenario["expected_tests"], "[correcteur] " + detail, "erreur_collecte", {}
+    etages, notes = {}, []
+    for nom, r in resultats.items():
+        ok = bool(r.get("ok"))
+        etages[nom] = {
+            "passed": 1 if ok else 0,
+            "failed": 0 if ok else 1,
+            "attendus": 1,
+            "issue": ISSUE_OK,
+            "verdict": "PASS" if ok else "FAIL",
+        }
+        if not ok and r.get("detail"):
+            notes.append("[%s] %s" % (nom, r["detail"][:200]))
+    passed = sum(e["passed"] for e in etages.values())
+    failed = sum(e["failed"] for e in etages.values())
+    return passed, failed, "\n".join(notes), ISSUE_OK, etages
+
+
 VERIFIEURS = {
     "amorce-flutter": _verifie_amorce_flutter,
     "diagnostic-import": _verifie_diagnostic_import,
+    "sql-sessions": _verifie_sql_sessions,
 }
 
 
@@ -2872,6 +2956,14 @@ def run_once(harness, model, scenario_name, timeout, essai=1, total=1):
     else:
         before = run_pytest(workdir)
     print("depart : %s passed, %s failed" % (before[0], before[1]), flush=True)
+    # ORACLE RETIRE apres avoir servi a mesurer le depart, AVANT que l'agent ne
+    # demarre. Il etait depose ici et jamais retire : `verify()` promet « depose
+    # au moment de NOTER seulement » et les notes de `pronote` disent « des tests
+    # visibles donneraient la reponse au lieu de la faire trouver ». Les deux
+    # etaient faux -- le fichier restait dans le workdir pendant tout le tirage.
+    # Trouve le 2026-09-17 en branchant `sql-sessions`, qui aurait herite du trou.
+    if scenario.get("oracle"):
+        (workdir / Path(scenario["oracle"]).name).unlink(missing_ok=True)
 
     # APPARIEMENT : le tirage i de tout bras utilise GRAINES[i-1]. La graine varie
     # d'un tirage a l'autre (sinon les cinq seraient identiques) et reste la meme

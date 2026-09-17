@@ -1,0 +1,1 @@
+-- Ecris ici la requete, et elle seule. Cf. SPEC.md.

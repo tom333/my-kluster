@@ -1,0 +1,3 @@
+Lis `SPEC.md` et ecris la requete demandee dans `reponse.sql`.
+
+Tu peux lancer `python3 verifie_visible.py` pour un controle partiel.
