@@ -1,7 +1,7 @@
 id: 3d-assets
 namespace: veille
 description: >
-  Veille hebdomadaire : ce qui peut améliorer la génération d'assets 3D sur RTX 3060 12 Go — ComfyUI, TRELLIS, LocalAI, image-vers-3D, édition d'image (ex-cron Hermes « veille-3d-assets »).
+  Veille quotidienne (hebdomadaire jusqu'au 2026-09-17) : ce qui peut améliorer la génération d'assets 3D sur RTX 3060 12 Go — ComfyUI, TRELLIS, LocalAI, image-vers-3D, édition d'image (ex-cron Hermes « veille-3d-assets »).
 
 labels:
   remplace: hermes-cron-7c4e1b9a2f60
@@ -30,4 +30,4 @@ tasks:
 triggers:
   - id: planifie
     type: io.kestra.plugin.core.trigger.Schedule
-    cron: "0 6 * * 6"
+    cron: "0 6 * * *"

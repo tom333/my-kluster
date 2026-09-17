@@ -71,7 +71,7 @@ donc aucun conflit avec la passerelle.
 | `data-ia` | data-ia | `0 10 * * *` | veille-data-ia-quotidienne (`a03a6a8792b2`) |
 | `llm-local` | llm-local | `30 21 * * *` | llm-veille-daily (`a6bd90e76dfa`) |
 | `harnais-agents` | harnais-agents | `0 22 * * 3` | harnais-et-agents-veille (`3f1c9a2b7d84`) |
-| `3d-assets` | 3d-assets | `0 6 * * 6` | veille-3d-assets (`7c4e1b9a2f60`) |
+| `3d-assets` | 3d-assets | `0 6 * * *` | veille-3d-assets (`7c4e1b9a2f60`) |
 | `arr` | arr | `30 10 * * 6` | Veille écosystème *arr (`89e560928622`) |
 | `emploi-nc` | — (14 pages HTML, KV) | `0 20 * * *` | job-scraper-data-ia (`a38355a79f36`) |
 | `bonsai-watch` | — (script, KV) | `15 8,20 * * *` | bonsai-backend-watch (`7ebbddc10caa`) |
