@@ -75,8 +75,8 @@ donc aucun conflit avec la passerelle.
 | `arr` | arr | `30 10 * * 6` | Veille écosystème *arr (`89e560928622`) |
 | `emploi-nc` | — (14 pages HTML, KV) | `0 20 * * *` | job-scraper-data-ia (`a38355a79f36`) |
 | `bonsai-watch` | — (script, KV) | `15 8,20 * * *` | bonsai-backend-watch (`7ebbddc10caa`) |
-| `k2horizon-watch` | — (script, KV) | `45 8,20 * * *` | k2horizon-watch (`b7c3e1a4f902`) |
 | `moe-cache-watch` | — (script, KV) | `0 9,21 * * *` | moe-cache-watch (`42a01f72da31`) |
+| *(retiré 17/09)* | — | `45 8,20 * * *` | k2horizon-watch (`b7c3e1a4f902`) — surveillait le merge de l'arch `k2_horizon` dans llama.cpp amont ; un banc publié le 17/09 classe K2-Horizon-7B dernier (11/15, 3 échecs sur timeout) et l'arch reste absente de master, donc la porte ne vaut plus d'être surveillée |
 | *(intégré à `digest`)* | tâche `indexer` | à chaque digest | digest-indexer (`d1965700c0de`) — indexait les digests Hermes dans txtai toutes les heures ; la dédup vit dans Miniflux, l'indexation suit l'envoi |
 
 Ce qui n'est plus couvert par rapport aux prompts Hermes : le statut du cluster *arr via

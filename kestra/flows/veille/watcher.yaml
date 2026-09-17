@@ -1,8 +1,8 @@
 id: watcher
 namespace: veille
 description: >
-  Flux GÉNÉRIQUE pour les trois watchers Python existants (bonsai, k2horizon,
-  moe-cache), ex-crons Hermes `no_agent`. Le script est tiré du dépôt à
+  Flux GÉNÉRIQUE pour les watchers Python du dépôt (bonsai, moe-cache ;
+  k2horizon retiré le 2026-09-17), ex-crons Hermes `no_agent`. Le script est tiré du dépôt à
   l'exécution (git = source de vérité, comme les flux), tourne en stdlib dans le
   runner Process, garde son état JSON dans le KV store, et tout ce qu'il écrit sur
   stdout est une alerte à envoyer sur Telegram. stdout vide = silence.
