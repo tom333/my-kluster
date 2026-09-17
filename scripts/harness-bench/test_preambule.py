@@ -82,13 +82,18 @@ class TestModeleServi:
     def test_refuse_si_le_serveur_ne_dit_pas_quel_modele_il_sert(self, monkeypatch):
         """Le 2026-08-04, gemma a été mesuré à 74,6 tok/s et le chiffre attribué à
         l'A3B (vrai débit 28,8) : le port était tenu par le serveur précédent."""
-        monkeypatch.setattr(bench, "_modele_servi", lambda url: None)
+        monkeypatch.setattr(bench, "_modele_servi", lambda url, attendu=None: None)
         with pytest.raises(SystemExit) as sortie:
             bench.preambule("nu", "m", "pronote", "http://127.0.0.1:9/v1")
-        assert "modele servi inconnu" in str(sortie.value)
+        # Le libelle a change le 2026-09-16 (le garde nomme desormais le modele
+        # demande) ; ce qui est verrouille ici, c'est le REFUS, pas la phrase.
+        message = str(sortie.value)
+        assert "PREAMBULE REFUSE" in message and "n'est PAS servi" in message
 
     def test_affiche_le_modele_quand_il_repond(self, monkeypatch, capsys):
-        monkeypatch.setattr(bench, "_modele_servi", lambda url: "un-modele.gguf")
+        monkeypatch.setattr(
+            bench, "_modele_servi", lambda url, attendu=None: "un-modele.gguf"
+        )
         bench.preambule("nu", "m", "pronote", "http://127.0.0.1:9/v1")
         assert "un-modele.gguf" in capsys.readouterr().out
 

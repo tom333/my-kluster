@@ -86,6 +86,11 @@ GRAINE_IMPOSEE = os.environ.get("HARNAIS_NU_SEED")
 SCENARIOS = {
     "repair": {
         "fixture": HERE / "fixture",
+        # Ce que l'oracle verifie VRAIMENT, et ce qu'il ne verifie pas.
+        "notes_oracle": (
+            "L'oracle est la suite FOURNIE (19 tests) : le modele ne l'ecrit pas.",
+            "Il part a 6 passes / 13 echecs — un score de 6 ne vaut RIEN, c'est le depart.",
+        ),
         "prompt": HERE / "PROMPT.txt",
         "expected_tests": 19,
         "protected": ("tests/test_taskmgr.py", "conftest.py"),
@@ -93,6 +98,12 @@ SCENARIOS = {
     },
     "tetris": {
         "fixture": HERE / "fixture-tetris",
+        # Ce que l'oracle verifie VRAIMENT, et ce qu'il ne verifie pas.
+        "notes_oracle": (
+            "Les 44 tests importent tous le paquet : une coquille donne 0/44.",
+            "SATURE (44/44 partout depuis le 2026-07-30) : ne classe plus, il filtre.",
+            "CONTAMINE : exercice canonique, ecrit des milliers de fois -> mesure en partie la RESTITUTION.",
+        ),
         "prompt": HERE / "PROMPT-tetris.txt",
         "expected_tests": 44,
         "protected": ("tests/test_tetris.py", "conftest.py"),
@@ -111,6 +122,10 @@ SCENARIOS = {
     # contrat d'extension oriente donc vers `cells()` plutot que `matrix`.
     "tetris-etendu": {
         "fixture": HERE / "fixture-tetris-etendu",
+        # Ce que l'oracle verifie VRAIMENT, et ce qu'il ne verifie pas.
+        "notes_oracle": (
+            "Deux etages : non-regression (44) puis extension (18). L'extension seule discrimine.",
+        ),
         "prompt": HERE / "PROMPT-tetris-etendu.txt",
         "expected_tests": 62,
         "protected": (
@@ -147,6 +162,14 @@ SCENARIOS = {
     # jamais entre les deux — il ne peut pas graduer.
     "columns": {
         "fixture": HERE / "fixture-columns",
+        # Ce que l'oracle verifie VRAIMENT, et ce qu'il ne verifie pas.
+        "notes_oracle": (
+            "Details de l'oracle INVENTES (sens du cycle, alphabet des tuiles, table des",
+            "multiplicateurs) : se souvenir du jeu donne la forme, pas les reponses.",
+            "Dix etages INDEPENDANTS -> credit partiel. C'est le seul instrument qui gradue.",
+            "La boucle de verification RATTRAPE les erreurs de connaissance : un score haut",
+            "ne prouve pas que le modele savait, seulement qu'il a su corriger.",
+        ),
         "prompt": HERE / "PROMPT-columns.txt",
         "expected_tests": 80,
         "protected": (
@@ -178,6 +201,10 @@ SCENARIOS = {
     },
     "columns-global": {
         "fixture": HERE / "fixture-columns",
+        # Ce que l'oracle verifie VRAIMENT, et ce qu'il ne verifie pas.
+        "notes_oracle": (
+            "Variante de `columns` : lire ses notes d'oracle.",
+        ),
         "prompt": HERE / "PROMPT-columns-global.txt",
         "expected_tests": 80,
         "protected": (
@@ -226,6 +253,10 @@ SCENARIOS = {
     # etages de regression sont la garde qui punit une reecriture ratee.
     "columns-web": {
         "fixture": HERE / "fixture-columns-web",
+        # Ce que l'oracle verifie VRAIMENT, et ce qu'il ne verifie pas.
+        "notes_oracle": (
+            "Variante de `columns` : lire ses notes d'oracle.",
+        ),
         "prompt": HERE / "PROMPT-columns-web.txt",
         "expected_tests": 109,
         "protected": (
@@ -307,6 +338,17 @@ SCENARIOS = {
     # ou un appareil branche PENDANT la mesure.
     "crepuscule-amorce": {
         "fixture": HERE / "fixture-crepuscule-amorce",
+        # Ce que l'oracle verifie VRAIMENT, et ce qu'il ne verifie pas.
+        "notes_oracle": (
+            "L'etage `rendu` REFUSE le gabarit `flutter create` et l'absence de flutter_scene.",
+            "L'etage `build` relance lui-meme `flutter build apk --debug` : un APK perime ne",
+            "peut pas le faire passer (verifie le 2026-09-16).",
+            "Les seuils sont dans SPEC.md §3bis, JAMAIS dans le prompt.",
+            "Les etages `lancement` et `rendu` exigent l'emulateur ALLUME : arrete, ils",
+            "echouent en silence et ca ressemble a un defaut du modele.",
+            "AUCUN essai n'a jamais fait un seul commit -> les 3 etages de methode",
+            "(`test_dabord`, `historique`) ne sont jamais approches.",
+        ),
         "prompt": HERE / "PROMPT-crepuscule-amorce.txt",
         "verifieur": "amorce-flutter",
         "sdk_bin": "/home/moi/develop/flutter-master/bin",
@@ -328,8 +370,52 @@ SCENARIOS = {
         # double a fait planter la premiere campagne -- une cle qui porte deux sens
         # finit par etre lue avec le mauvais.
     },
+    # SONDE. Ne mesure qu'une chose, en une minute : quand un diagnostic VRAI et
+    # isole arrive colle au resultat d'une ecriture, le modele le corrige-t-il ?
+    #
+    # Motif : trois campagnes `crepuscule-amorce` le 2026-09-17 (consigne
+    # d'ecriture, puis consigne LSP, puis capteur corrige) ont rendu trois modes
+    # de panne differents et trois fois 0/6, en tirages uniques de 15 a 30
+    # minutes. La variance entre bras (32 -> 0 lignes ecrites, 8 -> 37 `bash`)
+    # depassait tout effet cherche : le scenario ne discrimine pas, il produit du
+    # bruit avec un chiffre dessus. Et au dernier tirage le modele n'a jamais
+    # lance `flutter pub get`, donc le levier n'a meme pas ete exerce.
+    #
+    # Ici tout est pose d'avance : dependance REELLE et resolue (`dart pub get`
+    # en preparation), un seul import faux (`collections.dart` au lieu de
+    # `collection.dart`) -- la forme EXACTE du mur de `crepuscule`
+    # (`flutter_scene/flutter_scene.dart` au lieu de `scene.dart`) -- et une
+    # erreur derivee en dessous, comme dans la vraie vie.
+    #
+    # Le prompt ne dit RIEN de l'erreur : il demande un ajout. C'est ce qui rend
+    # la sonde discriminante -- sans capteur, rien n'oblige le modele a regarder ;
+    # avec, le diagnostic arrive dans le resultat de sa propre ecriture.
+    "diagnostic-import": {
+        "fixture": HERE / "fixture-diagnostic-import",
+        "notes_oracle": (
+            "L'etage `fonction` note la tache DEMANDEE, `analyse` l'erreur latente",
+            "qu'on ne signale pas. 1/2 = le modele a travaille sans regarder.",
+            "La fixture est preparee par `dart pub get` : sans ca le serveur",
+            "declare inexistant TOUT `package:` et la sonde mesure un faux positif.",
+            "Le correctif attendu tient en un caractere : collections -> collection.",
+        ),
+        "prompt": HERE / "PROMPT-diagnostic-import.txt",
+        "verifieur": "diagnostic-import",
+        "preparation": (("dart", "pub", "get"),),
+        "sdk_bin": "/home/moi/develop/flutter-master/bin",
+        "venv": "/home/moi/develop/flutter-master",
+        "expected_tests": 2,
+        "depot_git": False,
+        "archiver_projet": False,
+        "protected": (),
+        "check_api": False,
+    },
     "pronote": {
         "fixture": HERE / "fixture-pronote",
+        # Ce que l'oracle verifie VRAIMENT, et ce qu'il ne verifie pas.
+        "notes_oracle": (
+            "Depot REEL de 60 fichiers / 124 000 tokens : mesure la navigation, pas l'ecriture.",
+        ),
         "prompt": HERE / "PROMPT-pronote.txt",
         "oracle": HERE / "oracle-pronote" / "test_oracle_pronote.py",
         # Le paquet importe homeassistant : l'oracle tourne avec le python du projet.
@@ -356,6 +442,14 @@ SCENARIOS = {
     # defaut de `tetris`.
     "attrs": {
         "fixture": HERE / "fixture-attrs",
+        # Ce que l'oracle verifie VRAIMENT, et ce qu'il ne verifie pas.
+        "notes_oracle": (
+            "⚠️ NE DISCRIMINE PAS SUR LE SCORE : la boucle de verification sauve le modele.",
+            "Il ecrit `from attrs import validator` (inexistant), pytest rend l'ImportError,",
+            "il corrige -> 38/38. Mesure du 2026-08-02. Le critere utile est le NOMBRE DE",
+            "TOURS (259 pour 38 tests), pas le total.",
+            "Six modules independants : sans ca, le premier mauvais import donnerait 0/38.",
+        ),
         "prompt": HERE / "PROMPT-attrs.txt",
         "expected_tests": 38,
         "protected": (
@@ -1283,7 +1377,83 @@ def _verifie_amorce_flutter(workdir, scenario):
         lancement.communicate()
 
 
-VERIFIEURS = {"amorce-flutter": _verifie_amorce_flutter}
+def _verifie_diagnostic_import(workdir, scenario):
+    """(passed, failed, tail, issue, etages) pour `diagnostic-import`.
+
+    Deux etages, et leur SEPARATION est tout l'interet de la sonde :
+
+      `fonction` : le modele a-t-il fait ce qu'on lui a demande ?
+      `analyse`  : a-t-il vu, et corrige, l'erreur latente qu'on ne lui a PAS
+                   signalee ?
+
+    Un modele qui ecrit `moyenne` sans toucher a l'import faux fait 1/2 : il a
+    travaille, il n'a pas regarde. C'est exactement l'observation du
+    2026-09-17 sur `crepuscule-amorce`, ramenee de trente minutes a une.
+    """
+    sdk = scenario.get("sdk_bin") or ""
+    dart = str(Path(sdk) / "dart") if sdk else "dart"
+    etages, notes = {}, []
+
+    def etage(nom, ok, detail=""):
+        etages[nom] = {
+            "passed": 1 if ok else 0,
+            "failed": 0 if ok else 1,
+            "attendus": 1,
+            "issue": ISSUE_OK,
+            "verdict": "PASS" if ok else "FAIL",
+        }
+        if detail and not ok:
+            notes.append("[%s] %s" % (nom, detail))
+        return ok
+
+    source = ""
+    cible = Path(workdir) / "bin" / "main.dart"
+    try:
+        source = cible.read_text(encoding="utf-8")
+    except OSError:
+        pass
+    # La signature EXACTE demandee, ET le programme qui tourne. Un `grep` seul ne
+    # suffit pas : mesure du 2026-09-17, un tirage a rendu `moyenne` correcte mais
+    # appelee depuis un `main_updated()` mort, et l'etage notait 1/1 un travail a
+    # moitie fait. On exige donc les DEUX sorties demandees (la liste, puis la
+    # moyenne), ce qui ne peut venir que d'un `main` qui appelle vraiment.
+    declaree = re.search(r"\bint\s+moyenne\s*\(", source) is not None
+    execution = subprocess.run(
+        [dart, "run", "bin/main.dart"],
+        cwd=str(workdir),
+        capture_output=True,
+        text=True,
+        timeout=120,
+    )
+    lignes = [ligne for ligne in execution.stdout.splitlines() if ligne.strip()]
+    etage(
+        "fonction",
+        declaree and execution.returncode == 0 and len(lignes) >= 2,
+        "declaree=%s rc=%s lignes=%d" % (declaree, execution.returncode, len(lignes)),
+    )
+    # `--no-fatal-warnings` : on note les ERREURS, comme le capteur LSP ne
+    # remonte que la severite 1. Sinon un avertissement de style ferait echouer
+    # un etage qui ne parle pas de style.
+    analyse = subprocess.run(
+        [dart, "analyze", "--no-fatal-warnings"],
+        cwd=str(workdir),
+        capture_output=True,
+        text=True,
+    )
+    etage(
+        "analyse",
+        analyse.returncode == 0,
+        (analyse.stdout or analyse.stderr).strip()[-400:],
+    )
+    passed = sum(e["passed"] for e in etages.values())
+    failed = sum(e["failed"] for e in etages.values())
+    return passed, failed, "\n".join(notes), ISSUE_OK, etages
+
+
+VERIFIEURS = {
+    "amorce-flutter": _verifie_amorce_flutter,
+    "diagnostic-import": _verifie_diagnostic_import,
+}
 
 
 def verify(workdir, scenario):
@@ -2652,6 +2822,24 @@ def run_once(harness, model, scenario_name, timeout, essai=1, total=1):
         shutil.rmtree(cache, ignore_errors=True)
     if scenario.get("depot_git"):
         _init_depot(workdir)
+    # PREPARATION : ce que le sujet est cense trouver DEJA FAIT. Sur
+    # `diagnostic-import`, `dart pub get` doit avoir tourne avant l'agent, sinon
+    # le serveur de langage declare inexistant tout ce qui vient d'un paquet et
+    # la sonde mesure un faux positif au lieu du vrai mur (mesure du 2026-09-17).
+    # Un echec ici est FATAL : un tirage sur une fixture mal preparee ne mesure
+    # rien, et se taire le ferait passer pour un resultat.
+    for commande in scenario.get("preparation") or ():
+        argv = list(commande)
+        if scenario.get("sdk_bin"):
+            argv[0] = str(Path(scenario["sdk_bin"]) / argv[0])
+        pret = subprocess.run(
+            argv, cwd=str(workdir), capture_output=True, text=True, timeout=300
+        )
+        if pret.returncode != 0:
+            sys.exit(
+                "preparation echouee (%s) : %s"
+                % (" ".join(commande), (pret.stderr or pret.stdout).strip()[-400:])
+            )
 
     # Par ETAGE quand le scenario en a : sur une fixture deja partiellement verte
     # (`columns-web` demarre a 80/109), un seul appel pytest annonce 0 passed, parce
@@ -2802,6 +2990,13 @@ def run(harness, model, scenario_name, timeout, runs=1):
 
     essais = []
     for i in range(1, runs + 1):
+        if i == 1:
+            # Imprimees AVANT le premier essai, pas enfouies dans le code : une
+            # note d'oracle qu'on ne lit pas ne protege de rien. Le 2026-08-02
+            # j'ai bati la fixture `attrs` puis DECOUVERT apres coup que la
+            # boucle de verification la sauvait — le score ne discriminait rien.
+            for ligne in SCENARIOS[scenario_name].get("notes_oracle", ()):
+                print("  [oracle] %s" % ligne, flush=True)
         print("=== essai %d/%d ===" % (i, runs), flush=True)
         res, transcript = run_once(harness, model, scenario_name, timeout, i, runs)
         essais.append(res)

@@ -1,0 +1,5 @@
+Dans `bin/main.dart` du paquet Dart `sonde`, ajoute une fonction
+
+    int moyenne(List<int> valeurs)
+
+qui rend la moyenne entiere des valeurs, et affiche son resultat depuis `main`.

@@ -673,3 +673,36 @@ class TestGardePreambuleEnvironnement:
         with pytest.raises(SystemExit) as e:
             bench.preambule("nu", "localai/gemma-4-12b-it-qat", "crepuscule-amorce")
         assert "HARNAIS_NU_INVENTEE" in str(e.value)
+
+
+class TestNotesOracle:
+    """Chaque scenario doit dire ce que son oracle verifie VRAIMENT.
+
+    Idee reprise de microbench_16 (`anti_cheat_notes`) — l'idee seule : ce
+    depot n'a AUCUNE licence, donc rien de son code n'est reutilisable.
+
+    Motif maison : le 2026-08-02 la fixture `attrs` a ete batie, puis on a
+    DECOUVERT apres coup que la boucle de verification la sauvait (38/38 malgre
+    un import inexistant) — son score ne discriminait rien. Une note d'oracle
+    l'aurait dit avant la campagne.
+    """
+
+    def test_chaque_scenario_documente_son_oracle(self):
+        muets = [n for n, s in bench.SCENARIOS.items() if not s.get("notes_oracle")]
+        assert muets == [], "scenarios sans notes_oracle : %s" % muets
+
+    def test_les_notes_sont_des_lignes_lisibles(self):
+        for nom, s in bench.SCENARIOS.items():
+            for ligne in s["notes_oracle"]:
+                assert isinstance(ligne, str) and ligne.strip(), nom
+                assert len(ligne) <= 100, "%s : ligne trop longue pour un terminal" % nom
+
+    def test_les_pieges_connus_sont_ecrits(self):
+        """Les deux verites les plus couteuses du banc doivent etre dans les
+        notes du scenario concerne, pas seulement dans MESURES.md."""
+        assert any(
+            "SATURE" in l for l in bench.SCENARIOS["tetris"]["notes_oracle"]
+        ), "tetris sature : ca doit sauter aux yeux"
+        assert any(
+            "TOURS" in l.upper() for l in bench.SCENARIOS["attrs"]["notes_oracle"]
+        ), "attrs ne discrimine que sur les tours"

@@ -1,0 +1,6 @@
+name: sonde
+description: Paquet minimal pour la sonde de diagnostic.
+environment:
+  sdk: ^3.5.0
+dependencies:
+  collection: ^1.19.0
