@@ -430,8 +430,15 @@ SCENARIOS = {
     "sql-sessions": {
         "fixture": HERE / "fixture-sql-sessions",
         "notes_oracle": (
+            "SATURE sur gemma-4-12b : 6/6 aux 3 tirages, ecart 0, 5 tours (17/09).",
+            "Il FILTRE (un harnais casse tombera), il ne CLASSE pas -- meme statut que",
+            "`tetris`. La sessionnalisation est un exercice canonique : une part du",
+            "score est de la RESTITUTION. Pour classer, il faudra durcir le contrat.",
             "Six cas independants -> credit partiel. Instrument controle le 17/09 :",
             "requete juste 6/6, requete naive 1/6 (`solitaire` passe legitimement).",
+            "Les 3 requetes produites sont structurellement differentes entre elles ET",
+            "de celle du controle (strftime/2700 contre julianday*1440) : le correcteur",
+            "ne valide pas une forme unique.",
             "Le controle visible NE contient aucun cas limite : le passer ne prouve rien.",
             "Aucun serveur de langage ni lint pour `.sql` -> le levier diagnostic est",
             "INERTE ici. Ce scenario mesure le harnais hors de Python, pas le capteur.",
