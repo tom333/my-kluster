@@ -201,3 +201,50 @@
       sleep 3
       echo "$n application(s) terminee(s) ; Pegasus devrait revenir"
   when: desktop_frontend == 'pegasus'
+
+# Chien de garde de l'affichage. Pegasus se démappe pendant qu'il exécute une
+# application et n'attend que la MORT du processus pour revenir : toute appli qui
+# se cache en restant vivante laisse un écran mort, récupérable seulement par
+# SSH. C'est arrivé deux fois avec Jellyfin Media Player (15 et 18 septembre
+# 2026), qui se minimise tout seul après une lecture.
+# `forceAlwaysFS` (tâche du 55_pegasus.yml) traite le cas Jellyfin ; ce chien de
+# garde traite la CLASSE du problème, sans rien supposer de l'application.
+# Ne se déclenche que si PLUS AUCUNE fenêtre n'est affichée : un jeu ou une
+# vidéo en plein écran est une fenêtre visible, donc jamais touché.
+- name: Session — chien de garde de l'écran mort
+  ansible.builtin.copy:
+    dest: /usr/local/bin/surveiller-ecran
+    owner: root
+    group: root
+    mode: '0755'
+    content: |
+      #!/usr/bin/env bash
+      # Managed by Ansible (desktop role). Lancé par l'autostart Openbox.
+      set -eu
+      INTERVALLE=15
+      SEUIL="${1:-60}"
+      vide=0
+      while :; do
+        sleep "$INTERVALLE"
+        # Écran verrouillé : i3lock couvre tout, l'absence d'autre fenêtre est normale.
+        if pgrep -x i3lock >/dev/null 2>&1; then vide=0; continue; fi
+        utile=0
+        for id in $(xwininfo -root -children 2>/dev/null | sed -n 's/^ *\(0x[0-9a-f]*\).*/\1/p'); do
+          info=$(xwininfo -id "$id" 2>/dev/null) || continue
+          case "$info" in
+            *IsViewable*)
+              larg=$(printf '%s' "$info" | sed -n 's/^  Width: //p')
+              # Openbox garde des fenêtres techniques de 1x1 en permanence.
+              if [ "${larg:-0}" -gt 100 ]; then utile=1; break; fi
+              ;;
+          esac
+        done
+        if [ "$utile" -eq 1 ]; then vide=0; continue; fi
+        vide=$((vide + INTERVALLE))
+        if [ "$vide" -ge "$SEUIL" ]; then
+          logger -t surveiller-ecran "aucune fenetre affichee depuis ${vide}s -> reafficher"
+          reafficher || true
+          vide=0
+        fi
+      done
+  when: desktop_frontend == 'pegasus'

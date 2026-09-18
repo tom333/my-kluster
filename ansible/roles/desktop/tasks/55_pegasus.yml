@@ -136,3 +136,38 @@
 
       game: Jellyfin
       file: jellyfin.sh
+
+# Jellyfin Media Player quitte le plein écran à la fin d'une lecture, puis se
+# minimise (journal du 2026-09-18 : "Request fullscreen: false" -> Windowed, et
+# 32 s plus tard Minimized). Sa fenêtre est alors démappée alors que son
+# processus vit toujours — or Pegasus se cache pendant l'exécution d'une appli
+# et n'attend QUE la mort du processus : plus rien n'est affiché, et il faut un
+# accès SSH pour s'en sortir.
+# `--fullscreen` en ligne de commande ne vaut qu'au démarrage, et la clé
+# `fullscreen` de la config est un ÉTAT réécrit à chaque sortie, pas un réglage.
+# `forceAlwaysFS` est le réglage durable : plus de retour en fenêtré.
+# ⚠️ JMP réécrit sa config en quittant : cette tâche n'a d'effet que JMP FERMÉ
+# (même piège que retroarch.cfg). Le chien de garde `surveiller-ecran` du rôle
+# couvre le cas où ça se reproduirait malgré tout.
+- name: Jellyfin — plein écran permanent (sinon fenêtré puis minimisé -> écran mort)
+  ansible.builtin.command:
+    argv:
+      - python3
+      - -c
+      - |
+        import json, sys
+        chemin = sys.argv[1]
+        conf = json.load(open(chemin))
+        main = conf.setdefault("sections", {}).setdefault("main", {})
+        if main.get("forceAlwaysFS") is True:
+            print("inchange")
+        else:
+            main["forceAlwaysFS"] = True
+            # open(...,"w") tronque sans changer l'inode : owner/mode preserves.
+            json.dump(conf, open(chemin, "w"), indent=2)
+            print("modifie")
+      - "/home/{{ ansible_user }}/.local/share/jellyfinmediaplayer/jellyfinmediaplayer.conf"
+  register: desktop_jmp_fs
+  changed_when: "'modifie' in desktop_jmp_fs.stdout"
+  # La config n'existe qu'après un premier lancement de JMP.
+  failed_when: false
