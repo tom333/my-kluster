@@ -190,7 +190,14 @@
       done < "/proc/$P/environ"
       # Applications lancées par Pegasus, donc filles de pegasus-fe. Les terminer
       # débloque Pegasus, qui se réaffiche de lui-même.
-      PEG=$(pgrep -f 'pegasus-fe' | head -1) || { echo "pegasus introuvable" >&2; exit 1; }
+      # `pgrep | head` renvoie le code de head (toujours 0) : tester la VARIABLE.
+      PEG=$(pgrep -f 'pegasus-fe' | head -1)
+      if [ -z "$PEG" ]; then
+        echo "pegasus-fe absent : ce n'est pas une appli bloquee, c'est le frontend" >&2
+        echo "qui manque. La supervision de l'autostart le relance ; si elle n'est" >&2
+        echo "pas active, redemarrer la session (systemctl restart lightdm)." >&2
+        exit 1
+      fi
       n=0
       for enfant in $(pgrep -P "$PEG" 2>/dev/null || true); do
         cmd=$(tr '\0' ' ' < "/proc/$enfant/cmdline" 2>/dev/null || true)
@@ -242,8 +249,14 @@
         if [ "$utile" -eq 1 ]; then vide=0; continue; fi
         vide=$((vide + INTERVALLE))
         if [ "$vide" -ge "$SEUIL" ]; then
-          logger -t surveiller-ecran "aucune fenetre affichee depuis ${vide}s -> reafficher"
-          reafficher || true
+          # Journaliser le RÉSULTAT, pas seulement l'intention : du 18 au 20/09
+          # cette ligne a tourné toutes les minutes pendant deux jours alors que
+          # `reafficher` échouait (Pegasus mort), sans que rien ne le signale.
+          if sortie=$(reafficher 2>&1); then
+            logger -t surveiller-ecran "ecran vide ${vide}s -> reafficher OK: ${sortie}"
+          else
+            logger -t surveiller-ecran "ecran vide ${vide}s -> reafficher EN ECHEC: ${sortie}"
+          fi
           vide=0
         fi
       done

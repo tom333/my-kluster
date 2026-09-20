@@ -25,15 +25,28 @@ inhiber-verrou &
 xset s off -dpms &
 {% endif %}
 {% if desktop_frontend == 'pegasus' %}
-# Frontend canapé (shell). Relance si l'utilisateur le quitte (sauf sortie propre).
+# Chien de garde : si plus AUCUNE fenêtre n'est affichée (application qui se
+# cache sans mourir, Pegasus resté caché à l'attendre), débloque tout seul.
+surveiller-ecran &
+# Frontend canapé (shell), sous supervision.
+# ⚠️ Le commentaire précédent annonçait ici une relance « sauf sortie propre »
+# que le code n'a JAMAIS faite : c'était un simple `pegasus-fe &`. Or Pegasus est
+# le SEUL affichage de cette session (ni barre, ni bureau, ni menu), donc le
+# quitter laisse un écran noir dont seul SSH permet de sortir. Constaté le
+# 2026-09-18 : « Closing Pegasus, goodbye! » dans lastrun.log, puis deux jours
+# d'écran noir pendant lesquels `surveiller-ecran` appelait `reafficher` toutes
+# les minutes en vain — `reafficher` tue les applications lancées PAR Pegasus, il
+# ne peut rien quand c'est Pegasus lui-même qui manque.
+# La sortie propre est donc relancée elle aussi : il n'y a rien d'autre à afficher.
 # Pas de `ansible_user_dir` ici : le play tourne en `become: true`, les facts sont
 # donc collectés en root et ce chemin résolvait /root/Applications -> la session
 # openbox (qui tourne en {{ ansible_user }}) se prenait un "Permission denied" et
 # n'affichait qu'un fond vide. 55_pegasus.yml installe bien sous /home/<user>.
-# Chien de garde : si plus AUCUNE fenêtre n'est affichée (application qui se
-# cache sans mourir, Pegasus resté caché à l'attendre), débloque tout seul.
-surveiller-ecran &
-/home/{{ ansible_user }}/Applications/pegasus/pegasus-fe &
+while :; do
+    /home/{{ ansible_user }}/Applications/pegasus/pegasus-fe || true
+    # Garde-fou anti-emballement si Pegasus ne démarre plus du tout.
+    sleep 3
+done &
 {% else %}
 # Barre + launchers (Brave / Jellyfin / Lutris).
 tint2 &
