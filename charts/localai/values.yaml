@@ -653,24 +653,38 @@ modelsConfigs:
   # et il avait ete mesure SOUS l'incumbent (overall 0.911 vs 0.982, codage
   # 0.643 vs 0.929, 30.2 tok/s vs 59.4). Recuperable dans git si besoin.
   #
-  # POURQUOI CELUI-CI. 5,95 Go de poids en PTQ1_0 (1,75 bit/poids) : au batch 1
-  # le debit est la bande passante divisee par les OCTETS, donc ~60 tok/s
-  # theoriques sur la 3060 (360 Go/s) contre 45-50 a gemma-4-12b-it-qat. Un
-  # modele de classe 27B PLUS RAPIDE que l'incumbent, et 6 Go de VRAM libres
-  # pour le contexte. Annonce : codage 89,4 / appel d'outils agentique 74,9.
+  # DEBIT ATTENDU : ~27 t/s, soit la MOITIE de l'incumbent. Corrige le 23/09 :
+  # la regle « bande passante / octets » donne 60 t/s sur la 3060, mais les
+  # relevés amont ne tiennent que ~45 % de ce plafond -- 143 t/s sur RTX 5090
+  # (1792 Go/s) et 49 t/s sur 5070 Ti Laptop (~672 Go/s). Indice de la cause :
+  # les DEUX empaquetages rendent 48,97 t/s sur la meme carte malgre 5,53 contre
+  # 7,12 Gio, donc le decodage n'est pas purement limite par la bande passante --
+  # le depaquetage ternaire coute du calcul. Contre 45-50 t/s mesures a
+  # gemma-4-12b-it-qat, ce modele est donc un PARI SUR LA QUALITE, pas sur la
+  # vitesse. Annonce : codage 89,4 / appel d'outils agentique 74,9 -- a verifier,
+  # lfm2.5-8b-a1b avait le meilleur score d'eval du jour et 0/44 au banc.
   #
   # BACKEND OBLIGATOIRE. Le README amont est explicite : « Stock llama.cpp will
   # not run these files », il rejette PTQ1_0 et PQ2_0 comme types inconnus. Tout
   # passe par le fork PrismML = backend `cuda12-bonsai` (installe le 23/09 via
   # /backends/apply ; le tag quay stable etait encore 404 en juillet).
   #
-  # PTQ1_0 plutot que PQ2_0 : 5,95 Go contre 7,21, et le README donne PTQ1_0
-  # gagnant « wherever memory is tightest ». Aucun des deux n'est mesure ici.
+  # PTQ1_0 pour le PREMIER tirage : 5,95 Go contre 7,21, et le README le donne
+  # gagnant « wherever memory is tightest ». MAIS PQ2_0 traite le prompt 2,15x
+  # plus vite (1135 contre 527 t/s) pour un decodage IDENTIQUE (48,97 les deux) :
+  # c'est le second bras a jouer, et il compte dans une boucle d'agent qui
+  # renvoie un contexte qui grossit. Aucun des deux n'est mesure sur Ampere.
   #
-  # CONTEXTE A 49152, PAS 262144. La carte annonce 262K ; on a mesure que plus
-  # de contexte DEGRADE (19/44 a 131072 contre 34-41/44 a 49152) et LocalAI
-  # range les KV des slots inactifs en RAM hote. On declare ce qu'on a mesure
-  # ailleurs, on sondera plus haut ensuite.
+  # CONTEXTE 65536. Le 49152 initial venait d'une mesure faite sur GEMMA, qui est
+  # en attention pleine -- elle ne transporte pas ici : le KV de Bonsai-2 ne vit
+  # que sur 16 couches sur 64. Chiffres amont (Bonsai-demo/KV-CACHE.md et le
+  # releve communautaire RTX 5070 Ti Laptop 12 Go, meme classe de VRAM) :
+  #   FP16  64 KiO/token   |   q8_0 ~32   |   q4_0 ~18
+  #   131072 en q8_0 = ~4,5 Gio -> NE TIENT PAS a cote des 5,53 Gio de poids
+  #   131072 en q4_0 + biais mean-centering -> tient, 2 647 Mio libres, 40,7 t/s
+  # 65536 en q8_0 = ~2,1 Gio, soit 7,6 Gio avec les poids : large. Et le banc ne
+  # depasse pas ~50 000 de pic d'entree, donc 131072 n'achete rien ici et
+  # couterait la calibration d'un biais (llama-kv-mean-center, hors LocalAI).
   #
   # RAISONNEMENT. Defaut amont = `xhigh`, et `low` n'est pas supporte. Un budget
   # de raisonnement non borne avait fait sauter le plafond de tour sur ornith
@@ -683,7 +697,7 @@ modelsConfigs:
     name: ternary-bonsai-2-27b
     backend: bonsai
     known_usecases: [chat]
-    context_size: 49152
+    context_size: 65536
     gpu_layers: 99
     f16: true
     flash_attention: true
