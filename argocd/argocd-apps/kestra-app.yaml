@@ -18,7 +18,7 @@ spec:
   source:
     repoURL: https://helm.kestra.io/
     chart: kestra
-    targetRevision: 2.0.2
+    targetRevision: 2.0.3
     helm:
       releaseName: kestra
       values: |
