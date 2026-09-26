@@ -161,10 +161,10 @@ spec:
               main:
                 image:
                   repository: nousresearch/hermes-agent
-                  # Date-scheme tags. v2026.9.21 = latest stable, post "Surface
+                  # Date-scheme tags. v2026.9.24 = latest stable, post "Surface
                   # Release" (v2026.6.5) which shipped the full admin dashboard.
                   # Renovate can track docker tags for this image.
-                  tag: "v2026.9.21"
+                  tag: "v2026.9.24"
                   pullPolicy: IfNotPresent
                 # Keep the image's s6 entrypoint; pass `gateway run` as args so the
                 # gateway runs AND s6 supervises the dashboard (HERMES_DASHBOARD=1).
