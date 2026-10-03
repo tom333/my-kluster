@@ -12,7 +12,7 @@ spec:
   project: datalab-project
   source:
     repoURL: https://github.com/rustfs/rustfs
-    targetRevision: 1.0.0-beta.3
+    targetRevision: 1.0.1
     path: helm/rustfs
     helm:
       values: |
