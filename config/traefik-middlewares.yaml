@@ -155,7 +155,11 @@ spec:
   forwardAuth:
     address: http://oauth2-proxy.kube-system.svc.cluster.local/
     trustForwardHeader: true
-    authResponseHeaders: ["X-Auth-Request-User", "X-Auth-Request-Email", "Authorization"]
+    # PAS "Authorization" ici : Traefik SUPPRIME chaque header listé de la requête
+    # avant de le recopier depuis la réponse oauth2-proxy (qui ne le pose pas) →
+    # le JWT CloudCLI (Authorization: Bearer) serait effacé → 401 « session
+    # expired » sur toute l'API REST (le WebSocket passait, token en query).
+    authResponseHeaders: ["X-Auth-Request-User", "X-Auth-Request-Email"]
 
 # ─── Sablier scale-to-zero (Phase 6) ─────────────────────────────────────────
 # Attaché à l'ingress du service candidat. names=deployment_<ns>_<nom>_<replicas>.
