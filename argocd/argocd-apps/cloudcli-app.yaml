@@ -1,0 +1,146 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cloudcli
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  # CloudCLI (ex-claudecodeui, https://github.com/siteboon/claudecodeui) — UI web
+  # + mobile pour Claude Code, servie sur cloudcli.tgu.ovh. PUBLIC hors-LAN, donc
+  # oauth2-proxy obligatoire (Middleware cloudcli-oauth2-forwardauth) + login
+  # interne CloudCLI (mono-utilisateur : le 1er /register crée l'unique compte,
+  # ensuite refusé) = 2e barrière. Derrière, les agents ont accès à /data/projets
+  # et aux credentials Claude du host.
+  #
+  # Récupération des sessions existantes : CloudCLI lit os.homedir()/.claude/projects
+  # (*.jsonl) et regroupe par cwd. D'où les deux invariants :
+  #   1. HOME du conteneur = /home/moi (uid 1000, cf. images/cloudcli/Dockerfile)
+  #      et hostPath /home/moi/.claude monté au MÊME chemin → sessions, credentials
+  #      (.credentials.json), settings et hooks partagés avec le host.
+  #   2. hostPath /data/projets monté au MÊME chemin : les sessions sont indexées
+  #      par cwd absolu (~/.claude/projects/-data-projets-…).
+  # hostPath ⇒ nodeSelector pc obligatoire (le répertoire n'existe que sur pc).
+  #
+  # /home/moi lui-même est un PVC : il porte .cloudcli/auth.db (compte, JWT secret
+  # généré à la 1re exécution), .claude.json propre au pod (MCP, onboarding) et les
+  # caches. Clé "home-claude" nommée exprès : le chart monte les persistences par
+  # ordre alphabétique et un montage imbriqué doit passer APRÈS son parent
+  # (home < home-claude < projets), sinon il est masqué.
+  destination:
+    namespace: cloudcli
+    server: https://kubernetes.default.svc
+  project: infra-project
+  source:
+    repoURL: https://bjw-s-labs.github.io/helm-charts
+    chart: app-template
+    targetRevision: 5.3.0
+    helm:
+      values: |
+        defaultPodOptions:
+          nodeSelector:
+            kubernetes.io/hostname: pc
+        controllers:
+          cloudcli:
+            type: deployment
+            strategy: Recreate
+            initContainers:
+              # Le PVC hostpath arrive owned root ; microk8s-hostpath ignore fsGroup.
+              fix-ownership:
+                image:
+                  repository: busybox
+                  tag: "1.37"
+                command: ["sh", "-c", "chown 1000:1000 /home/moi"]
+                securityContext:
+                  runAsUser: 0
+            containers:
+              main:
+                image:
+                  # Image maison : CloudCLI 1.37.4 + Claude Code 2.1.296 (= version host).
+                  # Source : images/cloudcli/Dockerfile.
+                  repository: localhost:32000/cloudcli
+                  tag: 1.37.4-cc2.1.296
+                  pullPolicy: IfNotPresent
+                env:
+                  HOME: /home/moi
+                  HOST: "0.0.0.0"
+                  PORT: "3001"
+                  SERVER_PORT: "3001"
+                  CLAUDE_CLI_PATH: /usr/local/bin/claude
+                  DATABASE_PATH: /home/moi/.cloudcli/auth.db
+                  # Racine des projets : création de projet et explorateur de
+                  # fichiers confinés à /data/projets (défaut = HOME).
+                  WORKSPACES_ROOT: /data/projets
+                  CONTEXT_WINDOW: "200000"
+                securityContext:
+                  runAsUser: 1000
+                  runAsGroup: 1000
+                probes:
+                  liveness:
+                    enabled: true
+                    custom: true
+                    spec:
+                      httpGet: { path: /health, port: 3001 }
+                      initialDelaySeconds: 20
+                      periodSeconds: 30
+                  readiness:
+                    enabled: true
+                    custom: true
+                    spec:
+                      httpGet: { path: /health, port: 3001 }
+                      initialDelaySeconds: 5
+                      periodSeconds: 10
+                resources:
+                  limits:   { cpu: "2", memory: 4Gi }
+                  requests: { cpu: "100m", memory: 512Mi }
+        service:
+          app:
+            controller: cloudcli
+            ports:
+              http:
+                port: 3001
+        ingress:
+          app:
+            className: public
+            annotations:
+              cert-manager.io/cluster-issuer: "letsencrypt-prod"
+              traefik.ingress.kubernetes.io/router.middlewares: cloudcli-oauth2-forwardauth@kubernetescrd
+            hosts:
+              - host: cloudcli.tgu.ovh
+                paths:
+                  - path: /
+                    pathType: Prefix
+                    service:
+                      identifier: app
+                      port: http
+            tls:
+              - secretName: cloudcli-tls
+                hosts:
+                  - cloudcli.tgu.ovh
+        persistence:
+          home:
+            type: persistentVolumeClaim
+            accessMode: ReadWriteOnce
+            size: 5Gi
+            globalMounts:
+              - path: /home/moi
+          # Config Claude Code du host par-dessus le PVC : sessions, credentials,
+          # settings.json, hooks — mêmes fichiers que moi@pc, en écriture partagée.
+          home-claude:
+            type: hostPath
+            hostPath: /home/moi/.claude
+            hostPathType: Directory
+            globalMounts:
+              - path: /home/moi/.claude
+          projets:
+            type: hostPath
+            hostPath: /data/projets
+            hostPathType: Directory
+            globalMounts:
+              - path: /data/projets
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      selfHeal: true
+      prune: true
