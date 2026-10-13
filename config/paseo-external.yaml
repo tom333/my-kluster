@@ -1,0 +1,94 @@
+# Exposition de Paseo (https://paseo.sh, orchestrateur d'agents de code) sous paseo.tgu.ovh.
+# Cible : daemon Paseo en service systemd --user sur l'hôte pc @ 192.168.88.250:6767 → HORS cluster.
+#
+# Pourquoi hors cluster : les agents doivent voir TOUS les outils installés sur le pc
+#   (nvm, pyenv, uv, docker, kubectl, claude…) et les sessions Claude Code natives de
+#   ~/.claude. Le cluster ne fait donc que router et authentifier. Remplace l'app
+#   in-cluster paseo-app.yaml.disable (image fille localhost:32000/paseo-agents).
+#   Unité : ~/.config/systemd/user/paseo.service, env : ~/.config/paseo/paseo.env.
+#
+# Pattern k8s-natif : Service SANS selector + EndpointSlice manuel (même schéma que
+#   config/web-claude.yaml et config/home-assistant-external.yaml).
+#
+# ⚠️ L'EndpointSlice n'est PAS déployé par ArgoCD (`resource.exclusions` d'argocd-cm
+#   exclut discovery.k8s.io/EndpointSlice). À appliquer à la main, une fois, et après
+#   tout changement d'IP ou de port, sinon l'Ingress répond « no available server » :
+#     kubectl apply -f config/paseo-external.yaml
+#
+# Accès : PUBLIC hors-LAN (usage mobile voulu), deux barrières chaînées :
+#   1. paseo-oauth2-forwardauth@kubernetescrd → login GitHub obligatoire (tom333,tguyader).
+#      Le Middleware ne relaie PAS `Authorization` : Paseo authentifie l'API HTTP par
+#      `Authorization: Bearer <PASEO_PASSWORD>` et Traefik effacerait ce header
+#      (cf. mémoire traefik-forwardauth-strips-authorization).
+#   2. Mot de passe du daemon (PASEO_PASSWORD) demandé par l'UI web = 2e barrière,
+#      et seule barrière pour un accès LAN direct (192.168.88.250:6767, desktop app/CLI).
+#
+# Côté daemon : PASEO_HOSTNAMES=paseo.tgu.ovh (sinon 403 Invalid Host header),
+#   PASEO_TRUSTED_PROXIES inclut 192.168.88.250 (Traefik hostNetwork) pour que
+#   X-Forwarded-Proto: https fasse basculer l'UI en wss://.
+# WebSocket /ws : Traefik relaie l'upgrade nativement ; pas de timeout de lecture à poser.
+# Le bouncer CrowdSec global (entrypoint websecure) s'applique avant tout ça.
+# ============================================================================
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: paseo
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: paseo-host
+  namespace: paseo
+spec:
+  # Pas de selector : endpoints fournis manuellement via l'EndpointSlice ci-dessous.
+  ports:
+    - name: http
+      port: 6767
+      targetPort: 6767
+      protocol: TCP
+---
+apiVersion: discovery.k8s.io/v1
+kind: EndpointSlice
+metadata:
+  name: paseo-host-1
+  namespace: paseo
+  labels:
+    # Lien EndpointSlice → Service (obligatoire pour que le Service les adopte).
+    kubernetes.io/service-name: paseo-host
+addressType: IPv4
+ports:
+  - name: http          # doit matcher le nom du port du Service
+    port: 6767
+    protocol: TCP
+endpoints:
+  - addresses:
+      - 192.168.88.250
+    conditions:
+      ready: true
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: paseo-host
+  namespace: paseo
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    traefik.ingress.kubernetes.io/router.middlewares: paseo-oauth2-forwardauth@kubernetescrd
+spec:
+  ingressClassName: public
+  rules:
+    - host: paseo.tgu.ovh
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: paseo-host
+                port:
+                  number: 6767
+  tls:
+    - hosts:
+        - paseo.tgu.ovh
+      secretName: paseo-tls
