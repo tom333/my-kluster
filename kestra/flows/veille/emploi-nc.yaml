@@ -134,4 +134,10 @@ tasks:
 triggers:
   - id: quotidien
     type: io.kestra.plugin.core.trigger.Schedule
-    cron: "0 20 * * *"
+    # 7h30 et non 7h00 : ce flux fait ses PROPRES appels LLM (14 pages), hors du subflow
+    # `digest`. La limite de concurrence de `digest` ne le couvre donc pas — le décalage
+    # évite qu'il charge gemma pendant qu'un digest l'utilise déjà.
+    cron: "30 7 * * *"
+    timezone: Pacific/Noumea
+    # NONE : changer l'heure ne doit pas rejouer les créneaux manqués (défaut ALL).
+    recoverMissedSchedules: NONE

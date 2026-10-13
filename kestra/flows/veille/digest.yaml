@@ -6,6 +6,16 @@ description: >
   Telegram (découpé si besoin), puis marque lu. Appelé par un mini-flux par thème,
   qui porte le cron et la consigne (korben, decouvertes, harnais-agents, …).
 
+# UN SEUL digest à la fois, les autres attendent leur tour (2026-10-13).
+# Les thèmes partagent désormais deux créneaux (7h et 20h, heure locale) : sans cette
+# limite, quatre d'entre eux démarreraient à la même minute et s'évinceraient
+# mutuellement sur LocalAI — `LOCALAI_SINGLE_ACTIVE_BACKEND: true` ne garde qu'un
+# backend résident, donc chaque bascule paierait un rechargement complet de gemma.
+# En file, gemma est chargé une fois et enchaîne les digests (~40 s pièce).
+concurrency:
+  limit: 1
+  behavior: QUEUE
+
 inputs:
   - id: categorie
     type: STRING

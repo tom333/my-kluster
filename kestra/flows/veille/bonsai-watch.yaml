@@ -20,4 +20,8 @@ tasks:
 triggers:
   - id: planifie
     type: io.kestra.plugin.core.trigger.Schedule
-    cron: "15 8,20 * * *"
+    # Watcher Python pur : n'appelle pas le LLM, donc aligné sur les créneaux sans les encombrer.
+    cron: "0 7,20 * * *"
+    timezone: Pacific/Noumea
+    # NONE : changer l'heure ne doit pas rejouer les créneaux manqués (défaut ALL).
+    recoverMissedSchedules: NONE

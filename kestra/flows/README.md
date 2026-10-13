@@ -64,18 +64,30 @@ donc aucun conflit avec la passerelle.
 
 ## Flux (transposition des 12 crons Hermes, 2026-09-16)
 
-| flux Kestra | catégorie Miniflux | cron (UTC) | remplace le cron Hermes |
+**Deux créneaux depuis le 2026-10-13** : tout se déclenche à **7h ou 20h, heure locale**
+(`timezone: Pacific/Noumea` sur chaque trigger — avant, les crons étaient en UTC et
+réveillaient gemma à huit moments différents de la journée). Les digests du même créneau
+partent à la même minute mais `digest` porte `concurrency: {limit: 1}` : ils font la file
+au lieu de s'évincer sur LocalAI. Chaque trigger porte aussi `recoverMissedSchedules: NONE`
+(le défaut `ALL` rejouerait les créneaux manqués à chaque changement d'heure).
+
+| flux Kestra | catégorie Miniflux | cron (**heure locale**) | remplace le cron Hermes |
 |---|---|---|---|
-| `korben` | korben | `30 9 * * *` | Résumé Korben soir (`e8c4b8c91103`) |
-| `decouvertes` | decouvertes | `0 9 * * *` | decouvertes-quotidienne (`2ee2afd955cb`) |
-| `data-ia` | data-ia | `0 10 * * *` | veille-data-ia-quotidienne (`a03a6a8792b2`) |
-| `llm-local` | llm-local | `30 21 * * *` | llm-veille-daily (`a6bd90e76dfa`) |
-| `harnais-agents` | harnais-agents | `0 22 * * 3` | harnais-et-agents-veille (`3f1c9a2b7d84`) |
-| `3d-assets` | 3d-assets | `0 6 * * *` | veille-3d-assets (`7c4e1b9a2f60`) |
-| `arr` | arr | `30 10 * * 6` | Veille écosystème *arr (`89e560928622`) |
-| `emploi-nc` | — (14 pages HTML, KV) | `0 20 * * *` | job-scraper-data-ia (`a38355a79f36`) |
-| `bonsai-watch` | — (script, KV) | `15 8,20 * * *` | bonsai-backend-watch (`7ebbddc10caa`) |
-| `moe-cache-watch` | — (script, KV) | `0 9,21 * * *` | moe-cache-watch (`42a01f72da31`) |
+| `korben` | korben | `0 20 * * *` | Résumé Korben soir (`e8c4b8c91103`) |
+| `decouvertes` | decouvertes | `0 20 * * *` | decouvertes-quotidienne (`2ee2afd955cb`) |
+| `data-ia` | data-ia | `0 20 * * *` | veille-data-ia-quotidienne (`a03a6a8792b2`) |
+| `3d-assets` | 3d-assets | `0 20 * * *` | veille-3d-assets (`7c4e1b9a2f60`) |
+| `arr` | arr | `0 20 * * 6` | Veille écosystème *arr (`89e560928622`) |
+| `llm-local` | llm-local | `0 7 * * *` | llm-veille-daily (`a6bd90e76dfa`) |
+| `harnais-agents` | harnais-agents | `0 7 * * 4` | harnais-et-agents-veille (`3f1c9a2b7d84`) |
+| `emploi-nc` | — (14 pages HTML, KV) | `30 7 * * *` | job-scraper-data-ia (`a38355a79f36`) |
+| `bonsai-watch` | — (script, KV) | `0 7,20 * * *` | bonsai-backend-watch (`7ebbddc10caa`) |
+| `moe-cache-watch` | — (script, KV) | `0 7,20 * * *` | moe-cache-watch (`42a01f72da31`) |
+
+`emploi-nc` est à 7h30 et non 7h : il fait ses **propres** appels LLM (une extraction par
+page, 14 pages) sans passer par `digest`, donc la limite de concurrence de `digest` ne le
+couvre pas. Les deux watchers n'appellent aucun LLM — ils sont alignés par confort de
+lecture, pas par contrainte.
 | *(retiré 17/09)* | — | `45 8,20 * * *` | k2horizon-watch (`b7c3e1a4f902`) — surveillait le merge de l'arch `k2_horizon` dans llama.cpp amont ; un banc publié le 17/09 classe K2-Horizon-7B dernier (11/15, 3 échecs sur timeout) et l'arch reste absente de master, donc la porte ne vaut plus d'être surveillée |
 | *(intégré à `digest`)* | tâche `indexer` | à chaque digest | digest-indexer (`d1965700c0de`) — indexait les digests Hermes dans txtai toutes les heures ; la dédup vit dans Miniflux, l'indexation suit l'envoi |
 
