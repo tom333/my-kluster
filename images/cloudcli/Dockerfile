@@ -14,7 +14,7 @@
 # Build :
 #   docker build -t localhost:32000/cloudcli:1.37.4-cc2.1.296 images/cloudcli
 #   docker push localhost:32000/cloudcli:1.37.4-cc2.1.296
-FROM node:22-bookworm-slim
+FROM node:24-bookworm-slim
 
 ARG CLOUDCLI_VERSION=1.37.4
 ARG CLAUDE_CODE_VERSION=2.1.296
