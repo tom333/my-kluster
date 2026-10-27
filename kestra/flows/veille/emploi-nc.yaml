@@ -12,7 +12,9 @@ variables:
   modele: gemma-4-12b-it-qat
   chat_id: "843341688"
   pages:
-    - https://www.lemploi.nc
+    # lemploi.nc : appli Inertia.js, la page d'accueil n'a pas de texte (« page vide »).
+    # La liste paginée est lue en JSON, cf. lignes_lemploi() plus bas.
+    - https://www.lemploi.nc/offres-d-emploi
     - https://emploi.nc
     - https://job.nc/
     - https://www.aircalin.fr/fr/recrutement
@@ -20,7 +22,7 @@ variables:
     - https://drhfpnc.gouv.nc/avis-vacances-postes-AVP
     - https://www.gbnc.nc/nos-opportunites
     - https://www.cph.nc/le-groupe/carrieres/offres-demploi/
-    - https://fr.careers.spc.int/all-jobs
+    - https://fr.careers.spc.int/
     - https://www.saintvincent.nc/recrutement
     - https://ballandesas.nc/nous-rejoindre/
     - https://carrieres.bci.nc/
@@ -69,6 +71,27 @@ tasks:
           t = " ".join(unescape(re.sub(r"<[^>]+>", " ", html)).split())
           return t[:9000]
 
+      def lignes_lemploi(base):
+          # Appli Inertia.js : chaque page HTML porte sa liste d'offres en JSON dans
+          # l'attribut `data-page` (pas besoin de la poignée de main X-Inertia-Version).
+          # 12 offres par page, `?page=N`, lien de détail = /offres-d-emploi/{slug}.
+          lignes, page, derniere = [], 1, 1
+          while page <= min(derniere, 20):
+              req = urllib.request.Request("%s?page=%d" % (base, page), headers={"User-Agent": UA})
+              with urllib.request.urlopen(req, timeout=40) as r:
+                  h = r.read().decode("utf-8", "replace")
+              m = re.search(r'data-page="([^"]+)"', h)
+              if not m:
+                  break
+              j = json.loads(unescape(m.group(1)))["props"]["jobOffers"]
+              derniere = j.get("last_page") or 1
+              for o in j.get("data", []):
+                  lignes.append("%s | %s | %s | %s | %s (https://www.lemploi.nc/offres-d-emploi/%s)" % (
+                      o.get("title"), o.get("company"), o.get("city"),
+                      o.get("jobFunctions"), o.get("areaActivities"), o.get("slug")))
+              page += 1
+          return lignes
+
       def llm(page, texte):
           consigne = (
               "Tu extrais des OFFRES D'EMPLOI depuis le texte d'une page web (les liens y figurent entre "
@@ -96,12 +119,17 @@ tasks:
       offres, erreurs, nouvelles = [], [], []
       for page in pages:
           try:
-              t = texte_page(page)
+              if "lemploi.nc/offres-d-emploi" in page:
+                  ls = lignes_lemploi(page)
+                  # ~100 offres : par paquets de 40 lignes (~6 000 car.) pour rester court par appel
+                  morceaux = ["\n".join(ls[i:i + 40]) for i in range(0, len(ls), 40)]
+              else:
+                  morceaux = [texte_page(page)]
           except Exception as e:
               erreurs.append("%s : %s" % (page, str(e)[:60])); continue
-          if len(t) < 200:
-              erreurs.append("%s : page vide (%d car.)" % (page, len(t))); continue
-          for o in llm(page, t):
+          if not morceaux or len(morceaux[0]) < 200:
+              erreurs.append("%s : page vide (%d car.)" % (page, len(morceaux[0]) if morceaux else 0)); continue
+          for o in (x for t in morceaux for x in llm(page, t)):
               if not isinstance(o, dict) or not o.get("titre"):
                   continue
               cle = hashlib.sha1(("%s|%s" % (o.get("titre", ""), o.get("entreprise", ""))).lower().encode()).hexdigest()[:16]
