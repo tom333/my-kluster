@@ -22,6 +22,7 @@ variables:
     - https://drhfpnc.gouv.nc/avis-vacances-postes-AVP
     - https://www.gbnc.nc/nos-opportunites
     - https://www.cph.nc/le-groupe/carrieres/offres-demploi/
+    # SPC / CPS : appli React (coquille de 825 octets), lue via son API TR1, cf. lignes_spc().
     - https://fr.careers.spc.int/
     - https://www.saintvincent.nc/recrutement
     - https://ballandesas.nc/nous-rejoindre/
@@ -92,6 +93,30 @@ tasks:
               page += 1
           return lignes
 
+      # Le site carrières de la CPS est une marque blanche TR1 : le navigateur charge les
+      # offres depuis cette API (URL relevée dans l'onglet Réseau, 2026-10-28).
+      SPC_API = ("https://api.tr1.com.au/backend/public/api/getjoblist/369010d0-d94b-4783-8f0f-ff7f92563f59"
+                 "?domainWithHttp=https://fr.careers.spc.int&sort=newest&perPage=50&page=%d")
+
+      def lignes_spc(base):
+          lignes, page = [], 1
+          while page <= 10:
+              req = urllib.request.Request(SPC_API % page, headers={"User-Agent": UA, "Accept": "application/json"})
+              with urllib.request.urlopen(req, timeout=40) as r:
+                  j = json.load(r)["data"]["jobs"]
+              items = j.get("items") or []
+              for o in items:
+                  lignes.append("%s | Communauté du Pacifique (CPS) | %s | %s (https://fr.careers.spc.int/view/%s)" % (
+                      o.get("title"), (o.get("location") or {}).get("location"),
+                      " ".join((o.get("description") or "").split())[:200], o.get("id")))
+              if not items or len(lignes) >= (j.get("totalRecord") or 0):
+                  break
+              page += 1
+          return lignes
+
+      # Sources lues en JSON : une liste vide y est légitime (aucune offre), pas une erreur.
+      SOURCES_JSON = {"lemploi.nc/offres-d-emploi": lignes_lemploi, "careers.spc.int": lignes_spc}
+
       def llm(page, texte):
           consigne = (
               "Tu extrais des OFFRES D'EMPLOI depuis le texte d'une page web (les liens y figurent entre "
@@ -118,17 +143,18 @@ tasks:
 
       offres, erreurs, nouvelles = [], [], []
       for page in pages:
+          lecteur = next((f for motif, f in SOURCES_JSON.items() if motif in page), None)
           try:
-              if "lemploi.nc/offres-d-emploi" in page:
-                  ls = lignes_lemploi(page)
-                  # ~100 offres : par paquets de 40 lignes (~6 000 car.) pour rester court par appel
+              if lecteur:
+                  ls = lecteur(page)
+                  # ~100 offres possibles : paquets de 40 lignes (~8 000 car.) pour rester court par appel
                   morceaux = ["\n".join(ls[i:i + 40]) for i in range(0, len(ls), 40)]
               else:
                   morceaux = [texte_page(page)]
           except Exception as e:
               erreurs.append("%s : %s" % (page, str(e)[:60])); continue
-          if not morceaux or len(morceaux[0]) < 200:
-              erreurs.append("%s : page vide (%d car.)" % (page, len(morceaux[0]) if morceaux else 0)); continue
+          if not lecteur and len(morceaux[0]) < 200:
+              erreurs.append("%s : page vide (%d car.)" % (page, len(morceaux[0]))); continue
           for o in (x for t in morceaux for x in llm(page, t)):
               if not isinstance(o, dict) or not o.get("titre"):
                   continue
