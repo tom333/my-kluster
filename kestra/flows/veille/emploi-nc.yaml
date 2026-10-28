@@ -29,6 +29,9 @@ variables:
     - https://carrieres.bci.nc/
     - https://www.bnc.nc/informations/recrutement?view=listing
     - https://societegenerale.nc/fr/votre-banque/recrutement/opportunites-demploi/
+    # Ifremer à Nouméa via Hellowork : la page mêle l'offre ouverte et ~20 offres EXPIRÉES de
+    # toute la France (sans lien) → lecteur dédié qui ne garde que les cartes actives, cf. lignes_hellowork().
+    - https://www.hellowork.com/fr-fr/entreprises/ifremer-9336.html?dep=988&com=98818
 
 tasks:
   - id: vues
@@ -114,8 +117,29 @@ tasks:
               page += 1
           return lignes
 
-      # Sources lues en JSON : une liste vide y est légitime (aucune offre), pas une erreur.
-      SOURCES_JSON = {"lemploi.nc/offres-d-emploi": lignes_lemploi, "careers.spc.int": lignes_spc}
+      def lignes_hellowork(base):
+          # Une carte d'offre = un bloc `data-cy="serpCard"`. Seules les offres OUVERTES ont un
+          # lien /fr-fr/emplois/<id>.html ; les expirées (« n'est plus disponible ») n'en ont pas.
+          req = urllib.request.Request(base, headers={"User-Agent": UA, "Accept-Language": "fr"})
+          with urllib.request.urlopen(req, timeout=40) as r:
+              h = r.read(2_000_000).decode("utf-8", "replace")
+          debuts = [m.start() for m in re.finditer(r'data-cy="serpCard"', h)] + [len(h)]
+          lignes = []
+          for a, b in zip(debuts, debuts[1:]):
+              bloc = h[a:b]
+              lien = re.search(r'href="(/fr-fr/emplois/\d+\.html)', bloc)
+              if not lien:
+                  continue
+              bloc = re.sub(r"(?is)<(script|style|svg|button)[^>]*>.*?</\1>", " ", bloc)
+              texte = " ".join(unescape(re.sub(r"<[^>]+>", " ", bloc)).split())
+              texte = texte.replace('data-cy="serpCard" >', "").split("Voir l’offre")[0].strip()
+              lignes.append("%s (https://www.hellowork.com%s)" % (texte[:300], lien.group(1)))
+          return lignes
+
+      # Sources à lecteur dédié (API JSON ou page à trier) : une liste vide y est légitime
+      # (aucune offre ouverte), pas une erreur.
+      SOURCES_JSON = {"lemploi.nc/offres-d-emploi": lignes_lemploi, "careers.spc.int": lignes_spc,
+                      "hellowork.com/fr-fr/entreprises/": lignes_hellowork}
 
       def llm(page, texte):
           consigne = (
