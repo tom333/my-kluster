@@ -1,0 +1,69 @@
+---
+# Pilote NVIDIA : une seule branche, celle qui gère la carte.
+#
+# Constaté sur work-laptop (GT 740M = GK208M, Kepler) le 2026-11-01 :
+# nvidia-driver-470, -535 ET -580 « installés », mais les métapaquets 470 et
+# 535 étaient vides — leurs dépendances satisfaites par la pile 580, la seule
+# réellement en place (DKMS, bibliothèques, pilote X). Or la 580 ne gère plus
+# Kepler : la carte n'a jamais fonctionné sur cette installation.
+#
+# Remplacement en UNE transaction apt (`paquet-` = à retirer) : purger d'abord
+# casserait les métapaquets qui dépendent de la pile retirée, et installer
+# d'abord est refusé (conflits entre branches).
+# Toute branche numérotée différente de la cible est retirée ; les paquets non
+# numérotés (nvidia-prime, nvidia-settings, egl-wayland) sont conservés.
+# `:amd64` doit être retiré du nom : apt-get refuse `nom:amd64-` au sein d'une
+# liste (accepté seul — vérifié en simulation).
+
+- name: NVIDIA — paquets d'autres branches à retirer
+  ansible.builtin.shell: |
+    set -o pipefail
+    dpkg-query -W -f='${binary:Package} ${db:Status-Abbrev}\n' \
+      | awk -v c="{{ dev_nvidia_branch }}" '$2 ~ /^ii/ && $1 ~ /nvidia/ && match($1, /-[0-9][0-9][0-9]([-:.]|$)/) {
+          b = substr($1, RSTART+1, 3); if (b != c) { sub(/:amd64$/, "", $1); print $1 } }'
+  args:
+    executable: /bin/bash
+  register: dev_nvidia_autres
+  changed_when: false
+  check_mode: false
+
+- name: NVIDIA — architectures étrangères (GL 32 bits si i386 actif)
+  ansible.builtin.command: dpkg --print-foreign-architectures
+  register: dev_nvidia_arch
+  changed_when: false
+  check_mode: false
+
+- name: NVIDIA — installer la branche {{ dev_nvidia_branch }}, retirer les autres (une transaction)
+  ansible.builtin.command:
+    argv: "{{ ['apt-get', 'install', '-y', 'nvidia-driver-' ~ dev_nvidia_branch]
+              + (['libnvidia-gl-' ~ dev_nvidia_branch ~ ':i386'] if 'i386' in dev_nvidia_arch.stdout_lines else [])
+              + (dev_nvidia_autres.stdout_lines | map('regex_replace', '$', '-') | list) }}"
+  environment:
+    DEBIAN_FRONTEND: noninteractive
+    LC_ALL: C
+  register: dev_nvidia_apt
+  # Ancré en début de ligne : « 0 upgraded » est aussi une sous-chaîne de « 10 upgraded ».
+  changed_when: dev_nvidia_apt.stdout is not search('(?m)^0 upgraded, 0 newly installed, 0 to remove')
+
+# DKMS signe le module avec /var/lib/shim-signed/mok/MOK.priv, mais Secure Boot
+# ne l'accepte que si la clé publique est ENRÔLÉE dans le firmware — étape
+# physique au redémarrage (MokManager), qu'Ansible ne peut pas faire. Sans elle :
+# "modprobe: ERROR: could not insert 'nvidia': Key was rejected by service".
+# Une fois enrôlée, elle vaut pour tous les modules DKMS futurs (MAJ de noyau).
+- name: NVIDIA — état de la clé MOK sous Secure Boot
+  ansible.builtin.shell: |
+    mokutil --sb-state 2>/dev/null | grep -q 'SecureBoot enabled' || { echo "secureboot-off"; exit 0; }
+    mokutil --test-key /var/lib/shim-signed/mok/MOK.der 2>&1 | grep -q 'already enrolled' && { echo "enrolled"; exit 0; }
+    mokutil --list-new 2>/dev/null | grep -q . && { echo "pending"; exit 0; }
+    echo "missing"
+  register: dev_nvidia_mok
+  changed_when: false
+  check_mode: false
+
+- name: NVIDIA — action manuelle requise (enrôlement MOK)
+  ansible.builtin.debug:
+    msg:
+      - "Secure Boot actif et clé MOK NON enrôlée : le module nvidia sera refusé au chargement."
+      - "1) sudo mokutil --import /var/lib/shim-signed/mok/MOK.der   (choisir un mot de passe à usage unique)"
+      - "2) redémarrer ; écran bleu MokManager : Enroll MOK -> Continue -> Yes -> mot de passe -> Reboot"
+  when: dev_nvidia_mok.stdout == 'missing'

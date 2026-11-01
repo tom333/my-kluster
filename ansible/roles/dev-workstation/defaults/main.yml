@@ -39,5 +39,9 @@ dev_nerd_fonts:
 # Activé par host dans l'inventaire.
 dev_xfce_in_session_locker: false
 
+# Branche du pilote NVIDIA à garder (toutes les autres branches numérotées sont
+# retirées). Vide = ne pas toucher au pilote. Par host dans l'inventaire.
+dev_nvidia_branch: ""
+
 # OS guards
 dev_workstation_allowed_distros: ["Ubuntu", "Linux Mint"]   # exact match required (ansible_distribution = "Linux Mint" with space on Mint)

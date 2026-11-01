@@ -29,3 +29,7 @@
 - ansible.builtin.import_tasks: 70_xfce_screenlock.yml
   tags: [dev, screenlock]
   when: dev_xfce_in_session_locker | bool
+
+- ansible.builtin.import_tasks: 75_nvidia_branche.yml
+  tags: [dev, nvidia]
+  when: dev_nvidia_branch | length > 0

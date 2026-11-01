@@ -29,6 +29,7 @@ all:
           ansible_user: moi
           beszel_arch: amd64
           dev_xfce_in_session_locker: true   # Xfce + LightDM : light-locker -> écran noir au réveil
+          dev_nvidia_branch: "470"            # GT 740M = Kepler : 470 est la dernière branche qui la gère
 
     # Appliances LibreELEC (Kodi media center) — read-only FS, root SSH, no apt.
     # Reçoivent uniquement beszel-agent-libreelec (paths /storage/...).
