@@ -28,6 +28,7 @@ all:
           ansible_host: 192.168.88.211
           ansible_user: moi
           beszel_arch: amd64
+          dev_xfce_in_session_locker: true   # Xfce + LightDM : light-locker -> écran noir au réveil
 
     # Appliances LibreELEC (Kodi media center) — read-only FS, root SSH, no apt.
     # Reçoivent uniquement beszel-agent-libreelec (paths /storage/...).

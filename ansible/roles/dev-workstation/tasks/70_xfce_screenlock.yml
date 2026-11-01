@@ -1,0 +1,38 @@
+---
+# Verrou d'écran Xfce DANS la session : xfce4-screensaver à la place de light-locker.
+#
+# light-locker ne verrouille pas dans la session : il couvre l'écran d'une
+# fenêtre noire puis demande à LightDM de basculer vers un greeter sur un autre
+# terminal virtuel. Au déverrouillage, LightDM rend le terminal de la session et
+# light-locker doit retirer sa fenêtre noire. Quand il rate ce signal (au réveil
+# de veille, typiquement), la fenêtre reste. Constaté sur work-laptop le
+# 2026-11-01, deux symptômes d'une même cause :
+#   - noir SANS mot de passe : fenêtre posée, bascule vers le greeter jamais faite ;
+#   - noir APRÈS mot de passe : bascule de retour réussie (Xorg.0.log : "Resuming
+#     AIGLX clients after VT switch" + modeset propre de la dalle), et un nouvel
+#     aller-retour Ctrl+Alt+F1/F7 avec modeset ne rallumait rien. Ni la dalle, ni
+#     i915, ni le rétroéclairage (au max) : le CONTENU de la session était noir.
+# Même famille de panne que le poste de jeu en août (rôle desktop, i3lock).
+#
+# Pourquoi le remplacement suffit : xflock4 essaie `xfce4-screensaver-command
+# --lock` AVANT tout autre verrou, et xfce4-power-manager l'appelle avant chaque
+# veille (lock-screen-suspend-hibernate=true sur ce poste). Plus de greeter X
+# démarré à chaque verrou, donc plus de display-setup/stopped-script PRIME
+# (/sbin/prime-offload, /sbin/prime-switch) lancés à ce moment-là non plus.
+#
+# Déverrouillage de secours, depuis une autre machine : ssh <hote> pkill xfce4-screensaver
+# Effet au prochain login (autostart XDG du paquet).
+
+- name: Verrou Xfce — installer xfce4-screensaver
+  ansible.builtin.apt:
+    name: xfce4-screensaver
+    state: present
+    update_cache: false
+
+# Les deux verrouilleraient à la veille (light-locker a lock-on-suspend=true) :
+# le garder réintroduirait la bascule de terminal et donc la panne.
+- name: Verrou Xfce — retirer light-locker
+  ansible.builtin.apt:
+    name: light-locker
+    state: absent
+    purge: true

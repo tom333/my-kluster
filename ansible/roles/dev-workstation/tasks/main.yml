@@ -25,3 +25,7 @@
 - ansible.builtin.import_tasks: 60_nerd_fonts.yml
   tags: [dev, fonts]
   when: dev_nerd_fonts_install | bool
+
+- ansible.builtin.import_tasks: 70_xfce_screenlock.yml
+  tags: [dev, screenlock]
+  when: dev_xfce_in_session_locker | bool

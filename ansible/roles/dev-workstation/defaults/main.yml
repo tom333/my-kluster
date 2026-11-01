@@ -33,5 +33,11 @@ dev_nerd_fonts_install: true
 dev_nerd_fonts:
   - JetBrainsMono
 
+# Verrou d'écran Xfce : xfce4-screensaver (dans la session) au lieu de light-locker
+# (bascule de terminal vers le greeter -> écran noir au réveil). Off par défaut :
+# k8s-node (pc) est aussi dans dev_workstations et n'est pas un bureau Xfce.
+# Activé par host dans l'inventaire.
+dev_xfce_in_session_locker: false
+
 # OS guards
 dev_workstation_allowed_distros: ["Ubuntu", "Linux Mint"]   # exact match required (ansible_distribution = "Linux Mint" with space on Mint)
