@@ -12,6 +12,10 @@ cli_apt_packages:
   - gnupg
   - htop
   - btop
+  # Description du terminal kitty (TERM=xterm-kitty, transmis par ssh). Sans
+  # elle, toute appli plein écran sur l'hôte distant refuse de démarrer :
+  # "Error opening terminal: xterm-kitty" (htop, btop, less, nano, vim...).
+  - kitty-terminfo
   - ncdu
   - ripgrep
   - fd-find
