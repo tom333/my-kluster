@@ -21,12 +21,19 @@
 # --- Frontend / session (rôle desktop) ---
 desktop_frontend: pegasus          # UI canapé type Batocera (jeux PC + rétro + Brave + Jellyfin)
 desktop_autologin: false           # login mot de passe (nœud partagé/worker)
-desktop_screenlock: true           # light-locker à l'idle
+desktop_screenlock: true           # i3lock + xss-lock à l'idle (light-locker retiré le 2026-08-21)
 
-# --- CPU (Intel i5-9400F, intel_pstate + HWP) ---
+# --- CPU (Intel i7-6700, intel_pstate + HWP) ---
 desktop_force_cpu_governor: false  # gouverneur dynamique (rampe sous charge) — pas de perf pin 24/7
 desktop_cpu_epp: performance       # EPP valide aussi sur intel_pstate/HWP : max sous charge + idle sain
 # desktop_nvenc_unlimited: true    # décommenter si transcodes Jellyfin simultanés >3
+
+# --- Capteurs ---
+# Les vitesses des ventilateurs (CPU, arrière, alimentation) et la température du
+# boîtier ne sont exposées que par le pilote WMI HP, absent par défaut. Vérifié le
+# 2026-11-03 : 1070 / 824 / 844 tr/min au repos. Le ventilateur du GPU n'y est pas
+# (cf. nvidia-smi fan.speed).
+desktop_extra_kernel_modules: [hp_wmi_sensors]
 
 # --- GPU 1050 Ti (Pascal) ---
 # 580 = dernière branche Maxwell/Pascal, MAINTENUE pour les kernels récents

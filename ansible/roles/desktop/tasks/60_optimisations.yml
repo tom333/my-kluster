@@ -94,3 +94,23 @@
     regexp: '^GRUB_CMDLINE_LINUX_DEFAULT='
     line: 'GRUB_CMDLINE_LINUX_DEFAULT="quiet splash{{ " mitigations=off" if desktop_disable_cpu_mitigations | bool else "" }}"'
   notify: update grub
+
+# Modules noyau propres au matériel, chargés à chaque boot. Cas d'usage : capteurs
+# de ventilateurs non exposés par défaut (hp_wmi_sensors sur les HP Z), dont
+# Beszel et `sensors` ont besoin pour afficher les vitesses.
+- name: Modules noyau matériel — chargement au boot
+  ansible.builtin.copy:
+    dest: /etc/modules-load.d/ansible-desktop.conf
+    owner: root
+    group: root
+    mode: '0644'
+    content: |
+      # Managed by Ansible (desktop role).
+      {{ desktop_extra_kernel_modules | join('\n') }}
+  when: desktop_extra_kernel_modules | length > 0
+
+- name: Modules noyau matériel — chargement immédiat
+  community.general.modprobe:
+    name: "{{ item }}"
+    state: present
+  loop: "{{ desktop_extra_kernel_modules }}"
