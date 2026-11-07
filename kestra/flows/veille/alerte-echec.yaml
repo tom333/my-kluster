@@ -1,0 +1,41 @@
+id: alerte-echec
+namespace: veille
+description: >
+  Une ligne sur Telegram pour TOUT échec d'un flux de veille. Avant (2026-11-07), un digest
+  en échec n'envoyait simplement rien : korben est resté mort 5 jours et arr a raté 3 samedis
+  sur 4 sans que personne ne le sache.
+  Les sous-flux génériques (`digest`, `watcher`) sont exclus : leur appelant échoue aussi
+  (`transmitFailed: true`), ça ferait deux alertes pour une panne. Ce flux s'exclut lui-même.
+
+variables:
+  chat_id: "843341688"
+  ui: https://kestra.tgu.ovh/ui/main/executions
+
+tasks:
+  - id: telegram
+    type: io.kestra.plugin.scripts.python.Script
+    taskRunner:
+      type: io.kestra.plugin.core.runner.Process
+    env:
+      TELEGRAM_TOKEN: "{{ secret('TELEGRAM_TOKEN') }}"
+      CHAT_ID: "{{ vars.chat_id }}"
+      FLUX: "{{ trigger.flowId }}"
+      ETAT: "{{ trigger.state }}"
+      LIEN: "{{ vars.ui }}/{{ trigger.namespace }}/{{ trigger.flowId }}/{{ trigger.executionId }}"
+      HEURE: "{{ now(timeZone='Pacific/Noumea') | date('dd/MM HH:mm') }}"
+    script: |
+      import json, os, urllib.request
+      texte = "🚨 Veille : %s en %s (%s)\n%s" % (os.environ["FLUX"], os.environ["ETAT"], os.environ["HEURE"], os.environ["LIEN"])
+      corps = json.dumps({"chat_id": os.environ["CHAT_ID"], "text": texte, "disable_web_page_preview": True}).encode()
+      url = "https://api.telegram.org/bot%s/sendMessage" % os.environ["TELEGRAM_TOKEN"]
+      with urllib.request.urlopen(urllib.request.Request(url, data=corps, headers={"Content-Type": "application/json"}), timeout=30) as r:
+          if not json.load(r).get("ok"):
+              raise SystemExit("Telegram a refusé l'envoi")
+
+triggers:
+  - id: sur-echec
+    type: io.kestra.plugin.core.trigger.Flow
+    states: [FAILED, KILLED]
+    # Kestra 2 : plus de `conditions` sur ce trigger, on filtre par expression ; `flow`
+    # désigne ici le flux qui vient de se terminer.
+    when: "{{ flow.namespace == 'veille' and not (['digest', 'watcher', 'alerte-echec'] contains flow.id) }}"

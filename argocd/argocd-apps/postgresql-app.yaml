@@ -21,6 +21,16 @@ spec:
           existingSecret: postgresql-credentials
           username: data
           database: data
+        # Ressources EXPLICITES (2026-11-07). Sans elles, le chart applique son preset « nano »
+        # (limite 192 Mi) : ce Postgres porte les bases de Kestra ET de Miniflux, et le créneau
+        # de veille de 20h (5 digests en file + l'état Kestra) le faisait tuer par l'OOM-killer
+        # chaque soir à 20:00:33 — 9 redémarrages en 2 jours, digests en échec, et une
+        # exécution korben orpheline qui a bloqué son trigger 5 jours.
+        primary:
+          resourcesPreset: none
+          resources:
+            requests: { cpu: 100m, memory: 384Mi }
+            limits: { memory: 1Gi }
 
   syncPolicy:
     syncOptions:
