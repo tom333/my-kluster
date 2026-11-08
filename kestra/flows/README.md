@@ -1,3 +1,7 @@
+> **RETIRÉ le 2026-11-08.** La veille tourne désormais sous **Dkron** (`apps/veille/`, app ArgoCD
+> `veille`) : même logique portée en Python stdlib, sans base de données. Ces flux ne sont plus
+> synchronisés nulle part ; ils restent ici pour l'historique et les leçons ci-dessous.
+
 # Flux Kestra — veille
 
 Ce répertoire est la **source de vérité** des flux Kestra : le flux d'amorçage
