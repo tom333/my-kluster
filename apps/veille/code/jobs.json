@@ -1,0 +1,60 @@
+[
+ {
+  "name": "veille-matin",
+  "displayname": "Veille du matin : llm-local, harnais-agents (jeudi)",
+  "schedule": "0 0 7 * * *",
+  "timezone": "Pacific/Noumea",
+  "concurrency": "forbid",
+  "metadata": {"age_max_h": "26"},
+  "executor": "shell",
+  "executor_config": {"command": "python3 /code/digest.py llm-local harnais-agents", "cwd": "/code", "timeout": "45m"}
+ },
+ {
+  "name": "emploi-nc",
+  "displayname": "Offres d'emploi tech / data en Nouvelle-Calédonie",
+  "schedule": "0 30 7 * * *",
+  "timezone": "Pacific/Noumea",
+  "concurrency": "forbid",
+  "metadata": {"age_max_h": "26"},
+  "executor": "shell",
+  "executor_config": {"command": "python3 /code/emploi_nc.py", "cwd": "/code", "timeout": "45m"}
+ },
+ {
+  "name": "veille-soir",
+  "displayname": "Veille du soir : korben, decouvertes, data-ia, 3d-assets, arr (samedi)",
+  "schedule": "0 0 20 * * *",
+  "timezone": "Pacific/Noumea",
+  "concurrency": "forbid",
+  "metadata": {"age_max_h": "26"},
+  "executor": "shell",
+  "executor_config": {"command": "python3 /code/digest.py korben decouvertes data-ia 3d-assets arr", "cwd": "/code", "timeout": "90m"}
+ },
+ {
+  "name": "watchers",
+  "displayname": "Watchers bonsai et moe-cache (pas de LLM)",
+  "schedule": "0 0 7,20 * * *",
+  "timezone": "Pacific/Noumea",
+  "concurrency": "forbid",
+  "metadata": {"age_max_h": "14"},
+  "executor": "shell",
+  "executor_config": {"command": "python3 /code/watcher.py bonsai moe-cache", "cwd": "/code", "timeout": "20m"}
+ },
+ {
+  "name": "sentinelle",
+  "displayname": "Signale les jobs sans succès récent",
+  "schedule": "0 0 21 * * *",
+  "timezone": "Pacific/Noumea",
+  "concurrency": "forbid",
+  "executor": "shell",
+  "executor_config": {"command": "python3 /code/sentinelle.py", "cwd": "/code", "timeout": "5m"}
+ },
+ {
+  "name": "sync-jobs",
+  "displayname": "Aligne les jobs sur jobs.json (git)",
+  "schedule": "@every 10m",
+  "concurrency": "forbid",
+  "metadata": {"age_max_h": "1"},
+  "executor": "shell",
+  "executor_config": {"command": "python3 /code/sync_jobs.py", "cwd": "/code", "timeout": "5m"}
+ }
+]

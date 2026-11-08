@@ -1,0 +1,21 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: veille
+resources:
+  - dkron.yaml
+configMapGenerator:
+  - name: veille-code
+    files:
+      - code/commun.py
+      - code/digest.py
+      - code/emploi_nc.py
+      - code/watcher.py
+      - code/sentinelle.py
+      - code/sync_jobs.py
+      - code/themes.json
+      - code/emploi_pages.json
+      - code/jobs.json
+generatorOptions:
+  # Nom fixe : le ConfigMap monté se met à jour EN PLACE (~1 min), sans redémarrer Dkron ni
+  # tuer un job en cours. Les définitions de jobs suivent via le job sync-jobs.
+  disableNameSuffixHash: true

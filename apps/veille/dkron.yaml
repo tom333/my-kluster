@@ -1,0 +1,108 @@
+# Veille sous Dkron (remplace Kestra, 2026-11-08).
+# Un seul pod : Dkron en serveur unique, état BoltDB embarqué sur PVC (aucune base externe —
+# la panne Kestra de novembre venait précisément de sa base Postgres tuée par l'OOM-killer).
+# Les jobs s'exécutent DANS ce conteneur (exécuteur shell) et héritent de son environnement :
+# les secrets passent par envFrom, jamais par les définitions de jobs.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: dkron-data
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: microk8s-hostpath
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dkron
+  labels: { app: dkron }
+spec:
+  replicas: 1
+  strategy: { type: Recreate }
+  selector:
+    matchLabels: { app: dkron }
+  template:
+    metadata:
+      labels: { app: dkron }
+    spec:
+      # hostpath : le PVC est lié au nœud où il a été créé.
+      nodeSelector:
+        kubernetes.io/hostname: pc
+      containers:
+        - name: dkron
+          image: localhost:32000/dkron-veille:4.2.1
+          args:
+            - agent
+            - --server
+            - --bootstrap-expect=1
+            - --node-name=veille
+            - --data-dir=/data/dkron
+            # Adresse FIXE : un nœud Raft unique dont l'IP change à chaque pod refuse de
+            # s'élire ; en loopback, l'identité survit aux redémarrages.
+            - --bind-addr=127.0.0.1:8946
+            - --advertise-addr=127.0.0.1
+            - --http-addr=:8080
+            - --disable-usage-stats
+          env:
+            - { name: ETAT_DIR, value: /data/etat }
+            - { name: TZ, value: Pacific/Noumea }
+            - { name: PYTHONUNBUFFERED, value: "1" }
+          envFrom:
+            - secretRef: { name: veille-secrets }
+          ports:
+            - { name: http, containerPort: 8080 }
+          lifecycle:
+            # Charge les jobs de git dès le démarrage (puis le job sync-jobs toutes les 10 min).
+            postStart:
+              exec:
+                command: [sh, -c, "python3 /code/sync_jobs.py --attendre >/proc/1/fd/1 2>&1 || true"]
+          readinessProbe:
+            httpGet: { path: /health, port: 8080 }
+            initialDelaySeconds: 10
+            periodSeconds: 20
+          resources:
+            # Les scripts tournent dans ce conteneur : la limite les couvre aussi.
+            requests: { cpu: 50m, memory: 96Mi }
+            limits: { memory: 512Mi }
+          volumeMounts:
+            - { name: data, mountPath: /data }
+            - { name: code, mountPath: /code, readOnly: true }
+      volumes:
+        - name: data
+          persistentVolumeClaim: { claimName: dkron-data }
+        - name: code
+          configMap: { name: veille-code }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dkron
+spec:
+  selector: { app: dkron }
+  ports:
+    - { name: http, port: 8080, targetPort: http }
+---
+# UI Dkron : elle permet de LANCER des jobs (shell, avec les secrets du pod) et n'a aucune
+# authentification propre → LAN seulement ET login GitHub obligatoire.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: dkron
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    traefik.ingress.kubernetes.io/router.middlewares: veille-lan-only@kubernetescrd,veille-oauth2-forwardauth@kubernetescrd
+spec:
+  rules:
+    - host: veille.tgu.ovh
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service: { name: dkron, port: { number: 8080 } }
+  tls:
+    - hosts: [veille.tgu.ovh]
+      secretName: veille-tls
