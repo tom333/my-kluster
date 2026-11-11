@@ -89,9 +89,23 @@ def lignes_hellowork(base):
         lignes.append("%s (https://www.hellowork.com%s)" % (texte[:300], lien.group(1)))
     return lignes
 
+# AVP fonction publique NC : la page drhfpnc liste ~250 postes dans un tableau HTML
+# que texte_page tronquait à 9 000 car. (menus compris) → seules ~10 offres atteignaient
+# le LLM. L'API publique rend la même liste en JSON ; le PDF de l'avis se télécharge
+# via la page drhfpnc (`data-pdf` = id, cf. gnc_avp.js).
+def lignes_avp(base):
+    req = urllib.request.Request(base, headers={"User-Agent": UA, "Accept": "application/json"})
+    with urllib.request.urlopen(req, timeout=40) as r:
+        avps = json.load(r)
+    return ["%s | %s %s | %s %s cat. %s | clôture %s (https://drhfpnc.gouv.nc/avis-vacances-postes-AVP/download/%s)" % (
+        o.get("intitule"), o.get("employeur"), o.get("direction") or "",
+        (o.get("filiere") or "").strip(), (o.get("corps") or "").strip(), o.get("categorie"),
+        o.get("dateCloture"), o.get("id")) for o in avps]
+
 # Sources à lecteur dédié (API JSON ou page à trier) : une liste vide y est légitime
 # (aucune offre ouverte), pas une erreur.
 SOURCES_JSON = {"lemploi.nc/offres-d-emploi": lignes_lemploi, "careers.spc.int": lignes_spc,
+                "avp.gouv.nc/api/v1/avps": lignes_avp,
                 "hellowork.com/fr-fr/entreprises/": lignes_hellowork}
 
 def llm(page, texte):
