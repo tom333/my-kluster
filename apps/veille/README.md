@@ -10,8 +10,6 @@ le PVC `dkron-data`, **aucune base externe**), UI `https://veille.tgu.ovh` (LAN 
 | `veille-matin` | 7h00 | `digest.py llm-local harnais-agents` |
 | `emploi-nc` | 7h30 | offres tech/data NC, 15 sources, dédup `/data/etat/emploi_nc_vues.json` |
 | `veille-soir` | 20h00 | `digest.py korben decouvertes data-ia 3d-assets gamedev arr` (arr : samedi) |
-| `watchers` | 7h, 20h | bonsai, moe-cache (scripts tirés du dépôt, état dans `/data/etat`) |
-| `sentinelle` | 21h00 | signale tout job sans succès depuis `metadata.age_max_h` |
 | `sync-jobs` | toutes les 10 min | aligne Dkron sur `code/jobs.json` |
 
 ## Comment ça marche
@@ -48,7 +46,7 @@ le PVC `dkron-data`, **aucune base externe**), UI `https://veille.tgu.ovh` (LAN 
   sort en code 1 (exécution en échec dans Dkron).
 - Le webhook natif de Dkron n'est **pas** utilisé : il part après **chaque** exécution, réussie
   ou non (`SendPostNotifications`, sans filtre).
-- `sentinelle` couvre le cas muet : un job qui ne tourne plus du tout.
+- Un job qui ne tourne plus du tout n'est pas détecté (sentinelle retirée le 2026-11-13).
 
 ## Pièges
 
