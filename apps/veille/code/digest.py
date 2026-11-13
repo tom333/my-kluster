@@ -30,7 +30,9 @@ CONTRAT = (
     "N'invente ni lien, ni version, ni chiffre. Sépare les blocs par une ligne '———'. Longueur "
     "totale sous 3000 caractères. Aucune introduction, aucune conclusion, aucune description de "
     "ta démarche. Si, après application de la consigne ci-dessous, il n'y a RIEN à rapporter, "
-    "réponds exactement et uniquement : %s\n\nCONSIGNE DU THÈME (%s) :\n%s"
+    "réponds exactement et uniquement : %s\n\nPROFIL DE L'UTILISATEUR (sa stack par rôle : sert "
+    "à juger ce qui le concerne ET à repérer ce qui concurrence un composant ; jamais à exclure "
+    "un sujet) :\n%s\n\nCONSIGNE DU THÈME (%s) :\n%s"
 )
 
 
@@ -38,31 +40,6 @@ def sans_html(s):
     return " ".join(
         unescape(re.sub(r"<[^>]+>", " ", s or "")).replace("\xa0", " ").split()
     )
-
-
-def indexer(categorie, texte):
-    """Mémoire txtai, un document par bloc. Un échec ici n'empêche pas le marquage lu."""
-    date = commun.maintenant().strftime("%Y-%m-%d")
-    exe = commun.maintenant().strftime("%Y%m%dT%H%M")
-    entete = "[Digest veille — thème: %s · date: %s · execution: %s]" % (
-        categorie,
-        date,
-        exe,
-    )
-    docs = [
-        {
-            "id": "digest:%s:%s:%04d" % (categorie, exe, i),
-            "text": entete + "\n\n" + b,
-            "source": "veille",
-            "job": categorie,
-            "date": date,
-        }
-        for i, b in enumerate(b.strip() for b in texte.split("———") if b.strip())
-    ]
-    h = {"Authorization": "Bearer " + os.environ["TXTAI_TOKEN"]}
-    commun.http(commun.TXTAI + "/add", docs, headers=h, timeout=300)
-    commun.http(commun.TXTAI + "/upsert", headers=h, timeout=300)
-    return len(docs)
 
 
 def expirer(cat, avant):
@@ -112,7 +89,7 @@ def un_theme(nom, t):
         for e in entrees
     ]
     texte = commun.llm(
-        CONTRAT % (SENTINELLE, t["categorie"], t["consigne"]),
+        CONTRAT % (SENTINELLE, commun.profil(), t["categorie"], t["consigne"]),
         json.dumps(items, ensure_ascii=False),
     )
     if not texte:
@@ -122,7 +99,7 @@ def un_theme(nom, t):
     else:
         n = commun.telegram(texte)
         try:
-            docs = indexer(t["categorie"], texte)
+            docs = commun.indexer(t["categorie"], texte)
         except Exception as e:
             docs = "échec (%s)" % e
         bilan = "%d message(s), %d car., txtai %s" % (n, len(texte), docs)

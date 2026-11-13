@@ -5,6 +5,8 @@ le PVC `dkron-data`, **aucune base externe**), UI `https://veille.tgu.ovh` (LAN 
 
 | job | quand (heure NC) | fait quoi |
 |---|---|---|
+| `watch-llamacpp` | 6h40 | releases llama.cpp depuis le dernier tag vu, préfiltrées par mots-clés (CUDA, KV, gemma, serveur, outils…), + releases LocalAI → un appel gemma avec le profil. État `/data/etat/llamacpp.json` |
+| `watch-modeles` | 6h50 | nouveaux dépôts GGUF HF (auteurs de confiance + trending) → fiche de faits (API Hub : paramètres, contexte, template d'outils, licence, fichier ≤ 9,5 Go) → verdict face au modèle en place, ligne `nom\|url` à coller dans la file d'éval de pc. État `/data/etat/modeles.json` |
 | `veille-matin` | 7h00 | `digest.py llm-local harnais-agents` |
 | `emploi-nc` | 7h30 | offres tech/data NC, 15 sources, dédup `/data/etat/emploi_nc_vues.json` |
 | `veille-soir` | 20h00 | `digest.py korben decouvertes data-ia 3d-assets gamedev arr` (arr : samedi) |
@@ -27,6 +29,11 @@ le PVC `dkron-data`, **aucune base externe**), UI `https://veille.tgu.ovh` (LAN 
   `max_entrees`. Les non-lus plus anciens sont **expirés** (marqués lus sans traitement). Avant,
   le tri « plus ancien d'abord » + le plafond creusaient un retard sans fin sur les flux
   volumineux (harnais-agents lisait des items de six semaines).
+- **Profil** (`code/profil.md`) : la stack par rôle, injectée dans chaque prompt. Il sert à
+  juger ce qui concerne le cluster ET à repérer les alternatives (section « 🔭 Alternatives à
+  ma stack » obligatoire dans les thèmes écosystème) ; il ne sert jamais à exclure un sujet.
+  Les préfiltres par mots-clés n'existent que sur les flux de commits (llama.cpp), jamais sur
+  les sources éditoriales.
 - **Sources** : les flux vivent dans Miniflux, une catégorie par thème. Préférer les sources
   éditoriales (blogs, newsletters, Reddit) aux `releases.atom` de dépôts qui taguent chaque
   commit (llama.cpp, pytorch) : le modèle ne peut pas filtrer 60 titres de commits. Miniflux

@@ -15,6 +15,9 @@ configMapGenerator:
       - code/themes.json
       - code/emploi_pages.json
       - code/jobs.json
+      - code/profil.md
+      - code/llamacpp.py
+      - code/modeles.py
 generatorOptions:
   # Nom fixe : le ConfigMap monté se met à jour EN PLACE (~1 min), sans redémarrer Dkron ni
   # tuer un job en cours. Les définitions de jobs suivent via le job sync-jobs.

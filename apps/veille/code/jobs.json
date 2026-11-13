@@ -1,5 +1,25 @@
 [
  {
+  "name": "watch-llamacpp",
+  "displayname": "Releases llama.cpp (filtrées) et LocalAI",
+  "schedule": "0 40 6 * * *",
+  "timezone": "Pacific/Noumea",
+  "concurrency": "forbid",
+  "metadata": {"age_max_h": "26"},
+  "executor": "shell",
+  "executor_config": {"command": "python3 /code/llamacpp.py", "cwd": "/code", "timeout": "30m"}
+ },
+ {
+  "name": "watch-modeles",
+  "displayname": "Nouveaux GGUF Hugging Face : fiche et verdict face au modele en place",
+  "schedule": "0 50 6 * * *",
+  "timezone": "Pacific/Noumea",
+  "concurrency": "forbid",
+  "metadata": {"age_max_h": "26"},
+  "executor": "shell",
+  "executor_config": {"command": "python3 /code/modeles.py", "cwd": "/code", "timeout": "30m"}
+ },
+ {
   "name": "veille-matin",
   "displayname": "Veille du matin : llm-local, harnais-agents",
   "schedule": "0 0 7 * * *",

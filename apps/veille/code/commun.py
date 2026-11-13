@@ -125,6 +125,33 @@ def miniflux(chemin, data=None, method=None):
     )
 
 
+def profil():
+    """Profil de la stack (apps/veille/code/profil.md), injecté dans chaque prompt."""
+    with open(os.path.join(CODE, "profil.md"), encoding="utf-8") as f:
+        return f.read().strip()
+
+
+def indexer(job, texte):
+    """Mémoire txtai, un document par bloc '———'. À appeler après l'envoi Telegram."""
+    date = maintenant().strftime("%Y-%m-%d")
+    exe = maintenant().strftime("%Y%m%dT%H%M")
+    entete = "[Digest veille — thème: %s · date: %s · execution: %s]" % (job, date, exe)
+    docs = [
+        {
+            "id": "digest:%s:%s:%04d" % (job, exe, i),
+            "text": entete + "\n\n" + b,
+            "source": "veille",
+            "job": job,
+            "date": date,
+        }
+        for i, b in enumerate(b.strip() for b in texte.split("———") if b.strip())
+    ]
+    h = {"Authorization": "Bearer " + os.environ["TXTAI_TOKEN"]}
+    http(TXTAI + "/add", docs, headers=h, timeout=300)
+    http(TXTAI + "/upsert", headers=h, timeout=300)
+    return len(docs)
+
+
 def lire_etat(nom, defaut):
     try:
         with open(os.path.join(ETAT, nom + ".json"), encoding="utf-8") as f:
