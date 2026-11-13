@@ -13,22 +13,13 @@
 #   Pattern doc oauth2-proxy "Traefik ForwardAuth with static upstreams".
 # ============================================================================
 
-# ─── IPAllowList LAN : monitoring, hermes, localai ───────────────────────────
+# ─── IPAllowList LAN : monitoring, hindsight, localai ───────────────────────────
 ---
 apiVersion: traefik.io/v1alpha1
 kind: Middleware
 metadata:
   name: lan-only
   namespace: monitoring
-spec:
-  ipAllowList:
-    sourceRange: ["192.168.88.0/24", "10.1.0.0/16"]
----
-apiVersion: traefik.io/v1alpha1
-kind: Middleware
-metadata:
-  name: lan-only
-  namespace: hermes
 spec:
   ipAllowList:
     sourceRange: ["192.168.88.0/24", "10.1.0.0/16"]
