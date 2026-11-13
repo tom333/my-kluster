@@ -51,6 +51,10 @@ spec:
                   # Un non-lu de plus de 30 jours n'est plus une nouveaute :
                   # archive, pour que les categories ne s'encombrent pas.
                   CLEANUP_ARCHIVE_UNREAD_DAYS: "30"
+                  # 0 = illimite. Par defaut (3) Miniflux SUSPEND un flux apres 3 erreurs
+                  # consecutives jusqu'a relance manuelle : 14 flux (RSSHub, hnrss, Reddit)
+                  # dormaient ainsi depuis septembre, sans alerte (constat 2026-11-13).
+                  POLLING_PARSING_ERROR_LIMIT: "0"
                   HTTP_CLIENT_USER_AGENT: "Mozilla/5.0 (compatible; Miniflux veille tgu.ovh)"
                   # RSSHub est un Service EN CLUSTER (10.152.x.x) : sans ceci Miniflux
                   # refuse le fetch (« refusing to access private network host »,

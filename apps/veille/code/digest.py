@@ -5,12 +5,18 @@ Usage : python3 digest.py THEME [THEME ...] [--force]
   aucun digest ne l'évince (LocalAI ne garde qu'un backend résident). Un thème en échec
   n'arrête pas les suivants ; l'alerte liste les échecs, puis le job sort en erreur.
   Un thème n'a lieu que les jours listés dans `jours` (0 = lundi) ; --force ignore ce filtre.
+  Fenêtre glissante : seuls les non-lus publiés depuis `fenetre_jours` (défaut : 2 pour un thème
+  quotidien, 8 pour un hebdo) sont candidats, les plus récents d'abord, au plus `max_entrees`.
+  Les non-lus plus anciens sont expirés (marqués lus) sans être traités : une veille en retard
+  n'a pas de valeur, et sans cette expiration un flux volumineux creusait un retard sans fin
+  (harnais-agents lisait des items vieux de six semaines le 2026-11-13).
 """
 
 import json
 import os
 import re
 import sys
+import time
 import traceback
 from html import unescape
 
@@ -59,18 +65,40 @@ def indexer(categorie, texte):
     return len(docs)
 
 
+def expirer(cat, avant):
+    """Marque lus les non-lus publiés avant `avant` (epoch) : hors fenêtre, jamais traités."""
+    n = 0
+    while True:
+        d = commun.miniflux(
+            "/v1/categories/%d/entries?status=unread&before=%d&limit=500" % (cat, avant)
+        )
+        ids = [e["id"] for e in d.get("entries", [])]
+        if not ids:
+            return n
+        commun.miniflux(
+            "/v1/entries", {"entry_ids": ids, "status": "read"}, method="PUT"
+        )
+        n += len(ids)
+
+
 def un_theme(nom, t):
     cats = commun.miniflux("/v1/categories")
     cat = next((c["id"] for c in cats if c["title"] == t["categorie"]), None)
     if cat is None:
         raise RuntimeError("catégorie Miniflux « %s » introuvable" % t["categorie"])
-    # On ne tire que max_entrees : le reste attend, non lu (cf. la limite de file de Kestra).
+    fenetre = t.get("fenetre_jours", 8 if "jours" in t else 2)
+    depuis = int(time.time()) - fenetre * 86400
+    expires = expirer(cat, depuis)
     d = commun.miniflux(
-        "/v1/categories/%d/entries?status=unread&order=published_at&direction=asc&limit=%d"
-        % (cat, t["max_entrees"])
+        "/v1/categories/%d/entries?status=unread&after=%d&order=published_at&direction=desc&limit=%d"
+        % (cat, depuis, t["max_entrees"])
     )
     entrees = d.get("entries", [])
-    print("  %s : %d entrée(s) non lue(s) traitée(s)" % (nom, len(entrees)), flush=True)
+    print(
+        "  %s : %d entrée(s) non lue(s) traitée(s) sur %d j, %d expirée(s)"
+        % (nom, len(entrees), fenetre, expires),
+        flush=True,
+    )
     if not entrees:
         return "rien à lire"
     items = [

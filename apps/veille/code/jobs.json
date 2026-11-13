@@ -1,7 +1,7 @@
 [
  {
   "name": "veille-matin",
-  "displayname": "Veille du matin : llm-local, harnais-agents (jeudi)",
+  "displayname": "Veille du matin : llm-local, harnais-agents",
   "schedule": "0 0 7 * * *",
   "timezone": "Pacific/Noumea",
   "concurrency": "forbid",
@@ -21,13 +21,13 @@
  },
  {
   "name": "veille-soir",
-  "displayname": "Veille du soir : korben, decouvertes, data-ia, 3d-assets, arr (samedi)",
+  "displayname": "Veille du soir : korben, decouvertes, data-ia, 3d-assets, gamedev, arr (samedi)",
   "schedule": "0 0 20 * * *",
   "timezone": "Pacific/Noumea",
   "concurrency": "forbid",
   "metadata": {"age_max_h": "26"},
   "executor": "shell",
-  "executor_config": {"command": "python3 /code/digest.py korben decouvertes data-ia 3d-assets arr", "cwd": "/code", "timeout": "90m"}
+  "executor_config": {"command": "python3 /code/digest.py korben decouvertes data-ia 3d-assets gamedev arr", "cwd": "/code", "timeout": "90m"}
  },
  {
   "name": "watchers",

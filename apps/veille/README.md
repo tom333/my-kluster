@@ -5,9 +5,9 @@ le PVC `dkron-data`, **aucune base externe**), UI `https://veille.tgu.ovh` (LAN 
 
 | job | quand (heure NC) | fait quoi |
 |---|---|---|
-| `veille-matin` | 7h00 | `digest.py llm-local harnais-agents` (harnais : jeudi seulement) |
+| `veille-matin` | 7h00 | `digest.py llm-local harnais-agents` |
 | `emploi-nc` | 7h30 | offres tech/data NC, 15 sources, dédup `/data/etat/emploi_nc_vues.json` |
-| `veille-soir` | 20h00 | `digest.py korben decouvertes data-ia 3d-assets arr` (arr : samedi) |
+| `veille-soir` | 20h00 | `digest.py korben decouvertes data-ia 3d-assets gamedev arr` (arr : samedi) |
 | `watchers` | 7h, 20h | bonsai, moe-cache (scripts tirés du dépôt, état dans `/data/etat`) |
 | `sentinelle` | 21h00 | signale tout job sans succès depuis `metadata.age_max_h` |
 | `sync-jobs` | toutes les 10 min | aligne Dkron sur `code/jobs.json` |
@@ -22,6 +22,16 @@ le PVC `dkron-data`, **aucune base externe**), UI `https://veille.tgu.ovh` (LAN 
 - **Un créneau = un job** qui enchaîne ses thèmes en série dans un seul processus : gemma est
   chargé une fois et aucun digest ne l'évince. Un thème en échec n'arrête pas les suivants.
   (Le chaînage natif `parent_job` de Dkron s'arrête au premier échec : écarté.)
+- **Fenêtre glissante** (2026-11-13) : un digest ne lit que les non-lus publiés depuis
+  `fenetre_jours` (défaut 2 ; 8 si le thème a des `jours`), les plus récents d'abord, au plus
+  `max_entrees`. Les non-lus plus anciens sont **expirés** (marqués lus sans traitement). Avant,
+  le tri « plus ancien d'abord » + le plafond creusaient un retard sans fin sur les flux
+  volumineux (harnais-agents lisait des items de six semaines).
+- **Sources** : les flux vivent dans Miniflux, une catégorie par thème. Préférer les sources
+  éditoriales (blogs, newsletters, Reddit) aux `releases.atom` de dépôts qui taguent chaque
+  commit (llama.cpp, pytorch) : le modèle ne peut pas filtrer 60 titres de commits. Miniflux
+  **suspend** un flux après 3 erreurs consécutives sauf `POLLING_PARSING_ERROR_LIMIT=0` (posé
+  dans `miniflux-app.yaml`) ; 14 flux dormaient ainsi depuis septembre.
 - **Ajouter un thème** : une catégorie Miniflux + une entrée dans `code/themes.json` + son nom
   dans la commande du job du créneau voulu.
 

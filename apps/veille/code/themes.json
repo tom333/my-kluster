@@ -22,13 +22,15 @@
   "max_entrees": 60,
   "consigne": "Tu es un filtre de DÉCOUVERTE, pas un résumeur. Mes centres d'intérêt : agents et harnais\nde codage LLM, petits modèles locaux (llama.cpp, GGUF, LocalAI, RTX 3060 12 Go),\norchestration de workflows (Kestra, Dagster), Kubernetes auto-hébergé, GitOps, data\n(DuckDB, Polars, marimo), génération d'assets 3D (ComfyUI, TRELLIS), Flutter. Retiens\nau MAXIMUM 3 items, uniquement s'ils apportent quelque chose de NEUF et d'actionnable\npour ces sujets — un projet inconnu, un mécanisme portable, un résultat mesuré. Pour\nchaque item : titre avec emoji, la source et son signal (points HN, tendance GitHub…),\n2 phrases sur ce que ça apporte et pourquoi c'est pertinent pour moi, puis '🔗 ' + lien\nexact. La plupart des jours il n'y a rien qui passe ce filtre : c'est normal, réponds\nalors par la sentinelle. Ne baisse JAMAIS le seuil pour remplir."
  },
+ "gamedev": {
+  "categorie": "gamedev",
+  "max_entrees": 60,
+  "consigne": "Veille quotidienne moteurs de jeu : Godot (jeux passés) et Unreal Engine (jeux récents). Trois sections, titres EXACTS, chacune seulement si elle a du neuf, max 3 items par section : '🎮 Unreal' (releases, previews, changements de licence ou d'outillage), '🤖 Godot' (releases, previews, changements d'outillage), '🧰 Écosystème' (outils, plugins, tendances, et MOTEURS CONCURRENTS qui gagnent du terrain). Ne rapporte pas les questions de support ni les vitrines de projets personnels sans apport technique. Chaque item : titre avec emoji, 2 phrases, '🔗 ' + lien exact. Rien : sentinelle."
+ },
  "harnais-agents": {
   "categorie": "harnais-agents",
   "max_entrees": 60,
-  "consigne": "Objet : le LOGICIEL QUI PILOTE le modèle (opencode, aider, goose, crush, cline, Roo,\nnanocoder, OpenHands, openclaw, oh-my-pi, little-coder, interfaces pour Claude Code…).\nCe qui DÉCIDE, dans cet ordre : la façon dont le harnais POUSSE de l'information au\nmodèle (diagnostics injectés, règles à interruption, relance sur erreur), la taille du\npréambule et du schéma d'outils, le format d'édition, le support des serveurs\nOpenAI-compatibles locaux. Les benchmarks annoncés ne décident pas.\nFormat : 🔧 Harnais — max 3 releases : version, date, ce que la note change sur ces\ncritères, sinon « rien sur les critères ». 🆕 Découvertes — max 3 projets inconnus\n(topics, trending, awesome-lists) avec date de création, étoiles et ce qu'ils apportent.\n🎯 Levier — quand un mécanisme est portable sur un harnais déjà en place, la\nmodification concrète. Chaque item avec '🔗 ' + lien exact. Rien qui passe : sentinelle.",
-  "jours": [
-   3
-  ]
+  "consigne": "Objet : le LOGICIEL QUI PILOTE le modèle (opencode, aider, goose, crush, cline, Roo,\nnanocoder, OpenHands, openclaw, oh-my-pi, little-coder, interfaces pour Claude Code…).\nCe qui DÉCIDE, dans cet ordre : la façon dont le harnais POUSSE de l'information au\nmodèle (diagnostics injectés, règles à interruption, relance sur erreur), la taille du\npréambule et du schéma d'outils, le format d'édition, le support des serveurs\nOpenAI-compatibles locaux. Les benchmarks annoncés ne décident pas.\nFormat : 🔧 Harnais — max 3 releases : version, date, ce que la note change sur ces\ncritères, sinon « rien sur les critères ». 🆕 Découvertes — max 3 projets inconnus\n(topics, trending, awesome-lists) avec date de création, étoiles et ce qu'ils apportent.\n🎯 Levier — quand un mécanisme est portable sur un harnais déjà en place, la\nmodification concrète. Chaque item avec '🔗 ' + lien exact. Rien qui passe : sentinelle."
  },
  "korben": {
   "categorie": "korben",
