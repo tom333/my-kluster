@@ -99,7 +99,8 @@ Les fichiers `.disable` sont ignorés. Pour désactiver une app, suffixe son fic
 | Application   | Namespace  | Source                          | Version   | Notes                                         |
 |---------------|------------|---------------------------------|-----------|-----------------------------------------------|
 | `mlflow`      | `ia-lab`   | bjw-s-labs.github.io/helm-charts | 5.0.1     | `app-template`, image `ghcr.io/mlflow/mlflow:v3.12.0`, initContainer `mlflow db upgrade`, PVC `mlflow-data` 10Gi |
-| `rustfs`      | `ia-lab`   | github.com/rustfs/rustfs        | 1.0.0-beta.3 | S3-compatible, probes par défaut du chart      |
+| `rustfs`      | `ia-lab`   | github.com/rustfs/rustfs        | 1.0.5     | S3-compatible, probes par défaut du chart. Image épinglée via `image.rustfs.tag` (un `image.tag` à plat est ignoré par le chart) et suivie par Renovate (customManager) |
+| `lakehouse-nc`| `lakehouse-nc` | github.com/tom333/lakehouse-nc → `deploy/` | main | Chart parapluie Lakekeeper 0.14.0 + Trino 1.45.0 (mono-nœud). Base `lakekeeper` dans le PostgreSQL de `datalab`. Secrets : `sealed/lakehouse-nc-secrets.yaml`. Bucket RustFS `lakehouse-nc` |
 | `dagster`     | `dagster`  | dagster-io.github.io/helm       | 1.12.19   | K8sRunLauncher, image locale, DuckLake config |
 | `postgresql`  | `datalab`  | charts.bitnami.com              | 18.6.6    | `auth.existingSecret: postgresql-credentials` (SealedSecret) |
 | `qdrant`      | `datalab`  | qdrant.to/helm                  | 1.17.0    | Vector DB, config minimale                    |

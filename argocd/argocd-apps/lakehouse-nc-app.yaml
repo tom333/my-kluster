@@ -1,0 +1,24 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: lakehouse-nc
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: lakehouse-nc
+    server: https://kubernetes.default.svc
+  project: datalab-project
+  source:
+    # Chart parapluie Lakekeeper + Trino, dans le dépôt du projet.
+    # Secrets : sealed/lakehouse-nc-secrets.yaml (même namespace).
+    path: deploy/
+    repoURL: https://github.com/tom333/lakehouse-nc.git
+    targetRevision: main
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      selfHeal: true
+      prune: true
