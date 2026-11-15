@@ -25,10 +25,15 @@ spec:
         
         replicaCount: 1
         
+        # Le chart lit image.rustfs.* (un image.tag à plat est ignoré et l'image
+        # retombe sur l'appVersion du chart, en retard sur les releases).
+        # Tag épinglé, suivi par Renovate (customManager rustfs dans renovate.json) :
+        # les tags git du chart sortent avant l'image Docker.
         image:
-          repository: rustfs/rustfs
-          tag: "1.0.0-beta.3"
-          pullPolicy: IfNotPresent
+          rustfs:
+            repository: rustfs/rustfs
+            tag: "1.0.5"
+            pullPolicy: IfNotPresent
         
         # Configuration RustFS
         config:

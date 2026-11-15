@@ -67,6 +67,17 @@
     },
     {
       "customType": "regex",
+      "description": "RustFS image tag inside ArgoCD helm values (image.rustfs.tag), plain semver only (no -glibc / -preview)",
+      "fileMatch": [
+        "^argocd/argocd-apps/rustfs-app\\.yaml$"
+      ],
+      "matchStrings": [
+        "repository:\\s*(?<depName>rustfs/rustfs)\\s*\\n\\s*tag:\\s*\"(?<currentValue>\\d+\\.\\d+\\.\\d+)\""
+      ],
+      "datasourceTemplate": "docker"
+    },
+    {
+      "customType": "regex",
       "description": "Hermes Agent image tag (date-based versioning vYYYY.M.D[.N])",
       "fileMatch": [
         "^argocd/argocd-apps/hermes-agent-app\\.yaml$"
