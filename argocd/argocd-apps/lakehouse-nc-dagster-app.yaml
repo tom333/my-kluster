@@ -1,0 +1,24 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: lakehouse-nc-dagster
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: infra-project
+  source:
+    # Serveur de code Dagster du lakehouse-nc (déclaré dans dagster.yaml).
+    # Secret des runs : sealed/lakehouse-nc-dagster.yaml.
+    repoURL: https://github.com/tom333/lakehouse-nc.git
+    targetRevision: main
+    path: deploy/dagster
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: dagster
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=false
+    automated:
+      selfHeal: true
+      prune: true

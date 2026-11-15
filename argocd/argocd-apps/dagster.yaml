@@ -12,7 +12,7 @@ spec:
   project: infra-project
   source:
     repoURL: https://dagster-io.github.io/helm
-    targetRevision: 1.13.18
+    targetRevision: 1.13.30
     chart: dagster
     helm:
       values: |
@@ -67,6 +67,10 @@ spec:
               - host: dagster-user-code-accidents
                 port: 4000
                 name: accidents
+              # Code du dépôt tom333/lakehouse-nc (app lakehouse-nc-dagster)
+              - host: dagster-code-lakehouse-nc
+                port: 4000
+                name: lakehouse-nc
 
         dagster-user-deployments:
           enabled: true
