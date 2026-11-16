@@ -148,8 +148,11 @@ spec:
 # auto après sessionDuration sans requête. Serveur : sablier.kube-system:10000.
 # Pilote : mlflow (ia-lab).
 ---
-# RustFS (rustfs.tgu.ovh, S3 + console) : LAN et cluster seulement (2026-11-16).
-# Il était public avec les identifiants par défaut.
+# RustFS (rustfs.tgu.ovh, S3 + console) : filtre LAN et cluster (2026-11-16).
+# ⚠️ Protection partielle : le routeur fait arriver une partie du trafic Internet
+# (et le trafic du cluster vers rustfs.tgu.ovh) avec l'adresse 192.168.88.1, que
+# ce filtre laisse passer. Vaut pour tous les ipAllowList de ce fichier. La vraie
+# protection de RustFS est son identifiant (sealed/rustfs-secret.yaml).
 apiVersion: traefik.io/v1alpha1
 kind: Middleware
 metadata:
