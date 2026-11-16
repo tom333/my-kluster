@@ -65,6 +65,9 @@ spec:
               paths:
                 - path: /
                   pathType: ImplementationSpecific
+          annotations:
+            # LAN et cluster seulement : middleware ia-lab/lan-only (config/traefik-middlewares.yaml)
+            traefik.ingress.kubernetes.io/router.middlewares: ia-lab-lan-only@kubernetescrd
           nginxAnnotations:
             cert-manager.io/cluster-issuer: "letsencrypt-prod"
             # Annotations nginx retirées (migration Traefik 2026-06) :

@@ -148,6 +148,17 @@ spec:
 # auto après sessionDuration sans requête. Serveur : sablier.kube-system:10000.
 # Pilote : mlflow (ia-lab).
 ---
+# RustFS (rustfs.tgu.ovh, S3 + console) : LAN et cluster seulement (2026-11-16).
+# Il était public avec les identifiants par défaut.
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: lan-only
+  namespace: ia-lab
+spec:
+  ipAllowList:
+    sourceRange: ["192.168.88.0/24", "10.1.0.0/16"]
+---
 apiVersion: traefik.io/v1alpha1
 kind: Middleware
 metadata:
