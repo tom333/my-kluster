@@ -1,0 +1,11 @@
+# PriorityClass des entraînements minimind lancés par Dagster (dépôt tom333/minimind).
+# Priorité des runs d'entraînement : au-dessus de LocalAI (localai-high = 100000) pour lui
+# reprendre le GPU le temps d'un run, très en dessous des classes système.
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: gpu-training
+value: 200000
+globalDefault: false
+preemptionPolicy: PreemptLowerPriority
+description: "Entraînements minimind lancés par Dagster : évincent LocalAI du GPU pendant le run."

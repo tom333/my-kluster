@@ -1,0 +1,25 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: minimind-dagster
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: infra-project
+  source:
+    # Serveur de code Dagster de minimind (déclaré dans dagster.yaml) : études Optuna
+    # d'entraînement sur le GPU. Les runs utilisent la PriorityClass gpu-training
+    # (config/priorityclass-gpu-training.yaml), qui évince LocalAI le temps du run.
+    repoURL: https://github.com/tom333/minimind.git
+    targetRevision: experiments
+    path: deploy/dagster
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: dagster
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=false
+    automated:
+      selfHeal: true
+      prune: true

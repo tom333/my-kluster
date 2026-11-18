@@ -71,6 +71,10 @@ spec:
               - host: dagster-code-lakehouse-nc
                 port: 4000
                 name: lakehouse-nc
+              # Code du dépôt tom333/minimind (app minimind-dagster)
+              - host: dagster-code-minimind
+                port: 4000
+                name: minimind
 
         dagster-user-deployments:
           enabled: true
