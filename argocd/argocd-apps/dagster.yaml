@@ -60,6 +60,17 @@ spec:
                 jobSpecConfig:
                   ttlSecondsAfterFinished: 7200
 
+        # File d'attente : un seul run portant le tag `gpu` à la fois (runs d'entraînement minimind).
+        # Les suivants restent QUEUED côté Dagster, sans délai : un pod laissé en attente du GPU
+        # côté Kubernetes serait abandonné au bout de 300 s (run_monitoring.start_timeout_seconds).
+        dagsterDaemon:
+          runCoordinator:
+            config:
+              queuedRunCoordinator:
+                tagConcurrencyLimits:
+                  - key: "gpu"
+                    limit: 1
+
         dagsterWebserver:
           workspace:
             enabled: true           
