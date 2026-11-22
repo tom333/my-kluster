@@ -103,7 +103,7 @@ spec:
                       initialDelaySeconds: 120
                       periodSeconds: 20
                 resources:
-                  limits:   { cpu: 1000m, memory: 2Gi }
+                  limits:   { cpu: 2000m, memory: 4Gi }  # envoi de poids de modèles (>100 Mo) par le proxy d artefacts
                   requests: { cpu: 250m,  memory: 1Gi }
 
         service:
