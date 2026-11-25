@@ -1,0 +1,77 @@
+# Tic-Tâche (contrôle parental Android, repo tom333/tictache).
+# Sert l'APK de l'app enfant, téléchargé par les appareils pendant l'enrôlement par QR code.
+# PUBLIC sans authentification : l'appareil en cours d'enrôlement n'a aucun identifiant.
+# L'APK ne contient aucun secret. Il est déposé par `outils/publier-apk.sh` (kubectl cp)
+# dans le volume, jamais dans une image. Sera remplacé par le backend en tranche 2.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: fichiers
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: microk8s-hostpath
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fichiers
+  labels: { app: fichiers }
+spec:
+  replicas: 1
+  strategy: { type: Recreate }
+  selector:
+    matchLabels: { app: fichiers }
+  template:
+    metadata:
+      labels: { app: fichiers }
+    spec:
+      # hostpath : le PVC est lié au nœud où il a été créé.
+      nodeSelector:
+        kubernetes.io/hostname: pc
+      containers:
+        - name: nginx
+          image: nginxinc/nginx-unprivileged:1.29-alpine
+          ports:
+            - { name: http, containerPort: 8080 }
+          readinessProbe:
+            tcpSocket: { port: 8080 }
+          resources:
+            requests: { cpu: 10m, memory: 16Mi }
+            limits: { memory: 64Mi }
+          volumeMounts:
+            - { name: fichiers, mountPath: /usr/share/nginx/html }
+      volumes:
+        - name: fichiers
+          persistentVolumeClaim: { claimName: fichiers }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fichiers
+spec:
+  selector: { app: fichiers }
+  ports:
+    - { name: http, port: 80, targetPort: http }
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: fichiers
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  ingressClassName: public
+  rules:
+    - host: tictache.tgu.ovh
+      http:
+        paths:
+          - path: /enfant.apk
+            pathType: Exact
+            backend:
+              service: { name: fichiers, port: { number: 80 } }
+  tls:
+    - hosts: [tictache.tgu.ovh]
+      secretName: tictache-tls
